@@ -1,0 +1,11 @@
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    useLightningcss: true,  // Kích hoạt Lightning CSS cho Tailwind v4 + Next.js 15
+    // Các experimental khác nếu có (ví dụ: turbo: { ... } cho Turbopack)
+  },
+  // Các config khác (ví dụ: images, env,...)
+};
+
+module.exports = nextConfig;

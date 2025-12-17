@@ -9,19 +9,20 @@ import {
   TableCell,
 } from "@heroui/react";
 import { CheckCircle2, Lock } from "lucide-react";
+import Link from "next/link";
 
 // Định nghĩa kiểu dữ liệu cho bài tập
 export interface Problem {
   id: number;
   title: string;
-  difficulty: "Easy" | "Medium" | "Hard"; // Chỉ chấp nhận 3 giá trị này
+  difficulty: "Easy" | "Medium" | "Hard";
   isSolved: boolean;
   isLocked: boolean;
-  acceptance?: string; // Dấu ? nghĩa là không bắt buộc
+  acceptance?: string;
 }
 
 interface ProblemsTableProps {
-  problems: Problem[]; // Thay any[] bằng Problem[]
+  problems: Problem[];
 }
 
 export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
@@ -38,42 +39,51 @@ export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
       </TableColumn>
     </TableHeader>
     <TableBody>
-      {problems.map((p) => (
-        <TableRow
-          key={p.id}
-          className="hover:bg-gray-50 cursor-pointer border-b border-gray-50 transition-colors"
-        >
-          <TableCell className="py-4 font-medium text-[14px] text-gray-900 leading-none">
-            <span className="hover:text-blue-600 transition-colors">
-              {p.id}. {p.title}
-            </span>
-          </TableCell>
-          <TableCell className="text-center">
-            <span
-              className={`text-[13px] font-bold ${
-                p.difficulty === "Easy"
-                  ? "text-teal-500"
-                  : p.difficulty === "Medium"
-                  ? "text-orange-400"
-                  : "text-red-500"
-              }`}
-            >
-              {p.difficulty}
-            </span>
-          </TableCell>
-          <TableCell className="text-right">
-            <div className="flex justify-end">
-              {p.isSolved ? (
-                <CheckCircle2 size={18} className="text-green-500" />
-              ) : p.isLocked ? (
-                <Lock size={16} className="text-gray-300" />
-              ) : (
-                <span className="text-gray-200 font-light">—</span>
-              )}
-            </div>
-          </TableCell>
-        </TableRow>
-      ))}
+      {problems.map((p) => {
+        // 2. Tạo slug đơn giản cho URL (Ví dụ: "Two Sum" -> "two-sum")
+        const problemSlug = p.title.toLowerCase().replace(/\s+/g, "-");
+
+        return (
+          <TableRow
+            key={p.id}
+            className="hover:bg-gray-50 cursor-pointer border-b border-gray-50 transition-colors"
+          >
+            <TableCell className="py-4 font-medium text-[14px] text-gray-900 leading-none">
+              {/* 3. Thay span bằng Link trỏ tới folder [id] bạn đã tạo */}
+              <Link
+                href={`/Problems/${problemSlug}`}
+                className="hover:text-blue-600 transition-colors block w-full"
+              >
+                {p.id}. {p.title}
+              </Link>
+            </TableCell>
+            <TableCell className="text-center">
+              <span
+                className={`text-[13px] font-bold ${
+                  p.difficulty === "Easy"
+                    ? "text-teal-500"
+                    : p.difficulty === "Medium"
+                    ? "text-orange-400"
+                    : "text-red-500"
+                }`}
+              >
+                {p.difficulty}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex justify-end">
+                {p.isSolved ? (
+                  <CheckCircle2 size={18} className="text-green-500" />
+                ) : p.isLocked ? (
+                  <Lock size={16} className="text-gray-300" />
+                ) : (
+                  <span className="text-gray-200 font-light">—</span>
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        );
+      })}
     </TableBody>
   </Table>
 );

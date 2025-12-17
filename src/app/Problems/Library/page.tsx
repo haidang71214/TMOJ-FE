@@ -44,7 +44,6 @@ export default function LibraryPage() {
     { name: "Ordered Set", count: 76 },
   ];
 
-  // Danh sách bài tập mẫu sử dụng Interface Problem (Để tránh lỗi 'any')
   const problems: Problem[] = [
     {
       id: 1,

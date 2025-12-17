@@ -3,7 +3,6 @@
 
 import { Button, Input } from '@heroui/react';
 import React from 'react';
-import { ModalFooter } from '@heroui/react'; // nếu có
 
 
 
@@ -11,7 +10,7 @@ export default function RegisterModal() {
 
   return (
     <form className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-center">Đăng ký tài khoản</h2>
+      <h2 className="text-xl font-bold text-center">Sign up</h2>
 
       <Input placeholder="Họ tên" autoFocus />
     <p className="text-red-500 text-sm"></p>
@@ -26,11 +25,12 @@ export default function RegisterModal() {
       <Input placeholder="Link ảnh đại diện (tùy chọn)" />
      <p className="text-red-500 text-sm"></p>
 
-      <ModalFooter>
-        <Button type="submit" color="danger" >
-          Đăng ký ngay
+      <div className="flex flex-row gap-2 py-4 justify-end">
+       <Button type="submit" color="danger" >
+          Sign up now
         </Button>
-      </ModalFooter>
+      </div>
+      
     </form>
   );
 }

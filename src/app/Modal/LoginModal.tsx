@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, addToast, ModalFooter } from '@heroui/react';
+import { Input, Button, addToast } from '@heroui/react';
 import { useLoginMutation } from '@/store/queries/auth';
 import { useModal } from '../../Provider/ModalProvider';
 
@@ -42,7 +42,7 @@ export default function LoginModal() {
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      <h2 className="text-lg font-semibold">Đăng nhập</h2>
+      <h2 className="text-xl font-bold text-center">Login</h2>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="email">Email</label>
@@ -57,7 +57,7 @@ export default function LoginModal() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="password">Mật khẩu</label>
+        <label htmlFor="password">Password</label>
         <Input
           id="password"
           type="password"
@@ -67,11 +67,12 @@ export default function LoginModal() {
           placeholder="Nhập mật khẩu"
         />
       </div>
-    <ModalFooter>
+      <div className="flex flex-row gap-2 py-4 justify-end">
+     
       <Button type="submit" color="danger" variant="solid">
         Login
       </Button>
-      </ModalFooter>
+     </div>
     </form>
   );
 }

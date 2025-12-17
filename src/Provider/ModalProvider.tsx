@@ -39,7 +39,8 @@ export const ModalProvider = ({ children }: ModalProviderProps) => {
       {children}
 
       {isOpen && (
-        <Modal
+        <Modal 
+        style={{paddingTop:10}}
           isOpen={isOpen}
           onClose={closeModal}
           title={modalConfig.title}

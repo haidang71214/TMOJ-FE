@@ -16,8 +16,8 @@ export default function ThemeToggle() {
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
   return (
-    <Button onPress={toggleTheme} color="secondary" variant="flat">
-      {theme === 'light' ? '🌞 Light' : '🌙 Dark'}
+    <Button isIconOnly aria-label="Like" color="danger"  onPress={toggleTheme} variant="flat">
+ {theme === 'light' ? '🌞' : '🌙 '}
     </Button>
-  );
+  )
 }

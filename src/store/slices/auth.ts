@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { User } from "@/types";
+import { Users } from "@/types";
 import webStorageClient from "@/utils/webStorageClient";
 import { authApi } from "../queries/auth";
 
 interface AuthSlickInterface {
   isAuthenticatedAccount: boolean;
-  user?: User;
+  user?: Users;
   isHydrated: boolean;
 }
 

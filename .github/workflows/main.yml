@@ -12,6 +12,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
+          vps: ${{secrets.VPS}}
           port: 24700
           script: |
             cd /root/dmojfe

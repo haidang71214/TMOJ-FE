@@ -2,6 +2,10 @@
 
 @import "tailwindcss";
 @config "../../tailwind.config.js";
+html {
+  font-size: 85.5%; /* ~14px thay vì 16px */
+}
+
 *::-webkit-scrollbar {
   background-color: #fff;
   width: 14px;

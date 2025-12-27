@@ -87,8 +87,8 @@ export default function NavbarProvider() {
       description: "Find Your limited package",
     },
     {
-      key: "Premium",
-      label: "Premium",
+      key: "/Premium",
+      label: "premium",
       description: "Get started with a DMOJ Subscription that works for you.",
     },
   ];

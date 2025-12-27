@@ -36,7 +36,7 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
       <body
       suppressHydrationWarning
         className={clsx(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen  font-sans antialiased bg-gray-50 ",
           fontSans.variable,
           
         )}

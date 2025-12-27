@@ -74,3 +74,12 @@ export interface UpdateUserDto {
   imagesUrl?: string | null;
   age?: number | null;
 }
+export interface Contest {
+  title: string;
+  date: string;
+  countdown: string;
+  description: string;
+  prizes: string[];
+  eligibility: string;
+  bannerImage?: string; // optional vì không phải contest nào cũng có
+}

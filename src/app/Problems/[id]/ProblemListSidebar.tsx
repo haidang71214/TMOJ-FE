@@ -7,7 +7,7 @@ import { Input, Button } from "@heroui/react";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  currentProblemId: string; // ID lấy từ URL (ví dụ: "1")
+  currentProblemId: string;
 }
 
 const MOCK_PROBLEMS = [
@@ -35,7 +35,6 @@ export const ProblemListSidebar = ({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Logic tìm kiếm bài tập
   const filteredProblems = useMemo(() => {
     return MOCK_PROBLEMS.filter(
       (p) =>
@@ -44,17 +43,16 @@ export const ProblemListSidebar = ({
     );
   }, [searchQuery]);
 
-  // Xử lý khi click chọn bài tập
   const handleProblemClick = (id: string) => {
     router.push(`/Problems/${id}`);
-    onClose(); // Đóng sidebar sau khi chọn bài mới
+    onClose();
   };
 
   return (
     <>
-      {/* Overlay - Làm mờ nền */}
+      {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/40 z-[100] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/60 z-[100] transition-opacity duration-300 backdrop-blur-sm ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -64,49 +62,59 @@ export const ProblemListSidebar = ({
 
       {/* Sidebar Panel */}
       <div
-        className={`fixed top-0 left-0 h-full w-[400px] bg-white shadow-2xl z-[101] transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-[400px] bg-white dark:bg-[#1C2737] shadow-2xl z-[101] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } border-r dark:border-[#334155]`}
       >
-        <div className="flex flex-col h-full font-sans text-[#262626]">
+        <div className="flex flex-col h-full font-sans text-[#262626] dark:text-[#F9FAFB]">
           {/* Header Sidebar */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-1 font-bold text-lg cursor-pointer hover:text-gray-500 transition-colors">
-              Problem List <ChevronRight size={18} className="text-gray-400" />
+          <div className="p-5 flex items-center justify-between border-b dark:border-[#334155]">
+            <div className="flex items-center gap-1 font-black text-lg cursor-pointer hover:text-blue-600 dark:hover:text-[#E3C39D] transition-colors uppercase tracking-tight">
+              Problem List{" "}
+              <ChevronRight
+                size={20}
+                className="text-gray-400 dark:text-[#667085]"
+              />
             </div>
-            <div className="flex items-center gap-4 text-[13px] text-gray-400">
-              <div className="flex items-center gap-1">
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-300" />
+            <div className="flex items-center gap-4 text-[12px] font-bold text-gray-400 dark:text-[#94A3B8]">
+              <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#101828] px-2 py-1 rounded-full">
+                <div className="w-2.5 h-2.5 rounded-full border-2 border-green-500" />
                 <span>0/3778 Solved</span>
               </div>
               <X
-                className="cursor-pointer hover:text-black transition-colors"
+                className="cursor-pointer hover:text-black dark:hover:text-white transition-colors"
                 onClick={onClose}
-                size={20}
+                size={22}
               />
             </div>
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="px-4 pb-4 flex gap-2 items-center">
+          <div className="p-4 flex gap-2 items-center bg-gray-50/50 dark:bg-[#162130]">
             <Input
               size="sm"
-              placeholder="Search questions"
+              placeholder="Search questions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              startContent={<Search size={16} className="text-gray-400" />}
+              startContent={
+                <Search
+                  size={16}
+                  className="text-gray-400 dark:text-[#667085]"
+                />
+              }
               className="flex-1"
               variant="flat"
               classNames={{
                 inputWrapper:
-                  "bg-gray-100/50 group-data-[focus=true]:bg-white border-transparent group-data-[focus=true]:border-gray-200",
+                  "dark:bg-[#101828] border-transparent group-data-[focus=true]:dark:border-[#E3C39D] dark:text-white transition-all",
+                input: "placeholder:dark:text-[#475569] text-sm",
               }}
             />
             <Button
               isIconOnly
               size="sm"
               variant="light"
-              className="text-gray-400"
+              className="text-gray-400 dark:text-[#94A3B8] hover:dark:text-white"
             >
               <ArrowUpDown size={16} />
             </Button>
@@ -114,47 +122,50 @@ export const ProblemListSidebar = ({
               isIconOnly
               size="sm"
               variant="light"
-              className="text-gray-400"
+              className="text-gray-400 dark:text-[#94A3B8] hover:dark:text-white"
             >
               <Filter size={16} />
             </Button>
           </div>
 
           {/* List Content */}
-          <div className="flex-1 overflow-y-auto no-scrollbar px-2 pb-10">
+          <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-2 space-y-1">
             {filteredProblems.map((prob) => {
-              // ÉP KIỂU STRING ĐỂ SO SÁNH (Sửa lỗi highlight không hiện màu đen)
               const isSelected = String(prob.id) === String(currentProblemId);
 
               return (
                 <div
                   key={prob.id}
                   onClick={() => handleProblemClick(prob.id)}
-                  className={`flex items-center justify-between px-4 py-2.5 cursor-pointer rounded-lg transition-all mb-0.5 ${
+                  className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 group ${
                     isSelected
-                      ? "bg-[#262626] text-white shadow-md"
-                      : "hover:bg-gray-100 text-[#262626]"
+                      ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-lg shadow-black/10 scale-[1.02] z-10"
+                      : "hover:bg-gray-100 dark:hover:bg-[#101828] text-[#262626] dark:text-[#CDD5DB]"
                   }`}
                 >
-                  <div className="flex gap-3 text-[14px] font-medium items-center overflow-hidden">
+                  <div className="flex gap-4 text-[14px] font-bold items-center overflow-hidden">
                     <span
-                      className={`w-6 text-right shrink-0 ${
-                        isSelected ? "text-gray-500" : "text-gray-400"
+                      className={`w-6 text-right shrink-0 transition-colors ${
+                        isSelected
+                          ? "dark:text-[#101828]/60"
+                          : "text-gray-400 dark:text-[#475569]"
                       }`}
                     >
                       {prob.id}.
                     </span>
-                    <span className="truncate">{prob.title}</span>
+                    <span className="truncate group-hover:dark:text-white transition-colors">
+                      {prob.title}
+                    </span>
                   </div>
                   <span
-                    className={`text-[12px] font-bold shrink-0 ml-2 ${
+                    className={`text-[11px] font-black uppercase tracking-tighter shrink-0 ml-2 px-2 py-0.5 rounded-md ${
                       isSelected
-                        ? "text-cyan-400"
+                        ? "bg-black/10 dark:bg-black/20 text-current"
                         : prob.difficulty === "Easy"
-                        ? "text-cyan-500"
+                        ? "text-cyan-500 bg-cyan-500/10"
                         : prob.difficulty === "Med."
-                        ? "text-orange-500"
-                        : "text-rose-500"
+                        ? "text-orange-500 bg-orange-500/10"
+                        : "text-rose-500 bg-rose-500/10"
                     }`}
                   >
                     {prob.difficulty}
@@ -164,8 +175,11 @@ export const ProblemListSidebar = ({
             })}
 
             {filteredProblems.length === 0 && (
-              <div className="text-center py-10 text-gray-400 text-sm italic">
-                No problems found
+              <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                <Search size={40} className="mb-2" />
+                <p className="text-sm font-bold uppercase tracking-widest">
+                  No problems found
+                </p>
               </div>
             )}
           </div>

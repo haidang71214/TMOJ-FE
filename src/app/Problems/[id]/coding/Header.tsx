@@ -13,89 +13,134 @@ import {
 } from "lucide-react";
 import { Button, Tooltip } from "@heroui/react";
 
+interface HeaderProps {
+  problemId: string | number;
+  onNoteClick: () => void;
+  isNoteActive: boolean;
+  onProblemListClick: () => void;
+}
+
 export const Header = ({
-  problemId,
   onNoteClick,
   isNoteActive,
   onProblemListClick,
-}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-any) => {
+}: HeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-4 py-2 bg-white border-b shrink-0">
-      <div className="flex items-center gap-4 text-gray-500">
+    <header className="flex items-center px-4 py-2 bg-white dark:bg-[#101828] border-b dark:border-[#1C2737] shrink-0 transition-colors duration-500 h-12">
+      {/* 1. PHẦN BÊN TRÁI: Problem List & Navigation */}
+      <div className="flex-1 flex items-center gap-4 text-gray-500 dark:text-[#94A3B8]">
         <div
-          className="flex items-center gap-1 cursor-pointer hover:text-black font-medium transition-colors"
+          className="flex items-center gap-2 cursor-pointer hover:text-black dark:hover:text-white font-bold transition-all group"
           onClick={onProblemListClick}
         >
-          <Terminal size={18} /> <span className="text-sm">Problem List</span>
+          <div className="p-1.5 bg-gray-100 dark:bg-[#1C2737] rounded-md group-hover:bg-gray-200 dark:group-hover:bg-[#334155]">
+            <Terminal size={16} className="text-gray-600 dark:text-[#E3C39D]" />
+          </div>
+          <span className="text-xs uppercase tracking-wider hidden md:block">
+            Problem List
+          </span>
         </div>
-        <div className="flex gap-1 border-l pl-4">
-          <Button isIconOnly size="sm" variant="light">
+
+        <div className="flex gap-1 border-l dark:border-[#1C2737] pl-4">
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="dark:text-[#94A3B8] hover:dark:text-white"
+          >
             <ChevronLeft size={18} />
-          </Button>
-          <Button isIconOnly size="sm" variant="light">
-            <ChevronRight size={18} />
           </Button>
           <Button
             isIconOnly
             size="sm"
             variant="light"
-            onClick={() => window.location.reload()}
+            className="dark:text-[#94A3B8] hover:dark:text-white"
           >
-            <Shuffle size={16} />
+            <ChevronRight size={18} />
           </Button>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <Button
-          size="sm"
-          variant="flat"
-          className="bg-gray-100 font-bold px-4 h-8"
-          startContent={<Play size={16} />}
-        >
-          Run
-        </Button>
-        <div className="flex items-center gap-1">
-          <Button
+          <Tooltip
+            content="Pick One"
             size="sm"
-            className="bg-[#2cbb5d] text-white font-bold px-4 h-8"
-            startContent={<Send size={16} />}
+            className="dark:bg-[#1C2737] dark:text-white"
           >
-            Submit
-          </Button>
-          <Tooltip content="Note">
             <Button
               isIconOnly
               size="sm"
               variant="light"
-              className={`h-8 w-8 ${
-                isNoteActive ? "text-orange-500 bg-orange-50" : "text-gray-500"
-              }`}
-              onClick={onNoteClick}
+              className="dark:text-[#94A3B8] hover:dark:text-white"
+              onClick={() => window.location.reload()}
             >
-              <StickyNote size={18} />
+              <Shuffle size={16} />
             </Button>
           </Tooltip>
         </div>
+      </div>
+
+      {/* 2. PHẦN Ở GIỮA: Run & Submit (Căn giữa tuyệt đối) */}
+      <div className="flex items-center justify-center gap-3">
         <Button
-          isIconOnly
           size="sm"
-          variant="light"
-          className="text-gray-400 h-8 w-8"
+          variant="flat"
+          className="bg-gray-100 dark:bg-[#1C2737] text-[#071739] dark:text-[#F9FAFB] font-black px-4 h-8 rounded-lg hover:bg-gray-200 dark:hover:bg-[#334155] transition-all"
+          startContent={<Play size={14} className="fill-current" />}
         >
-          <Clock size={18} />
+          Run
         </Button>
         <Button
-          isIconOnly
           size="sm"
-          variant="light"
-          className="text-gray-400 h-8 w-8"
+          className="bg-[#2cbb5d] dark:bg-[#2cbb5d] text-white font-black px-4 h-8 rounded-lg shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+          startContent={<Send size={14} />}
         >
-          <Settings size={18} />
+          Submit
         </Button>
       </div>
-      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold uppercase">
-        {String(problemId).charAt(0)}
+
+      {/* 3. PHẦN BÊN PHẢI: Tools & Profile */}
+      <div className="flex-1 flex items-center justify-end gap-2">
+        <div className="flex items-center gap-0.5">
+          <Tooltip
+            content="Note"
+            size="sm"
+            className="dark:bg-[#1C2737] dark:text-white"
+          >
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              className={`h-8 w-8 rounded-lg transition-all ${
+                isNoteActive
+                  ? "text-orange-500 bg-orange-50 dark:bg-orange-500/10"
+                  : "text-gray-500 dark:text-[#94A3B8] hover:dark:bg-[#1C2737]"
+              }`}
+              onClick={onNoteClick}
+            >
+              <StickyNote
+                size={18}
+                fill={isNoteActive ? "currentColor" : "none"}
+              />
+            </Button>
+          </Tooltip>
+
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="text-gray-400 dark:text-[#667085] hover:dark:text-white h-8 w-8"
+          >
+            <Clock size={18} />
+          </Button>
+
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="text-gray-400 dark:text-[#667085] hover:dark:text-white h-8 w-8"
+          >
+            <Settings size={18} />
+          </Button>
+        </div>
+
+        <div className="w-[1px] h-4 bg-gray-200 dark:bg-[#1C2737] mx-1" />
       </div>
     </header>
   );

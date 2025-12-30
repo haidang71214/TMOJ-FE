@@ -6,7 +6,7 @@ import { Providers } from "./providers";
 import { siteConfig } from "../config/site";
 import { fontSans } from "../config/fonts";
 import NavbarProvider from "../Provider/NavbarProvider";
-
+import { Footer } from "./components/Footer";
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
@@ -34,17 +34,17 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
     <html suppressHydrationWarning className="!pr-0" lang="en">
       <head />
       <body
-      suppressHydrationWarning
+        suppressHydrationWarning
         className={clsx(
           "min-h-screen  font-sans antialiased bg-gray-50 ",
-          fontSans.variable,
-          
+          fontSans.variable
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
-          <NavbarProvider/>
+          <NavbarProvider />
           {children}
         </Providers>
+        <Footer />
       </body>
     </html>
   );

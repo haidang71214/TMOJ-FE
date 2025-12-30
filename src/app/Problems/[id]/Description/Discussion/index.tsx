@@ -15,7 +15,7 @@ const INITIAL_COMMENTS: CommentData[] = [
     likes: 1900,
     isLiked: false,
     isDisliked: false,
-    color: "bg-blue-100",
+    color: "bg-blue-100 dark:bg-blue-500/20",
     repliesCount: 2,
     replies: [
       {
@@ -26,7 +26,7 @@ const INITIAL_COMMENTS: CommentData[] = [
         likes: 5,
         isLiked: false,
         isDisliked: false,
-        color: "bg-gray-100",
+        color: "bg-gray-100 dark:bg-[#101828]",
       },
       {
         id: 102,
@@ -36,7 +36,7 @@ const INITIAL_COMMENTS: CommentData[] = [
         likes: 2,
         isLiked: false,
         isDisliked: false,
-        color: "bg-gray-100",
+        color: "bg-gray-100 dark:bg-[#101828]",
       },
     ],
   },
@@ -48,9 +48,8 @@ const INITIAL_COMMENTS: CommentData[] = [
     likes: 5400,
     isLiked: false,
     isDisliked: false,
-    color: "bg-gray-100",
+    color: "bg-gray-100 dark:bg-[#101828]",
   },
-  // Thêm dữ liệu để test phân trang
   ...Array.from({ length: 10 }).map((_, i) => ({
     id: i + 3,
     user: `User_${i + 3}`,
@@ -59,7 +58,7 @@ const INITIAL_COMMENTS: CommentData[] = [
     likes: 10 + i,
     isLiked: false,
     isDisliked: false,
-    color: "bg-slate-50",
+    color: "bg-slate-50 dark:bg-[#101828]",
   })),
 ];
 
@@ -68,7 +67,6 @@ export const Discussion = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Logic Like/Dislike đệ quy (hỗ trợ cả con)
   const updateReaction = (
     data: CommentData[],
     id: number,
@@ -114,15 +112,21 @@ export const Discussion = () => {
   const totalPages = Math.ceil(comments.length / itemsPerPage);
 
   return (
-    <div className="mt-10 pb-10 border-t border-gray-100 pt-10 font-sans text-[#262626]">
-      <h3 className="text-lg font-bold mb-8 flex items-center gap-2">
-        <MessageSquare size={20} className="text-gray-400" /> Discussion (
-        {comments.length})
+    <div className="mt-10 pb-10 border-t border-gray-100 dark:border-[#1C2737] pt-10 font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-500">
+      <h3 className="text-lg font-black mb-8 flex items-center gap-3">
+        <MessageSquare
+          size={20}
+          className="text-[#A68868] dark:text-[#E3C39D]"
+        />
+        Discussion{" "}
+        <span className="text-gray-400 dark:text-[#667085] font-bold">
+          ({comments.length})
+        </span>
       </h3>
 
       <CommentInput />
 
-      <div className="space-y-6 min-h-[400px]">
+      <div className="space-y-2 min-h-[400px]">
         {currentTableData.map((comment) => (
           <CommentItem
             key={comment.id}
@@ -133,6 +137,7 @@ export const Discussion = () => {
         ))}
       </div>
 
+      {/* PAGINATION AREA */}
       <div className="flex justify-center mt-12 mb-8">
         <Pagination
           total={totalPages}
@@ -150,34 +155,51 @@ export const Discussion = () => {
             onPrevious,
             className,
           }) => {
+            const commonProps =
+              "min-w-[32px] h-8 rounded-xl font-black transition-all active:scale-90 flex items-center justify-center";
+
             if (value === PaginationItemType.NEXT)
               return (
-                <button key={key} className={className} onClick={onNext}>
+                <button
+                  key={key}
+                  className={`${className} ${commonProps} dark:text-white dark:hover:bg-[#1C2737]`}
+                  onClick={onNext}
+                >
                   <ChevronRight size={16} />
                 </button>
               );
+
             if (value === PaginationItemType.PREV)
               return (
-                <button key={key} className={className} onClick={onPrevious}>
+                <button
+                  key={key}
+                  className={`${className} ${commonProps} dark:text-white dark:hover:bg-[#1C2737]`}
+                  onClick={onPrevious}
+                >
                   <ChevronLeft size={16} />
                 </button>
               );
+
             if (value === PaginationItemType.DOTS)
               return (
-                <span key={key} className="px-2 text-gray-300 self-center">
+                <span
+                  key={key}
+                  className="px-2 text-gray-300 dark:text-[#475569] self-center"
+                >
                   ...
                 </span>
               );
+
             return (
               <button
                 key={key}
                 ref={ref}
                 onClick={() => setCurrentPage(value as number)}
-                className={`${className} ${
+                className={`${className} ${commonProps} ${
                   isActive
-                    ? "bg-gray-100 text-black font-bold shadow-none"
-                    : "text-gray-400"
-                } min-w-[32px] h-8 rounded-md`}
+                    ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828] shadow-lg shadow-black/10"
+                    : "text-gray-400 dark:text-[#94A3B8] dark:hover:bg-[#1C2737] hover:text-black dark:hover:text-white"
+                }`}
               >
                 {value}
               </button>

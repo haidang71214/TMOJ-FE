@@ -11,7 +11,6 @@ import {
   Search,
   Filter,
   ArrowUpDown,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -216,10 +215,10 @@ export default function LibraryPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-white font-sans text-[#262626] flex">
+    <main className="min-h-screen bg-white dark:bg-[#101828] font-sans text-[#262626] dark:text-white flex transition-colors duration-500">
       {/* SIDEBAR TRÁI */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-gray-100 bg-white sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
+        className={`transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-[#1c2737] bg-white dark:bg-[#1c2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
           ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
       >
         <div className="w-[260px] p-6">
@@ -232,7 +231,7 @@ export default function LibraryPage() {
         <div className="absolute top-24 -left-4 z-50">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-md hover:text-blue-500 hover:scale-110 transition-all cursor-pointer"
+            className="w-8 h-8 bg-white dark:bg-[#1c2737] border border-gray-200 dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg text-gray-500 dark:text-white hover:text-blue-500 dark:hover:text-[#E3C39D] hover:scale-110 transition-all cursor-pointer"
           >
             {isSidebarOpen ? (
               <ChevronLeft size={18} />
@@ -242,11 +241,13 @@ export default function LibraryPage() {
           </button>
         </div>
 
-        <div className="w-full overflow-y-auto h-screen">
+        <div className="w-full overflow-y-auto h-screen custom-scrollbar dark:bg-[#101828]">
           <div className="max-w-[1400px] mx-auto p-6 flex flex-col lg:flex-row gap-8 items-start">
             <div className="flex-1 flex flex-col gap-6 w-full min-w-0">
               <QuestBanners />
               <CategoryTags categories={allCategories} />
+
+              {/* TOPIC BUTTONS */}
               <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
                 {[
                   "All Topics",
@@ -259,48 +260,56 @@ export default function LibraryPage() {
                   <Button
                     key={t}
                     size="sm"
-                    variant={i === 0 ? "solid" : "light"}
-                    className={`text-[13px] rounded-lg h-8 px-4 font-medium ${
+                    className={`text-[13px] rounded-lg h-8 px-4 font-bold transition-all ${
                       i === 0
-                        ? "bg-[#262626] text-white"
-                        : "text-gray-500 hover:bg-gray-100"
+                        ? "bg-[#262626] dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                        : "bg-transparent text-gray-500 dark:text-[#94a3b8] hover:bg-gray-100 dark:hover:bg-[#1c2737] hover:text-[#071739] dark:hover:text-white"
                     }`}
                   >
                     {t}
                   </Button>
                 ))}
               </div>
+
+              {/* FILTER & SEARCH ROW */}
               <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="flex gap-2 w-full md:w-auto">
                   <Input
                     placeholder="Search questions"
                     startContent={
-                      <Search size={16} className="text-gray-400" />
+                      <Search
+                        size={16}
+                        className="text-gray-400 dark:text-[#94a3b8]"
+                      />
                     }
                     className="w-full md:w-[260px]"
+                    classNames={{
+                      inputWrapper:
+                        "bg-gray-100 dark:bg-[#1c2737] border-transparent dark:border-[#344054] dark:hover:border-[#4b6382] transition-all rounded-xl",
+                      input: "dark:text-white placeholder:dark:text-[#475569]",
+                    }}
                     variant="flat"
                     size="sm"
                   />
                   <Button
                     isIconOnly
-                    variant="flat"
                     size="sm"
-                    className="bg-gray-50"
+                    className="bg-gray-50 dark:bg-[#1c2737] text-gray-600 dark:text-white border dark:border-[#344054] rounded-xl"
                   >
                     <Filter size={16} />
                   </Button>
                   <Button
-                    variant="flat"
                     size="sm"
-                    className="bg-gray-50 font-bold text-gray-600 px-4"
+                    className="bg-gray-50 dark:bg-[#1c2737] font-bold text-gray-600 dark:text-white px-4 border dark:border-[#344054] rounded-xl"
                     startContent={<ArrowUpDown size={14} />}
                   >
                     Sort
                   </Button>
                 </div>
+
                 <div className="flex items-center gap-4 shrink-0">
                   <div className="flex flex-col items-end w-32">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase">
+                    <span className="text-[10px] font-black text-gray-500 dark:text-[#E3C39D] uppercase tracking-tighter">
                       6/3829 Solved
                     </span>
                     <Progress
@@ -309,23 +318,21 @@ export default function LibraryPage() {
                       value={(6 / 3829) * 100}
                       className="mt-1"
                       classNames={{
-                        indicator: "bg-green-500",
-                        track: "bg-gray-100",
+                        indicator: "bg-green-500 dark:bg-[#E3C39D]",
+                        track: "bg-gray-100 dark:bg-[#1c2737]",
                       }}
                     />
                   </div>
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    size="sm"
-                    className="text-gray-300"
-                  >
-                    <ChevronDown size={18} />
-                  </Button>
                 </div>
               </div>
-              <ProblemsTable problems={problems} />
+
+              {/* TABLE AREA - Làm sáng hơn một chút để chữ trắng nổi bật */}
+              <div className="bg-white dark:bg-[#162130] rounded-2xl shadow-sm border border-transparent dark:border-[#1c2737] overflow-hidden transition-all duration-300">
+                <ProblemsTable problems={problems} />
+              </div>
             </div>
+
+            {/* SIDEBAR PHẢI */}
             <CalendarSidebar />
           </div>
         </div>

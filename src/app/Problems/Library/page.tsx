@@ -1,16 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "../Sidebar";
 import { QuestBanners } from "./QuestBanners";
 import { CategoryTags } from "./CategoryTags";
 import { ProblemsTable, Problem } from "./ProblemsTable";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { Input, Button, Progress } from "@heroui/react";
-import { Search, Filter, ArrowUpDown, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Filter,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function LibraryPage() {
-  // Danh sách đầy đủ Tags (Categories)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const allCategories = [
     { name: "Array", count: 2062 },
     { name: "String", count: 834 },
@@ -208,104 +216,119 @@ export default function LibraryPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-white font-sans text-[#262626]">
-      <div className="mx-auto p-6 flex flex-col lg:flex-row gap-8 items-start">
-        <Sidebar />
+    <main className="min-h-screen bg-white font-sans text-[#262626] flex">
+      {/* SIDEBAR TRÁI */}
+      <aside
+        className={`transition-all duration-300 ease-in-out border-r border-gray-100 bg-white sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
+          ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
+      >
+        <div className="w-[260px] p-6">
+          <Sidebar />
+        </div>
+      </aside>
 
-        <div className="flex-1 flex flex-col gap-6 w-full">
-          {/* Banner Quests */}
-          <QuestBanners />
-
-          {/* Hàng Tags có tính năng Expand/Collapse */}
-          <CategoryTags categories={allCategories} />
-
-          {/* Pill Filters */}
-          <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
-            {[
-              "All Topics",
-              "Algorithms",
-              "Database",
-              "Shell",
-              "Concurrency",
-              "JavaScript",
-            ].map((t, i) => (
-              <Button
-                key={t}
-                size="sm"
-                variant={i === 0 ? "solid" : "light"}
-                className={`text-[13px] rounded-lg h-8 px-4 font-medium ${
-                  i === 0
-                    ? "bg-[#262626] text-white"
-                    : "text-gray-500 hover:bg-gray-100"
-                }`}
-              >
-                {t}
-              </Button>
-            ))}
-          </div>
-
-          {/* Search & Progress Toolbar */}
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="flex gap-2 w-full md:w-auto">
-              <Input
-                placeholder="Search questions"
-                startContent={<Search size={16} className="text-gray-400" />}
-                className="w-full md:w-[260px]"
-                variant="flat"
-                size="sm"
-              />
-              <Button
-                isIconOnly
-                variant="flat"
-                size="sm"
-                className="bg-gray-50"
-              >
-                <Filter size={16} />
-              </Button>
-              <Button
-                variant="flat"
-                size="sm"
-                className="bg-gray-50 font-bold text-gray-600 px-4"
-                startContent={<ArrowUpDown size={14} />}
-              >
-                Sort
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-4 shrink-0">
-              <div className="flex flex-col items-end w-32">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
-                  6/3829 Solved
-                </span>
-                {/* Dùng Progress ở đây để xóa lỗi unused */}
-                <Progress
-                  aria-label="Solved progress"
-                  size="sm"
-                  value={(6 / 3829) * 100}
-                  className="mt-1"
-                  classNames={{
-                    indicator: "bg-green-500",
-                    track: "bg-gray-100",
-                  }}
-                />
-              </div>
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-                className="text-gray-300"
-              >
-                <ChevronDown size={18} />
-              </Button>
-            </div>
-          </div>
-
-          {/* Bảng danh sách bài tập */}
-          <ProblemsTable problems={problems} />
+      {/* NỘI DUNG CHÍNH */}
+      <div className="flex-1 flex flex-col relative min-w-0">
+        <div className="absolute top-24 -left-4 z-50">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-md hover:text-blue-500 hover:scale-110 transition-all cursor-pointer"
+          >
+            {isSidebarOpen ? (
+              <ChevronLeft size={18} />
+            ) : (
+              <ChevronRight size={18} />
+            )}
+          </button>
         </div>
 
-        {/* Sidebar phải chứa Lịch và Công ty */}
-        <CalendarSidebar />
+        <div className="w-full overflow-y-auto h-screen">
+          <div className="max-w-[1400px] mx-auto p-6 flex flex-col lg:flex-row gap-8 items-start">
+            <div className="flex-1 flex flex-col gap-6 w-full min-w-0">
+              <QuestBanners />
+              <CategoryTags categories={allCategories} />
+              <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
+                {[
+                  "All Topics",
+                  "Algorithms",
+                  "Database",
+                  "Shell",
+                  "Concurrency",
+                  "JavaScript",
+                ].map((t, i) => (
+                  <Button
+                    key={t}
+                    size="sm"
+                    variant={i === 0 ? "solid" : "light"}
+                    className={`text-[13px] rounded-lg h-8 px-4 font-medium ${
+                      i === 0
+                        ? "bg-[#262626] text-white"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {t}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex gap-2 w-full md:w-auto">
+                  <Input
+                    placeholder="Search questions"
+                    startContent={
+                      <Search size={16} className="text-gray-400" />
+                    }
+                    className="w-full md:w-[260px]"
+                    variant="flat"
+                    size="sm"
+                  />
+                  <Button
+                    isIconOnly
+                    variant="flat"
+                    size="sm"
+                    className="bg-gray-50"
+                  >
+                    <Filter size={16} />
+                  </Button>
+                  <Button
+                    variant="flat"
+                    size="sm"
+                    className="bg-gray-50 font-bold text-gray-600 px-4"
+                    startContent={<ArrowUpDown size={14} />}
+                  >
+                    Sort
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex flex-col items-end w-32">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">
+                      6/3829 Solved
+                    </span>
+                    <Progress
+                      aria-label="Solved progress"
+                      size="sm"
+                      value={(6 / 3829) * 100}
+                      className="mt-1"
+                      classNames={{
+                        indicator: "bg-green-500",
+                        track: "bg-gray-100",
+                      }}
+                    />
+                  </div>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    size="sm"
+                    className="text-gray-300"
+                  >
+                    <ChevronDown size={18} />
+                  </Button>
+                </div>
+              </div>
+              <ProblemsTable problems={problems} />
+            </div>
+            <CalendarSidebar />
+          </div>
+        </div>
       </div>
     </main>
   );

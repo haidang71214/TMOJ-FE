@@ -4,17 +4,16 @@ import React, { useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Tabs, Tab } from "@heroui/react";
 
-// Import các Component nhỏ từ folder "coding"
 import { Header } from "./coding/Header";
 import { EditorPanel } from "./coding/EditorPanel";
 import { TestcasePanel } from "./coding/TestcasePanel";
-
 import { ProblemListSidebar } from "./ProblemListSidebar";
-// Import các Tab nội dung
+
 import { DescriptionTab } from "./Description";
 import { EditorialTab } from "./Editorial";
 import { SolutionsTab } from "./Solutions";
 import { SubmissionsTab } from "./Submissions";
+
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
@@ -22,6 +21,7 @@ export default function ProblemDetailsPage() {
   const editorContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoEditorRef = useRef<any>(null);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [editorActiveTab, setEditorActiveTab] = useState("code");
@@ -55,13 +55,15 @@ export default function ProblemDetailsPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#f0f0f0] overflow-hidden font-sans text-[#262626]">
+    <div className="flex flex-col h-screen bg-[#f0f0f0] dark:bg-[#101828] overflow-hidden font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-500">
+      {/* Sidebar danh sách bài tập */}
       <ProblemListSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         currentProblemId={problemId}
       />
 
+      {/* Header điều hướng chính */}
       <Header
         problemId={problemId}
         isNoteActive={editorActiveTab === "note"}
@@ -69,18 +71,20 @@ export default function ProblemDetailsPage() {
         onProblemListClick={() => setIsSidebarOpen(true)}
       />
 
-      <main className="flex flex-1 overflow-hidden p-2 gap-2">
-        <div className="w-1/2 bg-white rounded-xl flex flex-col overflow-hidden shadow-sm border border-gray-200">
-          <div className="bg-[#fafafa] border-b shrink-0 h-10">
+      <main className="flex flex-1 overflow-hidden p-2 gap-2 bg-[#f0f0f0] dark:bg-[#101828]">
+        {/* PANEL TRÁI: NỘI DUNG CHI TIẾT (Description, Editorial, v.v.) */}
+        <div className="w-1/2 bg-white dark:bg-[#1C2737] rounded-xl flex flex-col overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] transition-all duration-500">
+          {/* Tabs Navigation nội dung */}
+          <div className="bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] shrink-0 h-11 flex items-center">
             <Tabs
               aria-label="Content Tabs"
               variant="underlined"
               selectedKey={activeTab}
               onSelectionChange={(key) => setActiveTab(key as string)}
               classNames={{
-                tabList: "px-4 gap-6 h-full",
-                cursor: "bg-black",
-                tab: "text-xs font-bold",
+                tabList: "px-4 gap-6 h-full border-b-0",
+                cursor: "bg-black dark:bg-[#E3C39D] h-[2px]",
+                tab: "text-[11px] font-black uppercase tracking-wider dark:text-[#94A3B8] data-[selected=true]:dark:text-[#E3C39D] h-full",
               }}
             >
               <Tab key="description" title="Description" />
@@ -90,36 +94,48 @@ export default function ProblemDetailsPage() {
             </Tabs>
           </div>
 
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {activeTab === "description" && <DescriptionTab />}
-            {activeTab === "editorial" && <EditorialTab />}
-            {activeTab === "solutions" && <SolutionsTab />}
-            {activeTab === "submissions" && <SubmissionsTab />}
+          {/* Vùng hiển thị nội dung các Tab */}
+          <div className="flex-1 overflow-hidden relative">
+            <div className="absolute inset-0 overflow-y-auto no-scrollbar p-1">
+              <div className="min-h-full">
+                {activeTab === "description" && <DescriptionTab />}
+                {activeTab === "editorial" && <EditorialTab />}
+                {activeTab === "solutions" && <SolutionsTab />}
+                {activeTab === "submissions" && <SubmissionsTab />}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* PANEL PHẢI: TRÌNH SOẠN THẢO VÀ TESTCASE */}
         <div
           ref={editorContainerRef}
-          className="w-1/2 flex flex-col gap-2 overflow-hidden"
+          className="w-1/2 flex flex-col gap-2 overflow-hidden min-w-0"
         >
-          <EditorPanel
-            activeTab={editorActiveTab}
-            setActiveTab={setEditorActiveTab}
-            code={code}
-            setCode={setCode}
-            onMount={handleEditorDidMount}
-            onFormat={handleFormatCode}
-            onFullScreen={handleFullScreen}
-          />
+          {/* Trình soạn thảo Code */}
+          <div className="flex-1 min-h-0 bg-white dark:bg-[#1C2737] rounded-xl border border-gray-200 dark:border-[#334155] overflow-hidden flex flex-col shadow-sm">
+            <EditorPanel
+              activeTab={editorActiveTab}
+              setActiveTab={setEditorActiveTab}
+              code={code}
+              setCode={setCode}
+              onMount={handleEditorDidMount}
+              onFormat={handleFormatCode}
+              onFullScreen={handleFullScreen}
+            />
+          </div>
 
-          <TestcasePanel
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            testTab={testTab}
-            setTestTab={setTestTab}
-            activeCase={activeCase}
-            setActiveCase={setActiveCase}
-          />
+          {/* Panel Testcase / Kết quả */}
+          <div className="bg-white dark:bg-[#1C2737] rounded-xl border border-gray-200 dark:border-[#334155] overflow-hidden shadow-sm">
+            <TestcasePanel
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+              testTab={testTab}
+              setTestTab={setTestTab}
+              activeCase={activeCase}
+              setActiveCase={setActiveCase}
+            />
+          </div>
         </div>
       </main>
     </div>

@@ -58,7 +58,7 @@ export const SolutionsTab = () => {
 
   if (selectedSolution) {
     return (
-      <div className="p-6 overflow-y-auto no-scrollbar h-full bg-white">
+      <div className="h-full bg-white dark:bg-[#1C2737] overflow-hidden">
         <SolutionDetail
           solution={selectedSolution}
           onBack={() => setSelectedSolution(null)}
@@ -68,40 +68,57 @@ export const SolutionsTab = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Search & Sort Bar (image_a1e499.png) */}
-      <div className="p-4 border-b border-gray-50 flex flex-col gap-4">
+    <div className="flex flex-col h-full bg-white dark:bg-[#1C2737] transition-colors duration-500">
+      {/* 1. Search & Sort Bar */}
+      <div className="p-4 border-b border-gray-50 dark:border-[#334155] flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <Input
-            placeholder="Search..."
+            placeholder="Search solutions..."
             size="sm"
-            startContent={<Search size={16} className="text-gray-400" />}
+            startContent={
+              <Search size={16} className="text-gray-400 dark:text-[#667085]" />
+            }
             className="max-w-xs"
             variant="flat"
+            classNames={{
+              inputWrapper:
+                "dark:bg-[#101828] dark:hover:bg-[#162130] transition-colors",
+              input: "text-sm dark:text-white",
+            }}
           />
           <div className="flex items-center gap-4">
-            <Dropdown>
+            <Dropdown className="dark:bg-[#101828] dark:border-[#334155]">
               <DropdownTrigger>
-                <div className="flex items-center gap-1 text-sm text-gray-500 cursor-pointer hover:text-black">
+                <div className="flex items-center gap-1 text-[13px] text-gray-500 dark:text-[#94A3B8] cursor-pointer hover:text-black dark:hover:text-white transition-colors">
                   Sort by:{" "}
-                  <span className="font-bold text-black">{sortBy}</span>{" "}
+                  <span className="font-black text-black dark:text-[#E3C39D]">
+                    {sortBy}
+                  </span>{" "}
                   <ChevronDown size={14} />
                 </div>
               </DropdownTrigger>
-              <DropdownMenu onAction={(key) => setSortBy(key as string)}>
+              <DropdownMenu
+                onAction={(key) => setSortBy(key as string)}
+                className="dark:text-[#F9FAFB]"
+              >
                 <DropdownItem key="Hot">Hot</DropdownItem>
                 <DropdownItem key="Most Recent">Most Recent</DropdownItem>
                 <DropdownItem key="Most Votes">Most Votes</DropdownItem>
               </DropdownMenu>
             </Dropdown>
-            <Button isIconOnly size="sm" variant="light">
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              className="dark:text-[#94A3B8] hover:dark:text-white"
+            >
               <ListFilter size={18} />
             </Button>
           </div>
         </div>
 
-        {/* Tags Bar */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+        {/* 2. Tags Bar */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {[
             "All",
             "My Solution",
@@ -115,7 +132,11 @@ export const SolutionsTab = () => {
               key={tag}
               size="sm"
               variant="flat"
-              className="rounded-full bg-gray-100 text-gray-600 min-w-fit h-7"
+              className={`rounded-full min-w-fit h-7 px-4 text-[11px] font-black transition-all ${
+                tag === "All"
+                  ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828]"
+                  : "bg-gray-100 dark:bg-[#101828] text-gray-600 dark:text-[#94A3B8] hover:dark:bg-[#162130]"
+              }`}
             >
               {tag}
             </Button>
@@ -123,17 +144,20 @@ export const SolutionsTab = () => {
         </div>
       </div>
 
-      {/* Share Box */}
-      <div className="p-4 flex items-center justify-between bg-gray-50/50 border-b border-gray-50">
-        <p className="text-xs text-gray-500">
+      {/* 3. Share Box */}
+      <div className="p-4 flex items-center justify-between bg-gray-50/50 dark:bg-[#101828]/40 border-b border-gray-50 dark:border-[#334155]">
+        <p className="text-[11px] text-gray-500 dark:text-[#667085] font-bold italic">
           Submit at least 1 AC to publish a solution.
         </p>
-        <Button size="sm" className="bg-[#2cbb5d] text-white font-bold gap-2">
+        <Button
+          size="sm"
+          className="bg-[#2cbb5d] dark:bg-[#2cbb5d] text-white font-black gap-2 rounded-lg h-8 shadow-lg shadow-green-500/10 active:scale-95 transition-all"
+        >
           <Share2 size={14} /> Share my solution
         </Button>
       </div>
 
-      {/* Solutions List */}
+      {/* 4. Solutions List */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {MOCK_SOLUTIONS.map((sol) => (
           <SolutionItem

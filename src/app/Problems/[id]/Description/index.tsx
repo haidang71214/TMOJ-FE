@@ -21,10 +21,6 @@ export const DescriptionTab = () => {
       </div>
 
       <Discussion />
-
-      <div className="pt-10 pb-6 text-[12px] text-gray-400 border-t border-gray-50 mt-10">
-        Copyright © 2025 LeetCode. All rights reserved.
-      </div>
     </div>
   );
 };

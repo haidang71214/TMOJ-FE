@@ -1,11 +1,15 @@
 "use client";
 import React, { useState } from "react";
-// Loại bỏ Progress vì không sử dụng trong file này
 import { Card, CardBody, Button, Chip } from "@heroui/react";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 
 export const CalendarSidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Dữ liệu mẫu
+  const solvedDays = [5, 12, 18, 19, 22];
+  const streakDays = [27, 28, 29, 30];
+  const currentStreak = streakDays.length;
 
   const changeMonth = (offset: number) =>
     setCurrentDate(
@@ -28,10 +32,15 @@ export const CalendarSidebar = () => {
 
   return (
     <div className="w-full lg:w-[280px] shrink-0 flex flex-col gap-6">
-      <Card shadow="sm" className="border-none bg-white p-1">
+      {/* CALENDAR CARD */}
+      <Card
+        shadow="sm"
+        className="border-none bg-white dark:bg-[#1C2737] p-1 transition-all duration-500"
+      >
         <CardBody className="p-2">
-          <div className="flex justify-between items-center mb-4 text-[13px] font-bold px-1">
-            <span className="capitalize">
+          {/* Header: Chữ trắng sáng */}
+          <div className="flex justify-between items-center mb-4 text-[13px] font-bold px-1 text-[#071739] dark:text-[#FFFFFF]">
+            <span className="capitalize tracking-tight">
               {currentDate.toLocaleString("default", { month: "long" })}{" "}
               {currentDate.getFullYear()}
             </span>
@@ -40,6 +49,7 @@ export const CalendarSidebar = () => {
                 isIconOnly
                 size="sm"
                 variant="light"
+                className="dark:text-white dark:hover:bg-[#101828]"
                 onClick={() => changeMonth(-1)}
               >
                 <ChevronLeft size={14} />
@@ -48,21 +58,28 @@ export const CalendarSidebar = () => {
                 isIconOnly
                 size="sm"
                 variant="light"
+                className="dark:text-white dark:hover:bg-[#101828]"
                 onClick={() => changeMonth(1)}
               >
                 <ChevronRight size={14} />
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-7 gap-y-1 text-center text-[10px] mb-4 font-bold">
+
+          <div className="grid grid-cols-7 gap-y-3 text-center text-[10px] mb-4 font-bold">
             {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <div key={`weekday-${i}`} className="text-gray-400">
+              <div
+                key={`weekday-${i}`}
+                className="text-gray-400 dark:text-[#94A3B8] uppercase tracking-tighter"
+              >
                 {d}
               </div>
             ))}
+
             {Array.from({ length: firstDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-7 w-7" />
+              <div key={`empty-${i}`} className="h-8 w-8" />
             ))}
+
             {days.map((day) => {
               const now = new Date();
               const isToday =
@@ -70,34 +87,75 @@ export const CalendarSidebar = () => {
                 currentDate.getMonth() === now.getMonth() &&
                 currentDate.getFullYear() === now.getFullYear();
 
+              const isStreak = streakDays.includes(day);
+              const isSolved = solvedDays.includes(day);
+
               return (
                 <div
                   key={day}
-                  className={`h-7 w-7 mx-auto flex items-center justify-center rounded-full text-[11px] cursor-pointer font-bold ${
-                    isToday
-                      ? "bg-green-500 text-white shadow-md shadow-green-200"
-                      : "hover:bg-gray-100 text-gray-600"
-                  }`}
+                  className="relative flex flex-col items-center justify-center group"
                 >
-                  {day}
+                  <div
+                    className={`h-8 w-8 flex items-center justify-center rounded-full text-[11px] cursor-pointer font-bold transition-all ${
+                      isToday
+                        ? "bg-[#071739] dark:bg-[#E3C39D] text-[#E3C39D] dark:text-[#101828] shadow-lg z-10 scale-110"
+                        : "hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-600 dark:text-[#F1F5F9]"
+                    }`}
+                  >
+                    {day}
+                  </div>
+
+                  {/* Chấm Cam cho Streak */}
+                  {isStreak && (
+                    <div
+                      className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] ${
+                        isToday ? "dark:bg-[#101828]" : ""
+                      }`}
+                    >
+                      {isToday && (
+                        <span className="absolute inset-0 rounded-full bg-orange-400 animate-ping opacity-75"></span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Chấm Xanh cho Solved */}
+                  {isSolved && !isStreak && (
+                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.4)]"></div>
+                  )}
                 </div>
               );
             })}
           </div>
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100 px-1">
-            <div className="flex items-center gap-1 text-[11px] text-orange-500 font-bold">
-              <Flame size={14} fill="currentColor" /> 0
+
+          {/* Footer Card: Chữ vàng cát rực rỡ */}
+          <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-[#334155] px-1">
+            <div className="flex items-center gap-1.5 text-[12px] font-bold">
+              <Flame
+                size={16}
+                className={
+                  currentStreak > 0
+                    ? "text-orange-500 fill-orange-500 animate-pulse"
+                    : "text-gray-300 dark:text-[#475569]"
+                }
+              />
+              <span className="text-[#071739] dark:text-[#E3C39D] uppercase tracking-tight">
+                {currentStreak} Day Streak
+              </span>
             </div>
-            <button className="text-[10px] text-green-600 font-bold hover:underline">
-              Redeem
+            <button className="text-[10px] text-teal-600 dark:text-teal-400 font-black hover:underline transition-all">
+              DETAILS
             </button>
           </div>
         </CardBody>
       </Card>
 
-      <Card shadow="sm" className="border-none bg-white">
+      {/* TRENDING COMPANIES - Chữ trắng tinh */}
+      <Card
+        shadow="sm"
+        className="border-none bg-white dark:bg-[#1C2737] transition-all duration-500"
+      >
         <CardBody className="p-4">
-          <h3 className="text-[12px] font-bold text-gray-400 uppercase mb-4 tracking-wider">
+          <h3 className="text-[11px] font-black text-gray-400 dark:text-[#94A3B8] uppercase mb-4 tracking-widest">
             Trending Companies
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -105,18 +163,17 @@ export const CalendarSidebar = () => {
               { name: "Meta", count: 1352 },
               { name: "Amazon", count: 1903 },
               { name: "Google", count: 2177 },
-              { name: "Apple", count: 421 },
             ].map((co) => (
               <Chip
                 key={co.name}
                 variant="flat"
-                className="bg-gray-50"
+                className="bg-[#CDD5DB]/20 dark:bg-[#101828] border-none px-2"
                 size="sm"
               >
-                <span className="text-gray-700 font-medium text-[12px]">
+                <span className="text-[#071739] dark:text-[#FFFFFF] font-bold text-[11px]">
                   {co.name}
                 </span>
-                <span className="ml-1 text-orange-500 font-bold text-[12px]">
+                <span className="ml-1 text-orange-500 font-black text-[11px]">
                   {co.count}
                 </span>
               </Chip>

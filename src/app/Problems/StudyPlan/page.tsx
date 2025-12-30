@@ -17,10 +17,10 @@ export default function StudyPlanPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#f7f8fa] font-sans flex">
+    <main className="min-h-screen bg-[#f7f8fa] dark:bg-[#101828] font-sans flex transition-colors duration-500">
       {/* SIDEBAR TRÁI */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-gray-100 bg-white sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
+        className={`transition-all duration-300 ease-in-out border-r border-gray-100 dark:border-[#1c2737] bg-white dark:bg-[#1c2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
           ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
       >
         <div className="w-[260px] p-6">
@@ -30,11 +30,10 @@ export default function StudyPlanPage() {
 
       {/* NỘI DUNG VÀ NÚT TOGGLE */}
       <div className="flex-1 flex flex-col relative min-w-0">
-        {/* NÚT TOGGLE - Vị trí top-24 (Cao hơn) */}
         <div className="absolute top-24 -left-4 z-50">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-md hover:text-blue-500 hover:scale-110 transition-all cursor-pointer"
+            className="w-8 h-8 bg-white dark:bg-[#1c2737] border border-gray-200 dark:border-[#344054] rounded-full flex items-center justify-center shadow-md text-gray-500 dark:text-white hover:text-blue-500 dark:hover:text-[#E3C39D] hover:scale-110 transition-all cursor-pointer"
           >
             {isSidebarOpen ? (
               <ChevronLeft size={18} />
@@ -44,57 +43,83 @@ export default function StudyPlanPage() {
           </button>
         </div>
 
-        <div className="w-full overflow-y-auto h-screen">
-          <div className="max-w-[1200px] mx-auto p-8 flex flex-col gap-10">
-            {/* Header */}
+        <div className="w-full overflow-y-auto h-screen custom-scrollbar">
+          <div className="max-w-[1200px] mx-auto p-8 flex flex-col gap-12">
+            {/* Header: Chữ trắng sáng trong Dark Mode */}
             <div className="flex justify-between items-center w-full">
-              <h1 className="text-3xl font-bold text-gray-900">Study Plan</h1>
+              <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+                Study Plan
+              </h1>
               <Button
                 size="sm"
                 variant="flat"
-                className="bg-gray-100 text-gray-500 font-bold px-4"
+                className="bg-gray-100 dark:bg-[#1c2737] text-gray-600 dark:text-[#E3C39D] font-black px-5 rounded-xl border dark:border-[#344054] hover:opacity-80 transition-all"
               >
-                My Study Plan <ChevronRight size={16} />
+                My Study Plan <ChevronRight size={16} className="ml-1" />
               </Button>
             </div>
 
-            {/* Section: Featured */}
-            <section className="flex flex-col gap-4">
-              <h2 className="text-xl font-bold text-gray-800">Featured</h2>
+            {/* Section: Featured - Các thẻ PlanCard có Gradient 3D */}
+            <section className="flex flex-col gap-6">
+              <h2 className="text-xl font-black text-gray-800 dark:text-[#F9FAFB] uppercase tracking-widest flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-[#A68868] dark:bg-[#E3C39D]"></span>
+                Featured
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <PlanCard
                   title="TMOJCode 75"
                   desc="Ace Coding Interview with 75 Qs"
-                  bgGradient="bg-gradient-to-br from-blue-600 to-indigo-700"
-                  icon={<Target size={80} />}
+                  bgGradient="bg-gradient-to-br from-blue-600 to-indigo-900"
+                  icon={
+                    <Target
+                      size={80}
+                      className="opacity-20 group-hover:scale-110 transition-transform"
+                    />
+                  }
                 />
                 <PlanCard
                   title="Top Interview 150"
                   desc="Must-do List for Interview Prep"
-                  bgGradient="bg-gradient-to-br from-teal-500 to-emerald-700"
-                  icon={<MessageSquareText size={80} />}
+                  bgGradient="bg-gradient-to-br from-teal-600 to-emerald-900"
+                  icon={
+                    <MessageSquareText
+                      size={80}
+                      className="opacity-20 group-hover:scale-110 transition-transform"
+                    />
+                  }
                 />
                 <PlanCard
                   title="Binary Search"
                   desc="8 Patterns, 42 Qs = Master BS"
-                  bgGradient="bg-gradient-to-br from-purple-600 to-violet-800"
-                  icon={<Filter size={80} />}
+                  bgGradient="bg-gradient-to-br from-purple-700 to-violet-950"
+                  icon={
+                    <Filter
+                      size={80}
+                      className="opacity-20 group-hover:scale-110 transition-transform"
+                    />
+                  }
                 />
                 <PlanCard
                   title="SQL 50"
                   desc="Crack SQL Interview in 50 Qs"
-                  bgGradient="bg-gradient-to-br from-cyan-600 to-blue-800"
-                  icon={<Database size={80} />}
+                  bgGradient="bg-gradient-to-br from-cyan-700 to-blue-950"
+                  icon={
+                    <Database
+                      size={80}
+                      className="opacity-20 group-hover:scale-110 transition-transform"
+                    />
+                  }
                 />
               </div>
             </section>
 
             {/* Section: 30 Days Challenge */}
-            <section className="flex flex-col gap-4">
-              <h2 className="text-xl font-bold text-gray-800">
+            <section className="flex flex-col gap-6">
+              <h2 className="text-xl font-black text-gray-800 dark:text-[#F9FAFB] uppercase tracking-widest flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-[#A68868] dark:bg-[#E3C39D]"></span>
                 30 Days Challenge
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <ListCard
                   title="30 Days of Pandas"
                   desc="Essential for pandas interviews"
@@ -109,11 +134,12 @@ export default function StudyPlanPage() {
             </section>
 
             {/* Section: Cracking Coding Interview */}
-            <section className="pb-20 flex flex-col gap-4">
-              <h2 className="text-xl font-bold text-gray-800">
+            <section className="pb-24 flex flex-col gap-6">
+              <h2 className="text-xl font-black text-gray-800 dark:text-[#F9FAFB] uppercase tracking-widest flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-[#A68868] dark:bg-[#E3C39D]"></span>
                 Cracking Coding Interview
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <ListCard
                   title="Top Interview 150"
                   desc="Must-do List for Interview Prep"

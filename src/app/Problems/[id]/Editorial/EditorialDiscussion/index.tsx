@@ -20,10 +20,8 @@ export const EditorialDiscussion = () => {
     {}
   );
 
-  // Số lượng comment trên mỗi trang
   const itemsPerPage = 4;
 
-  // Logic cập nhật đệ quy (Dùng để tìm ID ở bất cứ tầng nào: Cha hoặc Con)
   const updateReaction = (
     list: CommentData[],
     id: number,
@@ -49,7 +47,6 @@ export const EditorialDiscussion = () => {
           };
         }
       }
-      // Nếu có replies, đệ quy tiếp vào trong
       if (c.replies && c.replies.length > 0) {
         return { ...c, replies: updateReaction(c.replies, id, type) };
       }
@@ -65,33 +62,36 @@ export const EditorialDiscussion = () => {
     setComments((prev) => updateReaction(prev, id, "dislike"));
   };
 
-  // Tính toán dữ liệu cắt theo trang
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return comments.slice(startIndex, startIndex + itemsPerPage);
   }, [currentPage, comments]);
 
-  // Tính tổng số trang
   const totalPages = Math.ceil(comments.length / itemsPerPage);
 
   return (
-    <div className="pb-10 font-sans text-[#262626]">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <MessageSquare size={20} className="text-gray-400" /> Comments (
-          {comments.length})
+    <div className="pb-10 font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-500">
+      {/* Header Discussion */}
+      <div className="flex items-center justify-between mb-8 border-b dark:border-[#1C2737] pb-4">
+        <h3 className="text-lg font-black flex items-center gap-3">
+          <MessageSquare
+            size={20}
+            className="text-[#A68868] dark:text-[#E3C39D]"
+          />
+          Comments
+          <span className="text-gray-400 dark:text-[#667085] font-bold text-sm">
+            ({comments.length})
+          </span>
         </h3>
-        <div className="flex items-center gap-1 text-xs text-gray-500 font-medium cursor-pointer hover:text-black">
-          Sort by: <span className="text-black font-bold">Best</span>{" "}
+        <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-[#94A3B8] font-black uppercase tracking-widest cursor-pointer hover:text-black dark:hover:text-white transition-colors">
+          Sort by: <span className="text-black dark:text-[#E3C39D]">Best</span>
           <ChevronDown size={14} />
         </div>
       </div>
 
-      {/* Ô nhập comment chính */}
       <CommentInput />
 
-      {/* Danh sách Comment */}
-      <div className="space-y-8 min-h-[300px]">
+      <div className="space-y-4 min-h-[300px]">
         {currentItems.map((comment) => (
           <CommentItem
             key={comment.id}
@@ -104,7 +104,7 @@ export const EditorialDiscussion = () => {
         ))}
       </div>
 
-      {/* PHÂN TRANG: Luôn hiển thị nếu có dữ liệu để bạn kiểm tra */}
+      {/* PHÂN TRANG (Pagination) */}
       {totalPages > 0 && (
         <div className="flex justify-center mt-12 mb-8">
           <Pagination
@@ -115,7 +115,9 @@ export const EditorialDiscussion = () => {
             variant="light"
             showControls
             classNames={{
-              cursor: "bg-gray-100 text-black font-bold shadow-none",
+              base: "gap-2",
+              cursor:
+                "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828] font-black shadow-lg shadow-black/10",
             }}
             renderItem={(props) => {
               const {
@@ -127,22 +129,35 @@ export const EditorialDiscussion = () => {
                 onPrevious,
                 className,
               } = props;
+              const baseBtnClass =
+                "min-w-[32px] h-8 rounded-xl font-black transition-all active:scale-90 flex items-center justify-center hover:dark:bg-[#1C2737]";
 
               if (value === PaginationItemType.NEXT)
                 return (
-                  <button key={key} className={className} onClick={onNext}>
+                  <button
+                    key={key}
+                    className={`${className} ${baseBtnClass} dark:text-white`}
+                    onClick={onNext}
+                  >
                     <ChevronRight size={16} />
                   </button>
                 );
               if (value === PaginationItemType.PREV)
                 return (
-                  <button key={key} className={className} onClick={onPrevious}>
+                  <button
+                    key={key}
+                    className={`${className} ${baseBtnClass} dark:text-white`}
+                    onClick={onPrevious}
+                  >
                     <ChevronLeft size={16} />
                   </button>
                 );
               if (value === PaginationItemType.DOTS)
                 return (
-                  <span key={key} className="px-2 text-gray-300 self-center">
+                  <span
+                    key={key}
+                    className="px-2 text-gray-300 dark:text-[#475569] self-center"
+                  >
                     ...
                   </span>
                 );
@@ -152,11 +167,11 @@ export const EditorialDiscussion = () => {
                   key={key}
                   ref={ref}
                   onClick={() => setCurrentPage(value as number)}
-                  className={`${className} ${
+                  className={`${className} ${baseBtnClass} ${
                     isActive
-                      ? "bg-gray-100 text-black font-bold"
-                      : "text-gray-400"
-                  } min-w-[32px] h-8 rounded-md border-none`}
+                      ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828]"
+                      : "text-gray-400 dark:text-[#94A3B8] hover:text-black dark:hover:text-white"
+                  } border-none`}
                 >
                   {value}
                 </button>

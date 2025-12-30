@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import {
   Navbar,
   NavbarContent,
@@ -12,6 +13,7 @@ import {
   DropdownItem,
   addToast,
   User,
+  Input,
 } from "@heroui/react";
 import { useModal } from "./ModalProvider";
 import LoginModal from "../app/Modal/LoginModal";
@@ -21,220 +23,226 @@ import { useRouter } from "next/navigation";
 import webStorageClient from "@/utils/webStorageClient";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import ThemeToggle from "./ThemeToggle";
+import { ChevronDown, Search as SearchIcon } from "lucide-react";
 
 export default function NavbarProvider() {
   const { openModal } = useModal();
   const router = useRouter();
-
-  const handleOpenLogin = () =>
-    openModal({ title: "Đăng nhập", content: <LoginModal /> });
-  const handleOpenRegister = () =>
-    openModal({ title: "Đăng kí", content: <RegisterModal /> });
-  const ProfileUserssOpen = () =>
-    openModal({ title: "Profile", content: <ProfileUser /> });
-  const handleLogout = () => {
-    webStorageClient.logout();
-    addToast({ title: "Đăng xuất thành công" });
-    router.push("/");
-  };
-  const handleLink = (link: string) => {
-    router.push(`${link}`);
-  };
   const { data: user, isLoading } = useGetUserInformationQuery();
 
+  const handleLogout = () => {
+    webStorageClient.logout();
+    addToast({ title: "Đăng xuất thành công", color: "success" });
+    router.push("/");
+  };
+
+  const handleLink = (link: string) => router.push(link);
+
   const AcmeLogo = () => (
-    <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
-      <path
-        clipRule="evenodd"
-        d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-        fill="currentColor"
-        fillRule="evenodd"
-      />
-    </svg>
+    <div className="relative drop-shadow-[0_2px_4px_rgba(255,137,4,0.3)] transition-transform group-hover:scale-110">
+      <svg fill="none" height="32" viewBox="0 0 32 32" width="32">
+        <path
+          clipRule="evenodd"
+          d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
+          fill="url(#logo-gradient)"
+          fillRule="evenodd"
+        />
+        <defs>
+          <linearGradient
+            id="logo-gradient"
+            x1="7"
+            y1="7"
+            x2="25"
+            y2="23"
+            gradientUnits="userSpaceOnUse"
+          >
+            {/* Thay đổi màu Gradient sang Cam #ff8904 cho sáng */}
+            <stop stopColor="#ff8904" />
+            <stop offset="1" stopColor="#ffb347" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
   );
 
-  const FEATURES = [
-    {
-      key: "autoscaling",
-      label: "Autoscaling",
-      description: "ACME scales apps based on demand and load",
-    },
-    {
-      key: "usage_metrics",
-      label: "Usage Metrics",
-      description: "Real-time metrics to debug issues",
-    },
-    {
-      key: "production_ready",
-      label: "Production Ready",
-      description: "ACME runs on ACME, join us at web scale",
-    },
-    {
-      key: "99_uptime",
-      label: "+99% Uptime",
-      description: "High availability and uptime guarantees",
-    },
-    {
-      key: "supreme_support",
-      label: "363636",
-      description: "Support team ready to respond",
-    },
-  ];
-  const STORE = [
-    {
-      key: "autoscaling",
-      label: "Package",
-      description: "Find Your limited package",
-    },
-    {
-      key: "/Premium",
-      label: "premium",
-      description: "Get started with a DMOJ Subscription that works for you.",
-    },
-  ];
   return (
-    <Navbar maxWidth="full" className="px-6">
-      <NavbarBrand>
-        <AcmeLogo />
-        <p className="font-bold text-inherit">TMOJ</p>
-      </NavbarBrand>
-
-      <NavbarContent className="gap-6" justify="start">
-        <NavbarItem>
-          <Link color="danger" href="/Explore">
-            Explore
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="danger" href="/Problems/Library">
-            Problems
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="danger" href="/Contest">
-            Contest
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="danger" href="/Discuss">
-            Discuss
-          </Link>
-        </NavbarItem>
-        <Dropdown>
-          <NavbarItem>
-            <DropdownTrigger>
-              <Button disableRipple variant="light">
-                Interview
-              </Button>
-            </DropdownTrigger>
-          </NavbarItem>
-
-          <DropdownMenu
-            aria-label="ACME features"
-            itemClasses={{
-              base: "gap-4",
-            }}
+    <Navbar
+      maxWidth="full"
+      className="h-16 bg-white dark:bg-[#282E3A] border-b border-[#CDD5DB] dark:border-[#3F4755] sticky top-0 z-[100] transition-colors duration-500"
+    >
+      {/* 1. LOGO & NAV LINKS */}
+      <NavbarContent justify="start" className="gap-8">
+        <NavbarBrand className="max-w-fit mr-2">
+          <div
+            onClick={() => handleLink("/")}
+            className="flex items-center gap-2 cursor-pointer group"
           >
-            {FEATURES.map((item) => (
-              <DropdownItem key={item.key} description={item.description}>
-                {item.label}
-              </DropdownItem>
-            ))}
-          </DropdownMenu>
-        </Dropdown>
-        <Dropdown>
-          <NavbarItem>
-            <DropdownTrigger>
-              <Button disableRipple variant="light">
-                Store
-              </Button>
-            </DropdownTrigger>
-          </NavbarItem>
+            <AcmeLogo />
+            <p className="font-black text-xl tracking-tighter text-[#071739] dark:text-white">
+              TMOJ<span className="text-[#ff8904]">.</span>
+            </p>
+          </div>
+        </NavbarBrand>
 
-          <DropdownMenu
-            aria-label="ACME features"
-            itemClasses={{
-              base: "gap-4",
-            }}
-          >
-            {STORE.map((item) => (
-              <DropdownItem
-                key={item.key}
-                description={item.description}
-                onClick={() => handleLink(item.key)}
+        <div className="hidden lg:flex gap-6 items-center">
+          {["Explore", "Problems", "Contest", "Discuss"].map((item) => (
+            <NavbarItem key={item}>
+              <Link
+                onClick={() =>
+                  handleLink(
+                    `/${item === "Problems" ? "Problems/Library" : item}`
+                  )
+                }
+                className="text-[#4B6382] dark:text-[#A0AEC0] font-black text-[13px] cursor-pointer hover:text-[#071739] dark:hover:text-[#ff8904] transition-colors"
               >
-                {item.label}
-              </DropdownItem>
-            ))}
-          </DropdownMenu>
-        </Dropdown>
+                {item}
+              </Link>
+            </NavbarItem>
+          ))}
+
+          <NavbarItem>
+            <Dropdown className="dark:bg-[#282E3A] border dark:border-[#3F4755]">
+              <DropdownTrigger>
+                <Button
+                  disableRipple
+                  className="p-0 bg-transparent text-[#4B6382] dark:text-[#A0AEC0] font-black text-[13px] hover:text-[#071739] dark:hover:text-[#ff8904]"
+                  endContent={<ChevronDown size={14} />}
+                  variant="light"
+                >
+                  More
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="More options"
+                className="dark:text-white"
+              >
+                <DropdownItem
+                  key="interview"
+                  onClick={() => handleLink("/Interview")}
+                >
+                  Interview Prep
+                </DropdownItem>
+                <DropdownItem
+                  key="store"
+                  onClick={() => handleLink("/Premium")}
+                >
+                  Store
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </NavbarItem>
+        </div>
       </NavbarContent>
 
-      <NavbarContent justify="end">
+      {/* 2. SEARCH & USER */}
+      <NavbarContent justify="end" className="gap-4">
+        <NavbarItem className="hidden md:flex">
+          <Input
+            classNames={{
+              base: "max-w-full sm:max-w-[200px] lg:max-w-[280px] h-9",
+              mainWrapper: "h-full",
+              input:
+                "text-[12px] font-bold placeholder:text-[#A4B5C4] dark:text-white",
+              inputWrapper:
+                "h-full bg-[#CDD5DB]/25 dark:bg-[#333A45] border border-[#CDD5DB] dark:border-[#3F4755] hover:border-[#A4B5C4] focus-within:!border-[#ff8904] rounded-full transition-all px-4 shadow-inner",
+            }}
+            placeholder="Search problems..."
+            size="sm"
+            startContent={
+              <SearchIcon
+                size={15}
+                className="text-[#A4B5C4] dark:text-[#667085] mr-1"
+              />
+            }
+            type="search"
+          />
+        </NavbarItem>
+
         <NavbarItem>
           <ThemeToggle />
         </NavbarItem>
 
         {isLoading ? (
-          <NavbarItem>
-            <p>Loading...</p>
-          </NavbarItem>
+          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#333A45] animate-pulse" />
         ) : user ? (
           <NavbarItem>
-            <Dropdown placement="bottom-end">
+            <Dropdown
+              placement="bottom-end"
+              className="dark:bg-[#282E3A] border dark:border-[#3F4755]"
+            >
               <DropdownTrigger>
-                <User
-                  as="button"
-                  avatarProps={{
-                    isBordered: true,
-                    src:
-                      user.imagesUrl || "https://i.pravatar.cc/150?u=default",
-                  }}
-                  className="transition-transform"
-                  description={user.email}
-                  name={user.name}
-                />
+                <div className="flex items-center gap-2 p-1 pr-3 bg-[#CDD5DB]/15 dark:bg-[#333A45]/50 rounded-full hover:bg-[#CDD5DB]/30 dark:hover:bg-[#333A45] transition-all cursor-pointer border border-[#CDD5DB]/40 dark:border-[#3F4755]">
+                  <User
+                    as="button"
+                    avatarProps={{
+                      size: "sm",
+                      src:
+                        user.imagesUrl || "https://i.pravatar.cc/150?u=default",
+                      className: "border-none shadow-sm",
+                    }}
+                    name=""
+                  />
+                  <span className="text-[11px] font-black text-[#071739] dark:text-[#ff8904]">
+                    {user.name}
+                  </span>
+                </div>
               </DropdownTrigger>
-              <DropdownMenu aria-label="User menu actions">
-                <DropdownItem key="Role">
-                  <p className="font-bold">{user.role}</p>
+              <DropdownMenu
+                aria-label="User Actions"
+                className="dark:text-white"
+              >
+                <DropdownItem
+                  key="profile"
+                  onClick={() =>
+                    openModal({ title: "Profile", content: <ProfileUser /> })
+                  }
+                >
+                  My Profile
                 </DropdownItem>
-                <DropdownItem onPress={ProfileUserssOpen} key="profile">
-                  Hồ sơ
+                <DropdownItem
+                  key="settings"
+                  onClick={() => handleLink("/settings")}
+                >
+                  Settings
                 </DropdownItem>
-                <DropdownItem key="settings">Cài đặt</DropdownItem>
                 <DropdownItem
                   key="logout"
-                  className="text-danger"
+                  className="text-danger font-bold"
                   color="danger"
-                  onPress={handleLogout}
+                  onClick={handleLogout}
                 >
-                  Đăng xuất
+                  Log Out
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </NavbarItem>
         ) : (
-          <>
+          <div className="flex gap-2">
             <NavbarItem>
               <Button
-                color="primary"
-                variant="bordered"
-                onPress={handleOpenLogin}
+                size="sm"
+                variant="light"
+                onClick={() =>
+                  openModal({ title: "Đăng nhập", content: <LoginModal /> })
+                }
+                className="text-[#071739] dark:text-white font-black rounded-full"
               >
                 Login
               </Button>
             </NavbarItem>
             <NavbarItem>
               <Button
-                color="danger"
-                variant="flat"
-                onPress={handleOpenRegister}
+                size="sm"
+                onClick={() =>
+                  openModal({ title: "Đăng kí", content: <RegisterModal /> })
+                }
+                style={{ backgroundColor: "#ff8904" }}
+                className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
               >
                 Sign Up
               </Button>
             </NavbarItem>
-          </>
+          </div>
         )}
       </NavbarContent>
     </Navbar>

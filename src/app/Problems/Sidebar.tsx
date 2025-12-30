@@ -42,8 +42,7 @@ export default function ProblemsSidebar() {
       {/* 1. Navigation Section */}
       <Listbox
         aria-label="Navigation"
-        onAction={(key) => router.push(`/Problems/${String(key)}`
-      )}
+        onAction={(key) => router.push(`/Problems/${String(key)}`)}
         className="p-0 gap-1"
       >
         <ListboxItem

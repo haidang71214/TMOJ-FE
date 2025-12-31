@@ -68,12 +68,11 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-10">
           {/* WELCOME SECTION */}
           <section className="flex flex-col gap-3">
-            <h1 className="text-5xl font-extrabold tracking-tight text-[#071739] dark:text-white flex items-center gap-3">
+            <h1 className="text-5xl font-extrabold tracking-tight text-[#3F4755] dark:text-white flex items-center gap-3">
               Welcome back,{" "}
-              <span className="bg-gradient-to-r from-[#A68868] to-[#E3C39D] dark:from-[#E3C39D] dark:to-[#A68868] bg-clip-text text-transparent">
+              <span className="text-[#071739] dark:text-[#FFB800]">
                 Toitapcode
               </span>
-              !
             </h1>
             <p className="text-[#4B6382] dark:text-[#98A2B3] font-medium text-lg opacity-80 border-l-2 border-[#A68868] pl-4">
               &ldquo;Mastering code is like carving stone; precision and

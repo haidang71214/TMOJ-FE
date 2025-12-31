@@ -77,108 +77,126 @@ export default function PremiumPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-[#071739] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
-        {/* Tiêu đề Premium */}
+        {/* Header Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900">Premium</h1>
-          <p className="mt-4 text-xl text-gray-600">
-            Get started with a LeetCode Subscription that works for you.
+          <h1 className="text-6xl font-black text-[#071739] dark:text-white uppercase tracking-tighter">
+            Premium<span className="text-[#FFB800]">.</span>
+          </h1>
+          <p className="mt-4 text-xl text-gray-500 dark:text-gray-400 font-medium">
+            Get started with a TMOJ Subscription that works for you.
           </p>
         </div>
+
         {/* Pricing Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto mb-24">
           {/* Monthly Plan */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="flex flex-col items-start">
-              <h2 className="text-2xl font-bold">Monthly</h2>
-              <p className="text-sm text-gray-500">billed monthly</p>
+          <Card className="border border-gray-100 dark:border-[#474F5D] shadow-sm bg-white dark:bg-[#282E3A] rounded-[2rem]">
+            <CardHeader className="flex flex-col items-start p-8">
+              <h2 className="text-2xl font-black dark:text-white uppercase tracking-tight">
+                Monthly
+              </h2>
+              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                billed monthly
+              </p>
               <Spacer y={4} />
-              <p className="text-gray-600">
+              <p className="text-gray-500 dark:text-gray-400 font-medium">
                 Our monthly plan grants access to all premium features, the best
                 plan for short-term subscribers.
               </p>
             </CardHeader>
-            <CardBody>
-              <div className="text-5xl font-bold">
+            <CardBody className="px-8 py-0">
+              <div className="text-6xl font-black dark:text-white tracking-tighter">
                 $36
-                <span className="text-xl font-normal text-gray-500">/mo</span>
+                <span className="text-xl font-bold text-gray-400">/mo</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-4">
                 Prices are marked in USD
               </p>
             </CardBody>
-            <CardFooter>
+            <CardFooter className="p-8">
               <Button
                 size="lg"
-                color="default"
                 variant="bordered"
-                className="w-full text-lg font-medium"
+                className="w-full text-sm font-black uppercase tracking-widest rounded-2xl border-2 border-[#071739] dark:border-[#FFB800] text-[#071739] dark:text-[#FFB800] hover:bg-[#071739] hover:text-white dark:hover:bg-[#FFB800] dark:hover:text-[#071739] transition-all"
               >
                 Subscribe
               </Button>
             </CardFooter>
           </Card>
 
-          {/* Yearly Plan - Nổi bật nhất */}
-          <Card className="border-2 border-orange-300 shadow-lg bg-gradient-to-br from-orange-50 to-amber-50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-orange-500 text-white px-8 py-1 rotate-12 translate-x-6 translate-y-2 text-sm font-medium">
+          {/* Yearly Plan - Most Popular */}
+          <Card className="border-none shadow-2xl bg-white dark:bg-[#282E3A] relative overflow-hidden rounded-[2rem] ring-4 ring-[#FFB800]/20">
+            <div className="absolute top-0 right-0 bg-[#FFB800] text-[#071739] px-10 py-1.5 rotate-12 translate-x-8 translate-y-4 text-[10px] font-black uppercase tracking-[0.2em] z-10">
               Most popular
             </div>
-            <CardHeader className="flex flex-col items-start">
-              <h2 className="text-2xl font-bold">Yearly</h2>
-              <p className="text-sm text-gray-500">billed yearly ($179)</p>
+            <CardHeader className="flex flex-col items-start p-8">
+              <h2 className="text-2xl font-black dark:text-white uppercase tracking-tight">
+                Yearly
+              </h2>
+              <p className="text-sm font-bold text-[#FFB800] uppercase tracking-widest">
+                billed yearly ($179)
+              </p>
               <Spacer y={4} />
-              <p className="text-gray-700">
-                Our most popular plan previously sold for $299 and is now only{" "}
-                <strong>$14.92/month</strong>.
+              <p className="text-gray-500 dark:text-gray-400 font-medium">
+                Our most popular plan previously sold for $299 and is giờ đây
+                chỉ còn{" "}
+                <strong className="text-[#071739] dark:text-white">
+                  $14.92/month
+                </strong>
+                .
                 <br />
-                This plan saves you over 62% in comparison to the monthly plan.
+                Save over 62% in comparison to the monthly plan.
               </p>
             </CardHeader>
-            <CardBody>
-              <div className="text-5xl font-bold">
-                $36,36
-                <span className="text-xl font-normal text-gray-500">/mo</span>
+            <CardBody className="px-8 py-0">
+              <div className="text-6xl font-black dark:text-white tracking-tighter">
+                $159
+                <span className="text-xl font-bold text-[#FFB800]">/yr</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-4">
                 Prices are marked in USD
               </p>
             </CardBody>
-            <CardFooter>
+            <CardFooter className="p-8">
               <Button
                 size="lg"
-                color="primary"
-                className="w-full text-lg font-medium bg-black hover:bg-gray-800"
+                className="w-full text-sm font-black uppercase tracking-widest rounded-2xl bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#071739] shadow-xl dark:shadow-[#FFB800]/20 hover:scale-[1.02] active:scale-95 transition-all"
               >
-                Subscribe
+                Subscribe Now
               </Button>
             </CardFooter>
           </Card>
         </div>
-        {/* Grid lợi ích - 2 cột trên desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20m mt-20">
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 mb-24">
           {features.map((feature, index) => (
-            <div key={index} className="flex gap-4">
-              <div className="text-4xl flex-shrink-0">{feature.icon}</div>
+            <div key={index} className="flex gap-6 group">
+              <div className="text-5xl flex-shrink-0 grayscale group-hover:grayscale-0 transition-all duration-300">
+                {feature.icon}
+              </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-semibold text-gray-900">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-black text-[#071739] dark:text-white uppercase tracking-tight group-hover:text-[#FFB800] transition-colors">
                     {feature.title}
                   </h3>
                   {feature.badge && (
-                    <Badge color="warning" variant="flat">
+                    <Badge className="bg-[#FFB800] text-[#071739] border-none font-black text-[9px] uppercase px-2 py-0.5">
                       {feature.badge}
                     </Badge>
                   )}
                 </div>
-                <p className="mt-2 text-gray-600">{feature.description}</p>
+                <p className="mt-3 text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
-        <Divider className="my-20" />
+        <Divider className="my-20 dark:bg-[#474F5D]/50" />
       </div>
     </div>
   );

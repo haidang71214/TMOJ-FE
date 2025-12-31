@@ -227,7 +227,7 @@ export default function NavbarProvider() {
                 }
                 className="text-[#071739] dark:text-white font-black rounded-full"
               >
-                Login
+                Sign In
               </Button>
             </NavbarItem>
             <NavbarItem>

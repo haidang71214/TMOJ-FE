@@ -19,7 +19,7 @@ import { useModal } from "./ModalProvider";
 import LoginModal from "../app/Modal/LoginModal";
 import RegisterModal from "../app/Modal/RegisterModal";
 import ProfileUser from "./ProfileUser";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
 import webStorageClient from "@/utils/webStorageClient";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import ThemeToggle from "./ThemeToggle";
@@ -28,6 +28,7 @@ import { ChevronDown, Search as SearchIcon } from "lucide-react";
 export default function NavbarProvider() {
   const { openModal } = useModal();
   const router = useRouter();
+  const pathname = usePathname();
   const { data: user, isLoading } = useGetUserInformationQuery();
 
   const handleLogout = () => {
@@ -56,7 +57,6 @@ export default function NavbarProvider() {
             y2="23"
             gradientUnits="userSpaceOnUse"
           >
-            {/* Thay đổi màu Gradient sang Cam #ff8904 cho sáng */}
             <stop stopColor="#ff8904" />
             <stop offset="1" stopColor="#ffb347" />
           </linearGradient>
@@ -85,20 +85,32 @@ export default function NavbarProvider() {
         </NavbarBrand>
 
         <div className="hidden lg:flex gap-6 items-center">
-          {["Explore", "Problems", "Contest", "Discuss"].map((item) => (
-            <NavbarItem key={item}>
-              <Link
-                onClick={() =>
-                  handleLink(
-                    `/${item === "Problems" ? "Problems/Library" : item}`
-                  )
-                }
-                className="text-[#4B6382] dark:text-[#A0AEC0] font-black text-[13px] cursor-pointer hover:text-[#071739] dark:hover:text-[#ff8904] transition-colors"
-              >
-                {item}
-              </Link>
-            </NavbarItem>
-          ))}
+          {/* Cập nhật danh sách Tabs ở đây */}
+          {["Explore", "Problems", "Contest", "Discuss", "Management"].map(
+            (item) => {
+              // Logic điều hướng đặc biệt cho các tab
+              let link = `/${item}`;
+              if (item === "Problems") link = "/Problems/Library";
+              if (item === "Management") link = "/Management/Contest";
+
+              const isActive = pathname.startsWith(`/${item}`);
+
+              return (
+                <NavbarItem key={item}>
+                  <Link
+                    onClick={() => handleLink(link)}
+                    className={`font-black text-[13px] cursor-pointer transition-colors ${
+                      isActive
+                        ? "text-[#ff8904]"
+                        : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
+                    }`}
+                  >
+                    {item}
+                  </Link>
+                </NavbarItem>
+              );
+            }
+          )}
 
           <NavbarItem>
             <Dropdown className="dark:bg-[#282E3A] border dark:border-[#3F4755]">

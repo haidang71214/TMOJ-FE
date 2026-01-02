@@ -15,7 +15,7 @@ export const CategoryTags = ({ categories }: { categories: Category[] }) => {
       {/* Container Tags */}
       <div
         className={`flex flex-wrap gap-x-6 gap-y-3 transition-all duration-700 ease-in-out overflow-hidden ${
-          isExpanded ? "max-h-[1000px] opacity-100" : "max-h-[32px] opacity-80"
+          isExpanded ? "max-h-[1000px] opacity-100" : "max-h-[30px] opacity-80"
         }`}
       >
         {categories.map((cat) => (

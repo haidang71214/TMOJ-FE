@@ -167,7 +167,7 @@ export default function ProblemsPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#ffffff]">
+    <main className="min-h-screen bg-[#CDD5DB]">
       <div className="max-w-[1200px] mx-auto p-6 flex flex-col md:flex-row gap-8 items-start">
         <div className="flex-1 w-full flex flex-col gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -79,7 +79,7 @@ export default function MyListDetailPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] dark:bg-[#101828] font-sans text-[#262626] dark:text-[#F9FAFB] flex relative overflow-hidden transition-colors duration-500">
+    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#262626] dark:text-[#F9FAFB] flex relative overflow-hidden transition-colors duration-500">
       {/* 1. SIDEBAR TRÁI */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40

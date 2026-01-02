@@ -82,13 +82,13 @@ export default function GlobalProblemListPage() {
       {/* Header Section */}
       <div className="flex justify-between items-end">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-[#FFB800]/10 rounded-2xl">
-            <Database size={32} className="text-[#FFB800]" />
+          <div className="p-3 bg-white dark:bg-[#1C2737] rounded-2xl text-[#071739] dark:text-[#FFB800] shadow-sm">
+            <Database size={32} />
           </div>
           <div>
-            <h3 className="text-3xl font-black dark:text-white uppercase italic leading-none">
+            <h2 className="text-3xl font-black dark:text-white uppercase italic leading-none">
               Problem List Repository<span className="text-[#FFB800]">.</span>
-            </h3>
+            </h2>
             <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mt-3">
               Total Problems: {allProblems.length}
             </p>
@@ -97,7 +97,7 @@ export default function GlobalProblemListPage() {
         <Button
           startContent={<Plus size={18} />}
           onClick={() => router.push("/Management/Problem/create")}
-          className="bg-[#FFB800] text-[#071739] font-black rounded-xl uppercase px-6 h-12 shadow-lg shadow-[#FFB800]/20 active:scale-95 transition-all"
+          className="bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] font-black rounded-xl h-12 px-8 uppercase tracking-widest shadow-lg active:scale-95 transition-all"
         >
           Create New Problem
         </Button>

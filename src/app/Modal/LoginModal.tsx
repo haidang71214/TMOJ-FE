@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { Input, Button, addToast, Checkbox, Divider } from "@heroui/react";
 import { useLoginMutation } from "@/store/queries/auth";
 import { useModal } from "../../Provider/ModalProvider";
-import { Mail, Lock, MoreHorizontal, ArrowRight, X } from "lucide-react";
+import { Mail, MoreHorizontal, ArrowRight, X } from "lucide-react";
 import RegisterModal from "./RegisterModal";
+import PasswordInput from "../components/PasswordInput";
 
 export default function LoginModal() {
   const [email, setEmail] = useState("");
@@ -69,25 +70,12 @@ export default function LoginModal() {
             autoFocus
           />
           <div className="flex flex-col gap-2">
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              startContent={
-                <Lock
-                  size={18}
-                  className="text-[#3F4755] dark:text-[#FFB800] shrink-0"
-                />
-              }
-              classNames={{
-                inputWrapper:
-                  "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800] h-12 rounded-2xl border-1 transition-all",
-                input:
-                  "font-bold ml-2 text-sm text-[#3F4755] dark:text-white placeholder:text-gray-500",
-              }}
-            />
+            <PasswordInput
+  value={password}
+  onChange={setPassword}
+  required
+/>
+
             <div className="flex justify-between items-center px-1">
               <Checkbox
                 size="sm"

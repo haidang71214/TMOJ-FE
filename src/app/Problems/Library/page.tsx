@@ -1,5 +1,5 @@
 "use client";
-
+import "./hehe.css";
 import React, { useState } from "react";
 import Sidebar from "../Sidebar";
 import { QuestBanners } from "./QuestBanners";
@@ -215,7 +215,7 @@ export default function LibraryPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500">
+    <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
       {/* SIDEBAR TRÁI - Màu #1C2737 */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
@@ -241,7 +241,7 @@ export default function LibraryPage() {
           )}
         </button>
 
-        <div className="w-full overflow-y-auto h-screen custom-scrollbar dark:bg-[#101828]">
+        <div className=" overflow-y-auto custom-scrollbar dark:bg-[#101828] ">
           <div className="max-w-[1400px] mx-auto p-8 lg:p-12 flex flex-col lg:flex-row gap-10 items-start">
             <div className="flex-1 flex flex-col gap-8 w-full min-w-0">
               <QuestBanners />
@@ -342,6 +342,6 @@ export default function LibraryPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -11,32 +11,31 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  addToast,
-  User,
   Input,
+  addToast,
 } from "@heroui/react";
-import { useModal } from "./ModalProvider";
-import LoginModal from "../app/Modal/LoginModal";
-import RegisterModal from "../app/Modal/RegisterModal";
-import ProfileUser from "./ProfileUser";
-import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
-import webStorageClient from "@/utils/webStorageClient";
-import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useRouter, usePathname, useSearchParams } from "next/navigation"; // Thêm usePathname để active link
 import ThemeToggle from "./ThemeToggle";
 import { ChevronDown, Search as SearchIcon } from "lucide-react";
+import InformationInNavbar from "./InformationInNavbar";
+import RegisterModal from "@/app/Modal/RegisterModal";
+import LoginModal from "@/app/Modal/LoginModal";
+import { useModal } from "./ModalProvider";
 
 export default function NavbarProvider() {
-  const { openModal } = useModal();
   const router = useRouter();
   const pathname = usePathname();
-  const { data: user, isLoading } = useGetUserInformationQuery();
-
-  const handleLogout = () => {
-    webStorageClient.logout();
-    addToast({ title: "Đăng xuất thành công", color: "success" });
-    router.push("/");
-  };
-
+  const searchParams = useSearchParams();
+  const isUser : boolean = searchParams.get("user") === "true";
+    const { openModal } = useModal();
+  const hihi = () =>{
+    router.push("/?user=true");
+        addToast({
+        title: "Login Success",
+        color: "success",
+      });
+  }
+  
   const handleLink = (link: string) => router.push(link);
 
   const AcmeLogo = () => (
@@ -174,88 +173,40 @@ export default function NavbarProvider() {
           <ThemeToggle />
         </NavbarItem>
 
-        {isLoading ? (
-          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#333A45] animate-pulse" />
-        ) : user ? (
-          <NavbarItem>
-            <Dropdown
-              placement="bottom-end"
-              className="dark:bg-[#282E3A] border dark:border-[#3F4755]"
-            >
-              <DropdownTrigger>
-                <div className="flex items-center gap-2 p-1 pr-3 bg-[#CDD5DB]/15 dark:bg-[#333A45]/50 rounded-full hover:bg-[#CDD5DB]/30 dark:hover:bg-[#333A45] transition-all cursor-pointer border border-[#CDD5DB]/40 dark:border-[#3F4755]">
-                  <User
-                    as="button"
-                    avatarProps={{
-                      size: "sm",
-                      src:
-                        user.imagesUrl || "https://i.pravatar.cc/150?u=default",
-                      className: "border-none shadow-sm",
-                    }}
-                    name=""
-                  />
-                  <span className="text-[11px] font-black text-[#071739] dark:text-[#ff8904]">
-                    {user.name}
-                  </span>
-                </div>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="User Actions"
-                className="dark:text-white"
-              >
-                <DropdownItem
-                  key="profile"
-                  onClick={() =>
-                    openModal({ title: "Profile", content: <ProfileUser /> })
-                  }
-                >
-                  My Profile
-                </DropdownItem>
-                <DropdownItem
-                  key="settings"
-                  onClick={() => handleLink("/settings")}
-                >
-                  Settings
-                </DropdownItem>
-                <DropdownItem
-                  key="logout"
-                  className="text-danger font-bold"
-                  color="danger"
-                  onClick={handleLogout}
-                >
-                  Log Out
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </NavbarItem>
-        ) : (
-          <div className="flex gap-2">
-            <NavbarItem>
-              <Button
-                size="sm"
-                variant="light"
-                onClick={() =>
-                  openModal({ title: "Đăng nhập", content: <LoginModal /> })
-                }
-                className="text-[#071739] dark:text-white font-black rounded-full"
-              >
-                Sign In
-              </Button>
-            </NavbarItem>
-            <NavbarItem>
-              <Button
-                size="sm"
-                onClick={() =>
-                  openModal({ title: "Đăng kí", content: <RegisterModal /> })
-                }
-                style={{ backgroundColor: "#ff8904" }}
-                className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
-              >
-                Sign Up
-              </Button>
-            </NavbarItem>
-          </div>
-        )}
+         {isUser ? (
+  <InformationInNavbar />
+) : (
+  <div className="flex gap-2">
+    <NavbarItem>
+      <Button
+        size="sm"
+        variant="light"
+        onClick={() =>
+          openModal({ title: "Đăng nhập", content: <LoginModal /> })
+        }
+        className="text-[#071739] dark:text-white font-black rounded-full"
+      >
+        Sign In
+      </Button>
+    </NavbarItem>
+
+    <NavbarItem>
+      <Button
+        size="sm"
+        onClick={() =>
+          openModal({ title: "Đăng kí", content: <RegisterModal /> })
+        }
+        style={{ backgroundColor: "#ff8904" }}
+        className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
+      >
+        Sign Up
+        <div onClick={()=>{hihi()}}>a</div>
+      </Button>
+      
+    </NavbarItem>
+  </div>
+)}
+
       </NavbarContent>
     </Navbar>
   );

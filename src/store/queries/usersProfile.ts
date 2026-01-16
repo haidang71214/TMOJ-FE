@@ -1,16 +1,16 @@
-import { UpdateUserDto, UserDto } from "@/types";
+import { UpdateUserDto, Users } from "@/types";
 import { baseApi } from "../base";
 import { userProfileEndpoint } from "@/constants/endpoints";
 
 export const userApi = baseApi.injectEndpoints({
 
   endpoints: (builder) => ({
-    getUserInformation: builder.query<UserDto, void>({
+    getUserInformation: builder.query<Users, void>({
       query: () => ({
         url: userProfileEndpoint.GET_PROFILE,
         method: "GET",
       }),
-      transformResponse: (response: { result: UserDto }) => response.result,
+      transformResponse: (response: { result: Users }) => response.result,
       providesTags: ["User"], 
       // vai trò của provided tag là cập nhật đồng bộ khi có 1 mutation xảy ra
     }),

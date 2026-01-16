@@ -46,7 +46,7 @@ export const QuestBanners = () => {
           key={i}
           className={`${b.color} h-32 border-none shadow-none cursor-pointer overflow-hidden group`}
         >
-          <CardBody className="p-4 flex flex-col justify-center relative">
+          <CardBody className="p-4 flex flex-col justify-center relative" style={{overflowY:"hidden",overflowX:"hidden"}}>
             <p
               className={`text-[10px] font-bold uppercase tracking-widest ${
                 b.sub === "Premium" ? "text-white/80" : "text-gray-400"

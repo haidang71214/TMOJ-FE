@@ -6,19 +6,18 @@ import { useModal } from "../../Provider/ModalProvider";
 import {
   User,
   Mail,
-  Lock,
   Calendar,
-  Image as ImageIcon,
   MoreHorizontal,
   ArrowRight,
   X,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
+import PasswordInput from "../components/PasswordInput";
 
 export default function RegisterModal() {
   const { closeModal, openModal } = useModal();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [password,setPassword] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -28,7 +27,7 @@ export default function RegisterModal() {
       closeModal();
     }, 1500);
   };
-
+  
   return (
     <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[480px] w-full border-none outline-none">
       <button
@@ -87,48 +86,20 @@ export default function RegisterModal() {
             }}
           />
 
-          <Input
-            type="password"
-            placeholder="Password"
-            variant="flat"
-            required
-            startContent={
-              <Lock
-                size={18}
-                className="text-[#3F4755] dark:text-[#FFB800] shrink-0"
-              />
-            }
-            classNames={{
-              inputWrapper:
-                "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800] h-12 rounded-2xl border-1 transition-all",
-              input:
-                "text-[#3F4755] dark:text-white placeholder:text-gray-500 font-bold ml-2 text-sm",
-            }}
-          />
+           <PasswordInput
+  value={password}
+  onChange={setPassword}
+  required
+/>
 
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid gap-4">
             <Input
               placeholder="Age"
               type="number"
               variant="flat"
               startContent={
                 <Calendar
-                  size={18}
-                  className="text-[#3F4755] dark:text-[#FFB800] shrink-0"
-                />
-              }
-              classNames={{
-                inputWrapper:
-                  "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800] h-12 rounded-2xl border-1 transition-all",
-                input:
-                  "text-[#3F4755] dark:text-white placeholder:text-gray-500 font-bold ml-2 text-sm",
-              }}
-            />
-            <Input
-              placeholder="Avatar URL"
-              variant="flat"
-              startContent={
-                <ImageIcon
                   size={18}
                   className="text-[#3F4755] dark:text-[#FFB800] shrink-0"
                 />
@@ -198,15 +169,6 @@ export default function RegisterModal() {
             </svg>
           </Button>
           {/* Facebook */}
-          <Button
-            variant="bordered"
-            isIconOnly
-            className="w-11 h-11 rounded-full border-gray-200 dark:border-[#474F5D] transition-all"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-          </Button>
           <Button
             variant="light"
             isIconOnly

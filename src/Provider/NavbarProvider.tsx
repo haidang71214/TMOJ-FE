@@ -14,7 +14,7 @@ import {
   Input,
   addToast,
 } from "@heroui/react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation"; // Thêm usePathname để active link
+import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
 import ThemeToggle from "./ThemeToggle";
 import { ChevronDown, Search as SearchIcon } from "lucide-react";
 import InformationInNavbar from "./InformationInNavbar";
@@ -25,17 +25,22 @@ import { useModal } from "./ModalProvider";
 export default function NavbarProvider() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const isUser : boolean = searchParams.get("user") === "true";
+const [isUser, setIsUser] = React.useState(false);
+
+React.useEffect(() => {
+  setIsUser(localStorage.getItem("user") === "true");
+}, []);
+
     const { openModal } = useModal();
-  const hihi = () =>{
-    router.push("/?user=true");
-        addToast({
-        title: "Login Success",
-        color: "success",
-      });
-  }
-  
+const hihi = () => {
+  localStorage.setItem("user", "true");
+  addToast({
+    title: "Login Success",
+    color: "success",
+  });
+  router.refresh(); // re-render navbar
+};
+
   const handleLink = (link: string) => router.push(link);
 
   const AcmeLogo = () => (

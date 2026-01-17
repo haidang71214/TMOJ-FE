@@ -1,11 +1,10 @@
-"use client";
 
-import React from "react";
 import UpcomingContests from "./UpcomingContests";
 import { Trophy, Gift } from "lucide-react";
 
 export default function ContestPage() {
   return (
+    
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] text-[#071739] dark:text-white transition-colors duration-500">
       {/* Hero Section */}
       <div className="relative bg-white dark:bg-[#1C2737] py-24 border-b border-[#A4B5C4] dark:border-[#1C2737] shadow-sm">

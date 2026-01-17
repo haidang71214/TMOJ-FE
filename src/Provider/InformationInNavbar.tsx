@@ -11,21 +11,24 @@ import {
   Coins,
   Sparkles,
   ShoppingBag,
-  PlayCircle,
   Settings as SettingsIcon,
   Palette,
   LogOut,
   User2Icon,
 } from 'lucide-react';
+import React from 'react';
 
 export default function InformationInNavbar() {
+  
   const router = useRouter();
   const handleLogout = () => {
     webStorageClient.logout();
     addToast({ title: "Đăng xuất thành công", color: "success" });
     router.push("/");
+    localStorage.removeItem("user");
   };
-
+React.useEffect(() => {
+}, [handleLogout]);
   const handleLink = (link: string) => router.push(link);
 
   // Giả sử bạn có dữ liệu user (tạm comment như code cũ)

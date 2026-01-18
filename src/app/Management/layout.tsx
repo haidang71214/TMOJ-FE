@@ -80,7 +80,7 @@ export default function ManagementLayout({
       </aside>
 
       {/* 4. MAIN CONTENT AREA */}
-      <div className="">
+      <div className="flex-1 overflow-y-auto bg-[#CDD5DB] dark:bg-[#101828]">
         {children}
       </div>
     </div>

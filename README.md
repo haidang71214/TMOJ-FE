@@ -1,4 +1,4 @@
-# Sohana Front-end Guides
+# TMOJ Front-end Guides
 ## !!! Lưu ý !!!
 ### ⚠️ KHÔNG TẢI THÊM BẤT CỨ DEPENDENCY NÀO KHÁC NẾU CHƯA CÓ SỰ CHO PHÉP CỦA TEAM ⚠️
 ## Nguồn tham khảo

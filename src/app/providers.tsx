@@ -8,10 +8,12 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Provider } from "react-redux";
+import { Suspense } from "react";
 
 import { store } from "@/store";
 import { ModalProvider } from "../Provider/ModalProvider";
 import AuthProvider from "@/Provider/AuthProvider";
+import AutoOpenResetPassModal from "@/Provider/OpenModalResetPass";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -29,8 +31,12 @@ export function Providers({ children, themeProps }:  Readonly<ProvidersProps>) {
   return (
   <Provider store={store}>
   <NextThemesProvider {...themeProps}>
+     
     <HeroUIProvider>
       <ModalProvider>
+              <Suspense fallback={null}>
+              <AutoOpenResetPassModal />
+            </Suspense>
         <AuthProvider>
         {children}
         </AuthProvider>

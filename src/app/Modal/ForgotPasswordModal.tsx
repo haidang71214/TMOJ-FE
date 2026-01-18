@@ -1,33 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input, Button, addToast, Checkbox, Divider } from "@heroui/react";
-import { useLoginMutation } from "@/store/queries/auth";
+import { Input, Button, addToast, Divider } from "@heroui/react";
+
 import { useModal } from "../../Provider/ModalProvider";
 import { Mail, MoreHorizontal, ArrowRight, X } from "lucide-react";
 import RegisterModal from "./RegisterModal";
-import PasswordInput from "../components/PasswordInput";
-import ForgotPasswordModal from "./ForgotPasswordModal";
+import ResetPassModal from "./ResetPassModal";
 
-export default function LoginModal() {
+export default function ForgotPasswordModal() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [login, { isLoading }] = useLoginMutation();
   const { closeModal, openModal } = useModal();
-  const handleOpenForgotPass = ()=>{
-      openModal({ content: <ForgotPasswordModal /> })
-  }
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await login({ email, password }).unwrap();
-      if (res.result) {
-        addToast({ title: "Welcome back!", color: "success" });
-        closeModal();
-      }
-    } catch {
-      addToast({ title: "Login Failed", color: "danger" });
-    }
+
+  const handleSubmit = () => {
+   //  chỗ này nếu api trả lỗi thì báo không cho mở modal
+        addToast({ title: "Secret URL already send, please check your mail", color: "success" });
+        // tạm để này ha
+        openModal({ content: <ResetPassModal token="aaaaa" /> })
+      
   };
 
   return (
@@ -43,7 +33,7 @@ export default function LoginModal() {
       {/* Header */}
       <div className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8">
         <h2 className="text-4xl font-black text-[#3F4755] dark:text-white tracking-tighter uppercase leading-none">
-          Sign in<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
+          Forgot pass<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
         </h2>
         <p className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
           Welcome to TMOJ
@@ -72,37 +62,14 @@ export default function LoginModal() {
             }}
             autoFocus
           />
-          <div className="flex flex-col gap-2">
-            <PasswordInput
-  value={password}
-  onChange={setPassword}
-  required
-/>
-
-            <div className="flex justify-between items-center px-1">
-              <Checkbox
-                size="sm"
-                classNames={{
-                  wrapper: "after:bg-[#FFB800]",
-                  label: "text-[12px] font-bold text-gray-500",
-                }}
-              >
-                Remember me
-              </Checkbox>
-              <span onClick={()=>{handleOpenForgotPass()}} className="text-[12px] font-bold text-[#3F4755] dark:text-[#E3C39D] cursor-pointer hover:underline">
-                Forgot password?
-              </span>
-            </div>
-          </div>
         </div>
 
         <Button
           type="submit"
-          isLoading={isLoading}
-          endContent={!isLoading && <ArrowRight size={18} />}
+          endContent={<ArrowRight size={18} />}
           className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black rounded-2xl h-14 mt-4 shadow-lg dark:shadow-[0_8px_20px_rgba(255,184,0,0.3)] uppercase tracking-widest text-sm transition-transform active:scale-95"
         >
-          Sign in
+          Reset Password
         </Button>
       </form>
 

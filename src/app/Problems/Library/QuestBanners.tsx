@@ -49,7 +49,7 @@ export const QuestBanners = () => {
           <CardBody className="p-4 flex flex-col justify-center relative" style={{overflowY:"hidden",overflowX:"hidden"}}>
             <p
               className={`text-[10px] font-bold uppercase tracking-widest ${
-                b.sub === "Premium" ? "text-white/80" : "text-gray-400"
+                b.sub === "Premium" ? "text-white" : "text-gray-400"
               }`}
             >
               {b.sub}

@@ -83,3 +83,25 @@ export interface Contest {
   eligibility: string;
   bannerImage?: string; // optional vì không phải contest nào cũng có
 }
+export enum ProblemTag {
+  DP = "dp",
+  GREEDY = "greedy",
+  GRAPH = "graph",
+  TREE = "tree",
+  STRING = "string",
+  MATH = "math",
+  SORTING = "sorting",
+  BINARY_SEARCH = "binary_search",
+  TWO_POINTERS = "two_pointers",
+}
+export const PROBLEM_TAG_LABEL: Record<ProblemTag, string> = {
+  [ProblemTag.DP]: "Dynamic Programming",
+  [ProblemTag.GREEDY]: "Greedy",
+  [ProblemTag.GRAPH]: "Graph",
+  [ProblemTag.TREE]: "Tree",
+  [ProblemTag.STRING]: "String",
+  [ProblemTag.MATH]: "Math",
+  [ProblemTag.SORTING]: "Sorting",
+  [ProblemTag.BINARY_SEARCH]: "Binary Search",
+  [ProblemTag.TWO_POINTERS]: "Two Pointers",
+};

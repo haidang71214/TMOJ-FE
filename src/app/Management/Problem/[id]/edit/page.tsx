@@ -21,16 +21,12 @@ import {
   Italic,
   Underline,
   List,
-  FileCode,
-  PlusSquare,
-  ChevronLeft,
-  Heading1,
-  Link2,
-  Plus,
+  Type,
   Trash2,
-  PlusCircle,
+  FileCode
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
 
 export default function GlobalProblemEditPage({
   params,
@@ -56,7 +52,16 @@ export default function GlobalProblemEditPage({
       ))}
     </div>
   );
+const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+const addTag = (tag: ProblemTag) => {
+  setSelectedTags((prev) =>
+    prev.includes(tag) ? prev : [...prev, tag]
+  );
+};
 
+const removeTag = (tag: ProblemTag) => {
+  setSelectedTags((prev) => prev.filter((t) => t !== tag));
+};
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
       {/* HEADER SECTION */}
@@ -273,29 +278,46 @@ export default function GlobalProblemEditPage({
               </Switch>
             </div>
           </div>
-
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
-                Tags
-              </label>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="flat"
-                className="bg-[#FF5C00] text-white rounded-lg h-7 w-7"
-              >
-                <Plus size={14} />
-              </Button>
-            </div>
-            <Input
-              startContent={<PlusSquare size={14} className="text-slate-400" />}
-              placeholder="Add tag..."
+          <div className="flex flex-col gap-4">
+            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
+              Tags
+            </label>
+          
+            <Select
+              placeholder="Select tag"
+              variant="flat"
               classNames={{
-                inputWrapper:
-                  "rounded-xl dark:bg-black/20 h-10 border-none shadow-inner",
+                trigger: "rounded-xl dark:bg-[#282E3A] h-10",
               }}
-            />
+              onSelectionChange={(keys) => {
+                const value = Array.from(keys)[0] as ProblemTag;
+                if (value) addTag(value);
+              }}
+            >
+              {Object.values(ProblemTag).map((tag) => (
+                <SelectItem key={tag}>
+                  {PROBLEM_TAG_LABEL[tag]}
+                </SelectItem>
+              ))}
+            </Select>
+          
+            {/* Selected tags */}
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map((tag) => (
+                <div
+                  key={tag}
+                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFB800]/20 text-[#FFB800] text-[11px] font-bold"
+                >
+                  {PROBLEM_TAG_LABEL[tag]}
+                  <button
+                    onClick={() => removeTag(tag)}
+                    className="hover:text-red-500"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="lg:col-span-2 space-y-6">

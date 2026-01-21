@@ -85,10 +85,10 @@ export default function ManagementLayout({
         </div>
       </aside>
 
-      {/* 4. MAIN CONTENT AREA */}
-      <div className="flex-1 overflow-y-auto bg-[#CDD5DB] dark:bg-[#101828]">
-        {children}
-      </div>
+      {/*4.  MAIN CONTENT AREA  */}
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+        <div className="flex-1 p-10 lg:p-14 w-full">{children}</div>
+      </main>
     </div>
   );
 }

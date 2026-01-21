@@ -12,7 +12,7 @@ import {
   RadioGroup,
   Radio,
   Divider,
-  Chip,
+  Tooltip,
 } from "@heroui/react";
 import {
   Save,
@@ -22,17 +22,25 @@ import {
   Italic,
   Underline,
   List,
+  Type,
+
   FileCode,
-  PlusSquare,
-  ChevronLeft,
-  Heading1,
-  Link2,
-  Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
 
 export default function CreateProblemPage() {
   const router = useRouter();
+const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+const addTag = (tag: ProblemTag) => {
+  setSelectedTags((prev) =>
+    prev.includes(tag) ? prev : [...prev, tag]
+  );
+};
+
+const removeTag = (tag: ProblemTag) => {
+  setSelectedTags((prev) => prev.filter((t) => t !== tag));
+};
 
   const EditorToolbar = () => (
     <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1 flex-wrap">
@@ -74,38 +82,23 @@ export default function CreateProblemPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
-        {/* PROBLEM TITLE */}
-        <Input
-          label="Problem Title"
-          placeholder="e.g. Maximum Path Sum in Binary Tree"
-          labelPlacement="outside"
-          classNames={{
-            inputWrapper:
-              "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-all",
-            label:
-              "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
-            input: "font-bold italic uppercase tracking-tight text-lg",
-          }}
-        />
-
-        {/* DESCRIPTION */}
-        <div className="space-y-3 group">
-          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
-            Description
-          </label>
-          <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10 transition-all">
-            <EditorToolbar />
-            <Textarea
-              placeholder="Describe the problem statement..."
-              variant="flat"
-              minRows={5}
-              classNames={{
-                inputWrapper: "bg-transparent shadow-none p-4",
-                input: "font-medium text-slate-600 dark:text-slate-300",
-              }}
-            />
-          </div>
+      <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
+        {/* ROW 1: ID & TITLE */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <Input
+            label="Title"
+            placeholder="Problem Title"
+            variant="flat"
+            labelPlacement="outside"
+            className="md:col-span-3"
+            classNames={{
+              mainWrapper: "mt-4",
+              inputWrapper:
+                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
+              label:
+                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
+            }}
+          />
         </div>
 
         {/* SỬ DỤNG DIVIDER Ở ĐÂY ĐỂ PHÂN TÁCH */}
@@ -311,33 +304,50 @@ export default function CreateProblemPage() {
               </Switch>
             </div>
           </div>
+         <div className="flex flex-col gap-4">
+  <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
+    Tags
+  </label>
 
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
-                Tags
-              </label>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="flat"
-                className="bg-[#FF5C00] text-white rounded-lg h-7 w-7"
-              >
-                <Plus size={14} />
-              </Button>
-            </div>
-            <Input
-              startContent={<PlusSquare size={14} className="text-slate-400" />}
-              placeholder="Add tag..."
-              classNames={{
-                inputWrapper:
-                  "rounded-xl dark:bg-black/20 h-10 border-none shadow-inner",
-              }}
-            />
-          </div>
+  <Select
+    placeholder="Select tag"
+    variant="flat"
+    classNames={{
+      trigger: "rounded-xl dark:bg-[#282E3A] h-10",
+    }}
+    onSelectionChange={(keys) => {
+      const value = Array.from(keys)[0] as ProblemTag;
+      if (value) addTag(value);
+    }}
+  >
+    {Object.values(ProblemTag).map((tag) => (
+      <SelectItem key={tag}>
+        {PROBLEM_TAG_LABEL[tag]}
+      </SelectItem>
+    ))}
+  </Select>
 
-          <div className="lg:col-span-2 space-y-6">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
+  {/* Selected tags */}
+  <div className="flex flex-wrap gap-2">
+    {selectedTags.map((tag) => (
+      <div
+        key={tag}
+        className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFB800]/20 text-[#FFB800] text-[11px] font-bold"
+      >
+        {PROBLEM_TAG_LABEL[tag]}
+        <button
+          onClick={() => removeTag(tag)}
+          className="hover:text-red-500"
+        >
+          <X size={12} />
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
+
+          <div className="col-span-2 space-y-5">
+            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
               Languages
             </label>
             <CheckboxGroup
@@ -388,11 +398,58 @@ export default function CreateProblemPage() {
               labelPlacement="outside"
               classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
             />
-            <Input
-              label="Problem Score"
-              type="number"
-              defaultValue="100"
-              labelPlacement="outside"
+          </div>
+        </div>
+
+        {/* TYPE, TESTCASE, IO MODE */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] flex flex-col justify-center border border-gray-100 dark:border-[#474F5D]/30">
+            <RadioGroup
+              label="Problem Type"
+              orientation="horizontal"
+              defaultValue="acm"
+              classNames={{
+                label:
+                  "dark:text-white font-black uppercase text-[10px] tracking-widest mb-4 ml-1",
+              }}
+            >
+              <div className="flex gap-6">
+                <Radio value="acm">ACM</Radio>
+                <Radio value="oi">OI</Radio>
+              </div>
+            </RadioGroup>
+          </div>
+ <Tooltip
+  content="Upload file .zip chứa toàn bộ input/output testcase"
+  placement="top"
+  delay={200}
+  classNames={{
+    content:
+      "bg-black text-white text-[11px] px-3 py-2 rounded-lg font-semibold z-[9999]",
+  }}
+>
+          <div className="p-8 border-2 border-dashed border-[#474F5D] rounded-[2.5rem] flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-[#071739]/30 hover:border-[#FFB800] transition-all">
+            <FileUp size={24} className="text-[#FFB800]" />
+         
+  <span className="font-black dark:text-white uppercase text-[10px] tracking-widest cursor-help">
+    Testcase Data (.zip)
+  </span>
+
+
+
+            <Button
+              size="sm"
+              className="bg-[#FFB800] text-[#071739] font-black rounded-xl px-8 mt-1"
+            >
+              Upload
+            </Button>
+          </div>
+</Tooltip>
+          <div className="p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] border border-gray-100 dark:border-[#474F5D]/30 flex flex-col justify-center">
+            <RadioGroup
+              label="IO Mode"
+              orientation="horizontal"
+              defaultValue="standard"
               classNames={{
                 inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
                 input: "font-black text-blue-600 dark:text-[#22C55E]",

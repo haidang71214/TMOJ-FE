@@ -25,21 +25,21 @@ import { useModal } from "./ModalProvider";
 export default function NavbarProvider() {
   const router = useRouter();
   const pathname = usePathname();
-const [isUser, setIsUser] = React.useState(false);
+  const [isUser, setIsUser] = React.useState(false);
 
-React.useEffect(() => {
-  setIsUser(localStorage.getItem("user") === "true");
-}, []);
+  React.useEffect(() => {
+    setIsUser(localStorage.getItem("user") === "true");
+  }, []);
 
-    const { openModal } = useModal();
-const hihi = () => {
-  localStorage.setItem("user", "true");
-  addToast({
-    title: "Login Success",
-    color: "success",
-  });
-  router.refresh(); // re-render navbar
-};
+  const { openModal } = useModal();
+  const hihi = () => {
+    localStorage.setItem("user", "true");
+    addToast({
+      title: "Login Success",
+      color: "success",
+    });
+    router.refresh(); // re-render navbar
+  };
 
   const handleLink = (link: string) => router.push(link);
 
@@ -90,31 +90,39 @@ const hihi = () => {
 
         <div className="hidden lg:flex gap-6 items-center">
           {/* Cập nhật danh sách Tabs ở đây */}
-          {["Explore", "Problems", "Contest", "Discuss", "Management"].map(
-            (item) => {
-              // Logic điều hướng đặc biệt cho các tab
-              let link = `/${item}`;
-              if (item === "Problems") link = "/Problems/Library";
-              if (item === "Management") link = "/Management/Contest";
+          {[
+            "Explore",
+            "Problems",
+            "Contest",
+            "Discuss",
+            "Class",
+            "Ranking",
+            "Management",
+          ].map((item) => {
+            // Logic điều hướng đặc biệt cho các tab
+            let link = `/${item}`;
+            if (item === "Problems") link = "/Problems/Library";
+            if (item === "Class") link = "/Class";
+            if (item === "Class") link = "/Ranking";
+            if (item === "Management") link = "/Management/Contest";
 
-              const isActive = pathname.startsWith(`/${item}`);
+            const isActive = pathname.startsWith(`/${item}`);
 
-              return (
-                <NavbarItem key={item}>
-                  <Link
-                    onClick={() => handleLink(link)}
-                    className={`font-black text-[13px] cursor-pointer transition-colors ${
-                      isActive
-                        ? "text-[#ff8904]"
-                        : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
-                    }`}
-                  >
-                    {item}
-                  </Link>
-                </NavbarItem>
-              );
-            }
-          )}
+            return (
+              <NavbarItem key={item}>
+                <Link
+                  onClick={() => handleLink(link)}
+                  className={`font-black text-[13px] cursor-pointer transition-colors ${
+                    isActive
+                      ? "text-[#ff8904]"
+                      : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
+                  }`}
+                >
+                  {item}
+                </Link>
+              </NavbarItem>
+            );
+          })}
 
           <NavbarItem>
             <Dropdown className="dark:bg-[#282E3A] border dark:border-[#3F4755]">
@@ -178,40 +186,44 @@ const hihi = () => {
           <ThemeToggle />
         </NavbarItem>
 
-         {isUser ? (
-  <InformationInNavbar />
-) : (
-  <div className="flex gap-2">
-    <NavbarItem>
-      <Button
-        size="sm"
-        variant="light"
-        onClick={() =>
-          openModal({ title: "Đăng nhập", content: <LoginModal /> })
-        }
-        className="text-[#071739] dark:text-white font-black rounded-full"
-      >
-        Sign In
-      </Button>
-    </NavbarItem>
+        {isUser ? (
+          <InformationInNavbar />
+        ) : (
+          <div className="flex gap-2">
+            <NavbarItem>
+              <Button
+                size="sm"
+                variant="light"
+                onClick={() =>
+                  openModal({ title: "Đăng nhập", content: <LoginModal /> })
+                }
+                className="text-[#071739] dark:text-white font-black rounded-full"
+              >
+                Sign In
+              </Button>
+            </NavbarItem>
 
-    <NavbarItem>
-      <Button
-        size="sm"
-        onClick={() =>
-          openModal({ title: "Đăng kí", content: <RegisterModal /> })
-        }
-        style={{ backgroundColor: "#ff8904" }}
-        className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
-      >
-        Sign Up
-        <div onClick={()=>{hihi()}}>a</div>
-      </Button>
-      
-    </NavbarItem>
-  </div>
-)}
-
+            <NavbarItem>
+              <Button
+                size="sm"
+                onClick={() =>
+                  openModal({ title: "Đăng kí", content: <RegisterModal /> })
+                }
+                style={{ backgroundColor: "#ff8904" }}
+                className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
+              >
+                Sign Up
+                <div
+                  onClick={() => {
+                    hihi();
+                  }}
+                >
+                  a
+                </div>
+              </Button>
+            </NavbarItem>
+          </div>
+        )}
       </NavbarContent>
     </Navbar>
   );

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Listbox, ListboxItem } from "@heroui/react";
 import {
   LayoutDashboard,
@@ -19,8 +19,13 @@ export default function ManagementLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  // 1. Khởi tạo state ẩn/hiện (mặc định hiện hoặc ẩn tùy bạn)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Đảm bảo chỉ render sau khi đã mount để tránh lỗi Hydration ID của Listbox
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const menu = [
     {
@@ -34,26 +39,27 @@ export default function ManagementLayout({
     { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
   ];
 
+  if (!mounted) return null;
+
   return (
-    <div className="flex min-h-screen bg-[#CDD5DB] dark:bg-[#101828] transition-colors duration-500 relative">
-      {/* 2. SIDEBAR TOGGLE BUTTON - Đặt cố định giống trang chủ */}
+    <div className="flex min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] transition-colors duration-500 relative">
+      {/* SIDEBAR TOGGLE BUTTON */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
-        className="fixed top-24 z-[60] w-8 h-8 bg-white dark:bg-[#1C2737] border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-xl text-[#4B6382] dark:text-[#98A2B3] hover:text-[#071739] dark:hover:text-white transition-all duration-300 cursor-pointer hover:scale-110"
+        className="fixed top-24 z-[60] w-8 h-8 bg-white dark:bg-[#1C2737] border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-xl text-[#4B6382] dark:text-[#98A2B3] hover:text-[#FF5C00] transition-all duration-300 cursor-pointer hover:scale-110"
       >
         {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
 
-      {/* 3. SIDEBAR - Điều chỉnh chiều rộng dựa trên state */}
+      {/* SIDEBAR */}
       <aside
-        className={`shrink-0 border-r border-[#A4B5C4] dark:border-[#1C2737] flex flex-col gap-8 bg-white dark:bg-[#1C2737] shadow-xl z-50 transition-all duration-300 ease-in-out sticky top-0 h-screen overflow-hidden
+        className={`shrink-0 border-r border-slate-200 dark:border-white/5 flex flex-col gap-8 bg-white dark:bg-[#1C2737] shadow-xl z-50 transition-all duration-300 ease-in-out sticky top-0 h-screen overflow-hidden
           ${isSidebarOpen ? "w-[260px] p-6" : "w-0 p-0 border-none"}`}
       >
-        {/* Bọc nội dung Sidebar trong một div cố định chiều rộng để không bị méo khi co giãn */}
         <div className="w-[212px]">
-          <h1 className="text-3xl font-black dark:text-white uppercase tracking-tighter italic mb-8">
-            Teacher<span className="text-[#FFB800]">.</span>
+          <h1 className="text-3xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic mb-8">
+            Teacher<span className="text-[#FF5C00]">.</span>
           </h1>
           <Listbox
             aria-label="Admin Menu"
@@ -66,8 +72,8 @@ export default function ManagementLayout({
                 startContent={item.icon}
                 className={`h-12 rounded-2xl px-4 transition-all ${
                   pathname.includes(item.key)
-                    ? "bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] font-black shadow-lg shadow-[#FFB800]/20"
-                    : "text-[#4B6382] dark:text-[#98A2B3] hover:bg-gray-100 dark:hover:bg-[#344054]"
+                    ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-white font-black shadow-lg shadow-orange-500/20"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-white"
                 }`}
               >
                 <span className="text-sm font-bold uppercase tracking-wider">

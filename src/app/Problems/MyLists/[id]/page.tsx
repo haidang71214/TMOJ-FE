@@ -79,10 +79,10 @@ export default function MyListDetailPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#262626] dark:text-[#F9FAFB] flex relative overflow-hidden transition-colors duration-500">
+    <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans flex relative overflow-hidden transition-colors duration-500">
       {/* 1. SIDEBAR TRÁI */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40
+        className={`transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
           ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
       >
         <div className="w-[260px] p-6 pr-2">
@@ -94,142 +94,153 @@ export default function MyListDetailPage() {
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
-        className="fixed top-24 z-50 w-8 h-8 bg-white dark:bg-[#1C2737] border border-gray-200 dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg text-gray-500 dark:text-white hover:text-blue-500 dark:hover:text-[#E3C39D] transition-all duration-300 cursor-pointer"
+        className="fixed top-24 z-50 w-8 h-8 bg-white dark:bg-[#1C2737] border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center shadow-xl text-slate-400 hover:text-blue-600 dark:hover:text-[#00FF41] transition-all duration-300 cursor-pointer"
       >
         {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
 
       {/* 3. NỘI DUNG CHÍNH */}
       <div className="flex-1 flex flex-col relative min-w-0 h-screen overflow-hidden">
-        <div className="flex flex-1 overflow-y-auto p-6 gap-6 lg:flex-row flex-col custom-scrollbar">
+        <div className="flex flex-1 overflow-y-auto p-8 lg:p-12 gap-8 lg:flex-row flex-col custom-scrollbar">
           {/* CỘT TIẾN ĐỘ (Left Info Card) */}
-          <div className="w-full lg:w-[320px] bg-white dark:bg-[#1C2737] rounded-[32px] border border-gray-100 dark:border-[#344054] p-8 flex flex-col items-center text-center gap-6 shadow-sm h-fit sticky top-0">
-            <div className="w-20 h-20 bg-blue-50 dark:bg-[#101828] rounded-3xl flex items-center justify-center border border-blue-100 dark:border-[#4B6382] shadow-inner text-4xl">
+          <div className="w-full lg:w-[340px] bg-white dark:bg-[#1C2737] rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-8 flex flex-col items-center text-center gap-8 shadow-sm h-fit sticky top-0">
+            <div className="w-24 h-24 bg-slate-50 dark:bg-black/20 rounded-[2rem] flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-inner text-5xl">
               {currentId === "Favorite" ? "⭐" : "🗒️"}
             </div>
 
-            <div>
-              <h1 className="text-2xl font-black capitalize text-[#071739] dark:text-white tracking-tight">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-black uppercase text-[#071739] dark:text-white tracking-tighter">
                 {currentId}
               </h1>
-              <p className="text-gray-400 dark:text-[#94A3B8] text-sm mt-1 font-bold italic opacity-80">
-                Toitapcode · {MY_LIST_PROBLEMS.length} questions
-              </p>
+              <div className="flex items-center gap-2 justify-center">
+                <div className="h-1 w-8 bg-blue-600 dark:bg-[#00FF41] rounded-full" />
+                <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.15em]">
+                  {MY_LIST_PROBLEMS.length} QUESTIONS
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3 justify-center w-full">
               <Button
-                size="sm"
-                className="bg-blue-600 dark:bg-[#E3C39D] text-white dark:text-[#101828] font-black px-6 h-10 rounded-2xl shadow-lg shadow-blue-200/20 active:scale-95 transition-all"
+                className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-12 px-10 rounded-2xl shadow-lg uppercase text-[11px] tracking-[0.15em] transition-all 
+                  hover:bg-blue-600 dark:hover:bg-[#00FF41] hover:text-white dark:hover:text-[#071739] active:scale-95"
                 startContent={<Play size={16} fill="currentColor" />}
               >
                 Practice
               </Button>
               <Button
                 isIconOnly
-                size="sm"
-                variant="flat"
-                className="bg-gray-50 dark:bg-[#101828] dark:text-[#94A3B8] h-10 w-10 rounded-2xl"
+                className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-12 w-12 rounded-2xl border border-slate-200 dark:border-white/5 hover:text-blue-600 dark:hover:text-[#00FF41] transition-all"
               >
-                <Share2 size={16} />
+                <Share2 size={18} />
               </Button>
             </div>
 
-            {/* PROGRESS BOX */}
-            <div className="w-full mt-2 p-6 border border-blue-50 dark:border-[#4B6382]/30 rounded-[28px] bg-blue-50/20 dark:bg-[#101828]/40 text-left">
-              <div className="flex justify-between items-center text-[11px] font-black mb-5 uppercase text-blue-500 dark:text-[#E3C39D] tracking-widest">
+            <div className="w-full p-6 border border-slate-100 dark:border-white/5 rounded-[2rem] bg-slate-50/50 dark:bg-black/20 text-left">
+              <div className="flex justify-between items-center text-[10px] font-black mb-6 uppercase text-slate-400 dark:text-slate-500 tracking-[0.2em]">
                 <span>Stats</span>
-                <RotateCcw size={14} className="cursor-pointer" />
+                <RotateCcw
+                  size={14}
+                  className="cursor-pointer hover:text-blue-600 dark:hover:text-[#00FF41] transition-colors"
+                />
               </div>
 
-              <div className="relative flex items-center justify-center mb-6">
+              <div className="relative flex items-center justify-center mb-8">
                 <CircularProgress
                   classNames={{
-                    svg: "w-32 h-32 drop-shadow-md",
-                    indicator: "stroke-blue-500 dark:stroke-[#E3C39D]",
-                    track: "stroke-blue-50/50 dark:stroke-[#1C2737]",
+                    svg: "w-36 h-36 drop-shadow-md",
+                    indicator: "stroke-blue-600 dark:stroke-[#00FF41]",
+                    track: "stroke-slate-200/50 dark:stroke-white/5",
                   }}
                   value={0}
                   maxValue={MY_LIST_PROBLEMS.length}
                   strokeWidth={3}
                 />
                 <div className="absolute flex flex-col items-center">
-                  <span className="text-2xl font-black text-[#071739] dark:text-white">
+                  <span className="text-3xl font-black text-[#071739] dark:text-white">
                     0
-                    <span className="text-blue-200 dark:text-[#4B6382] text-sm ml-0.5">
+                    <span className="text-slate-300 dark:text-slate-600 text-sm ml-1 font-bold">
                       /{MY_LIST_PROBLEMS.length}
                     </span>
                   </span>
-                  <span className="text-[10px] text-blue-300 dark:text-[#94A3B8] font-bold uppercase tracking-tighter">
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">
                     Solved
                   </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 text-[11px] font-bold">
-                <div className="flex justify-between items-center">
-                  <span className="text-teal-500">Easy</span>
-                  <span className="text-gray-400 dark:text-[#94A3B8]">0/4</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-yellow-500">Med.</span>
-                  <span className="text-gray-400 dark:text-[#94A3B8]">0/3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-rose-500">Hard</span>
-                  <span className="text-gray-400 dark:text-[#94A3B8]">0/1</span>
-                </div>
+              <div className="space-y-4">
+                {[
+                  { label: "Easy", color: "text-teal-500", count: "0/4" },
+                  { label: "Med.", color: "text-amber-500", count: "0/3" },
+                  { label: "Hard", color: "text-rose-500", count: "0/1" },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex justify-between items-center px-2"
+                  >
+                    <span
+                      className={`${item.color} text-[10px] font-black uppercase tracking-widest`}
+                    >
+                      {item.label}
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-500 font-black text-[10px]">
+                      {item.count}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* DANH SÁCH BÀI TẬP (Right List Card) */}
-          <div className="flex-1 bg-white dark:bg-[#1C2737] rounded-[32px] border border-gray-100 dark:border-[#344054] p-6 shadow-sm h-fit">
+          {/* DANH SÁCH BÀI TẬP */}
+          <div className="flex-1 bg-white dark:bg-[#1C2737] rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-8 shadow-sm h-fit">
             <ListControls />
 
-            <div className="mt-6">
-              <div className="grid grid-cols-[1fr_120px_100px] px-6 py-4 text-[10px] font-black text-gray-400 dark:text-[#667085] uppercase tracking-[0.2em] border-b border-gray-50 dark:border-[#344054]">
-                <span>Title</span>
+            <div className="mt-8">
+              <div className="grid grid-cols-[1fr_120px_100px] px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
+                <span>Question Title</span>
                 <span className="text-right">Acceptance</span>
                 <span className="text-right">Difficulty</span>
               </div>
 
-              <div className="flex flex-col mt-2">
+              <div className="flex flex-col mt-4">
                 {MY_LIST_PROBLEMS.map((prob) => (
                   <div
                     key={prob.id}
-                    className="grid grid-cols-[1fr_120px_100px] px-6 py-5 items-center cursor-pointer transition-all border-b border-gray-50 dark:border-[#344054]/30 group hover:bg-blue-50/40 dark:hover:bg-[#101828]/60 rounded-2xl"
+                    className="grid grid-cols-[1fr_120px_100px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl"
                   >
-                    <div className="flex gap-4 items-center overflow-hidden">
-                      <span className="text-gray-300 dark:text-[#475569] font-bold text-xs w-6 text-right shrink-0">
-                        {prob.id}.
+                    <div className="flex gap-5 items-center overflow-hidden">
+                      <span className="text-slate-300 dark:text-slate-600 font-black text-xs w-8 text-right shrink-0">
+                        {prob.id}
                       </span>
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="text-[15px] font-bold truncate text-gray-700 dark:text-[#F8FAFC] group-hover:text-blue-600 dark:group-hover:text-[#E3C39D]">
+                      <div className="flex items-center gap-3 truncate">
+                        <span className="text-[15px] font-bold truncate text-[#071739] dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
                           {prob.title}
                         </span>
                         {prob.isLocked ? (
                           <Lock
                             size={14}
-                            className="text-orange-400 shadow-sm"
+                            className="text-[#FF5C00]"
+                            strokeWidth={3}
                           />
                         ) : (
                           <Globe
                             size={14}
-                            className="text-gray-200 dark:text-[#475569]"
+                            className="text-slate-200 dark:text-slate-700"
                           />
                         )}
                       </div>
                     </div>
-                    <span className="text-right text-sm text-gray-400 dark:text-[#94A3B8] font-bold">
+                    <span className="text-right text-[13px] text-slate-400 dark:text-slate-500 font-bold">
                       {prob.acceptance}
                     </span>
                     <span
-                      className={`text-right text-sm font-black ${
+                      className={`text-right text-[11px] font-black uppercase tracking-wider ${
                         prob.difficulty === "Easy"
                           ? "text-teal-500"
                           : prob.difficulty === "Med."
-                          ? "text-yellow-500"
+                          ? "text-amber-500"
                           : "text-rose-500"
                       }`}
                     >

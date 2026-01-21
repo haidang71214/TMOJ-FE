@@ -71,14 +71,17 @@ export default function PremiumPage() {
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-20">
-          <h1 className="text-7xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic leading-none">
-            TMOJ{" "}
-            <span className="text-[#A68868] dark:text-[#FFB800]">PREMIUM</span>
+        <div className="text-center mb-20 space-y-4">
+          <h1 className="text-7xl font-[1000] text-[#071739] dark:text-white uppercase tracking-tighter italic leading-none">
+            TMOJ <span className="text-[#FF5C00]">PREMIUM</span>
           </h1>
-          <p className="mt-6 text-xl text-[#4B6382] dark:text-[#98A2B3] font-bold italic opacity-80 max-w-2xl mx-auto border-y border-[#A4B5C4]/30 dark:border-[#344054]/50 py-3">
-            &ldquo;Invest in your future. Ace your next interview.&rdquo;
-          </p>
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-1 w-12 bg-[#FF5C00] rounded-full" />
+            <p className="text-[11px] font-black text-[#4B6382] dark:text-[#98A2B3] uppercase tracking-[0.4em] italic">
+              Invest in your future
+            </p>
+            <div className="h-1 w-12 bg-[#FF5C00] rounded-full" />
+          </div>
         </div>
 
         {/* Pricing Plans Container */}
@@ -122,7 +125,7 @@ export default function PremiumPage() {
             <CardFooter className="p-10">
               <Button
                 size="lg"
-                className="w-full text-xs font-black uppercase tracking-widest rounded-2xl bg-[#071739] dark:bg-[#101828] text-white dark:text-[#98A2B3] border border-[#A4B5C4]/20 dark:border-[#344054] h-14 hover:scale-105 transition-all"
+                className="w-full text-xs font-black uppercase tracking-widest rounded-2xl bg-[#071739] dark:bg-[#101828] text-white border border-[#A4B5C4]/20 dark:border-[#344054] h-14 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white transition-all"
               >
                 Choose Monthly
               </Button>
@@ -167,7 +170,7 @@ export default function PremiumPage() {
             <CardFooter className="p-10">
               <Button
                 size="lg"
-                className="w-full text-xs font-black uppercase tracking-widest rounded-2xl bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#071739] shadow-xl dark:shadow-[#FFB800]/20 h-14 hover:scale-105 transition-all"
+                className="w-full text-xs font-black uppercase tracking-widest rounded-2xl bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#071739] shadow-xl dark:shadow-[#FFB800]/20 h-14 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white transition-all"
               >
                 Subscribe Yearly Now
               </Button>
@@ -180,7 +183,7 @@ export default function PremiumPage() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="flex gap-6 p-6 rounded-[2rem] bg-white/40 dark:bg-[#1C2737]/30 border border-[#A4B5C4]/20 dark:border-white/5 group hover:bg-white dark:hover:bg-[#1C2737] transition-all duration-300"
+              className="group flex gap-6 p-6 rounded-[2rem] bg-white/40 dark:bg-[#1C2737]/30 border border-[#A4B5C4]/20 dark:border-white/5 group hover:bg-white dark:hover:bg-[#1C2737] transition-all duration-300"
             >
               <div className="flex-shrink-0 w-16 h-16 bg-white dark:bg-[#101828] rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                 {feature.icon}

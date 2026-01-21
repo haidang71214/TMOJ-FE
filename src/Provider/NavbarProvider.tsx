@@ -103,7 +103,7 @@ export default function NavbarProvider() {
             let link = `/${item}`;
             if (item === "Problems") link = "/Problems/Library";
             if (item === "Class") link = "/Class";
-            if (item === "Class") link = "/Ranking";
+            if (item === "Ranking") link = "/Ranking";
             if (item === "Management") link = "/Management/Contest";
 
             const isActive = pathname.startsWith(`/${item}`);

@@ -53,7 +53,6 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Palette: Navy đậm & Cam Vivid
   const brandOrange = "#FF5C00";
   const brandNavy = "#071739";
 
@@ -92,6 +91,15 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop",
     },
+    {
+      id: 4,
+      title: "Internet FPTU 2026",
+      status: "Registration Open",
+      startsIn: "Jan 30",
+      participants: 2100,
+      image:
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop",
+    },
   ];
 
   const news: NewsPost[] = [
@@ -111,6 +119,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex transition-colors duration-500">
+      {/* SIDEBAR */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl ${
           isSidebarOpen ? "w-[260px]" : "w-0"
@@ -121,6 +130,7 @@ export default function Home() {
         </div>
       </aside>
 
+      {/* TOGGLE BUTTON */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
@@ -130,6 +140,7 @@ export default function Home() {
       </button>
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* NEWS FEED */}
         <div
           style={{ backgroundColor: brandNavy }}
           className="w-full text-white py-2.5 px-6 flex items-center gap-4 overflow-hidden shrink-0 z-30 shadow-md"
@@ -158,7 +169,7 @@ export default function Home() {
         </div>
 
         <div className="max-w-[1400px] mx-auto w-full px-8 lg:px-12 flex flex-col gap-16 mt-8 pb-20">
-          {/* HERO BANNER - Đã đổi ảnh placeholder chất lượng cao */}
+          {/* HERO BANNER */}
           <section className="relative w-full h-[450px] rounded-[40px] overflow-hidden shadow-2xl group border border-white/10">
             <Image
               src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop"
@@ -221,6 +232,7 @@ export default function Home() {
               </Button>
             </div>
 
+            {/* CONTAINER DÙNG ĐỂ CHỨA NÚT HAI BÊN */}
             <div className="relative group/slider px-2">
               <Swiper
                 modules={[Navigation, Pagination, Autoplay]}
@@ -273,7 +285,6 @@ export default function Home() {
                             {contest.endsIn || contest.startsIn}
                           </span>
                         </div>
-                        {/* NÚT REGISTER NOW: Navy mặc định -> Xanh lá khi Hover */}
                         <Button className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105">
                           Register Now <ArrowRight size={18} />
                         </Button>
@@ -282,17 +293,21 @@ export default function Home() {
                   </SwiperSlide>
                 ))}
               </Swiper>
-              <button className="swiper-button-prev-custom absolute left-[-20px] top-1/2 -translate-y-16 z-20 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer shadow-black/20">
-                <ChevronLeft size={24} />
+
+              {/* HAI NÚT ĐIỀU HƯỚNG NẰM HAI BÊN Ở GIỮA */}
+              <button className="swiper-button-prev-custom absolute left-[-20px] top-[40%] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-2xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer">
+                <ChevronLeft size={28} />
               </button>
-              <button className="swiper-button-next-custom absolute right-[-20px] top-1/2 -translate-y-16 z-20 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer shadow-black/20">
-                <ChevronRight size={24} />
+              <button className="swiper-button-next-custom absolute right-[-20px] top-[40%] -translate-y-1/2 z-30 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-2xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer">
+                <ChevronRight size={28} />
               </button>
             </div>
           </section>
 
+          {/* PHẦN NEWS VÀ LEARNING FLOW (GIỮ NGUYÊN) */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
             <div className="lg:col-span-3 flex flex-col gap-16">
+              {/* Discussions */}
               <div className="flex flex-col gap-8">
                 <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
                   <MessageSquare style={{ color: brandOrange }} size={28} />{" "}
@@ -312,10 +327,10 @@ export default function Home() {
                           className="text-[#FF5C00] font-black"
                         />
                         <div className="flex-1">
-                          <h4 className="font-black text-lg text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors uppercase italic leading-tight">
+                          <h4 className="font-black text-lg text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors uppercase italic">
                             {post.title}
                           </h4>
-                          <div className="flex gap-4 mt-2 font-black text-[9px] text-[#A4B5C4] uppercase italic tracking-widest">
+                          <div className="flex gap-4 mt-2 font-black text-[9px] text-[#A4B5C4] uppercase italic">
                             <span>By {post.author}</span>
                             {post.tags.map((t) => (
                               <span key={t}>#{t}</span>
@@ -371,7 +386,7 @@ export default function Home() {
                       className="relative flex items-start gap-8 group"
                     >
                       <div
-                        className={`relative z-10 w-10 h-10 rounded-full bg-white dark:bg-[#1C2737] border-4 border-current flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform ${step.border}`}
+                        className={`relative z-10 w-10 h-10 rounded-full bg-white dark:bg-[#1C2737] border-4 border-current flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform ${step.border}`}
                       >
                         {step.icon}
                       </div>
@@ -380,7 +395,7 @@ export default function Home() {
                           <h4 className="font-black italic uppercase text-md dark:text-white">
                             {step.title}
                           </h4>
-                          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
                             Step {step.step}
                           </p>
                         </CardBody>
@@ -391,7 +406,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* RANKING Sidebar */}
+            {/* Ranking Sidebar */}
             <div className="flex flex-col gap-8">
               <Card className="bg-white dark:bg-[#1C2737] rounded-[32px] border-none p-6 shadow-sm sticky top-24">
                 <h3
@@ -415,7 +430,7 @@ export default function Home() {
                           0{i}
                         </span>
                         <Avatar size="sm" className="h-7 w-7" />
-                        <span className="text-[10px] font-black uppercase italic group-hover:text-[#FF5C00] transition-colors dark:text-white">
+                        <span className="text-[10px] font-black uppercase italic group-hover:text-[#FF5C00] dark:text-white">
                           User_{i}x72
                         </span>
                       </div>

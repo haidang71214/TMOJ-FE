@@ -4,8 +4,6 @@ import {
   Input,
   Button,
   Switch,
-  Select,
-  SelectItem,
   Textarea,
   CheckboxGroup,
   Checkbox,
@@ -16,307 +14,130 @@ import {
 } from "@heroui/react";
 import {
   Save,
-  ArrowLeft,
-  PlusCircle,
   FileUp,
   X,
   Bold,
   Italic,
   Underline,
   List,
-  Type,
-  Plus,
-  Trash2,
   FileCode,
   PlusSquare,
+  ChevronLeft,
+  Heading1,
+  Link2,
+  Plus,
+  Trash2,
+  PlusCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProblemEditForm() {
   const router = useRouter();
 
-  // Mini Rich Text Toolbar
   const EditorToolbar = () => (
-    <div className="bg-gray-100/80 dark:bg-[#333A45] p-2 border-b dark:border-[#474F5D] flex gap-1 flex-wrap">
-      <Button isIconOnly size="sm" variant="light" className="dark:text-white">
-        <Type size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white font-bold"
-      >
-        <Bold size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white italic"
-      >
-        <Italic size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white underline"
-      >
-        <Underline size={16} />
-      </Button>
-      <Divider orientation="vertical" className="h-6 mx-1 dark:bg-[#474F5D]" />
-      <Button isIconOnly size="sm" variant="light" className="dark:text-white">
-        <List size={16} />
-      </Button>
+    <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1 flex-wrap">
+      {[Heading1, Bold, Italic, Underline, List, Link2].map((Icon, i) => (
+        <Button
+          key={i}
+          isIconOnly
+          size="sm"
+          variant="light"
+          className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]"
+        >
+          <Icon size={16} />
+        </Button>
+      ))}
     </div>
   );
 
   return (
-    <div className="p-10 max-w-6xl mx-auto space-y-8 transition-colors duration-500 pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
-          isIconOnly
           variant="light"
-          onClick={() => router.back()}
-          className="rounded-full"
+          onPress={() => router.back()}
+          className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 h-auto min-w-0 text-[10px]"
+          startContent={<ChevronLeft size={16} />}
         >
-          <ArrowLeft size={24} className="dark:text-white" />
+          Back to Problems
         </Button>
-        <h2 className="text-3xl font-black dark:text-white uppercase tracking-tighter italic leading-none">
-          Edit Problem Detail<span className="text-[#FFB800]">.</span>
-        </h2>
+        <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+          EDIT <span className="text-[#FF5C00]">PROBLEM</span>
+        </h1>
       </div>
 
-      <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
-        {/* ROW 1: Display ID & Title */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <Input
-            label="Display ID"
-            placeholder="e.g., A"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-            }}
-          />
-          <Input
-            label="Title"
-            placeholder="Enter problem title"
-            variant="flat"
-            labelPlacement="outside"
-            className="md:col-span-3"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-            }}
-          />
+      <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
+        {/* PROBLEM TITLE */}
+        <Input
+          label="Problem Title"
+          placeholder="Enter problem title..."
+          labelPlacement="outside"
+          classNames={{
+            inputWrapper:
+              "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+            label:
+              "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+            input: "font-bold italic uppercase text-lg",
+          }}
+        />
+
+        {/* DESCRIPTION */}
+        <div className="space-y-3 group">
+          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
+            Description
+          </label>
+          <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
+            <EditorToolbar />
+            <Textarea
+              placeholder="Detailed problem statement..."
+              variant="flat"
+              minRows={5}
+              classNames={{
+                inputWrapper: "bg-transparent shadow-none p-4",
+                input: "font-medium",
+              }}
+            />
+          </div>
         </div>
 
-        {/* SEQUENTIAL EDITOR SECTIONS */}
-        {[
-          {
-            label: "Description",
-            placeholder: "Detailed problem statement...",
-          },
-          {
-            label: "Input Format",
-            placeholder: "Describe the input data format...",
-          },
-          {
-            label: "Output Format",
-            placeholder: "Describe the expected output format...",
-          },
-          { label: "Hint", placeholder: "Provide hints for the problem..." },
-        ].map((item) => (
-          <div key={item.label} className="space-y-3">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-2">
-              {item.label}
+        {/* INPUT & OUTPUT FORMAT (CÙNG MỘT DÒNG) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-3 group">
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
+              Input Format
             </label>
-            <div className="rounded-2xl border-2 border-gray-100 dark:border-[#474F5D] overflow-hidden focus-within:border-[#FFB800] transition-all bg-gray-50/50 dark:bg-[#333A45]/30">
+            <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
               <EditorToolbar />
               <Textarea
-                placeholder={item.placeholder}
+                placeholder="Describe input data..."
                 variant="flat"
-                minRows={item.label === "Description" ? 5 : 3}
-                classNames={{
-                  inputWrapper: "bg-transparent shadow-none p-4",
-                  input: "dark:text-white font-medium",
-                }}
+                minRows={3}
+                classNames={{ inputWrapper: "bg-transparent shadow-none p-4" }}
               />
             </div>
           </div>
-        ))}
-
-        {/* CODE TEMPLATE (Light theme support) */}
-        <div className="space-y-3">
-          <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-2">
-            Code Template
-          </label>
-          <div className="rounded-2xl border-2 border-gray-100 dark:border-[#474F5D] overflow-hidden focus-within:border-[#FFB800] bg-white dark:bg-[#1e2530]">
-            <div className="bg-gray-50 dark:bg-[#333A45] p-3 border-b dark:border-[#474F5D] flex items-center gap-2">
-              <FileCode size={18} className="text-[#FFB800]" />
-              <span className="text-[11px] text-gray-500 dark:text-gray-300 font-black uppercase tracking-widest">
-                Initial Source Code Template
-              </span>
-            </div>
-            <Textarea
-              variant="flat"
-              placeholder="// Write your code template here..."
-              minRows={8}
-              classNames={{
-                inputWrapper: "bg-transparent shadow-none p-6 font-mono",
-                input: "text-gray-800 dark:text-gray-100",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* ROW: TIME, MEMORY, DIFFICULTY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Input
-            label="Time Limit (ms)"
-            type="number"
-            defaultValue="1000"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-              label:
-                "dark:text-white font-bold text-[10px] uppercase mb-2 ml-1",
-            }}
-          />
-          <Input
-            label="Memory Limit (MB)"
-            type="number"
-            defaultValue="256"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-              label:
-                "dark:text-white font-bold text-[10px] uppercase mb-2 ml-1",
-            }}
-          />
-          <Select
-            label="Difficulty"
-            variant="flat"
-            labelPlacement="outside"
-            defaultSelectedKeys={["mid"]}
-            classNames={{
-              trigger: "rounded-2xl dark:bg-[#333A45] mt-4 h-12",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-            }}
-          >
-            <SelectItem key="easy" className="dark:text-white">
-              Easy
-            </SelectItem>
-            <SelectItem key="mid" className="dark:text-white">
-              Medium
-            </SelectItem>
-            <SelectItem key="hard" className="dark:text-white">
-              Hard
-            </SelectItem>
-          </Select>
-        </div>
-
-        {/* SETTINGS BLOCK */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] items-start border border-gray-100 dark:border-[#474F5D]/30">
-          <div className="flex flex-col gap-5">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Settings
+          <div className="space-y-3 group">
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
+              Output Format
             </label>
-            <div className="space-y-4">
-              <Switch color="warning" defaultSelected size="sm">
-                <span className="text-xs font-bold dark:text-white uppercase ml-1">
-                  Visible
-                </span>
-              </Switch>
-              <Switch color="warning" defaultSelected size="sm">
-                <span className="text-xs font-bold dark:text-white uppercase ml-1">
-                  Share Submission
-                </span>
-              </Switch>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center pr-1">
-              <label className="dark:text-white font-black uppercase text-[10px] tracking-widest">
-                Tags
-              </label>
-              <Button
-                isIconOnly
-                size="sm"
+            <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
+              <EditorToolbar />
+              <Textarea
+                placeholder="Describe expected output..."
                 variant="flat"
-                className="bg-[#FFB800] text-[#071739] rounded-lg"
-              >
-                <Plus size={14} />
-              </Button>
+                minRows={3}
+                classNames={{ inputWrapper: "bg-transparent shadow-none p-4" }}
+              />
             </div>
-            <Input
-              startContent={<PlusSquare size={14} className="text-gray-400" />}
-              placeholder="Add new tag..."
-              variant="flat"
-              classNames={{
-                inputWrapper:
-                  "rounded-xl dark:bg-[#282E3A] h-10 border-none shadow-inner",
-              }}
-            />
-          </div>
-
-          <div className="col-span-2 space-y-5">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Supported Languages
-            </label>
-            <CheckboxGroup
-              color="warning"
-              orientation="horizontal"
-              defaultValue={["C++", "Python", "Java"]}
-            >
-              <div className="grid grid-cols-3 gap-x-4 gap-y-3">
-                {[
-                  "C++",
-                  "Java",
-                  "Python",
-                  "Go",
-                  "C#",
-                  "Rust",
-                  "NodeJS",
-                  "Ruby",
-                  "Swift",
-                ].map((lang) => (
-                  <Checkbox
-                    key={lang}
-                    value={lang}
-                    classNames={{
-                      label: "text-[11px] font-bold dark:text-white",
-                    }}
-                  >
-                    {lang}
-                  </Checkbox>
-                ))}
-              </div>
-            </CheckboxGroup>
           </div>
         </div>
 
-        {/* SAMPLES MANAGEMENT */}
+        {/* SAMPLES MANAGEMENT (KHÔI PHỤC) */}
         <div className="space-y-4">
           <div className="flex justify-between items-center px-1">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Sample Case 1
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
+              Sample Case #1
             </label>
             <div className="flex gap-2">
               <Button
@@ -339,15 +160,15 @@ export default function ProblemEditForm() {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10 bg-gray-50 dark:bg-[#071739]/30 rounded-[2.5rem] border-2 border-dashed dark:border-[#474F5D]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10 bg-slate-50/50 dark:bg-[#071739]/30 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-white/10">
             <Textarea
               label="Sample Input"
               variant="flat"
               labelPlacement="outside"
               placeholder="Input test data..."
               classNames={{
-                inputWrapper: "dark:bg-[#282E3A] rounded-xl border-none",
-                label: "dark:text-white font-bold text-[10px] uppercase mb-2",
+                inputWrapper: "dark:bg-[#282E3A] rounded-xl",
+                label: "font-bold text-[10px] uppercase mb-2",
               }}
             />
             <Textarea
@@ -356,39 +177,89 @@ export default function ProblemEditForm() {
               labelPlacement="outside"
               placeholder="Expected output data..."
               classNames={{
-                inputWrapper: "dark:bg-[#282E3A] rounded-xl border-none",
-                label: "dark:text-white font-bold text-[10px] uppercase mb-2",
+                inputWrapper: "dark:bg-[#282E3A] rounded-xl",
+                label: "font-bold text-[10px] uppercase mb-2",
               }}
             />
           </div>
         </div>
 
-        {/* TYPE, TESTCASE, IO MODE */}
+        {/* CODE TEMPLATE - DARK STUDIO */}
+        <div className="space-y-3 group">
+          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
+            Code Template
+          </label>
+          <div className="rounded-[2rem] border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-[#121212] shadow-2xl">
+            <div className="bg-white/5 p-3 border-b border-white/10 flex items-center justify-between px-6">
+              <div className="flex items-center gap-2">
+                <FileCode size={18} className="text-[#FF5C00]" />
+                <span className="text-[10px] text-slate-500 font-black uppercase italic tracking-widest">
+                  solution.cpp
+                </span>
+              </div>
+              <Chip
+                size="sm"
+                variant="flat"
+                className="bg-emerald-500/10 text-emerald-400 font-bold text-[8px]"
+              >
+                C++ 17
+              </Chip>
+            </div>
+            <Textarea
+              variant="flat"
+              placeholder="// Write template code here..."
+              minRows={10}
+              classNames={{
+                inputWrapper: "bg-transparent shadow-none p-6 font-mono",
+                input: "text-[#00FF41] selection:bg-emerald-500/30",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* LIMITS & MODE */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] border border-gray-100 dark:border-[#474F5D]/30 flex flex-col justify-center">
+          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-6">
+            <Input
+              label="Time Limit (ms)"
+              type="number"
+              defaultValue="1000"
+              labelPlacement="outside"
+              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
+            />
+            <Input
+              label="Memory Limit (MB)"
+              type="number"
+              defaultValue="256"
+              labelPlacement="outside"
+              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
+            />
+          </div>
+          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5">
             <RadioGroup
               label="Problem Type"
-              orientation="horizontal"
               defaultValue="acm"
               classNames={{
                 label:
-                  "dark:text-white font-black uppercase text-[10px] tracking-widest mb-4 ml-1",
+                  "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-6",
               }}
             >
-              <div className="flex gap-6">
-                <Radio
-                  value="acm"
-                  classNames={{ label: "text-xs font-bold dark:text-white" }}
-                >
-                  ACM
-                </Radio>
-                <Radio
-                  value="oi"
-                  classNames={{ label: "text-xs font-bold dark:text-white" }}
-                >
-                  OI
-                </Radio>
-              </div>
+              <Radio
+                value="acm"
+                classNames={{
+                  label: "text-[11px] font-black uppercase italic",
+                }}
+              >
+                ACM Mode
+              </Radio>
+              <Radio
+                value="oi"
+                classNames={{
+                  label: "text-[11px] font-black uppercase italic",
+                }}
+              >
+                OI Mode
+              </Radio>
             </RadioGroup>
           </div>
 <Tooltip
@@ -422,101 +293,166 @@ export default function ProblemEditForm() {
           <div className="p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] border border-gray-100 dark:border-[#474F5D]/30 flex flex-col justify-center">
             <RadioGroup
               label="IO Mode"
-              orientation="horizontal"
               defaultValue="standard"
               classNames={{
                 label:
-                  "dark:text-white font-black uppercase text-[10px] tracking-widest mb-4 ml-1",
+                  "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-6",
               }}
             >
-              <div className="flex gap-6">
-                <Radio
-                  value="standard"
-                  classNames={{ label: "text-xs font-bold dark:text-white" }}
-                >
-                  Standard IO
-                </Radio>
-                <Radio
-                  value="file"
-                  classNames={{ label: "text-xs font-bold dark:text-white" }}
-                >
-                  File IO
-                </Radio>
-              </div>
+              <Radio
+                value="standard"
+                classNames={{
+                  label: "text-[11px] font-black uppercase italic",
+                }}
+              >
+                Standard IO
+              </Radio>
+              <Radio
+                value="file"
+                classNames={{
+                  label: "text-[11px] font-black uppercase italic",
+                }}
+              >
+                File IO
+              </Radio>
             </RadioGroup>
           </div>
         </div>
 
-        {/* INPUT, OUTPUT, SCORE */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Input
-            label="Input File Name"
-            placeholder="input.txt"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-              label:
-                "dark:text-white font-bold text-[10px] uppercase mb-2 ml-1",
-            }}
-          />
-          <Input
-            label="Output File Name"
-            placeholder="output.txt"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-              label:
-                "dark:text-white font-bold text-[10px] uppercase mb-2 ml-1",
-            }}
-          />
-          <Input
-            label="Problem Score"
-            type="number"
-            defaultValue="100"
-            variant="flat"
-            labelPlacement="outside"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-              label:
-                "dark:text-white font-black text-[10px] uppercase mb-2 ml-1",
-            }}
-          />
+        {/* SETTINGS BLOCK */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 p-10 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 items-start">
+          <div className="space-y-6">
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
+              Settings
+            </label>
+            <div className="space-y-4">
+              <Switch
+                size="sm"
+                classNames={{
+                  wrapper:
+                    "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                }}
+              >
+                <span className="text-[10px] font-black uppercase italic text-slate-400">
+                  Visible
+                </span>
+              </Switch>
+              <Switch
+                size="sm"
+                classNames={{
+                  wrapper:
+                    "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                }}
+              >
+                <span className="text-[10px] font-black uppercase italic text-slate-400">
+                  Share
+                </span>
+              </Switch>
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
+                Tags
+              </label>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                className="bg-[#FF5C00] text-white rounded-lg h-7 w-7"
+              >
+                <Plus size={14} />
+              </Button>
+            </div>
+            <Input
+              startContent={<PlusSquare size={14} className="text-slate-400" />}
+              placeholder="Add tag..."
+              classNames={{
+                inputWrapper:
+                  "rounded-xl dark:bg-black/20 h-10 border-none shadow-inner",
+              }}
+            />
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
+              Languages
+            </label>
+            <CheckboxGroup
+              orientation="horizontal"
+              defaultValue={["C++", "Python"]}
+              classNames={{ wrapper: "gap-x-6 gap-y-4" }}
+            >
+              {["C++", "Java", "Python", "Go", "Rust"].map((lang) => (
+                <Checkbox
+                  key={lang}
+                  value={lang}
+                  classNames={{
+                    label: "text-[10px] font-black uppercase italic",
+                    wrapper: "after:bg-blue-600 dark:after:bg-[#22C55E]",
+                  }}
+                >
+                  {lang}
+                </Checkbox>
+              ))}
+            </CheckboxGroup>
+          </div>
         </div>
 
-        {/* SOURCE */}
-        <Input
-          label="Source / Author"
-          variant="flat"
-          labelPlacement="outside"
-          placeholder="Problem original source or author..."
-          classNames={{
-            mainWrapper: "mt-4",
-            inputWrapper: "rounded-2xl dark:bg-[#333A45] h-12",
-            label:
-              "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-          }}
-        />
+        {/* TESTCASE & FILE INFO */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="md:col-span-1 p-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-black/10 hover:border-blue-600 dark:hover:border-[#22C55E] transition-all group cursor-pointer">
+            <FileUp
+              size={32}
+              className="text-slate-300 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors"
+            />
+            <Button
+              size="sm"
+              className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-lg h-8 text-[9px] uppercase tracking-widest"
+            >
+              Upload .zip
+            </Button>
+          </div>
+          <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Input
+              label="Input File"
+              placeholder="input.txt"
+              labelPlacement="outside"
+              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
+            />
+            <Input
+              label="Output File"
+              placeholder="output.txt"
+              labelPlacement="outside"
+              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
+            />
+            <Input
+              label="Problem Score"
+              type="number"
+              defaultValue="100"
+              labelPlacement="outside"
+              classNames={{
+                inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
+                input: "font-black text-blue-600 dark:text-[#22C55E]",
+              }}
+            />
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center pt-8 border-t dark:border-[#474F5D]/30">
+        {/* ACTION BUTTONS */}
+        <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
           <Button
             variant="flat"
             startContent={<X size={18} />}
-            className="rounded-xl font-bold uppercase text-[10px] tracking-widest dark:text-gray-400 dark:bg-[#333A45] px-10 h-12"
+            className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 text-slate-500 hover:text-red-500"
             onClick={() => router.back()}
           >
-            Cancel
+            Discard Changes
           </Button>
           <Button
-            startContent={<Save size={20} />}
-            className="bg-[#17c964] text-white font-black rounded-2xl h-14 px-20 uppercase tracking-widest shadow-xl shadow-green-500/20 active:scale-95 transition-all"
+            startContent={<Save size={20} strokeWidth={3} />}
+            className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
           >
-            Save Changes
+            Save Problem Detail
           </Button>
         </div>
       </div>

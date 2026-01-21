@@ -35,85 +35,88 @@ export default function ProblemsSidebar() {
       id: "Favorite",
       title: "Favorite",
       isPrivate: true,
-      icon: <Heart size={18} className="text-orange-400 fill-orange-400" />,
+      icon: <Heart size={20} />,
     },
     {
       id: "HocDoi",
       title: "HocDoi",
       isPrivate: false,
-      icon: <Notebook size={18} className="text-blue-400" />,
+      icon: <Notebook size={20} />,
     },
   ];
 
   const getItemClasses = (key: string) => {
     const isActive = pathname.includes(key);
-    return `h-11 rounded-xl px-3 transition-all mb-1 ${
+    return `h-12 rounded-2xl px-4 transition-all mb-1 ${
       isActive
-        ? "bg-black dark:bg-[#FFB800] text-white dark:text-[#071739] font-black shadow-md shadow-[#FFB800]/10"
-        : "text-gray-500 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-[#333A45]"
+        ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black shadow-lg shadow-black/20 dark:shadow-orange-500/40"
+        : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-[#071739]"
     }`;
   };
 
   return (
-    <div className="w-full max-w-[240px] shrink-0 flex flex-col gap-6 transition-colors duration-500">
-      {/* 1. Explorer Section */}
-      <div className="flex flex-col gap-2">
-        <span className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-white/20">
+    <div className="w-full max-w-[260px] shrink-0 flex flex-col gap-8 py-2">
+      {/* 1. EXPLORER SECTION */}
+      <div className="flex flex-col gap-3">
+        <span className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           Explorer
         </span>
         <Listbox
           aria-label="Navigation"
           onAction={(key) => router.push(`/Problems/${String(key)}`)}
-          className="p-0"
+          className="p-0 gap-1"
         >
           <ListboxItem
             key="Library"
-            startContent={<BookOpen size={18} />}
+            startContent={<BookOpen size={20} />}
             className={getItemClasses("Library")}
           >
-            <span className="text-xs font-bold uppercase tracking-wide">
+            <span className="text-sm font-bold uppercase tracking-wider">
               Library
             </span>
           </ListboxItem>
+
           <ListboxItem
             key="Quest"
-            startContent={<LayoutGrid size={18} />}
+            startContent={<LayoutGrid size={20} />}
             endContent={
               <Chip
                 size="sm"
-                className="h-4 text-[8px] font-black bg-[#FFB800] text-black border-none px-1"
+                // CẬP NHẬT: Sử dụng màu solid Cam rực rỡ để không bị loãng
+                className="h-5 text-[9px] font-black bg-[#FF5C00] text-white dark:bg-white dark:text-[#FF5C00] border-none px-2 shadow-sm"
               >
                 NEW
               </Chip>
             }
             className={getItemClasses("Quest")}
           >
-            <span className="text-xs font-bold uppercase tracking-wide">
+            <span className="text-sm font-bold uppercase tracking-wider">
               Quest
             </span>
           </ListboxItem>
+
           <ListboxItem
             key="StudyPlan"
-            startContent={<GraduationCap size={18} />}
+            startContent={<GraduationCap size={20} />}
             className={getItemClasses("StudyPlan")}
           >
-            <span className="text-xs font-bold uppercase tracking-wide">
+            <span className="text-sm font-bold uppercase tracking-wider">
               Study Plan
             </span>
           </ListboxItem>
         </Listbox>
       </div>
 
-      {/* 2. Collections Section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center px-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-white/20">
+      {/* 2. COLLECTIONS SECTION */}
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           <span>Collections</span>
 
           <Dropdown
-            placement="bottom-start"
+            placement="bottom-end"
             classNames={{
               content:
-                "bg-white dark:bg-[#282E3A] border-none shadow-2xl rounded-2xl min-w-[160px]",
+                "dark:bg-[#1C2737] border border-slate-200 dark:border-white/5 shadow-2xl rounded-2xl min-w-[160px]",
             }}
           >
             <DropdownTrigger>
@@ -121,9 +124,9 @@ export default function ProblemsSidebar() {
                 isIconOnly
                 size="sm"
                 variant="light"
-                className="rounded-full w-6 h-6 min-w-0"
+                className="rounded-full w-6 h-6 min-w-0 hover:bg-slate-100 dark:hover:bg-white/10"
               >
-                <Plus size={14} className="text-[#FFB800]" />
+                <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
               </Button>
             </DropdownTrigger>
             <DropdownMenu
@@ -135,15 +138,16 @@ export default function ProblemsSidebar() {
             >
               <DropdownItem
                 key="new-list"
-                startContent={<Plus size={14} />}
-                className="rounded-lg text-xs font-bold"
+                startContent={<Plus size={16} />}
+                className="rounded-xl text-xs font-bold dark:text-white"
               >
                 New List
               </DropdownItem>
               <DropdownItem
                 key="new-smart-list"
-                startContent={<Sparkles size={14} />}
-                className="text-purple-500 rounded-lg text-xs font-bold"
+                startContent={<Sparkles size={16} />}
+                // CẬP NHẬT: Màu xanh lá neon sáng hơn cho darkmode
+                className="text-blue-600 dark:text-[#00FF41] rounded-xl text-xs font-bold"
               >
                 Smart List
               </DropdownItem>
@@ -154,26 +158,43 @@ export default function ProblemsSidebar() {
         <Listbox
           aria-label="My Lists"
           onAction={(key) => router.push(`/Problems/MyLists/${String(key)}`)}
-          className="p-0"
+          className="p-0 gap-1"
         >
-          {myLists.map((list) => (
-            <ListboxItem
-              key={list.id}
-              startContent={list.icon}
-              endContent={
-                list.isPrivate ? (
-                  <Lock size={12} className="opacity-30" />
-                ) : (
-                  <Globe size={12} className="opacity-30" />
-                )
-              }
-              className={getItemClasses(list.id)}
-            >
-              <span className="text-xs font-bold uppercase tracking-wide truncate block">
-                {list.title}
-              </span>
-            </ListboxItem>
-          ))}
+          {myLists.map((list) => {
+            const isActive = pathname.includes(list.id);
+            return (
+              <ListboxItem
+                key={list.id}
+                startContent={list.icon}
+                endContent={
+                  list.isPrivate ? (
+                    <Lock
+                      size={14}
+                      className={
+                        isActive
+                          ? "opacity-100"
+                          : "opacity-40 text-slate-400 dark:text-white"
+                      }
+                    />
+                  ) : (
+                    <Globe
+                      size={14}
+                      className={
+                        isActive
+                          ? "opacity-100"
+                          : "opacity-40 text-slate-400 dark:text-white"
+                      }
+                    />
+                  )
+                }
+                className={getItemClasses(list.id)}
+              >
+                <span className="text-sm font-bold uppercase tracking-wider truncate block">
+                  {list.title}
+                </span>
+              </ListboxItem>
+            );
+          })}
         </Listbox>
       </div>
 

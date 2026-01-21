@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -10,83 +10,102 @@ import {
   Button,
   Switch,
   Tooltip,
+  useDisclosure,
 } from "@heroui/react";
-import { Plus, Edit, Copy, Trash2, ArrowLeft, Download } from "lucide-react"; // Đã thêm lại Download
+import { Plus, Edit, Trash2, ChevronLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { AddProblemModal } from "../../../../components/AddProblemModal";
+
+interface ProblemItem {
+  id: number | string;
+  displayId: string;
+  title: string;
+  difficulty: string;
+  visible: boolean;
+}
+
+interface SelectedFromBank {
+  id: string;
+  title: string;
+  difficulty: string;
+}
 
 export default function ContestProblemsPage() {
   const router = useRouter();
   const params = useParams();
   const contestId = params.id;
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const problems = [
+  // State danh sách bài tập hiện tại trong Contest
+  const [problems, setProblems] = useState<ProblemItem[]>([
     {
       id: 501,
       displayId: "A",
       title: "Two Sum",
-      author: "Admin",
+      difficulty: "Easy",
       visible: true,
     },
     {
       id: 502,
       displayId: "B",
       title: "Longest Substring",
-      author: "Admin",
+      difficulty: "Medium",
       visible: true,
     },
-    {
-      id: 503,
-      displayId: "C",
-      title: "Median of Two Arrays",
-      author: "Staff_01",
-      visible: false,
-    },
-    {
-      id: 504,
-      displayId: "D",
-      title: "Regular Expression Matching",
-      author: "Admin",
-      visible: true,
-    },
-  ];
+  ]);
 
+  // Hàm điều hướng sang trang chỉnh sửa bài tập
   const goToEdit = (problemId: string | number) => {
-    router.push(`/Management/Contest/${contestId}/problems/${problemId}/edit`);
+    // Nếu là bài tập add từ Bank (có đuôi random), tách lấy ID gốc trước dấu "-"
+    const originalId =
+      typeof problemId === "string" ? problemId.split("-")[0] : problemId;
+    router.push(`/Management/Contest/${contestId}/problems/${originalId}/edit`);
   };
 
-  const goToCreate = () => {
-    router.push(`/Management/Contest/${contestId}/problems/create`);
+  // Hàm xử lý nhận dữ liệu từ Modal
+  const handleAddFromBank = (selectedFromBank: SelectedFromBank[]) => {
+    const formattedNewProblems: ProblemItem[] = selectedFromBank.map(
+      (p, index) => ({
+        id: `${p.id}-${Math.random().toFixed(4)}`, // Đảm bảo key duy nhất cho list hiện tại
+        displayId: String.fromCharCode(65 + problems.length + index),
+        title: p.title,
+        difficulty: p.difficulty,
+        visible: true,
+      })
+    );
+
+    setProblems([...problems, ...formattedNewProblems]);
   };
 
   return (
-    <div className="p-10 space-y-8 max-w-7xl mx-auto min-h-screen transition-colors duration-500">
+    <div className="flex flex-col gap-8 pb-20 p-2">
       {/* HEADER SECTION */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button
-            isIconOnly
-            variant="light"
-            onClick={() => router.push(`/Management/Contest`)}
-            className="rounded-full hover:bg-gray-200 dark:hover:bg-[#333A45]"
-          >
-            <ArrowLeft size={24} className="dark:text-white" />
-          </Button>
-          <div>
-            <h3 className="text-3xl font-black dark:text-white uppercase italic leading-none">
-              Contest Problems
-            </h3>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-2 ml-1">
-              Problem Management List
+      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
+        <Button
+          variant="light"
+          onPress={() => router.push(`/Management/Contest`)}
+          className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
+          startContent={<ChevronLeft size={16} />}
+        >
+          Back to Contest List
+        </Button>
+
+        <div className="flex justify-between items-end">
+          <div className="space-y-2">
+            <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+              CONTEST <span className="text-[#FF5C00]">PROBLEMS</span>
+            </h1>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
+              Contest ID: #{contestId}
             </p>
           </div>
-        </div>
-        <div className="flex gap-3">
+
           <Button
-            startContent={<Plus size={18} />}
-            onClick={goToCreate}
-            className="bg-[#FFB800] text-[#071739] font-black rounded-xl uppercase px-6 h-12 shadow-lg shadow-[#FFB800]/20"
+            startContent={<Plus size={20} strokeWidth={3} />}
+            onPress={onOpen}
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black rounded-xl h-12 px-8 uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all"
           >
-            Create Problem
+            Add from Problem Bank
           </Button>
         </div>
       </div>
@@ -94,63 +113,83 @@ export default function ContestProblemsPage() {
       {/* TABLE SECTION */}
       <Table
         aria-label="Contest Problem List"
+        removeWrapper
         classNames={{
-          wrapper:
-            "dark:bg-[#282E3A] rounded-[2.5rem] border-none shadow-2xl p-6",
-          th: "dark:text-gray-400 font-black uppercase tracking-widest text-[10px] pb-4 border-b dark:border-[#474F5D]/30",
-          td: "dark:text-white font-bold py-5 border-b dark:border-[#474F5D]/10 last:border-none",
+          base: "bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
+          th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4",
+          td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none",
         }}
       >
         <TableHeader>
           <TableColumn>ID</TableColumn>
-          <TableColumn>DISPLAY ID</TableColumn>
-          <TableColumn>TITLE</TableColumn>
+          <TableColumn>DISPLAY</TableColumn>
+          <TableColumn>PROBLEM TITLE</TableColumn>
           <TableColumn>VISIBLE</TableColumn>
-          <TableColumn>OPERATION</TableColumn>
+          <TableColumn className="text-right">OPERATIONS</TableColumn>
         </TableHeader>
         <TableBody>
           {problems.map((p) => (
-            <TableRow key={p.id}>
-              <TableCell className="dark:text-gray-400 italic">
-                #{p.id}
-              </TableCell>
-              <TableCell className="dark:text-[#FFB800] font-black text-lg">
-                {p.displayId}
-              </TableCell>
-              <TableCell className="text-lg tracking-tight">
-                {p.title}
+            <TableRow
+              key={p.id}
+              className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+            >
+              <TableCell>
+                <span className="text-slate-400 font-black italic text-xs">
+                  #{typeof p.id === "string" ? p.id.split("-")[0] : p.id}
+                </span>
               </TableCell>
               <TableCell>
-                <Switch size="sm" color="warning" defaultSelected={p.visible} />
+                <span className="text-xl font-black text-blue-600 dark:text-[#FF5C00] italic">
+                  {p.displayId}
+                </span>
               </TableCell>
               <TableCell>
-                <div className="flex gap-4 text-gray-400">
-                  <Tooltip content="Edit Detail" closeDelay={0}>
-                    <button
-                      onClick={() => goToEdit(p.id)}
-                      className="hover:text-[#FFB800] transition-all transform hover:scale-110"
+                <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
+                  {p.title}
+                </span>
+              </TableCell>
+              <TableCell>
+                <Switch
+                  size="sm"
+                  defaultSelected={p.visible}
+                  classNames={{
+                    wrapper:
+                      "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                  }}
+                />
+              </TableCell>
+              <TableCell>
+                <div className="flex justify-end gap-2">
+                  <Tooltip
+                    content="Edit Details"
+                    className="font-bold text-[10px]"
+                  >
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() => goToEdit(p.id)}
+                      className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                     >
-                      <Edit size={18} />
-                    </button>
+                      <Edit size={16} />
+                    </Button>
                   </Tooltip>
 
-                  <Tooltip content="Copy Problem" closeDelay={0}>
-                    <button className="hover:text-[#FFB800] transition-all transform hover:scale-110">
-                      <Copy size={18} />
-                    </button>
-                  </Tooltip>
-
-                  {/* NÚT DOWNLOAD MỚI BỔ SUNG */}
-                  <Tooltip content="Download Data" closeDelay={0}>
-                    <button className="hover:text-[#FFB800] transition-all transform hover:scale-110">
-                      <Download size={18} />
-                    </button>
-                  </Tooltip>
-
-                  <Tooltip content="Delete" closeDelay={0}>
-                    <button className="hover:text-red-500 transition-all transform hover:scale-110">
-                      <Trash2 size={18} />
-                    </button>
+                  <Tooltip
+                    content="Remove from Contest"
+                    className="font-bold text-[10px]"
+                  >
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() =>
+                        setProblems(problems.filter((item) => item.id !== p.id))
+                      }
+                      className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </Tooltip>
                 </div>
               </TableCell>
@@ -158,6 +197,31 @@ export default function ContestProblemsPage() {
           ))}
         </TableBody>
       </Table>
+
+      {/* RENDER MODAL*/}
+      <AddProblemModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onConfirm={handleAddFromBank}
+      />
+
+      {/* FOOTER DECOR */}
+      <div className="flex justify-center opacity-20 italic font-black uppercase text-[10px] tracking-[1em] text-slate-400 pt-10">
+        TMOJ &bull; PROBLEMS &bull; SYSTEM
+      </div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+        }
+      `}</style>
     </div>
   );
 }

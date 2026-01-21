@@ -18,10 +18,11 @@ export default function StudyPlanPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans flex relative overflow-hidden transition-colors duration-500">
-      {/* 1. LEFT SIDEBAR - Đồng bộ màu #1C2737 */}
+    // Thẻ main bao quát toàn bộ chiều cao tối thiểu của trình duyệt
+    <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans flex relative transition-colors duration-500">
+      {/* 1. SIDEBAR: Giữ sticky top-0 h-screen để luôn bám theo khi cuộn Main Content */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
+        className={`transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
           ${isSidebarOpen ? "w-[260px]" : "w-0 border-none"}`}
       >
         <div className="w-[260px] p-6 pr-2">
@@ -29,64 +30,75 @@ export default function StudyPlanPage() {
         </div>
       </aside>
 
-      {/* 2. SIDEBAR TOGGLE BUTTON */}
+      {/* 2. TOGGLE BUTTON: Dùng fixed để luôn nằm ở vị trí dễ bấm */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
-        className="fixed top-24 z-50 w-8 h-8 bg-white/80 dark:bg-[#1C2737] backdrop-blur-md border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg text-[#4B6382] dark:text-[#98A2B3] hover:text-[#071739] dark:hover:text-white transition-all duration-300 cursor-pointer hover:scale-110"
+        className="fixed top-24 z-50 w-8 h-8 bg-white dark:bg-[#1C2737] border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center shadow-xl text-slate-400 hover:text-[#FF5C00] transition-all duration-300 cursor-pointer hover:scale-110"
       >
         {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
 
-      {/* 3. MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col relative min-w-0 h-screen overflow-y-auto p-8 lg:p-12 text-[#071739] dark:text-[#F9FAFB]">
-        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-12">
+      {/* 3. MAIN CONTENT: Bỏ h-screen và overflow-y-auto để cuộn tự nhiên theo thẻ main */}
+      <div className="flex-1 min-w-0 relative">
+        {/* Container bên trong quy định Padding toàn cục, quan trọng nhất là pb-24 hoặc pb-32 */}
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-16 p-8 lg:p-14 lg:pb-32">
           {/* Header Section */}
-          <div className="flex justify-between items-end w-full border-b border-[#A4B5C4]/30 dark:border-[#344054]/50 pb-8">
-            <div className="space-y-1">
-              <h1 className="text-5xl font-black dark:text-white tracking-tighter uppercase italic leading-none">
-                Study{" "}
-                <span className="text-[#A68868] dark:text-[#FFB800]">Plan</span>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end w-full border-b border-slate-200 dark:border-white/10 pb-10 gap-6">
+            <div className="space-y-3">
+              <h1 className="text-6xl font-black text-[#071739] dark:text-white tracking-tighter uppercase leading-none">
+                STUDY <span className="text-[#FF5C00]">PLAN</span>
               </h1>
-              <p className="text-[#4B6382] dark:text-[#98A2B3] font-bold italic opacity-70">
-                Strategic learning paths to master coding interviews.
-              </p>
+              <div className="flex items-center gap-3">
+                <div className="h-1 w-12 bg-[#FF5C00] rounded-full" />
+                <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+                  Strategic learning paths to master coding interviews.
+                </p>
+              </div>
             </div>
             <Button
-              size="md"
-              className="bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] font-black px-6 rounded-xl uppercase tracking-widest shadow-lg shadow-[#FFB800]/10 hover:scale-105 transition-all"
-              endContent={<ChevronRight size={18} />}
+              size="lg"
+              className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-14 px-8 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl transition-all active:scale-95"
+              endContent={<ChevronRight size={18} strokeWidth={3} />}
             >
-              My Dashboard
+              My Learning Dashboard
             </Button>
           </div>
 
-          {/* Section: Featured Plans */}
-          <section className="flex flex-col gap-8">
-            <h2 className="text-xl font-black dark:text-[#F9FAFB] uppercase tracking-[0.3em] flex items-center gap-4 italic">
-              <Sparkles
-                size={20}
-                className="text-[#A68868] dark:text-[#FFB800]"
-              />
-              Featured Plans
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Featured Plans */}
+          <section className="flex flex-col gap-10">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-[#FF5C00]/10 rounded-xl">
+                <Sparkles
+                  size={24}
+                  className="text-[#FF5C00]"
+                  strokeWidth={2.5}
+                />
+              </div>
+              <h2 className="text-2xl font-black text-[#071739] dark:text-white uppercase tracking-tighter">
+                FEATURED <span className="text-slate-400">PLANNING</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               <PlanCard
                 title="TMOJCode 75"
                 desc="Ace Interview with 75 Qs"
-                bgGradient="bg-gradient-to-br from-[#1e293b] to-[#0f172a]"
+                bgGradient="bg-gradient-to-br from-[#071739] to-[#1e293b]"
+                className="rounded-[2.5rem] shadow-2xl border border-white/5 h-48"
                 icon={
-                  <Target size={80} className="text-[#FFB800] opacity-20" />
+                  <Target size={80} className="text-[#FF5C00] opacity-20" />
                 }
               />
               <PlanCard
-                title="Top Interview 150"
+                title="Interview 150"
                 desc="Essential Interview Prep"
                 bgGradient="bg-gradient-to-br from-[#134e4a] to-[#064e3b]"
+                className="rounded-[2.5rem] shadow-2xl border border-white/5 h-48"
                 icon={
                   <MessageSquareText
                     size={80}
-                    className="text-[#E3C39D] opacity-20"
+                    className="text-emerald-400 opacity-20"
                   />
                 }
               />
@@ -94,14 +106,16 @@ export default function StudyPlanPage() {
                 title="Binary Search"
                 desc="Master BS in 42 Qs"
                 bgGradient="bg-gradient-to-br from-[#4c1d95] to-[#2e1065]"
+                className="rounded-[2.5rem] shadow-2xl border border-white/5 h-48"
                 icon={
                   <Filter size={80} className="text-purple-400 opacity-20" />
                 }
               />
               <PlanCard
-                title="SQL 50"
+                title="SQL Mastery"
                 desc="Crack SQL in 50 Qs"
                 bgGradient="bg-gradient-to-br from-[#164e63] to-[#083344]"
+                className="rounded-[2.5rem] shadow-2xl border border-white/5 h-48"
                 icon={
                   <Database size={80} className="text-cyan-400 opacity-20" />
                 }
@@ -109,75 +123,53 @@ export default function StudyPlanPage() {
             </div>
           </section>
 
-          {/* Section: 30 Days Challenge */}
-          <section className="flex flex-col gap-8">
-            <h2 className="text-xl font-black dark:text-[#F9FAFB] uppercase tracking-[0.3em] flex items-center gap-4 italic">
-              <div className="w-8 h-[3px] bg-[#A68868] dark:bg-[#FFB800] rounded-full" />
-              30 Days Challenge
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <ListCard
-                title="30 Days of Pandas"
-                desc="Essential for data interviews"
-                image="/pandas-icon.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="30 Days of JavaScript"
-                desc="Master JS basics in 30 Qs"
-                image="/js-icon.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-            </div>
-          </section>
+          {/* Challenges */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 pb-10">
+            <section className="flex flex-col gap-8">
+              <div className="flex items-center gap-4 border-l-4 border-[#FF5C00] pl-4">
+                <h2 className="text-xl font-black text-[#071739] dark:text-white uppercase tracking-tighter">
+                  30 DAYS <span className="text-slate-400">CHALLENGE</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-6">
+                <ListCard
+                  title="30 Days of Pandas"
+                  desc="Essential for data interviews"
+                  image="/pandas-icon.png"
+                  className="rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-md"
+                />
+                <ListCard
+                  title="30 Days of JavaScript"
+                  desc="Master JS basics in 30 Qs"
+                  image="/js-icon.png"
+                  className="rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-md"
+                />
+              </div>
+            </section>
 
-          {/* Section: Cracking Coding Interview */}
-          <section className="pb-20 flex flex-col gap-8">
-            <h2 className="text-xl font-black dark:text-[#F9FAFB] uppercase tracking-[0.3em] flex items-center gap-4 italic">
-              <div className="w-8 h-[3px] bg-[#A68868] dark:bg-[#FFB800] rounded-full" />
-              Cracking Interview
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <ListCard
-                title="Top Interview 150"
-                desc="Must-do List for Prep"
-                image="/top150.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="TMOJCode 75"
-                desc="Ace Interview with 75 Qs"
-                image="/75.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="Top 100 Liked"
-                desc="100 Best Rated Problems"
-                image="/liked.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="SQL 50"
-                desc="Crack SQL Interview"
-                image="/sql.png"
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="Premium Algo 100"
-                desc="TMOJ Staff Pick"
-                image="/algo.png"
-                isLocked
-                className="shadow-xl rounded-[2.5rem]"
-              />
-              <ListCard
-                title="Advanced SQL 50"
-                desc="50 Advanced Problems"
-                image="/adv-sql.png"
-                isLocked
-                className="shadow-xl rounded-[2.5rem]"
-              />
-            </div>
-          </section>
+            <section className="flex flex-col gap-8">
+              <div className="flex items-center gap-4 border-l-4 border-[#071739] dark:border-white pl-4">
+                <h2 className="text-xl font-black text-[#071739] dark:text-white uppercase tracking-tighter">
+                  CRACKING <span className="text-slate-400">INTERVIEW</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-6 max-h-[460px] pr-2 custom-scrollbar">
+                <ListCard
+                  title="Top Interview 150"
+                  desc="Must-do List for Prep"
+                  image="/top150.png"
+                  className="rounded-[2rem]"
+                />
+                <ListCard
+                  title="Premium Algo 100"
+                  desc="TMOJ Staff Pick"
+                  image="/algo.png"
+                  isLocked
+                  className="rounded-[2rem]"
+                />
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </main>

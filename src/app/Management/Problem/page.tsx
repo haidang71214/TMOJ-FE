@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   Table,
   TableHeader,
@@ -13,6 +13,12 @@ import {
   Input,
   Select,
   SelectItem,
+  Chip,
+  Pagination,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@heroui/react";
 import {
   Plus,
@@ -22,12 +28,17 @@ import {
   Search,
   Filter,
   Download,
-  Database,
+  RefreshCw,
+  SortAsc,
+  ChevronDown,
+  Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function GlobalProblemListPage() {
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
 
   const allProblems = [
     {
@@ -38,6 +49,7 @@ export default function GlobalProblemListPage() {
       acRate: "85%",
       visible: true,
       contest: "None",
+      tags: ["Basic"],
     },
     {
       id: 501,
@@ -47,6 +59,7 @@ export default function GlobalProblemListPage() {
       acRate: "45%",
       visible: true,
       contest: "Spring 2025",
+      tags: ["Array", "Hash Table"],
     },
     {
       id: 102,
@@ -56,6 +69,7 @@ export default function GlobalProblemListPage() {
       acRate: "12%",
       visible: false,
       contest: "None",
+      tags: ["Sort", "Algorithm"],
     },
     {
       id: 502,
@@ -65,6 +79,7 @@ export default function GlobalProblemListPage() {
       acRate: "38%",
       visible: true,
       contest: "Spring 2025",
+      tags: ["String", "Sliding Window"],
     },
     {
       id: 105,
@@ -74,170 +89,311 @@ export default function GlobalProblemListPage() {
       acRate: "50%",
       visible: true,
       contest: "None",
+      tags: ["Tree"],
     },
   ];
 
+  const pages = Math.ceil(allProblems.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return allProblems.slice(start, end);
+  }, [page]);
+
   return (
-    <div className="p-10 space-y-8 max-w-7xl mx-auto min-h-screen transition-colors duration-500">
-      {/* Header Section */}
-      <div className="flex justify-between items-end">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-white dark:bg-[#1C2737] rounded-2xl text-[#071739] dark:text-[#FFB800] shadow-sm">
-            <Database size={32} />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black dark:text-white uppercase italic leading-none">
-              Problem List Repository<span className="text-[#FFB800]">.</span>
-            </h2>
-            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mt-3">
-              Total Problems: {allProblems.length}
-            </p>
-          </div>
+    <div className="flex flex-col h-full gap-8 p-2">
+      {/* HEADER SECTION */}
+      <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
+        <div>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+            PROBLEM <span className="text-[#FF5C00]">REPOSITORY</span>
+          </h1>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
+            Manage and monitor system-wide programming problems
+          </p>
         </div>
         <Button
-          startContent={<Plus size={18} />}
+          startContent={<Plus size={20} strokeWidth={3} />}
           onClick={() => router.push("/Management/Problem/create")}
-          className="bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] font-black rounded-xl h-12 px-8 uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
         >
-          Create New Problem
+          CREATE NEW PROBLEM
         </Button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-white dark:bg-[#282E3A]/50 p-4 rounded-[2rem] border border-gray-100 dark:border-[#474F5D]/30 shadow-sm">
+      {/* FILTER BAR SECTION */}
+      <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
           placeholder="Search by title or ID..."
-          startContent={<Search size={18} className="text-gray-400" />}
-          variant="flat"
+          startContent={<Search size={18} className="text-slate-400" />}
           classNames={{
-            inputWrapper: "rounded-2xl dark:bg-[#282E3A] border-none h-12",
+            inputWrapper:
+              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
           }}
-          className="md:col-span-2"
+          className="max-w-xs font-medium"
         />
+
+        <Dropdown>
+          <DropdownTrigger>
+            <Button
+              variant="flat"
+              className="h-12 rounded-xl bg-white dark:bg-[#0A0F1C] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5"
+              startContent={<SortAsc size={16} />}
+              endContent={<ChevronDown size={14} />}
+            >
+              Sort By
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="Sort Options"
+            className="font-bold uppercase text-[10px]"
+          >
+            <DropdownItem key="newest">Latest ID</DropdownItem>
+            <DropdownItem key="title">Title A-Z</DropdownItem>
+            <DropdownItem key="ac">AC Rate</DropdownItem>
+            <DropdownItem key="subs">Submissions</DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
+
         <Select
           placeholder="Difficulty"
-          variant="flat"
+          className="w-40"
           classNames={{
-            trigger: "rounded-2xl dark:bg-[#282E3A] border-none h-12",
+            trigger:
+              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
           }}
         >
-          <SelectItem key="easy" className="dark:text-white">
+          <SelectItem
+            key="easy"
+            className="font-bold uppercase text-[10px] text-emerald-500"
+          >
             Easy
           </SelectItem>
-          <SelectItem key="medium" className="dark:text-white">
+          <SelectItem
+            key="medium"
+            className="font-bold uppercase text-[10px] text-amber-500"
+          >
             Medium
           </SelectItem>
-          <SelectItem key="hard" className="dark:text-white">
+          <SelectItem
+            key="hard"
+            className="font-bold uppercase text-[10px] text-rose-500"
+          >
             Hard
           </SelectItem>
         </Select>
-        <Button
-          variant="bordered"
-          startContent={<Filter size={18} />}
-          className="h-12 rounded-2xl font-bold dark:border-[#474F5D] dark:text-white"
+
+        <Select
+          placeholder="Tags"
+          className="w-44"
+          startContent={<Tag size={14} className="text-slate-400" />}
+          classNames={{
+            trigger:
+              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
+          }}
         >
-          More Filters
+          <SelectItem key="dp" className="font-bold uppercase text-[10px]">
+            Dynamic Programming
+          </SelectItem>
+          <SelectItem key="math" className="font-bold uppercase text-[10px]">
+            Math
+          </SelectItem>
+          <SelectItem key="graph" className="font-bold uppercase text-[10px]">
+            Graph
+          </SelectItem>
+        </Select>
+
+        <Button
+          variant="flat"
+          className="h-12 rounded-xl bg-white dark:bg-[#0A0F1C] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-6"
+          startContent={<Filter size={16} />}
+        >
+          More
+        </Button>
+
+        {/* REFRESH BUTTON: LUÔN CỐ ĐỊNH MÀU BLUE 600 */}
+        <Button
+          isIconOnly
+          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-90 ml-auto"
+        >
+          <RefreshCw size={18} />
         </Button>
       </div>
 
-      {/* Table Section */}
-      <Table
-        aria-label="Global Problem Table"
-        classNames={{
-          wrapper:
-            "dark:bg-[#282E3A] rounded-[2.5rem] border-none shadow-2xl p-6",
-          th: "dark:text-gray-400 font-black uppercase tracking-widest text-[10px] pb-4 border-b dark:border-[#474F5D]/30",
-          td: "dark:text-white font-bold py-5 border-b dark:border-[#474F5D]/10 last:border-none",
-        }}
-      >
-        <TableHeader>
-          <TableColumn>ID</TableColumn>
-          <TableColumn>TITLE</TableColumn>
-          <TableColumn>DIFFICULTY</TableColumn>
-          <TableColumn>CONTEST SOURCE</TableColumn>
-          <TableColumn>ACC. RATE</TableColumn>
-          <TableColumn>VISIBLE</TableColumn>
-          <TableColumn>OPERATION</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {allProblems.map((p) => (
-            <TableRow key={p.id}>
-              <TableCell className="dark:text-gray-400 italic">
-                #{p.id}
-              </TableCell>
-              <TableCell className="text-lg tracking-tight">
-                {p.title}
-              </TableCell>
-              <TableCell>
-                <span
-                  className={`text-[10px] px-3 py-1 rounded-full uppercase font-black ${
-                    p.difficulty === "Easy"
-                      ? "bg-green-500/10 text-green-500"
-                      : p.difficulty === "Medium"
-                      ? "bg-yellow-500/10 text-yellow-500"
-                      : "bg-red-500/10 text-red-500"
-                  }`}
-                >
-                  {p.difficulty}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span
-                  className={`text-[11px] font-bold ${
-                    p.contest === "None"
-                      ? "text-gray-500 italic"
-                      : "text-[#FFB800] underline decoration-dotted"
-                  }`}
-                >
-                  {p.contest}
-                </span>
-              </TableCell>
-              <TableCell className="text-xs">
-                <span className="text-green-500 font-black">{p.acRate}</span>
-                <p className="text-[9px] text-gray-500 uppercase">
-                  {p.submissions} Subs
-                </p>
-              </TableCell>
-              <TableCell>
-                <Switch size="sm" color="warning" defaultSelected={p.visible} />
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-4 text-gray-400">
-                  <Tooltip content="Edit" closeDelay={0}>
-                    <button
-                      onClick={() =>
-                        router.push(`/Management/Problem/${p.id}/edit`)
-                      }
-                      className="hover:text-[#FFB800] transition-all transform hover:scale-110"
+      {/* TABLE SECTION */}
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <Table
+          aria-label="Problem Repository Table"
+          removeWrapper
+          classNames={{
+            base: "bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
+            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
+            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
+          }}
+        >
+          <TableHeader>
+            <TableColumn>ID</TableColumn>
+            <TableColumn>PROBLEM TITLE</TableColumn>
+            <TableColumn>TAGS</TableColumn>
+            <TableColumn>DIFFICULTY</TableColumn>
+            <TableColumn>SOURCE</TableColumn>
+            <TableColumn>AC RATE</TableColumn>
+            <TableColumn>VISIBLE</TableColumn>
+            <TableColumn className="text-right">OPERATIONS</TableColumn>
+          </TableHeader>
+          <TableBody>
+            {items.map((p) => (
+              <TableRow
+                key={p.id}
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+              >
+                <TableCell>
+                  <span className="text-slate-400 font-black italic text-xs">
+                    #{p.id}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
+                    {p.title}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {p.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    variant="flat"
+                    size="sm"
+                    className={`font-black uppercase text-[9px] px-2 ${
+                      p.difficulty === "Easy"
+                        ? "bg-emerald-500/10 text-emerald-500"
+                        : p.difficulty === "Medium"
+                        ? "bg-amber-500/10 text-amber-500"
+                        : "bg-rose-500/10 text-rose-500"
+                    }`}
+                  >
+                    {p.difficulty}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`text-[10px] font-black uppercase ${
+                      p.contest === "None"
+                        ? "text-slate-400 italic"
+                        : "text-blue-600 dark:text-[#FF5C00]"
+                    }`}
+                  >
+                    {p.contest}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-emerald-500 font-black italic text-sm">
+                      {p.acRate}
+                    </span>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-tighter">
+                      {p.submissions} Subs
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Switch
+                    defaultSelected={p.visible}
+                    size="sm"
+                    classNames={{
+                      wrapper:
+                        "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Tooltip
+                      content="Edit Detail"
+                      className="font-bold text-[10px]"
                     >
-                      <Edit size={18} />
-                    </button>
-                  </Tooltip>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={() =>
+                          router.push(`/Management/Problem/${p.id}/edit`)
+                        }
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip
+                      content="Clone Problem"
+                      className="font-bold text-[10px]"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Copy size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip
+                      content="Download Data"
+                      className="font-bold text-[10px]"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Download size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content="Delete" className="font-bold text-[10px]">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </Tooltip>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-                  {/* NÚT COPY ĐÃ BỔ SUNG */}
-                  <Tooltip content="Clone Problem" closeDelay={0}>
-                    <button className="hover:text-[#FFB800] transition-all transform hover:scale-110">
-                      <Copy size={18} />
-                    </button>
-                  </Tooltip>
-
-                  <Tooltip content="Download Data" closeDelay={0}>
-                    <button className="hover:text-[#FFB800] transition-all transform hover:scale-110">
-                      <Download size={18} />
-                    </button>
-                  </Tooltip>
-
-                  <Tooltip content="Delete" closeDelay={0}>
-                    <button className="hover:text-red-500 transition-all transform hover:scale-110">
-                      <Trash2 size={18} />
-                    </button>
-                  </Tooltip>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        {/* PAGINATION SECTION */}
+        <div className="flex w-full justify-center py-8">
+          <Pagination
+            isCompact
+            showControls
+            showShadow
+            color="primary"
+            page={page}
+            total={pages}
+            onChange={(p) => setPage(p)}
+            classNames={{
+              cursor:
+                "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

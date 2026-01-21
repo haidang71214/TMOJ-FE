@@ -172,8 +172,8 @@ export default function ProblemsPage() {
         <div className="flex-1 w-full flex flex-col gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Badge content="New" color="primary" size="sm" shape="rectangle">
-              <Card className="bg-gray-50 h-32 w-full shadow-none border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" >
-                <CardBody className="p-4 flex flex-col justify-center" >
+              <Card className="bg-gray-50 h-32 w-full shadow-none border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                <CardBody className="p-4 flex flex-col justify-center">
                   <p className="text-[10px] font-bold text-gray-400 uppercase">
                     Quest
                   </p>

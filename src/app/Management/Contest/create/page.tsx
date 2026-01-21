@@ -7,9 +7,9 @@ import {
   Radio,
   Switch,
   Textarea,
+  Chip,
 } from "@heroui/react";
 import {
-  ArrowLeft,
   X,
   Trophy,
   Lock,
@@ -19,6 +19,7 @@ import {
   Italic,
   List,
   Link2,
+  ChevronLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,214 +27,171 @@ export default function CreateContestPage() {
   const router = useRouter();
 
   const EditorToolbar = () => (
-    <div className="bg-gray-100/50 dark:bg-[#333A45] p-2 border-b dark:border-[#474F5D] flex gap-1">
-      <Button isIconOnly size="sm" variant="light" className="dark:text-white">
-        <Heading1 size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white font-bold"
-      >
-        <Bold size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white italic"
-      >
-        <Italic size={16} />
-      </Button>
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        className="dark:text-white underline"
-      >
-        <List size={16} />
-      </Button>
-      <Button isIconOnly size="sm" variant="light" className="dark:text-white">
-        <Link2 size={16} />
-      </Button>
+    <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1">
+      {[Heading1, Bold, Italic, List, Link2].map((Icon, i) => (
+        <Button key={i} isIconOnly size="sm" variant="light" className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]">
+          <Icon size={16} />
+        </Button>
+      ))}
     </div>
   );
 
   return (
-    <div className="p-10 max-w-5xl mx-auto space-y-8 pb-20">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
-          isIconOnly
           variant="light"
-          onClick={() => router.back()}
-          className="rounded-full"
+          onPress={() => router.back()}
+          className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
+          startContent={<ChevronLeft size={16} />}
         >
-          <ArrowLeft size={24} className="dark:text-white" />
+          Back to Contest List
         </Button>
-        <h2 className="text-3xl font-black dark:text-white uppercase tracking-tighter italic leading-none">
-          New Contest<span className="text-[#FFB800]">.</span>
-        </h2>
+        <div className="flex items-center gap-4">
+          <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+            CREATE NEW <span className="text-[#FF5C00]">CONTEST</span>
+          </h1>
+          <Chip variant="dot" color="warning" className="font-black uppercase text-[10px] border-none italic">Draft Mode</Chip>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
-        {/* CONTEST TITLE */}
+      {/* FORM SECTION */}
+      <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
+        
+        {/* TITLE */}
         <Input
           label="Contest Title"
           placeholder="e.g. TMOJ Spring Contest 2025"
           labelPlacement="outside"
-          variant="flat"
           classNames={{
-            mainWrapper: "mt-6",
-            inputWrapper:
-              "rounded-2xl dark:bg-[#333A45] h-14 border-2 border-transparent focus-within:!border-[#FFB800]",
-            label:
-              "dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+            inputWrapper: "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-all",
+            label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+            input: "font-bold italic uppercase tracking-tight text-lg"
           }}
         />
 
         {/* DESCRIPTION */}
         <div className="space-y-3">
-          <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-2">
-            Description
+          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
+            Contest Description & Rules
           </label>
-          <div className="rounded-2xl border-2 border-gray-100 dark:border-[#474F5D] overflow-hidden focus-within:border-[#FFB800] bg-gray-50/50 dark:bg-[#333A45]/30">
+          <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
             <EditorToolbar />
             <Textarea
-              placeholder="Contest rules and details..."
+              placeholder="Explain the rules, prizes, and details..."
               variant="flat"
-              minRows={6}
+              minRows={5}
               classNames={{
                 inputWrapper: "bg-transparent shadow-none p-4",
-                input: "dark:text-white font-medium",
+                input: "font-medium text-slate-600 dark:text-slate-300",
               }}
             />
           </div>
         </div>
 
-        {/* TIME & PASSWORD - FIXED OVERLAP HERE */}
+        {/* SETTINGS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Input
             label="Start Time"
             type="datetime-local"
             labelPlacement="outside"
-            placeholder=" "
-            startContent={
-              <CalendarDays size={16} className="text-gray-400 shrink-0" />
-            }
+            startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
-              mainWrapper: "mt-8", // Tăng khoảng cách phía trên
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
-              input: "pt-1", // Đẩy text xuống 1 chút
+              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
           <Input
             label="End Time"
             type="datetime-local"
             labelPlacement="outside"
-            placeholder=" "
-            startContent={
-              <CalendarDays size={16} className="text-gray-400 shrink-0" />
-            }
+            startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
-              mainWrapper: "mt-8",
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
-              input: "pt-1",
+              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
           <Input
-            label="Password"
+            label="Security Password"
             type="password"
-            placeholder="Optional"
+            placeholder="Keep empty for public"
             labelPlacement="outside"
-            startContent={<Lock size={16} className="text-gray-400 shrink-0" />}
+            startContent={<Lock size={18} className="text-slate-400" />}
             classNames={{
-              mainWrapper: "mt-8",
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
         </div>
 
-        {/* RULES & STATUS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-gray-50 dark:bg-[#333A45]/50 rounded-[2.5rem] border border-gray-100 dark:border-[#474F5D]/30">
+        {/* CONFIGURATION BOX */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5">
           <RadioGroup
-            label="Rule Type"
+            label="Rule System"
             orientation="horizontal"
             defaultValue="acm"
             classNames={{
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-4 ml-1",
+              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
             }}
           >
-            <div className="flex gap-6">
-              <Radio
-                value="acm"
-                classNames={{ label: "text-xs font-bold dark:text-white" }}
-              >
-                ACM
-              </Radio>
-              <Radio
-                value="oi"
-                classNames={{ label: "text-xs font-bold dark:text-white" }}
-              >
-                OI
-              </Radio>
+            <div className="flex gap-8">
+              <Radio value="acm" classNames={{ label: "text-xs font-black uppercase italic" }}>ACM</Radio>
+              <Radio value="oi" classNames={{ label: "text-xs font-black uppercase italic" }}>OI</Radio>
             </div>
           </RadioGroup>
-          <div className="flex flex-col gap-3">
-            <span className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 leading-none">
-              Real Time Rank
-            </span>
-            <Switch color="warning" defaultSelected size="lg" />
+
+          <div className="flex flex-col gap-4">
+            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">Real-time Ranking</span>
+            <Switch 
+              defaultSelected 
+              size="sm"
+              classNames={{
+                wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+              }}
+            />
           </div>
-          <div className="flex flex-col gap-3">
-            <span className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 leading-none">
-              Public Visible
-            </span>
-            <Switch color="success" defaultSelected size="lg" />
+
+          <div className="flex flex-col gap-4">
+            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">Publicly Visible</span>
+            <Switch 
+              defaultSelected 
+              size="sm"
+              classNames={{
+                wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+              }}
+            />
           </div>
         </div>
 
-        {/* IP RANGES */}
-        <Textarea
-          label="Allowed IP Ranges"
-          placeholder="e.g. 192.168.1.1/24 (One per line)"
-          labelPlacement="outside"
-          classNames={{
-            mainWrapper: "mt-6",
-            inputWrapper: "rounded-2xl dark:bg-[#333A45] p-4",
-            label:
-              "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-          }}
-        />
-
-        {/* FOOTER */}
-        <div className="flex justify-between items-center pt-8 border-t dark:border-[#474F5D]/30">
+        {/* FOOTER ACTIONS */}
+        <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
           <Button
             variant="flat"
             startContent={<X size={18} />}
-            className="rounded-xl font-bold uppercase text-[10px] tracking-widest px-10 h-12 dark:bg-[#333A45] dark:text-gray-400"
+            className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all"
             onClick={() => router.back()}
           >
-            Cancel
+            Discard Draft
           </Button>
           <Button
-            startContent={<Trophy size={20} />}
-            className="bg-[#17c964] text-white font-black rounded-2xl h-14 px-20 uppercase tracking-widest shadow-xl shadow-green-500/20 active:scale-95 transition-all"
+            startContent={<Trophy size={20} strokeWidth={3} />}
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-2xl h-14 px-16 uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all"
           >
             Launch Contest
           </Button>
         </div>
       </div>
+      
+      <style jsx global>{`
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+          filter: invert(0.5);
+          cursor: pointer;
+        }
+        .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,276 +1,458 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./Problems/Sidebar";
-import { Card, CardBody, Button, Progress, Avatar } from "@heroui/react";
+import { Card, CardBody, Button, Avatar, Chip } from "@heroui/react";
+import Image from "next/image";
 import {
   Trophy,
-  Calendar as CalendarIcon,
-  Flame,
   ChevronLeft,
   ChevronRight,
   ArrowRight,
   MessageSquare,
   TrendingUp,
   Users,
+  Megaphone,
+  Clock,
+  ChevronRightSquare,
+  Code2,
+  BarChart3,
+  BookOpen,
 } from "lucide-react";
+
+// Swiper Components & Styles
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { useRouter } from "next/navigation";
+
+// Types
+interface Contest {
+  id: number;
+  title: string;
+  status: string;
+  endsIn?: string;
+  startsIn?: string;
+  participants: number;
+  image: string;
+}
+
+interface NewsPost {
+  title: string;
+  author: string;
+  tags: string[];
+}
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  const discussions = [
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Palette: Navy đậm & Cam Vivid
+  const brandOrange = "#FF5C00";
+  const brandNavy = "#071739";
+
+  const announcements = [
+    "SU26 Enrollment for 'Data Structures' is now open.",
+    "System maintenance scheduled for January 25th, 02:00 AM UTC.",
+    "Congratulations to FPTU team for winning the ICPC Regional Asia!",
+    "New Feature: Grade analytics dashboard is now live.",
+  ];
+
+  const activeContests: Contest[] = [
+    {
+      id: 1,
+      title: "FPTU Coding Master Spring 2026",
+      status: "Running",
+      endsIn: "02h 45m",
+      participants: 1240,
+      image:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop",
+    },
+    {
+      id: 2,
+      title: "Weekly Challenge #42: Dynamic Programming",
+      status: "Upcoming",
+      startsIn: "1d 12h",
+      participants: 856,
+      image:
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
+    },
+    {
+      id: 3,
+      title: "ICPC FPTU Qualifier 2026",
+      status: "Registration Open",
+      startsIn: "Jan 30",
+      participants: 2100,
+      image:
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop",
+    },
+  ];
+
+  const news: NewsPost[] = [
     {
       title: "Top 10 Algorithms for Coding Interviews 2026",
       author: "DevMaster",
-      likes: 245,
-      replies: 56,
       tags: ["Interview", "2026"],
-      color: "from-blue-500 to-cyan-400",
     },
     {
       title: "My experience with Dynamic Programming",
       author: "AlgoQueen",
-      likes: 189,
-      replies: 32,
       tags: ["DP", "Guide"],
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      title: "Weekly Contest 430: Solutions & Discussion",
-      author: "TMOJ_Staff",
-      likes: 567,
-      replies: 412,
-      tags: ["Contest"],
-      color: "from-orange-500 to-red-500",
     },
   ];
 
+  if (!mounted) return null;
+
   return (
-    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative overflow-hidden transition-colors duration-500">
-      {/* 1. LEFT SIDEBAR */}
+    <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex transition-colors duration-500">
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
-          ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
+        className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl ${
+          isSidebarOpen ? "w-[260px]" : "w-0"
+        }`}
       >
         <div className="w-[260px] p-6 pr-2">
           <Sidebar />
         </div>
       </aside>
 
-      {/* 2. SIDEBAR TOGGLE BUTTON */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
-        className="fixed top-24 z-50 w-8 h-8 bg-white/80 dark:bg-[#1C2737] backdrop-blur-md border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg text-[#4B6382] dark:text-[#98A2B3] hover:text-[#071739] dark:hover:text-[#FFB800] dark:hover:shadow-[0_0_15px_rgba(255,184,0,0.4)] transition-all duration-300 cursor-pointer hover:scale-110"
+        className="fixed top-24 z-50 w-8 h-8 bg-white/80 dark:bg-[#1C2737] backdrop-blur-md border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer text-[#FF5C00]"
       >
         {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
 
-      {/* 3. MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col relative min-w-0 h-screen overflow-y-auto p-8 lg:p-12">
-        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-12">
-          {/* WELCOME SECTION */}
-          <section className="flex flex-col gap-3">
-            <h1 className="text-6xl font-black tracking-tighter text-[#3F4755] dark:text-white leading-none">
-              Welcome back, <br />
-              <span className="bg-gradient-to-r from-[#071739] to-[#4B6382] dark:from-[#FFB800] dark:to-[#E3C39D] bg-clip-text text-transparent italic">
-                Toitapcode_
-              </span>
-            </h1>
-            <p className="text-[#4B6382] dark:text-[#98A2B3] font-bold text-lg italic opacity-70 border-l-4 border-[#A68868] pl-6 py-1">
-              &ldquo;Turn your caffeine into clean code.&rdquo;
-            </p>
-          </section>
-
-          {/* DASHBOARD STATS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                label: "Streak",
-                val: "12 Days",
-                icon: <Flame size={32} fill="currentColor" />,
-                color: "text-orange-500",
-                bg: "bg-orange-500/10",
-              },
-              {
-                label: "Solved",
-                val: "145",
-                icon: <Trophy size={32} />,
-                color: "text-indigo-500",
-                bg: "bg-indigo-500/10",
-              },
-              {
-                label: "Activity",
-                val: "Active",
-                icon: <CalendarIcon size={32} />,
-                color: "text-rose-500",
-                bg: "bg-rose-500/10",
-              },
-            ].map((stat, i) => (
-              <Card
-                key={i}
-                className="bg-white dark:bg-[#1C2737] border-none rounded-[32px] shadow-sm hover:-translate-y-2 dark:hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all cursor-pointer"
-              >
-                <CardBody className="flex flex-row items-center gap-5 p-7">
-                  <div className={`p-4 ${stat.bg} ${stat.color} rounded-2xl`}>
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-[#A4B5C4] uppercase tracking-widest">
-                      {stat.label}
-                    </p>
-                    <p className="text-3xl font-black dark:text-white">
-                      {stat.val}
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
+      <div className="flex-1 flex flex-col min-w-0">
+        <div
+          style={{ backgroundColor: brandNavy }}
+          className="w-full text-white py-2.5 px-6 flex items-center gap-4 overflow-hidden shrink-0 z-30 shadow-md"
+        >
+          <div
+            style={{ color: brandOrange }}
+            className="flex items-center gap-2 z-10 pr-4 shrink-0 font-black text-[10px] uppercase tracking-tighter italic"
+          >
+            <Megaphone size={16} /> News Feed:
           </div>
-
-          {/* RESUME LEARNING - Đồng bộ Progress và Button */}
-          <Card className="bg-[#071739] dark:bg-[#1C2737] text-white rounded-[40px] overflow-hidden shadow-2xl relative border border-white/5 group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFB800] opacity-5 blur-[100px] group-hover:opacity-10 transition-opacity"></div>
-            <CardBody className="p-10 flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-              <div className="flex flex-col gap-5 max-w-md w-full">
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 bg-[#A68868] dark:bg-[#FFB800] text-white dark:text-[#071739] text-[10px] font-black rounded-lg uppercase italic tracking-tighter">
-                    In Progress
-                  </span>
-                  <span className="text-white/40 text-sm font-bold uppercase tracking-widest">
-                    Top Interview 150
-                  </span>
-                </div>
-                <h2 className="text-4xl font-black tracking-tighter italic group-hover:text-[#A68868] dark:group-hover:text-[#FFB800] transition-colors">
-                  Next: 3Sum Closest
-                </h2>
-                <div className="space-y-3">
-                  <Progress
-                    size="sm"
-                    value={68}
-                    classNames={{
-                      indicator: "bg-[#A68868] dark:bg-[#FFB800]", // Đồng bộ thanh tiến độ
-                      track: "bg-white/10",
-                    }}
-                  />
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">
-                    68% Completed • 102/150 Solved
-                  </p>
-                </div>
-              </div>
-              <Button className="bg-[#A68868] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black h-16 px-12 rounded-2xl text-lg hover:scale-105 transition-all shadow-xl dark:hover:shadow-[0_0_20px_rgba(255,184,0,0.6)]">
-                RESUME NOW <ArrowRight size={24} />
-              </Button>
-            </CardBody>
-          </Card>
-
-          {/* MAIN GRID */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-            <div className="lg:col-span-3 flex flex-col gap-8">
-              <div className="flex items-center justify-between">
-                <h3 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-                  <MessageSquare className="text-[#A68868]" size={32} />{" "}
-                  Discussions
-                </h3>
-                <Button
-                  variant="flat"
-                  className="font-black uppercase text-[10px] tracking-widest rounded-xl bg-white dark:bg-[#1C2737] text-[#4B6382] dark:text-[#98A2B3] hover:bg-[#A68868] dark:hover:bg-[#FFB800] hover:text-white dark:hover:text-[#071739] transition-all"
+          <div className="relative flex overflow-hidden w-full h-5 items-center font-bold italic text-[11px]">
+            <div className="marquee-content flex items-center gap-20 absolute">
+              {announcements.concat(announcements).map((text, i) => (
+                <span
+                  key={i}
+                  className="whitespace-nowrap flex items-center gap-3"
                 >
-                  View All
+                  <span style={{ color: brandOrange }} className="opacity-60">
+                    /
+                  </span>{" "}
+                  {text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-[1400px] mx-auto w-full px-8 lg:px-12 flex flex-col gap-16 mt-8 pb-20">
+          {/* HERO BANNER - Đã đổi ảnh placeholder chất lượng cao */}
+          <section className="relative w-full h-[450px] rounded-[40px] overflow-hidden shadow-2xl group border border-white/10">
+            <Image
+              src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop"
+              alt="FPTU Arena"
+              fill
+              priority
+              className="object-cover grayscale-[0.2] group-hover:scale-105 transition-transform duration-1000"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#071739] via-[#071739]/80 to-transparent"></div>
+            <div className="relative z-10 h-full flex flex-col justify-center p-12 max-w-2xl gap-6">
+              <Chip
+                style={{ backgroundColor: brandOrange }}
+                className="text-white font-black uppercase italic text-[10px]"
+              >
+                Academic Competitive Hub
+              </Chip>
+              <h1 className="text-7xl font-black tracking-tighter leading-none text-white uppercase italic">
+                FPT UNIVERSITY <br />
+                <span style={{ color: brandOrange }}>JUDGE SYSTEM.</span>
+              </h1>
+              <p
+                style={{ borderLeftColor: brandOrange }}
+                className="text-white/70 font-bold italic border-l-4 pl-6 py-2 uppercase text-xs tracking-wider"
+              >
+                Master your logic. Rule the code. Lead the campus.
+              </p>
+              <div className="flex gap-4">
+                <Button
+                  style={{ backgroundColor: brandOrange }}
+                  className="text-white font-black rounded-xl h-14 px-8 shadow-xl uppercase italic hover:scale-105 transition-transform"
+                  onPress={() => router.push("/Contest")}
+                >
+                  Browse Contests
+                </Button>
+                <Button
+                  variant="bordered"
+                  className="text-white border-white/20 font-black rounded-xl h-14 px-8 backdrop-blur-md uppercase italic hover:bg-white/10 transition-all"
+                  onPress={() => router.push("/Problems/Library")}
+                >
+                  Practice
                 </Button>
               </div>
+            </div>
+          </section>
 
-              <div className="flex flex-col gap-6">
-                {discussions.map((post, i) => (
-                  <Card
-                    key={i}
-                    className="bg-white/60 dark:bg-[#1C2737]/80 backdrop-blur-md border-none rounded-[32px] hover:scale-[1.02] transition-all cursor-pointer p-4 group"
-                  >
-                    <CardBody className="flex flex-row gap-6 items-center p-4">
-                      <div
-                        className={`p-1 rounded-full bg-gradient-to-tr ${post.color} group-hover:scale-110 transition-transform`}
-                      >
+          {/* ACTIVE CONTESTS SLIDER */}
+          <section className="flex flex-col gap-8 relative">
+            <div className="flex items-center justify-between">
+              <h3 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
+                <Trophy style={{ color: brandOrange }} size={32} /> Active
+                Contests
+              </h3>
+              <Button
+                variant="light"
+                endContent={<ChevronRightSquare size={18} />}
+                className="font-black italic uppercase text-xs hover:text-[#FF5C00]"
+                onPress={() => router.push("/Contest")}
+              >
+                View More
+              </Button>
+            </div>
+
+            <div className="relative group/slider px-2">
+              <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={24}
+                slidesPerView={1}
+                breakpoints={{
+                  768: { slidesPerView: 2 },
+                  1280: { slidesPerView: 3 },
+                }}
+                navigation={{
+                  nextEl: ".swiper-button-next-custom",
+                  prevEl: ".swiper-button-prev-custom",
+                }}
+                pagination={{ clickable: true, dynamicBullets: true }}
+                className="w-full pb-14"
+              >
+                {activeContests.map((contest) => (
+                  <SwiperSlide key={contest.id}>
+                    <Card className="h-[420px] border-none bg-white dark:bg-[#1C2737] rounded-[32px] overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
+                      <div className="h-1/2 relative overflow-hidden">
+                        <Image
+                          src={contest.image}
+                          alt={contest.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute top-4 right-4 z-10">
+                          <Chip
+                            color={
+                              contest.status === "Running"
+                                ? "danger"
+                                : "warning"
+                            }
+                            className="font-black uppercase text-[10px] animate-pulse text-white"
+                          >
+                            {contest.status}
+                          </Chip>
+                        </div>
+                      </div>
+                      <CardBody className="p-7 flex flex-col justify-between">
+                        <h4 className="text-lg font-black uppercase italic leading-tight dark:text-white line-clamp-2">
+                          {contest.title}
+                        </h4>
+                        <div className="flex items-center gap-4 text-[10px] font-black uppercase text-[#A4B5C4] tracking-widest">
+                          <span className="flex items-center gap-1">
+                            <Users size={14} /> {contest.participants} Students
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={14} />{" "}
+                            {contest.endsIn || contest.startsIn}
+                          </span>
+                        </div>
+                        {/* NÚT REGISTER NOW: Navy mặc định -> Xanh lá khi Hover */}
+                        <Button className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105">
+                          Register Now <ArrowRight size={18} />
+                        </Button>
+                      </CardBody>
+                    </Card>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              <button className="swiper-button-prev-custom absolute left-[-20px] top-1/2 -translate-y-16 z-20 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer shadow-black/20">
+                <ChevronLeft size={24} />
+              </button>
+              <button className="swiper-button-next-custom absolute right-[-20px] top-1/2 -translate-y-16 z-20 w-12 h-12 bg-white dark:bg-[#1C2737] shadow-xl rounded-full flex items-center justify-center border border-[#A4B5C4]/20 text-[#071739] dark:text-white hover:bg-[#FF5C00] hover:text-white transition-all cursor-pointer shadow-black/20">
+                <ChevronRight size={24} />
+              </button>
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+            <div className="lg:col-span-3 flex flex-col gap-16">
+              <div className="flex flex-col gap-8">
+                <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
+                  <MessageSquare style={{ color: brandOrange }} size={28} />{" "}
+                  Discussions & News
+                </h3>
+                <div className="flex flex-col gap-5">
+                  {news.map((post, i) => (
+                    <Card
+                      key={i}
+                      className="bg-white/60 dark:bg-[#1C2737]/80 backdrop-blur-md border-none rounded-3xl hover:scale-[1.01] transition-all p-3 shadow-sm group cursor-pointer"
+                    >
+                      <CardBody className="flex flex-row gap-6 items-center p-4">
                         <Avatar
                           name={post.author}
-                          className="w-14 h-14 bg-white dark:bg-[#101828] text-[#071739] dark:text-white font-black"
+                          size="md"
+                          style={{ backgroundColor: brandNavy }}
+                          className="text-[#FF5C00] font-black"
                         />
-                      </div>
-                      <div className="flex flex-col gap-1 flex-1">
-                        <h4 className="font-black text-xl text-[#071739] dark:text-white group-hover:text-[#A68868] dark:group-hover:text-[#FFB800] transition-colors leading-tight">
-                          {post.title}
-                        </h4>
-                        <div className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest mt-1">
-                          <span className="text-indigo-500 dark:text-indigo-400">
-                            By {post.author}
-                          </span>
-                          <div className="flex gap-3 text-[#A4B5C4] dark:text-[#667085]">
-                            {post.tags.map((tag) => (
-                              <span key={tag}>#{tag}</span>
+                        <div className="flex-1">
+                          <h4 className="font-black text-lg text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors uppercase italic leading-tight">
+                            {post.title}
+                          </h4>
+                          <div className="flex gap-4 mt-2 font-black text-[9px] text-[#A4B5C4] uppercase italic tracking-widest">
+                            <span>By {post.author}</span>
+                            {post.tags.map((t) => (
+                              <span key={t}>#{t}</span>
                             ))}
                           </div>
                         </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* SIDEBAR WIDGETS */}
-            <div className="flex flex-col gap-10">
-              <section className="flex flex-col gap-6">
-                <h3 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                  <TrendingUp size={24} className="text-[#A68868]" /> Trending
-                </h3>
-                <div className="flex flex-col gap-3">
-                  {["#SlidingWindow", "#Recursion", "#SystemDesign"].map(
-                    (tag) => (
-                      <div
-                        key={tag}
-                        className="bg-white/50 dark:bg-[#1C2737]/50 p-4 rounded-2xl font-black text-sm text-[#4B6382] dark:text-[#98A2B3] flex justify-between items-center hover:bg-[#A68868] dark:hover:bg-[#FFB800] hover:text-white dark:hover:text-[#071739] transition-all cursor-pointer group"
-                      >
-                        {tag}{" "}
-                        <ChevronRight
-                          size={16}
-                          className="group-hover:translate-x-1 transition-transform"
-                        />
-                      </div>
-                    )
-                  )}
+                        <ChevronRight style={{ color: brandOrange }} />
+                      </CardBody>
+                    </Card>
+                  ))}
                 </div>
-              </section>
+              </div>
 
-              <section className="flex flex-col gap-6">
-                <h3 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                  <Users size={24} className="text-[#A68868]" /> Masters
+              {/* Learning Flow */}
+              <div className="flex flex-col gap-10">
+                <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
+                  <TrendingUp style={{ color: brandOrange }} size={28} /> TMOJ
+                  Learning Flow
                 </h3>
-                <div className="flex flex-col gap-5">
-                  {[1, 2, 3].map((i) => (
+                <div className="relative ml-4 md:ml-6 flex flex-col gap-8">
+                  <div
+                    style={{ background: brandOrange }}
+                    className="absolute left-[20px] top-2 bottom-2 w-1 opacity-20 rounded-full"
+                  ></div>
+                  {[
+                    {
+                      title: "Enroll in Class",
+                      icon: <Users size={20} />,
+                      step: "01",
+                      border: "text-[#0054A6]",
+                    },
+                    {
+                      title: "Daily Practice",
+                      icon: <Code2 size={20} />,
+                      step: "02",
+                      border: "text-[#FF5C00]",
+                    },
+                    {
+                      title: "Online Assessment",
+                      icon: <BookOpen size={20} />,
+                      step: "03",
+                      border: "text-[#00A651]",
+                    },
+                    {
+                      title: "Performance Tracking",
+                      icon: <BarChart3 size={20} />,
+                      step: "04",
+                      border: "text-[#071739]",
+                    },
+                  ].map((step, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between bg-white dark:bg-[#1C2737] p-4 rounded-3xl shadow-sm border border-transparent hover:border-[#A68868] dark:hover:border-[#FFB800] transition-all cursor-pointer"
+                      className="relative flex items-start gap-8 group"
                     >
-                      <div className="flex items-center gap-4">
-                        <Avatar
-                          size="sm"
-                          className="bg-[#071739] text-[#FFB800] font-black"
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-black dark:text-white leading-none">
-                            CodeNinja_{i}
-                          </span>
-                          <span className="text-[10px] font-black text-[#A68868] italic tracking-widest">
-                            LV. 99
-                          </span>
-                        </div>
+                      <div
+                        className={`relative z-10 w-10 h-10 rounded-full bg-white dark:bg-[#1C2737] border-4 border-current flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform ${step.border}`}
+                      >
+                        {step.icon}
                       </div>
+                      <Card className="flex-1 bg-white/40 dark:bg-[#1C2737]/40 border-none shadow-sm rounded-[24px]">
+                        <CardBody className="p-6">
+                          <h4 className="font-black italic uppercase text-md dark:text-white">
+                            {step.title}
+                          </h4>
+                          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                            Step {step.step}
+                          </p>
+                        </CardBody>
+                      </Card>
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
+            </div>
+
+            {/* RANKING Sidebar */}
+            <div className="flex flex-col gap-8">
+              <Card className="bg-white dark:bg-[#1C2737] rounded-[32px] border-none p-6 shadow-sm sticky top-24">
+                <h3
+                  style={{ borderBottomColor: brandOrange }}
+                  className="text-md font-black uppercase italic tracking-widest mb-6 flex items-center gap-2 border-b-2 pb-2 dark:text-white"
+                >
+                  <TrendingUp size={18} style={{ color: brandOrange }} />{" "}
+                  Ranking
+                </h3>
+                <div className="flex flex-col gap-5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          style={{ color: i <= 3 ? brandOrange : "#A4B5C4" }}
+                          className="text-[10px] font-black"
+                        >
+                          0{i}
+                        </span>
+                        <Avatar size="sm" className="h-7 w-7" />
+                        <span className="text-[10px] font-black uppercase italic group-hover:text-[#FF5C00] transition-colors dark:text-white">
+                          User_{i}x72
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-black text-[#A4B5C4]">
+                        {3000 - i * 200} pts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .marquee-content {
+          display: flex;
+          animation: marquee 35s linear infinite;
+        }
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .marquee-content:hover {
+          animation-play-state: paused;
+        }
+        .swiper-pagination-bullet-active {
+          background: ${brandOrange} !important;
+          width: 30px !important;
+          border-radius: 10px !important;
+        }
+      `}</style>
     </main>
   );
 }

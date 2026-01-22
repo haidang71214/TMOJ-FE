@@ -9,7 +9,7 @@ import {
   Checkbox,
   RadioGroup,
   Radio,
-  Divider,
+  Chip,
   Tooltip,
 } from "@heroui/react";
 import {
@@ -262,34 +262,33 @@ export default function ProblemEditForm() {
               </Radio>
             </RadioGroup>
           </div>
-<Tooltip
-  content="Upload file .zip chứa toàn bộ input/output testcase"
-  placement="top"
-  delay={200}
-  classNames={{
-    content:
-      "bg-black text-white text-[11px] px-3 py-2 rounded-lg font-semibold",
-  }}
->
-          <div className="p-8 border-2 border-dashed border-[#474F5D] rounded-[2.5rem] flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-[#071739]/30 hover:border-[#FFB800] transition-all group">
-            <FileUp
-              size={24}
-              className="text-[#FFB800] group-hover:scale-110 transition-transform"
-            />
+          <Tooltip
+            content="Upload file .zip chứa toàn bộ input/output testcase"
+            placement="top"
+            delay={200}
+            classNames={{
+              content:
+                "bg-black text-white text-[11px] px-3 py-2 rounded-lg font-semibold",
+            }}
+          >
+            <div className="p-8 border-2 border-dashed border-[#474F5D] rounded-[2.5rem] flex flex-col items-center justify-center gap-2 bg-gray-50 dark:bg-[#071739]/30 hover:border-[#FFB800] transition-all group">
+              <FileUp
+                size={24}
+                className="text-[#FFB800] group-hover:scale-110 transition-transform"
+              />
 
-  <span className="font-black dark:text-white uppercase text-[10px] tracking-widest cursor-help">
-    Testcase Data (.zip)
-  </span>
+              <span className="font-black dark:text-white uppercase text-[10px] tracking-widest cursor-help">
+                Testcase Data (.zip)
+              </span>
 
-
-            <Button
-              size="sm"
-              className="bg-[#FFB800] text-[#071739] font-black rounded-xl px-8 h-9 mt-1"
-            >
-              Upload
-            </Button>
-          </div>
-</Tooltip>
+              <Button
+                size="sm"
+                className="bg-[#FFB800] text-[#071739] font-black rounded-xl px-8 h-9 mt-1"
+              >
+                Upload
+              </Button>
+            </div>
+          </Tooltip>
           <div className="p-8 bg-gray-50 dark:bg-[#333A45]/30 rounded-[2.5rem] border border-gray-100 dark:border-[#474F5D]/30 flex flex-col justify-center">
             <RadioGroup
               label="IO Mode"

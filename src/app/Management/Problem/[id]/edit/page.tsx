@@ -21,10 +21,14 @@ import {
   Italic,
   Underline,
   List,
-  Type,
   Trash2,
-  FileCode
+  FileCode,
+  ChevronLeft,
+  PlusCircle,
+  Heading1,
+  Link2,
 } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
 
@@ -52,16 +56,14 @@ export default function GlobalProblemEditPage({
       ))}
     </div>
   );
-const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
-const addTag = (tag: ProblemTag) => {
-  setSelectedTags((prev) =>
-    prev.includes(tag) ? prev : [...prev, tag]
-  );
-};
+  const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+  const addTag = (tag: ProblemTag) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+  };
 
-const removeTag = (tag: ProblemTag) => {
-  setSelectedTags((prev) => prev.filter((t) => t !== tag));
-};
+  const removeTag = (tag: ProblemTag) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
       {/* HEADER SECTION */}
@@ -282,7 +284,7 @@ const removeTag = (tag: ProblemTag) => {
             <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
               Tags
             </label>
-          
+
             <Select
               placeholder="Select tag"
               variant="flat"
@@ -295,12 +297,10 @@ const removeTag = (tag: ProblemTag) => {
               }}
             >
               {Object.values(ProblemTag).map((tag) => (
-                <SelectItem key={tag}>
-                  {PROBLEM_TAG_LABEL[tag]}
-                </SelectItem>
+                <SelectItem key={tag}>{PROBLEM_TAG_LABEL[tag]}</SelectItem>
               ))}
             </Select>
-          
+
             {/* Selected tags */}
             <div className="flex flex-wrap gap-2">
               {selectedTags.map((tag) => (

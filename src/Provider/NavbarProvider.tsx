@@ -21,6 +21,7 @@ import InformationInNavbar from "./InformationInNavbar";
 import RegisterModal from "@/app/Modal/RegisterModal";
 import LoginModal from "@/app/Modal/LoginModal";
 import { useModal } from "./ModalProvider";
+import NotificationInNavbar from "./Notification";
 
 export default function NavbarProvider() {
   const router = useRouter();
@@ -42,32 +43,55 @@ export default function NavbarProvider() {
   };
 
   const handleLink = (link: string) => router.push(link);
+const AcmeLogo = () => (
+  <div className="relative drop-shadow-[0_2px_4px_rgba(255,98,0,0.4)] transition-transform group-hover:scale-110">
+    <svg
+      fill="none"
+      height="32"
+      viewBox="0 0 32 32"
+      width="32"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Curly braces icon - left { and right } */}
+      <path
+        d="M8 6 C6 8, 6 12, 10 14 L10 18 C6 20, 6 24, 8 26"
+        stroke="url(#logo-gradient)"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M24 6 C26 8, 26 12, 22 14 L22 18 C26 20, 26 24, 24 26"
+        stroke="url(#logo-gradient)"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
 
-  const AcmeLogo = () => (
-    <div className="relative drop-shadow-[0_2px_4px_rgba(255,137,4,0.3)] transition-transform group-hover:scale-110">
-      <svg fill="none" height="32" viewBox="0 0 32 32" width="32">
-        <path
-          clipRule="evenodd"
-          d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-          fill="url(#logo-gradient)"
-          fillRule="evenodd"
-        />
-        <defs>
-          <linearGradient
-            id="logo-gradient"
-            x1="7"
-            y1="7"
-            x2="25"
-            y2="23"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#ff8904" />
-            <stop offset="1" stopColor="#ffb347" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
+      {/* Optional: small code snippet line inside for more "code" feel */}
+      <path
+        d="M12 16 L20 16"
+        stroke="url(#logo-gradient)"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+
+      <defs>
+        <linearGradient
+          id="logo-gradient"
+          x1="6"
+          y1="6"
+          x2="26"
+          y2="26"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#FF6200" /> {/* cam đậm, neon code vibe */}
+          <stop offset="1" stopColor="#FFB74D" /> {/* cam sáng hơn */}
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+);
 
   return (
     <Navbar
@@ -98,6 +122,7 @@ export default function NavbarProvider() {
             "Class",
             "Ranking",
             "Management",
+            "Coin"
           ].map((item) => {
             // Logic điều hướng đặc biệt cho các tab
             let link = `/${item}`;
@@ -105,7 +130,8 @@ export default function NavbarProvider() {
             if (item === "Class") link = "/Class";
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") link = "/Management/Contest";
-
+            if (item === "Coin") link = "/Coin";
+            
             const isActive = pathname.startsWith(`/${item}`);
 
             return (
@@ -187,7 +213,9 @@ export default function NavbarProvider() {
         </NavbarItem>
 
         {isUser ? (
-          <InformationInNavbar />
+          <div className="flex"><InformationInNavbar />
+          <NotificationInNavbar/>
+</div>
         ) : (
           <div className="flex gap-2">
             <NavbarItem>

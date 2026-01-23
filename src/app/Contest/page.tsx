@@ -4,10 +4,10 @@ import { Trophy, Gift } from "lucide-react";
 
 export default function ContestPage() {
   return (
-    <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] text-[#071739] dark:text-white transition-colors duration-500">
+    <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] text-[#071739] dark:text-white transition-colors duration-600">
       {/* Hero Section - Đồng bộ phong cách Landing Page */}
       <div className="relative bg-white dark:bg-[#1C2737] py-20 border-b border-slate-200 dark:border-white/5 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 text-center space-y-8">
+        <div className=" mx-auto px-6 text-center space-y-8">
           {/* Icon Trophy Section */}
           <div className="flex justify-center">
             <div className="p-6 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] text-[#071739] dark:text-[#FF5C00] shadow-inner transition-all group hover:scale-105 duration-500 border border-slate-100 dark:border-white/5">
@@ -40,7 +40,7 @@ export default function ContestPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="mx-auto px-6 py-16">
         <div className="grid grid-cols-1 gap-10">
           {/* Section Heading - Đồng bộ với style tiêu đề mục của Landing */}
           <div className="flex items-center gap-5">
@@ -52,11 +52,10 @@ export default function ContestPage() {
           </div>
 
           {/* Upcoming Contests Container - Bo góc 3rem sang trọng */}
-          <div className="bg-white dark:bg-[#1C2737] rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-white/5 relative overflow-hidden">
-            {/* Trang trí nhẹ ở góc giống Landing Page */}
+          <div className="bg-white dark:bg-[#1C2737] rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-white/5 relative overflow-hidden ">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF5C00]/5 rounded-full blur-3xl -mr-16 -mt-16" />
 
-            <div className="relative z-10">
+            <div className="relative z-12  ">
               <UpcomingContests />
             </div>
           </div>

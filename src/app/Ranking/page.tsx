@@ -368,9 +368,7 @@ export default function RankingPage() {
                   <TableColumn className="bg-transparent font-black uppercase text-[10px] h-16 italic text-slate-400">
                     Athlete
                   </TableColumn>
-                  <TableColumn className="bg-transparent font-black uppercase text-[10px] h-16 italic text-slate-400 text-center">
-                    Class
-                  </TableColumn>
+
                   <TableColumn className="bg-transparent font-black uppercase text-[10px] h-16 italic text-slate-400 text-center">
                     Solved
                   </TableColumn>
@@ -419,9 +417,7 @@ export default function RankingPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-black uppercase italic text-[10px] text-slate-500">
-                        {row.class}
-                      </TableCell>
+                   
                       <TableCell className="text-center font-black italic text-sm">
                         {row.solved}
                       </TableCell>

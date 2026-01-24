@@ -74,15 +74,7 @@ export interface UpdateUserDto {
   imagesUrl?: string | null;
   age?: number | null;
 }
-export interface Contest {
-  title: string;
-  date: string;
-  countdown: string;
-  description: string;
-  prizes: string[];
-  eligibility: string;
-  bannerImage?: string; // optional vì không phải contest nào cũng có
-}
+
 export enum ProblemTag {
   DP = "dp",
   GREEDY = "greedy",
@@ -105,3 +97,13 @@ export const PROBLEM_TAG_LABEL: Record<ProblemTag, string> = {
   [ProblemTag.BINARY_SEARCH]: "Binary Search",
   [ProblemTag.TWO_POINTERS]: "Two Pointers",
 };
+
+export interface Contest {
+  id: number;
+  title: string;
+  status: string;
+  endsIn?: string;
+  startsIn?: string;
+  participants: number;
+  image: string;
+}

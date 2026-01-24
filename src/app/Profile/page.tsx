@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Avatar,
   Button,
   Card,
   CardBody,
@@ -16,6 +15,7 @@ import {
   ModalHeader,
   ModalBody,
   useDisclosure,
+  Avatar,
 } from "@heroui/react";
 import {
   Flame,
@@ -27,6 +27,11 @@ import {
   Zap,
   Lock,
   Star,
+  Github,
+  Linkedin,
+  Cake,
+  MapPin,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
@@ -125,15 +130,45 @@ export default function ProfilePage() {
 
   const SOLVED_COUNT = 226;
   const TOTAL_COUNT = 3808;
+   
+  const BASIC_INFO = {
+  name: "Đăng Hải",
+  location: "Vietnam",
+  birthday: "2002-08-19",
+  website: "https://danghai.dev",
+  github: "github.com/danghai",
+  linkedin: "linkedin.com/in/danghai",
+};
+ const Item = ({
+    icon,
+    label,
+    value,
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+  }) => (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <div className="text-[#FF5C00]">{icon}</div>
+        <span className="text-[10px] font-black uppercase italic text-slate-400">
+          {label}
+        </span>
+      </div>
+      <span className="text-xs font-[1000] italic text-[#071739] dark:text-white text-right">
+        {value}
+      </span>
+    </div>
+  );
+
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-6 py-10 custom-scrollbar">
+    <div className="min-h-screen text-foreground px-6 py-10 custom-scrollbar bg-[#F0F2F5] dark:bg-[#0A0F1C]  transition-colors ">
       <div className="max-w-[1440px] mx-auto grid grid-cols-1 xl:grid-cols-[350px_1fr] gap-10">
         {/* ================= LEFT SIDEBAR ================= */}
         <div className="space-y-8">
-          <Card className="bg-white dark:bg-[#071739] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-xl overflow-hidden relative transition-all duration-500">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF5C00] opacity-5 dark:opacity-10 skew-x-12 translate-x-10 -translate-y-10" />
-            <CardBody className="p-8 space-y-6 relative z-10">
+           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+           <CardBody className="p-8 relative z-10">
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="relative">
                   <Avatar
@@ -169,7 +204,63 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              <Button
+            </CardBody>
+      <CardHeader className="px-8 pt-8 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <User size={16} className="text-[#FF5C00]" />
+          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+            Basic Info
+          </h2>
+        </div>
+        <Button
+          isIconOnly
+          size="sm"
+          variant="light"
+          onClick={() => router.push("/Settings")}
+          className="text-[#FF5C00]"
+        >
+          <Edit3 size={14} />
+        </Button>
+      </CardHeader>
+
+      <CardBody className="px-8 pb-8 space-y-4">
+        <Item icon={<User size={14} />} label="Name" value={BASIC_INFO.name} />
+        <Divider className="opacity-30" />
+
+        <Item
+          icon={<MapPin size={14} />}
+          label="Location"
+          value={BASIC_INFO.location}
+        />
+        <Divider className="opacity-30" />
+
+        <Item
+          icon={<Cake size={14} />}
+          label="Birthday"
+          value={BASIC_INFO.birthday}
+        />
+        <Divider className="opacity-30" />
+
+        <Item
+          icon={<Globe size={14} />}
+          label="Website"
+          value={BASIC_INFO.website}
+        />
+        <Divider className="opacity-30" />
+
+        <Item
+          icon={<Github size={14} />}
+          label="Github"
+          value={BASIC_INFO.github}
+        />
+        <Divider className="opacity-30" />
+
+        <Item
+          icon={<Linkedin size={14} />}
+          label="LinkedIn"
+          value={BASIC_INFO.linkedin}
+        />
+          <Button
                 size="lg"
                 className="w-full font-black uppercase italic text-[11px] tracking-widest bg-slate-50 dark:bg-white/5 text-[#071739] dark:text-white hover:bg-[#00FF41] hover:text-[#071739] transition-all rounded-2xl border border-slate-200 dark:border-white/10"
                 startContent={<Edit3 size={16} />}
@@ -177,8 +268,8 @@ export default function ProfilePage() {
               >
                 Edit Profile
               </Button>
-            </CardBody>
-          </Card>
+      </CardBody>
+    </Card>
 
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
             <CardHeader className="px-8 pt-8 flex items-center gap-2">

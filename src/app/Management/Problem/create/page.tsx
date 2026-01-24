@@ -19,14 +19,8 @@ import {
   Save,
   FileUp,
   X,
-  Bold,
-  Italic,
-  Underline,
-  List,
   FileCode,
   ChevronLeft,
-  Heading1,
-  Link2,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -44,21 +38,6 @@ export default function CreateProblemPage() {
     setSelectedTags((prev) => prev.filter((t) => t !== tag));
   };
 
-  const EditorToolbar = () => (
-    <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1 flex-wrap">
-      {[Heading1, Bold, Italic, Underline, List, Link2].map((Icon, i) => (
-        <Button
-          key={i}
-          isIconOnly
-          size="sm"
-          variant="light"
-          className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]"
-        >
-          <Icon size={16} />
-        </Button>
-      ))}
-    </div>
-  );
 
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
@@ -104,37 +83,6 @@ export default function CreateProblemPage() {
         </div>
 
         <Divider className="my-4 dark:bg-white/10" />
-
-        {/* FORMATS SECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-3 group">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
-              Input Format
-            </label>
-            <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
-              <EditorToolbar />
-              <Textarea
-                placeholder="Describe input data structure..."
-                variant="flat"
-                minRows={3}
-                classNames={{ inputWrapper: "bg-transparent shadow-none p-4" }}
-              />
-            </div>
-          </div>
-          <div className="space-y-3 group">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
-              Output Format
-            </label>
-            <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10">
-              <Textarea
-                placeholder="Describe expected output..."
-                variant="flat"
-                minRows={3}
-                classNames={{ inputWrapper: "bg-transparent shadow-none p-4" }}
-              />
-            </div>
-          </div>
-        </div>
 
         {/* CODE TEMPLATE */}
         <div className="space-y-3 group">

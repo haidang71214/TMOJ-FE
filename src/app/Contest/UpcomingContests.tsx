@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardBody,
@@ -8,26 +8,36 @@ import {
   Divider,
   Tabs,
   Tab,
+  Chip,
 } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Contest } from "@/types";
+import { SwiperSlide } from "swiper/react";
+import { ArrowRight, Clock, Users } from "lucide-react";
 
-const upcomingContests = [
-  {
-    title: "Weekly Contest 481",
-    time: "Sunday 9:30 AM GMT+7",
-    countdown: "Starts in 4d 3h 57m 28s",
-    image:
-      "https://assets.leetcode.com/contest-config/weekly-contest-482/contest_detail/card_img_e222.png",
-  },
-  {
-    title: "Biweekly Contest 172",
-    time: "Saturday 9:30 PM GMT+7",
-    countdown: "Starts in 3d 15h 57m 28s",
-    image:
-      "https://assets.leetcode.com/contest-config/weekly-contest-482/contest_detail/card_img_e222.png",
-  },
-];
+
+
+   const activeContests: Contest[] = [
+    {
+      id: 1,
+      title: "FPTU Coding Master Spring 2026",
+      status: "Running",
+      endsIn: "02h 45m",
+      participants: 1240,
+      image:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop",
+    },
+    {
+      id: 2,
+      title: "Weekly Challenge #42: Dynamic Programming",
+      status: "Upcoming",
+      startsIn: "1d 12h",
+      participants: 856,
+      image:
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
+    }
+  ];
 
 const pastContests = [
   {
@@ -70,41 +80,63 @@ const globalRanking = [
 export default function ContestsPage() {
   const [selectedTab, setSelectedTab] = useState("my");
   const router = useRouter();
+const [user, setUser] = useState(false);
+
+useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  setUser(!!storedUser);
+}, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 transition-colors duration-500">
+    <div className="max-w-10xl mx-auto px-4 py-8 transition-colors duration-500">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-12">
           {/* Upcoming Contests */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {upcomingContests.map((contest) => (
-              <Card
-                key={contest.title}
-                className="overflow-hidden hover:shadow-xl transition-all border-none bg-white dark:bg-[#282E3A] cursor-pointer group"
-              >
-                <div className="relative">
-                  <Image
-                    src={contest.image}
-                    alt={contest.title}
-                    width={600}
-                    height={300}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md text-white px-3 py-1.5 rounded-xl text-sm font-bold">
-                    {contest.countdown}
-                  </div>
-                </div>
-                <CardBody className="pt-4">
-                  <h3 className="text-lg font-black text-[#3F4755] dark:text-white group-hover:text-[#FFB800] transition-colors">
-                    {contest.title}
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">
-                    {contest.time}
-                  </p>
-                </CardBody>
-              </Card>
-            ))}
+            {activeContests.map((contest) => (
+                              <SwiperSlide key={contest.id}>
+                                <Card  className="h-[420px] border-none bg-white dark:bg-[#1C2737] rounded-[32px] overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
+                                  <div onClick={()=>{router.push(`/Contest/${contest.id}`)}} className="h-1/2 relative overflow-hidden">
+                                    <Image
+                                      src={contest.image}
+                                      alt={contest.title}
+                                      fill
+                                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                    />
+                                    <div className="absolute top-4 right-4 z-10">
+                                      <Chip
+                                        color={
+                                          contest.status === "Running"
+                                            ? "danger"
+                                            : "warning"
+                                        }
+                                        className="font-black uppercase text-[10px] animate-pulse text-white"
+                                      >
+                                        {contest.status}
+                                      </Chip>
+                                    </div>
+                                  </div>
+                                  <CardBody className="p-7 flex flex-col justify-between">
+                                    <h4 className="text-lg font-black uppercase italic leading-tight dark:text-white line-clamp-2">
+                                      {contest.title}
+                                    </h4>
+                                    <div className="flex items-center gap-4 text-[10px] font-black uppercase text-[#A4B5C4] tracking-widest">
+                                      <span className="flex items-center gap-1">
+                                        <Users size={14} /> {contest.participants} Students
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock size={14} />{" "}
+                                        {contest.endsIn || contest.startsIn}
+                                      </span>
+                                    </div>
+                                    <Button className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105">
+                                      Register Now <ArrowRight size={18} />
+                                    </Button>
+                                  </CardBody>
+                                </Card>
+                              </SwiperSlide>
+                            ))}
           </div>
 
           <Divider className="bg-gray-200 dark:bg-[#474F5D]" />
@@ -126,6 +158,51 @@ export default function ContestsPage() {
               }}
             >
               <Tab key="my" title="My Contests">
+                {user? 
+                <div className="mt-8 space-y-4">
+    {activeContests.map((contest) => (
+      <Card
+      
+        key={contest.id}
+        className="border-none bg-white dark:bg-[#282E3A] hover:translate-x-1 transition-all cursor-pointer"
+      >
+        <CardBody onClick={()=>{router.push(`/Contest/${contest.id}`)}} className="px-6 py-5">
+          <div className="flex items-center justify-between gap-6">
+            {/* Left */}
+            <div className="flex-1 min-w-0">
+              <h4 className="text-lg font-black text-[#3F4755] dark:text-white uppercase tracking-tight truncate">
+                {contest.title}
+              </h4>
+
+              <div className="flex items-center gap-4 mt-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                <span className="flex items-center gap-1">
+                  <Users size={14} /> {contest.participants}
+                </span>
+                
+              </div>
+            </div>
+
+            {/* Right */}
+            <Chip
+              color={
+                contest.status === "Running"
+                  ? "danger"
+                  : contest.status === "Upcoming"
+                  ? "warning"
+                  : "default"
+              }
+              className="font-black uppercase text-[10px]"
+              variant="flat"
+            >
+              {contest.status}
+            </Chip>
+          </div>
+        </CardBody>
+      </Card>
+    ))}
+  </div> 
+                :
+                
                 <div className="mt-8">
                   <Card className="border-none bg-gray-50 dark:bg-[#282E3A]/50 shadow-none">
                     <CardBody className="text-center py-16 flex flex-col items-center">
@@ -162,7 +239,7 @@ export default function ContestsPage() {
                       </Button>
                     </CardBody>
                   </Card>
-                </div>
+                </div>}
               </Tab>
 
               <Tab key="past" title="Past Contests">

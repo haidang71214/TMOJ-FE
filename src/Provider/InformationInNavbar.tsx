@@ -90,12 +90,12 @@ React.useEffect(() => {
           </DropdownItem>
 
           <DropdownItem
-            key="points"
+            key="Coin"
             startContent={<Coins size={18} className="text-[#A68868] dark:text-[#FFB800]" />}
-            onClick={() => handleLink("/Points")}
+            onClick={() => handleLink("/Coin")}
           >
             <span className="font-black text-sm bg-gradient-to-r from-[#A68868] to-[#071739] dark:from-[#FFB800] dark:to-[#E3C39D] bg-clip-text text-transparent">
-              Points
+              Coin
             </span>
           </DropdownItem>
 

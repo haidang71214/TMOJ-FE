@@ -26,17 +26,10 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
+import { Contest } from "@/types";
 
 // Types
-interface Contest {
-  id: number;
-  title: string;
-  status: string;
-  endsIn?: string;
-  startsIn?: string;
-  participants: number;
-  image: string;
-}
+
 
 interface NewsPost {
   title: string;
@@ -63,7 +56,7 @@ export default function Home() {
     "New Feature: Grade analytics dashboard is now live.",
   ];
 
-  const activeContests: Contest[] = [
+   const activeContests: Contest[] = [
     {
       id: 1,
       title: "FPTU Coding Master Spring 2026",

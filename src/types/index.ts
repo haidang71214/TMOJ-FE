@@ -4,7 +4,6 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
 };
 
-
 export type LoginRequest = {
   email: string;
   password: string;
@@ -15,10 +14,9 @@ export type LoginResponse = {
   user: Users;
 };
 
-
 export enum RoleEnums {
   CLIENT = 0,
-  ADMIN = 1
+  ADMIN = 1,
 }
 
 export interface Users {
@@ -48,8 +46,6 @@ export interface RegisterResponseDto {
   email?: string | null;
   role: RoleEnums;
 }
-
-
 
 export interface UserDto {
   id: string;
@@ -106,4 +102,44 @@ export interface Contest {
   startsIn?: string;
   participants: number;
   image: string;
+}
+
+export interface Student {
+  id: number;
+  studentId: string;
+  name: string;
+  email: string;
+  avatar: string;
+  joinDate: string;
+  progress: number;
+  total: number;
+  solved?: number;
+  dob?: string;
+  address?: string;
+}
+
+export interface Teacher {
+  id: number;
+  teacherId: string;
+  name: string;
+  email: string;
+  avatar: string;
+  joinDate: string;
+  dept: string;
+  status: string;
+  progress?: number;
+  total?: number;
+  solved?: number;
+  dob?: string;
+  address?: string;
+}
+
+export interface Subject {
+  id: string;
+  name: string;
+  department: string;
+  credits: number;
+  totalProblems: number;
+  visible: boolean;
+  createdAt: string;
 }

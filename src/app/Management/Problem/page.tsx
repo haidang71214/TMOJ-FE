@@ -129,7 +129,7 @@ export default function GlobalProblemListPage() {
           startContent={<Search size={18} className="text-slate-400" />}
           classNames={{
             inputWrapper:
-              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
+              "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
           }}
           className="max-w-xs font-medium"
         />
@@ -138,7 +138,7 @@ export default function GlobalProblemListPage() {
           <DropdownTrigger>
             <Button
               variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#0A0F1C] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5"
+              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5"
               startContent={<SortAsc size={16} />}
               endContent={<ChevronDown size={14} />}
             >
@@ -161,7 +161,7 @@ export default function GlobalProblemListPage() {
           className="w-40"
           classNames={{
             trigger:
-              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
+              "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
           }}
         >
           <SelectItem
@@ -190,7 +190,7 @@ export default function GlobalProblemListPage() {
           startContent={<Tag size={14} className="text-slate-400" />}
           classNames={{
             trigger:
-              "bg-white dark:bg-[#0A0F1C] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
+              "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
           }}
         >
           <SelectItem key="dp" className="font-bold uppercase text-[10px]">
@@ -206,7 +206,7 @@ export default function GlobalProblemListPage() {
 
         <Button
           variant="flat"
-          className="h-12 rounded-xl bg-white dark:bg-[#0A0F1C] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-6"
+          className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-6"
           startContent={<Filter size={16} />}
         >
           More
@@ -227,7 +227,7 @@ export default function GlobalProblemListPage() {
           aria-label="Problem Repository Table"
           removeWrapper
           classNames={{
-            base: "bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
+            base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
             th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
             td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
           }}

@@ -1,7 +1,7 @@
 import "./globals.css";
 import clsx from "clsx";
 import { Metadata, Viewport } from "next";
-
+import { Toaster } from "sonner";
 import { Providers } from "./providers";
 import { siteConfig } from "../config/site";
 import { fontSans } from "../config/fonts";
@@ -43,6 +43,7 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           <NavbarProvider />
           {children}
+          <Toaster richColors position="top-right" />
         </Providers>
         <Footer />
       </body>

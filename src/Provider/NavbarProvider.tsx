@@ -43,55 +43,55 @@ export default function NavbarProvider() {
   };
 
   const handleLink = (link: string) => router.push(link);
-const AcmeLogo = () => (
-  <div className="relative drop-shadow-[0_2px_4px_rgba(255,98,0,0.4)] transition-transform group-hover:scale-110">
-    <svg
-      fill="none"
-      height="32"
-      viewBox="0 0 32 32"
-      width="32"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Curly braces icon - left { and right } */}
-      <path
-        d="M8 6 C6 8, 6 12, 10 14 L10 18 C6 20, 6 24, 8 26"
-        stroke="url(#logo-gradient)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M24 6 C26 8, 26 12, 22 14 L22 18 C26 20, 26 24, 24 26"
-        stroke="url(#logo-gradient)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+  const AcmeLogo = () => (
+    <div className="relative drop-shadow-[0_2px_4px_rgba(255,98,0,0.4)] transition-transform group-hover:scale-110">
+      <svg
+        fill="none"
+        height="32"
+        viewBox="0 0 32 32"
+        width="32"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Curly braces icon - left { and right } */}
+        <path
+          d="M8 6 C6 8, 6 12, 10 14 L10 18 C6 20, 6 24, 8 26"
+          stroke="url(#logo-gradient)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M24 6 C26 8, 26 12, 22 14 L22 18 C26 20, 26 24, 24 26"
+          stroke="url(#logo-gradient)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
-      {/* Optional: small code snippet line inside for more "code" feel */}
-      <path
-        d="M12 16 L20 16"
-        stroke="url(#logo-gradient)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+        {/* Optional: small code snippet line inside for more "code" feel */}
+        <path
+          d="M12 16 L20 16"
+          stroke="url(#logo-gradient)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
 
-      <defs>
-        <linearGradient
-          id="logo-gradient"
-          x1="6"
-          y1="6"
-          x2="26"
-          y2="26"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#FF6200" /> {/* cam đậm, neon code vibe */}
-          <stop offset="1" stopColor="#FFB74D" /> {/* cam sáng hơn */}
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
-);
+        <defs>
+          <linearGradient
+            id="logo-gradient"
+            x1="6"
+            y1="6"
+            x2="26"
+            y2="26"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#FF6200" /> {/* cam đậm, neon code vibe */}
+            <stop offset="1" stopColor="#FFB74D" /> {/* cam sáng hơn */}
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
 
   return (
     <Navbar
@@ -118,20 +118,20 @@ const AcmeLogo = () => (
             "Explore",
             "Problems",
             "Contest",
-            "Discuss",
             "Class",
             "Ranking",
             "Management",
-            "Coin"
+            "Coin",
           ].map((item) => {
             // Logic điều hướng đặc biệt cho các tab
             let link = `/${item}`;
+            if (item === "Explore") link = "/Explore";
             if (item === "Problems") link = "/Problems/Library";
             if (item === "Class") link = "/Class";
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") link = "/Management/Contest";
             if (item === "Coin") link = "/Coin";
-            
+
             const isActive = pathname.startsWith(`/${item}`);
 
             return (
@@ -213,9 +213,10 @@ const AcmeLogo = () => (
         </NavbarItem>
 
         {isUser ? (
-          <div className="flex"><InformationInNavbar />
-          <NotificationInNavbar/>
-</div>
+          <div className="flex">
+            <InformationInNavbar />
+            <NotificationInNavbar />
+          </div>
         ) : (
           <div className="flex gap-2">
             <NavbarItem>

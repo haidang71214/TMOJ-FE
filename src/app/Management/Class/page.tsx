@@ -143,7 +143,7 @@ export default function ClassListPage() {
         {STATS_DATA.map((stat, i) => (
           <Card
             key={i}
-            className="bg-white dark:bg-[#111827] border-none rounded-2xl shadow-sm"
+            className="bg-white dark:bg-[#111c35] border-none rounded-2xl shadow-sm"
           >
             <CardBody className="p-4 flex flex-col justify-center">
               <p className="text-[9px] font-black text-[#A4B5C4] uppercase tracking-widest mb-1 italic">
@@ -164,7 +164,7 @@ export default function ClassListPage() {
           startContent={<Search size={18} className="text-[#A4B5C4]" />}
           classNames={{
             inputWrapper:
-              "bg-white dark:bg-[#111827] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:border-blue-500/50 transition-colors",
+              "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:border-blue-500/50 transition-colors",
           }}
           className="max-w-xs font-medium"
         />
@@ -173,7 +173,7 @@ export default function ClassListPage() {
           <DropdownTrigger>
             <Button
               variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
+              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
               startContent={<Filter size={16} />}
               endContent={<ChevronDown size={14} />}
             >
@@ -190,7 +190,7 @@ export default function ClassListPage() {
           <DropdownTrigger>
             <Button
               variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
+              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
               startContent={<SortAsc size={16} />}
               endContent={<ChevronDown size={14} />}
             >
@@ -220,7 +220,7 @@ export default function ClassListPage() {
               key={cls.id}
               className="h-full"
             >
-              <Card className="bg-white dark:bg-[#111827] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] hover:-translate-y-1.5">
+              <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] hover:-translate-y-1.5">
                 <CardBody className="p-2 flex flex-col justify-between h-full gap-5">
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">

@@ -229,6 +229,20 @@ export default function ClassDetailPage({
             </h3>
           </div>
           <div className="flex gap-3">
+             <Button
+    variant="flat"
+    className="h-11 px-5 rounded-xl
+      bg-white dark:bg-[#111827]
+      border border-slate-200 dark:border-white/10
+      font-black uppercase text-[10px] tracking-wider
+      text-[#071739] dark:text-white
+      hover:bg-[#071739] hover:text-white
+      dark:hover:bg-[#FF5C00]
+      transition-all shadow-sm"
+    startContent={<Download size={14} />}
+  >
+    EXPORT SUBJECT REPORT
+  </Button>
             <Button
               className="bg-white dark:bg-[#1C2737] font-black rounded-xl h-12 px-6 border border-slate-200 dark:border-white/5 uppercase text-[10px]"
               startContent={<Send size={16} />}

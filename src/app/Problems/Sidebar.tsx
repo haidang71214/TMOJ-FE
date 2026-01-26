@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   Listbox,
@@ -21,6 +22,8 @@ import {
   Sparkles,
   Globe,
   Notebook,
+  Bookmark,
+  ExternalLink,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import CreateListModal from "./MyLists/CreateListModal";
@@ -43,6 +46,12 @@ export default function ProblemsSidebar() {
       isPrivate: false,
       icon: <Notebook size={20} />,
     },
+  ];
+
+  // THÊM: Dữ liệu mẫu cho Bookmarks
+  const myBookmarks = [
+    { id: "DP-Study", title: "DP Study", icon: <Bookmark size={20} /> },
+    { id: "Graph-Tips", title: "Graph Tips", icon: <Bookmark size={20} /> },
   ];
 
   const getItemClasses = (key: string) => {
@@ -75,14 +84,12 @@ export default function ProblemsSidebar() {
               Library
             </span>
           </ListboxItem>
-
           <ListboxItem
             key="Quest"
             startContent={<LayoutGrid size={20} />}
             endContent={
               <Chip
                 size="sm"
-                // CẬP NHẬT: Sử dụng màu solid Cam rực rỡ để không bị loãng
                 className="h-5 text-[9px] font-black bg-[#FF5C00] text-white dark:bg-white dark:text-[#FF5C00] border-none px-2 shadow-sm"
               >
                 NEW
@@ -94,7 +101,6 @@ export default function ProblemsSidebar() {
               Quest
             </span>
           </ListboxItem>
-
           <ListboxItem
             key="StudyPlan"
             startContent={<GraduationCap size={20} />}
@@ -110,7 +116,16 @@ export default function ProblemsSidebar() {
       {/* 2. COLLECTIONS SECTION */}
       <div className="flex flex-col gap-3">
         <div className="flex justify-between items-center px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          <span>Collections</span>
+          <div
+            className="flex items-center gap-2 group cursor-pointer"
+            onClick={() => router.push("/Problems/Collections")}
+          >
+            <span>Collections</span>
+            <ExternalLink
+              size={12}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FF5C00]"
+            />
+          </div>
 
           <Dropdown
             placement="bottom-end"
@@ -146,7 +161,6 @@ export default function ProblemsSidebar() {
               <DropdownItem
                 key="new-smart-list"
                 startContent={<Sparkles size={16} />}
-                // CẬP NHẬT: Màu xanh lá neon sáng hơn cho darkmode
                 className="text-blue-600 dark:text-[#00FF41] rounded-xl text-xs font-bold"
               >
                 Smart List
@@ -195,6 +209,50 @@ export default function ProblemsSidebar() {
               </ListboxItem>
             );
           })}
+        </Listbox>
+      </div>
+
+      {/* 3. BOOKMARKS SECTION (PHẦN MỚI BỔ SUNG) */}
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+          <div
+            className="flex items-center gap-2 group cursor-pointer"
+            onClick={() => router.push("/Problems/Bookmarks")}
+          >
+            <span>Bookmarks</span>
+            <ExternalLink
+              size={12}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FF5C00]"
+            />
+          </div>
+
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="rounded-full w-6 h-6 min-w-0 hover:bg-slate-100 dark:hover:bg-white/10"
+            onPress={() => router.push("/Problems/Bookmarks")}
+          >
+            <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
+          </Button>
+        </div>
+
+        <Listbox
+          aria-label="My Bookmarks"
+          onAction={(key) => router.push(`/Problems/Bookmarks/${String(key)}`)}
+          className="p-0 gap-1"
+        >
+          {myBookmarks.map((bookmark) => (
+            <ListboxItem
+              key={bookmark.id}
+              startContent={bookmark.icon}
+              className={getItemClasses(bookmark.id)}
+            >
+              <span className="text-sm font-bold uppercase tracking-wider truncate block">
+                {bookmark.title}
+              </span>
+            </ListboxItem>
+          ))}
         </Listbox>
       </div>
 

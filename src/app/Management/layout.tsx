@@ -7,6 +7,8 @@ import {
   Trophy,
   Settings,
   Users,
+  GraduationCap,
+  BookOpenCheck,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -36,6 +38,8 @@ export default function ManagementLayout({
     { key: "Problem", label: "Problem", icon: <FileCode size={20} /> },
     { key: "Contest", label: "Contest", icon: <Trophy size={20} /> },
     { key: "Class", label: "Class", icon: <Users size={20} /> },
+    { key: "Teacher", label: "Teacher", icon: <GraduationCap size={20} /> },
+    { key: "Subject", label: "Subject", icon: <BookOpenCheck size={20} /> },
     { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
   ];
 

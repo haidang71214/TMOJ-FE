@@ -11,7 +11,6 @@ import {
   MessageSquare,
   TrendingUp,
   Users,
-  Megaphone,
   Clock,
   ChevronRightSquare,
   Code2,
@@ -27,9 +26,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 import { Contest } from "@/types";
-
+import NewsFeed from "./components/NewsFeed";
 // Types
-
 
 interface NewsPost {
   title: string;
@@ -49,14 +47,7 @@ export default function Home() {
   const brandOrange = "#FF5C00";
   const brandNavy = "#071739";
 
-  const announcements = [
-    "SU26 Enrollment for 'Data Structures' is now open.",
-    "System maintenance scheduled for January 25th, 02:00 AM UTC.",
-    "Congratulations to FPTU team for winning the ICPC Regional Asia!",
-    "New Feature: Grade analytics dashboard is now live.",
-  ];
-
-   const activeContests: Contest[] = [
+  const activeContests: Contest[] = [
     {
       id: 1,
       title: "FPTU Coding Master Spring 2026",
@@ -134,33 +125,7 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* NEWS FEED */}
-        <div
-          style={{ backgroundColor: brandNavy }}
-          className="w-full text-white py-2.5 px-6 flex items-center gap-4 overflow-hidden shrink-0 z-30 shadow-md"
-        >
-          <div
-            style={{ color: brandOrange }}
-            className="flex items-center gap-2 z-10 pr-4 shrink-0 font-black text-[10px] uppercase tracking-tighter italic"
-          >
-            <Megaphone size={16} /> News Feed:
-          </div>
-          <div className="relative flex overflow-hidden w-full h-5 items-center font-bold italic text-[11px]">
-            <div className="marquee-content flex items-center gap-20 absolute">
-              {announcements.concat(announcements).map((text, i) => (
-                <span
-                  key={i}
-                  className="whitespace-nowrap flex items-center gap-3"
-                >
-                  <span style={{ color: brandOrange }} className="opacity-60">
-                    /
-                  </span>{" "}
-                  {text}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
+        <NewsFeed />
         <div className="max-w-[1400px] mx-auto w-full px-8 lg:px-12 flex flex-col gap-16 mt-8 pb-20">
           {/* HERO BANNER */}
           <section className="relative w-full h-[450px] rounded-[40px] overflow-hidden shadow-2xl group border border-white/10">
@@ -180,7 +145,7 @@ export default function Home() {
                 Academic Competitive Hub
               </Chip>
               <h1 className="text-7xl font-black tracking-tighter leading-none text-white uppercase italic">
-                FPT UNIVERSITY <br />
+                FPT UNIVERSITY DA NANG <br />
                 <span style={{ color: brandOrange }}>JUDGE SYSTEM.</span>
               </h1>
               <p

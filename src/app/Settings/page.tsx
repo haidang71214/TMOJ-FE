@@ -23,7 +23,7 @@ export default function SettingsPage() {
       {/* HEADER PAGE */}
       <div className="flex flex-col gap-2 border-b border-slate-200 dark:border-white/10 pb-6">
         <h1 className="text-4xl font-[1000] italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-          ACCOUNT <span className="text-[#FF5C00]">SETTINGS</span>
+          PROFILE <span className="text-[#FF5C00]">SETTINGS</span>
         </h1>
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] italic">
           Manage your profile and public information

@@ -13,7 +13,7 @@ import {
 
 const items = [
   { label: "Basic Info", href: "/settings", icon: User },
-  { label: "Account", href: "/settings/account", icon: Settings },
+  { label: "Account", href: "/Settings/Account", icon: Settings },
   { label: "Lab", href: "/settings/lab", icon: FlaskConical },
   { label: "Privacy", href: "/settings/privacy", icon: Shield },
   { label: "Notifications", href: "/settings/notifications", icon: Bell },

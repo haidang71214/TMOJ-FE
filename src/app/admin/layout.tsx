@@ -12,6 +12,7 @@ import {
   Coins,
   Bell,
   Award,
+  Shredder,
 } from "lucide-react";
 
 const NAV = [
@@ -23,6 +24,7 @@ const NAV = [
   { name: "Gamification", path: "/Gamification", icon: Award },
   { name: "Package", path: "/Package", icon: Package },
   { name: "Coin Package", path: "/Coin", icon: Coins },
+  {name:"MODERATION & REPORT", path:"/Moderation", icon: Shredder},
   { name: "Notification", path: "/Notification", icon: Bell },
 ];
 

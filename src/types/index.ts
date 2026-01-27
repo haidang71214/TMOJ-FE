@@ -143,3 +143,13 @@ export interface Subject {
   visible: boolean;
   createdAt: string;
 }
+export type PracticePackage = {
+  id: string;
+  name: string;
+  description?: string;
+  level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  published: boolean;
+  disabled: boolean;
+  image:string;
+  createdAt: string;
+};

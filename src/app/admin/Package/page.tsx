@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import PracticePackageModal from "./PracticePackageModal";
 import { PracticePackage } from "@/types";
+
+// Thêm price vào mock (giá trị mặc định)
 const MOCK_PACKAGES: PracticePackage[] = [
   {
     id: "1",
@@ -19,8 +21,9 @@ const MOCK_PACKAGES: PracticePackage[] = [
     level: "BEGINNER",
     published: true,
     disabled: false,
-    image:"https://images.unsplash.com/photo-1587620962725-abab7fe55159",
+    image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159",
     createdAt: "2025-12-01",
+    price: 0, // free
   },
   {
     id: "2",
@@ -29,9 +32,9 @@ const MOCK_PACKAGES: PracticePackage[] = [
     level: "INTERMEDIATE",
     published: false,
     disabled: false,
-    image:
-      "https://images.unsplash.com/photo-1633356122544-f134324a6cee",
+    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee",
     createdAt: "2025-12-10",
+    price: 350,
   },
   {
     id: "3",
@@ -40,18 +43,16 @@ const MOCK_PACKAGES: PracticePackage[] = [
     level: "ADVANCED",
     published: true,
     disabled: true,
-    image:
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
+    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
     createdAt: "2025-12-20",
+    price: 1200,
   },
 ];
 
 export default function PracticePackagePage() {
-  const [packages, setPackages] =useState<PracticePackage[]>(MOCK_PACKAGES);
-
+  const [packages, setPackages] = useState<PracticePackage[]>(MOCK_PACKAGES);
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] =
-    useState<PracticePackage | null>(null);
+  const [editing, setEditing] = useState<PracticePackage | null>(null);
 
   return (
     <div className="space-y-8">
@@ -91,23 +92,33 @@ export default function PracticePackagePage() {
             />
 
             <div className="p-5 space-y-4">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-black">{pkg.name}</h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 line-clamp-2">
                     {pkg.description}
                   </p>
                 </div>
 
-                <Chip
-                  size="sm"
-                  className={`text-[9px] font-black
-                    ${pkg.published
-                      ? "bg-emerald-500/15 text-emerald-400"
-                      : "bg-yellow-500/15 text-yellow-400"}`}
-                >
-                  {pkg.published ? "PUBLISHED" : "DRAFT"}
-                </Chip>
+                <div className="flex flex-col items-end gap-1">
+                  <Chip
+                    size="sm"
+                    className={`text-[9px] font-black uppercase
+                      ${pkg.published
+                        ? "bg-emerald-500/15 text-emerald-400"
+                        : "bg-yellow-500/15 text-yellow-400"}`}
+                  >
+                    {pkg.published ? "Published" : "Draft"}
+                  </Chip>
+
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color={pkg.price === 0 || pkg.price == null ? "success" : "warning"}
+                  >
+                    {pkg.price == null || pkg.price === 0 ? "Free" : `${pkg.price} coins`}
+                  </Chip>
+                </div>
               </div>
 
               <div className="flex gap-2 text-xs">
@@ -121,7 +132,6 @@ export default function PracticePackagePage() {
 
               {/* ACTIONS */}
               <div className="flex justify-end gap-2 pt-2">
-                {/* EDIT */}
                 <Button
                   isIconOnly
                   size="sm"
@@ -130,16 +140,13 @@ export default function PracticePackagePage() {
                   <Pencil size={16} />
                 </Button>
 
-                {/* PUBLISH */}
                 <Button
                   isIconOnly
                   size="sm"
                   onPress={() =>
                     setPackages((prev) =>
                       prev.map((p) =>
-                        p.id === pkg.id
-                          ? { ...p, published: true }
-                          : p
+                        p.id === pkg.id ? { ...p, published: !p.published } : p
                       )
                     )
                   }
@@ -147,16 +154,13 @@ export default function PracticePackagePage() {
                   <Upload size={16} />
                 </Button>
 
-                {/* DISABLE */}
                 <Button
                   isIconOnly
                   size="sm"
                   onPress={() =>
                     setPackages((prev) =>
                       prev.map((p) =>
-                        p.id === pkg.id
-                          ? { ...p, disabled: !p.disabled }
-                          : p
+                        p.id === pkg.id ? { ...p, disabled: !p.disabled } : p
                       )
                     )
                   }
@@ -164,15 +168,12 @@ export default function PracticePackagePage() {
                   <EyeOff size={16} />
                 </Button>
 
-                {/* DELETE */}
                 <Button
                   isIconOnly
                   size="sm"
                   color="danger"
                   onPress={() =>
-                    setPackages((prev) =>
-                      prev.filter((p) => p.id !== pkg.id)
-                    )
+                    setPackages((prev) => prev.filter((p) => p.id !== pkg.id))
                   }
                 >
                   <Trash2 size={16} />
@@ -183,17 +184,15 @@ export default function PracticePackagePage() {
         ))}
       </div>
 
-      {/* CREATE */}
+      {/* CREATE MODAL */}
       {open && (
         <PracticePackageModal
           onClose={() => setOpen(false)}
-          onCreate={(pkg) =>
-            setPackages((prev) => [...prev, pkg])
-          }
+          onCreate={(pkg) => setPackages((prev) => [...prev, pkg])}
         />
       )}
 
-      {/* EDIT */}
+      {/* EDIT MODAL */}
       {editing && (
         <PracticePackageModal
           initialData={editing}
@@ -201,9 +200,7 @@ export default function PracticePackagePage() {
           onCreate={(updated) =>
             setPackages((prev) =>
               prev.map((p) =>
-                p.id === editing.id
-                  ? { ...p, ...updated }
-                  : p
+                p.id === editing.id ? { ...p, ...updated } : p
               )
             )
           }

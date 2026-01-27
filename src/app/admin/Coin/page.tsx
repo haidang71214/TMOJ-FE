@@ -83,7 +83,7 @@ export default function CoinManagerPage() {
           <div className="flex items-center justify-between">
         <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black uppercase">
+          <h1 className="text-3xl font-black">
             Problem <span className="text-[#FF5C00]">Management</span>
           </h1>
           <p className="text-xs uppercase tracking-widest text-slate-500">

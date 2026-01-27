@@ -1,16 +1,30 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Listbox, ListboxItem } from "@heroui/react";
+
+import React, { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileCode,
   Trophy,
-  Settings,
   Users,
-  ChevronLeft,
-  ChevronRight,
+  Settings,
+  Package,
+  Coins,
+  Bell,
+  Award,
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+
+const NAV = [
+  { name: "Dashboard", path: "/Dashboard", icon: LayoutDashboard },
+  { name: "Problems", path: "/Problem", icon: FileCode },
+  { name: "Contests", path: "/Contest", icon: Trophy },
+  { name: "Users", path: "/Users", icon: Users },
+  { name: "Settings", path: "/Settings", icon: Settings },
+  { name: "Gamification", path: "/Gamification", icon: Award },
+  { name: "Package", path: "/Package", icon: Package },
+  { name: "Coin Package", path: "/Coin", icon: Coins },
+  { name: "Notification", path: "/Notification", icon: Bell },
+];
 
 export default function AdminLayout({
   children,
@@ -19,76 +33,108 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
-  // Đảm bảo chỉ render sau khi đã mount để tránh lỗi Hydration ID của Listbox
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [dark] = useState(true);
+  const [mounted] = useState(false);
 
-  const menu = [
-    {
-      key: "Dashboard",
-      label: "Dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    { key: "Problem", label: "Problem", icon: <FileCode size={20} /> },
-    { key: "Contest", label: "Contest", icon: <Trophy size={20} /> },
-    { key: "Users", label: "User Manager", icon: <Users size={20} /> },
-    { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
-  ];
+useEffect(() => {
+  if (!mounted) return;
 
-  if (!mounted) return null;
+  const root = document.documentElement;
+
+  if (dark) {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
+}, [dark, mounted]);
 
   return (
-    <div className="flex min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] transition-colors duration-500 relative">
-      {/* SIDEBAR TOGGLE BUTTON */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        style={{ left: isSidebarOpen ? "244px" : "12px" }}
-        className="fixed top-24 z-[60] w-8 h-8 bg-white dark:bg-[#1C2737] border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-xl text-[#4B6382] dark:text-[#98A2B3] hover:text-[#FF5C00] transition-all duration-300 cursor-pointer hover:scale-110"
-      >
-        {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-      </button>
-
+    <div
+      className="
+        min-h-screen flex
+        bg-slate-100 text-slate-800
+        dark:bg-gradient-to-br dark:from-[#0B0F1A] dark:via-[#120B2E] dark:to-[#05010F]
+        dark:text-slate-200
+      "
+    >
       {/* SIDEBAR */}
       <aside
-        className={`shrink-0 border-r border-slate-200 dark:border-white/5 flex flex-col gap-8 bg-white dark:bg-[#1C2737] shadow-xl z-50 transition-all duration-300 ease-in-out sticky top-0 h-screen overflow-hidden
-          ${isSidebarOpen ? "w-[260px] p-6" : "w-0 p-0 border-none"}`}
+        className="
+          w-64 p-6 border-r
+          bg-white border-slate-200
+          dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-xl
+        "
       >
-        <div className="w-[212px]">
-          <h1 className="text-3xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic mb-8">
-            Admin<span className="text-[#FF5C00]">.</span>
-          </h1>
-          <Listbox
-            aria-label="Admin Menu"
-            onAction={(key) => router.push(`/${key}`)}
-            className="p-0 gap-2"
-          >
-            {menu.map((item) => (
-              <ListboxItem
-                key={item.key}
-                startContent={item.icon}
-                className={`h-12 rounded-2xl px-4 transition-all ${
-                  pathname.includes(item.key)
-                    ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-white font-black shadow-lg shadow-orange-500/20"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-white"
-                }`}
+        <h1 className="text-2xl font-extrabold tracking-widest mb-10">
+          <span className="text-indigo-600 dark:text-cyan-400">CYBER</span>
+          <span className="text-fuchsia-500">ADMIN</span>
+        </h1>
+
+        <nav className="flex flex-col gap-2">
+          {NAV.map((item) => {
+            const active = pathname.startsWith(item.path);
+            const Icon = item.icon;
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => router.push(item.path)}
+                className={`
+                  flex items-center gap-4 px-4 py-3 rounded-xl transition-all
+                  ${
+                    active
+                      ? "bg-indigo-100 text-indigo-700 dark:bg-gradient-to-r dark:from-cyan-400/20 dark:to-fuchsia-500/20 dark:text-cyan-600 shadow"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-cyan-300"
+                  }
+                `}
               >
-                <span className="text-sm font-bold uppercase tracking-wider">
-                  {item.label}
+                <Icon size={20} />
+                <span className="text-sm font-bold tracking-wide">
+                  {item.name}
                 </span>
-              </ListboxItem>
-            ))}
-          </Listbox>
-        </div>
+              </button>
+            );
+          })}
+        </nav>
       </aside>
 
-      {/*4.  MAIN CONTENT AREA  */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
-        <div className="flex-1 p-10 lg:p-14 w-full">{children}</div>
-      </main>
+      {/* MAIN */}
+      <div className="flex-1 flex flex-col">
+        {/* TOPBAR */}
+        <header
+          className="
+            h-16 px-8 flex items-center justify-between
+            border-b bg-white border-slate-200
+            dark:bg-black/30 dark:border-white/10 dark:backdrop-blur
+          "
+        >
+          <span className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+            system / admin
+          </span>
+
+          <div className="flex items-center gap-4">
+
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center text-black font-black">
+              A
+            </div>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+        <main className="flex-1 p-10">
+          <div
+            className="
+              rounded-2xl p-8
+              bg-white border border-slate-200 shadow-lg
+              dark:bg-black/40 dark:border-white/10 dark:backdrop-blur-xl
+              dark:shadow-[0_0_40px_rgba(34,211,238,0.15)]
+            "
+          >
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Thêm để chuyển trang
 import {
   Button,
   Chip,
@@ -32,6 +33,7 @@ import {
   XCircle,
   AlertTriangle,
   RefreshCw,
+  BookOpen, // Icon cho nút Editorial (có thể thay bằng FileText hoặc Edit3 nếu thích)
 } from "lucide-react";
 
 // Type Problem (giữ nguyên)
@@ -53,7 +55,7 @@ interface Problem {
   rejection_reason?: string;
 }
 
-// Mock data (có pending để thấy ngay)
+// Mock data (giữ nguyên)
 const MOCK_PROBLEMS: Problem[] = [
   {
     id: "p1",
@@ -139,6 +141,7 @@ const MOCK_PROBLEMS: Problem[] = [
 ];
 
 export default function ProblemManagementPage() {
+  const router = useRouter();
   const [problems, setProblems] = useState<Problem[]>(MOCK_PROBLEMS);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -285,6 +288,16 @@ export default function ProblemManagementPage() {
             <Button isIconOnly size="sm">
               <Pencil size={16} />
             </Button>
+            {/* Nút mới: Chuyển đến trang edit Editorial */}
+            <Button
+              isIconOnly
+              size="sm"
+              color="default" // hoặc primary/warning tùy thích
+              onPress={() => router.push(`Problem/${prob.id}/Editorial`)}
+              title="Chỉnh sửa Editorial"
+            >
+              <BookOpen size={16} />
+            </Button>
           </div>
         </TableCell>
       </TableRow>
@@ -349,9 +362,25 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <div className="flex gap-2">
-            <Button isIconOnly size="sm"><Pencil size={16} /></Button>
-            <Button isIconOnly size="sm"><Eye size={16} /></Button>
-            <Button isIconOnly size="sm" color="danger"><Trash2 size={16} /></Button>
+            <Button isIconOnly size="sm">
+              <Pencil size={16} />
+            </Button>
+            <Button isIconOnly size="sm">
+              <Eye size={16} />
+            </Button>
+            <Button isIconOnly size="sm" color="danger">
+              <Trash2 size={16} />
+            </Button>
+            {/* Nút mới: Chuyển đến trang edit Editorial */}
+            <Button
+              isIconOnly
+              size="sm"
+              color="default"
+              onPress={() => router.push(`/problems/${prob.id}/editorial`)}
+              title="Chỉnh sửa Editorial"
+            >
+              <BookOpen size={16} />
+            </Button>
           </div>
         </TableCell>
       </TableRow>
@@ -392,9 +421,21 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>{prob.created_at}</TableCell>
         <TableCell>
-          <Button isIconOnly size="sm">
-            <Eye size={16} />
-          </Button>
+          <div className="flex gap-2">
+            <Button isIconOnly size="sm">
+              <Eye size={16} />
+            </Button>
+            {/* Nút mới: Chuyển đến trang edit Editorial (nếu muốn cho phép edit lại) */}
+            <Button
+              isIconOnly
+              size="sm"
+              color="default"
+              onPress={() => router.push(`/problems/${prob.id}/editorial`)}
+              title="Chỉnh sửa Editorial"
+            >
+              <BookOpen size={16} />
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
     ));

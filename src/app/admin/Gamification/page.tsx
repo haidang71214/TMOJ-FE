@@ -8,7 +8,6 @@ import {
   Switch,
   Card,
   CardBody,
-  CardHeader,
   Table,
   TableHeader,
   TableColumn,
@@ -29,13 +28,11 @@ import {
 import {
   Plus,
   Trophy,
-  Flame,
   Coins,
   Pencil,
   Trash2,
   Award,
   Zap,
-  Settings,
 } from "lucide-react";
 
 // Mock data dựa trên schema
@@ -61,14 +58,14 @@ interface BadgeRule {
   is_active: boolean;
 }
 
-interface GamificationEvent {
-  id: string;
-  user_username: string;
-  event_type: string;
-  delta_exp: number;
-  delta_coin: number;
-  created_at: string;
-}
+// interface GamificationEvent {
+//   id: string;
+//   user_username: string;
+//   event_type: string;
+//   delta_exp: number;
+//   delta_coin: number;
+//   created_at: string;
+// }
 
 const MOCK_BADGES: Badge[] = [
   { id: "1", name: "First Blood", badge_code: "first_blood", badge_category: "contest", badge_level: 1, is_repeatable: false, description: "Giải quyết problem đầu tiên trong contest", awarded_count: 342 },
@@ -82,16 +79,11 @@ const MOCK_RULES: BadgeRule[] = [
   { id: "r3", badge_id: "3", badge_name: "Master Solver", rule_type: "solved_count", target_entity: "problem", target_value: 100, is_active: true },
 ];
 
-const MOCK_EVENTS: GamificationEvent[] = [
-  { id: "e1", user_username: "hainguyen", event_type: "solve_problem", delta_exp: 50, delta_coin: 10, created_at: "2026-01-27 09:15" },
-  { id: "e2", user_username: "student123", event_type: "daily_login", delta_exp: 20, delta_coin: 5, created_at: "2026-01-27 08:40" },
-];
+
 
 export default function GamificationManagementPage() {
   const [badges] = useState<Badge[]>(MOCK_BADGES);
   const [rules, setRules] = useState<BadgeRule[]>(MOCK_RULES);
-  const [events] = useState<GamificationEvent[]>(MOCK_EVENTS);
-
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
   const [isEditRuleModalOpen, setIsEditRuleModalOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<BadgeRule | null>(null);
@@ -112,21 +104,21 @@ export default function GamificationManagementPage() {
   };
 
   const saveRuleChanges = () => {
-    if (!selectedRule) return;
+  if (!selectedRule) return;
 
-    setRules((prev) =>
-      prev.map((r) =>
-        r.id === selectedRule.id
-          ? {
-              ...r,
-              rule_type: editRuleType,
-              target_entity: editTargetEntity,
-              target_value: editTargetValue,
-              is_active: editIsActive,
-            }
-          : r
-      )
-    );
+  setRules((prev) =>
+    prev.map((r) =>
+      r.id === selectedRule.id
+        ? {
+            ...r,
+            rule_type: editRuleType as "rank" | "streak_days" | "solved_count",
+            target_entity: editTargetEntity as "contest" | "course" | "org" | "streak" | "problem",
+            target_value: editTargetValue,
+            is_active: editIsActive,
+          }
+        : r
+    )
+  );
 
     alert(`Đã cập nhật tiêu chí cho badge "${selectedRule.badge_name}"`);
     setIsEditRuleModalOpen(false);

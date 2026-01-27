@@ -1,9 +1,7 @@
 "use client";
+
 import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import ProblemsSidebar from "../../Sidebar";
-import { ListControls } from "../ListControls";
-import { CircularProgress, Button } from "@heroui/react";
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 import {
   Play,
   Share2,
@@ -12,7 +10,13 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
+import { useParams } from "next/navigation";
+import ProblemsSidebar from "../../Sidebar";
+import { ListControls } from "../ListControls";
+import { CircularProgress } from "@heroui/react";
+
 const MY_LIST_PROBLEMS = [
   {
     id: "1",
@@ -78,9 +82,31 @@ export default function MyListDetailPage() {
   const currentId = params.id;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // State quản lý danh sách
+  const [myList, setMyList] = useState(MY_LIST_PROBLEMS);
+
+  // State cho modal confirm remove
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [problemToRemove, setProblemToRemove] = useState<string | null>(null);
+
+  const openRemoveModal = (id: string) => {
+    setProblemToRemove(id);
+    setIsRemoveModalOpen(true);
+  };
+
+  const confirmRemove = () => {
+    if (!problemToRemove) return;
+
+    setMyList((prev) => prev.filter((p) => p.id !== problemToRemove));
+    alert(`Removed "${MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}" from favorites`);
+
+    setIsRemoveModalOpen(false);
+    setProblemToRemove(null);
+  };
+
   return (
     <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans flex relative overflow-hidden transition-colors duration-500">
-      {/* 1. SIDEBAR TRÁI */}
+      {/* SIDEBAR TRÁI */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
           ${isSidebarOpen ? "w-[260px]" : "w-0"}`}
@@ -90,7 +116,7 @@ export default function MyListDetailPage() {
         </div>
       </aside>
 
-      {/* 2. SIDEBAR TOGGLE */}
+      {/* NÚT TOGGLE SIDEBAR */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         style={{ left: isSidebarOpen ? "244px" : "12px" }}
@@ -99,10 +125,10 @@ export default function MyListDetailPage() {
         {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </button>
 
-      {/* 3. NỘI DUNG CHÍNH */}
+      {/* NỘI DUNG CHÍNH */}
       <div className="flex-1 flex flex-col relative min-w-0 h-screen overflow-hidden">
         <div className="flex flex-1 overflow-y-auto p-8 lg:p-12 gap-8 lg:flex-row flex-col custom-scrollbar">
-          {/* CỘT TIẾN ĐỘ (Left Info Card) */}
+          {/* CỘT TIẾN ĐỘ */}
           <div className="w-full lg:w-[340px] bg-white dark:bg-[#1C2737] rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-8 flex flex-col items-center text-center gap-8 shadow-sm h-fit sticky top-0">
             <div className="w-24 h-24 bg-slate-50 dark:bg-black/20 rounded-[2rem] flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-inner text-5xl">
               {currentId === "Favorite" ? "⭐" : "🗒️"}
@@ -115,7 +141,7 @@ export default function MyListDetailPage() {
               <div className="flex items-center gap-2 justify-center">
                 <div className="h-1 w-8 bg-blue-600 dark:bg-[#00FF41] rounded-full" />
                 <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.15em]">
-                  {MY_LIST_PROBLEMS.length} QUESTIONS
+                  {myList.length} QUESTIONS
                 </p>
               </div>
             </div>
@@ -153,14 +179,14 @@ export default function MyListDetailPage() {
                     track: "stroke-slate-200/50 dark:stroke-white/5",
                   }}
                   value={0}
-                  maxValue={MY_LIST_PROBLEMS.length}
+                  maxValue={myList.length}
                   strokeWidth={3}
                 />
                 <div className="absolute flex flex-col items-center">
                   <span className="text-3xl font-black text-[#071739] dark:text-white">
                     0
                     <span className="text-slate-300 dark:text-slate-600 text-sm ml-1 font-bold">
-                      /{MY_LIST_PROBLEMS.length}
+                      /{myList.length}
                     </span>
                   </span>
                   <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">
@@ -198,18 +224,18 @@ export default function MyListDetailPage() {
             <ListControls />
 
             <div className="mt-8">
-              <div className="grid grid-cols-[1fr_120px_100px] px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
+              <div className="grid grid-cols-[1fr_120px_100px_80px] px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5">
                 <span>Question Title</span>
                 <span className="text-right">Acceptance</span>
                 <span className="text-right">Difficulty</span>
+                <span className="text-center">Remove</span>
               </div>
 
               <div className="flex flex-col mt-4">
-                {MY_LIST_PROBLEMS.map((prob) => (
+                {myList.map((prob) => (
                   <div
                     key={prob.id}
-                    onClick={() => router.push(`/Problems/${prob.id}`)}
-                    className="grid grid-cols-[1fr_120px_100px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl"
+                    className="grid grid-cols-[1fr_120px_100px_80px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl"
                   >
                     <div className="flex gap-5 items-center overflow-hidden">
                       <span className="text-slate-300 dark:text-slate-600 font-black text-xs w-8 text-right shrink-0">
@@ -247,6 +273,19 @@ export default function MyListDetailPage() {
                     >
                       {prob.difficulty}
                     </span>
+
+                    {/* NÚT XÓA KHỎI DANH SÁCH YÊU THÍCH */}
+                    <div className="flex justify-center">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                        onPress={() => openRemoveModal(prob.id)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -254,6 +293,47 @@ export default function MyListDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL CONFIRM REMOVE */}
+      <Modal
+        isOpen={isRemoveModalOpen}
+        onOpenChange={setIsRemoveModalOpen}
+        size="sm"
+        placement="center"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-lg font-black uppercase text-red-600">
+                Remove from Favorites?
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm">
+                  Are you sure you want to remove{" "}
+                  <span className="font-bold">
+                    {MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}
+                  </span>{" "}
+                  from your favorites list?
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={() => {
+                    confirmRemove();
+                    onClose();
+                  }}
+                >
+                  Remove
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </main>
   );
 }

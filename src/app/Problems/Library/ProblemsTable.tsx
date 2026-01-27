@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   Table,
@@ -8,7 +9,7 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/react";
-import { CheckCircle2, Lock } from "lucide-react";
+import { CheckCircle2, Lock, Heart } from "lucide-react";
 import Link from "next/link";
 
 export interface Problem {
@@ -22,11 +23,17 @@ export interface Problem {
 
 interface ProblemsTableProps {
   problems: Problem[];
+  likedProblems: Set<number>; // Truyền từ parent
+  toggleLike: (id: number) => void; // Hàm toggle từ parent
 }
 
-export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
+export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsTableProps) => (
   <Table aria-label="Problems table" removeWrapper className="mt-2">
     <TableHeader>
+      {/* Cột Like mới */}
+      <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-center text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4 w-12">
+        Like
+      </TableColumn>
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
         Title
       </TableColumn>
@@ -40,20 +47,36 @@ export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
     <TableBody>
       {problems.map((p, index) => {
         const problemSlug = p.title.toLowerCase().replace(/\s+/g, "-");
+        const isLiked = likedProblems.has(p.id); // <-- Đây là dòng gây lỗi cũ, nhưng giờ type đúng nên ok
 
         return (
           <TableRow
             key={p.id}
-            // Logic: Hàng lẻ sẽ có màu nền sáng hơn một chút để phân biệt (Striped effect)
             className={`cursor-pointer border-b border-gray-50 dark:border-[#1e293b] transition-all duration-200 
-              ${
-                index % 2 !== 0
-                  ? "bg-gray-50/50 dark:bg-[#1e293b]/40"
-                  : "bg-transparent"
-              } 
+              ${index % 2 !== 0 ? "bg-gray-50/50 dark:bg-[#1e293b]/40" : "bg-transparent"} 
               hover:bg-blue-50/50 dark:hover:bg-[#334155]/60`}
           >
-            {/* Cột Tiêu đề: Chữ trắng sáng hoàn toàn trong Dark Mode */}
+            {/* Cột Like */}
+            <TableCell className="py-5 text-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Ngăn click row chuyển trang
+                  toggleLike(p.id);
+                }}
+                className="focus:outline-none transition-all duration-200 hover:scale-110 active:scale-95"
+              >
+                <Heart
+                  size={18}
+                  className={`transition-colors ${
+                    isLiked
+                      ? "fill-red-500 text-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]"
+                      : "text-gray-400 hover:text-red-400 dark:text-[#475569] dark:hover:text-red-400"
+                  }`}
+                />
+              </button>
+            </TableCell>
+
+            {/* Title */}
             <TableCell className="py-5 font-bold text-[14px] text-gray-900 dark:text-[#f8fafc] leading-none">
               <Link
                 href={`/Problems/${problemSlug}`}
@@ -63,7 +86,7 @@ export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
               </Link>
             </TableCell>
 
-            {/* Cột Độ khó */}
+            {/* Difficulty */}
             <TableCell className="text-center py-5">
               <span
                 className={`text-[12px] font-black px-2 py-1 rounded-md ${
@@ -78,7 +101,7 @@ export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
               </span>
             </TableCell>
 
-            {/* Cột Trạng thái */}
+            {/* Status */}
             <TableCell className="text-right py-5 pr-4">
               <div className="flex justify-end items-center">
                 {p.isSolved ? (
@@ -87,14 +110,9 @@ export const ProblemsTable = ({ problems }: ProblemsTableProps) => (
                     className="text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]"
                   />
                 ) : p.isLocked ? (
-                  <Lock
-                    size={16}
-                    className="text-gray-300 dark:text-[#475569]"
-                  />
+                  <Lock size={16} className="text-gray-300 dark:text-[#475569]" />
                 ) : (
-                  <span className="text-gray-200 dark:text-[#334155] font-light">
-                    —
-                  </span>
+                  <span className="text-gray-200 dark:text-[#334155] font-light">—</span>
                 )}
               </div>
             </TableCell>

@@ -310,7 +310,7 @@ export default function MyListDetailPage() {
                 <p className="text-sm">
                   Are you sure you want to remove{" "}
                   <span className="font-bold">
-                    "{MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}"
+                    {MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}
                   </span>{" "}
                   from your favorites list?
                 </p>

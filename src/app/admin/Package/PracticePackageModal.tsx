@@ -160,7 +160,6 @@ export default function StudyPackageModal({
           min={0}
           startContent={<Coins size={16} className="text-yellow-500" />}
           endContent={<span className="text-slate-500">coins</span>}
-          isInvalid={form.price && isNaN(Number(form.price))}
           errorMessage={form.price && isNaN(Number(form.price)) ? "Must be a valid number" : undefined}
         />
 

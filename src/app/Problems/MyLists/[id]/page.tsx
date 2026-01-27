@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import ProblemsSidebar from "../../Sidebar";
 import { ListControls } from "../ListControls";
 import { CircularProgress, Button } from "@heroui/react";
@@ -12,8 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useParams } from "next/navigation";
-
 const MY_LIST_PROBLEMS = [
   {
     id: "1",
@@ -74,6 +73,7 @@ const MY_LIST_PROBLEMS = [
 ];
 
 export default function MyListDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const currentId = params.id;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -208,6 +208,7 @@ export default function MyListDetailPage() {
                 {MY_LIST_PROBLEMS.map((prob) => (
                   <div
                     key={prob.id}
+                    onClick={() => router.push(`/Problems/${prob.id}`)}
                     className="grid grid-cols-[1fr_120px_100px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl"
                   >
                     <div className="flex gap-5 items-center overflow-hidden">

@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   Button,
-  Input,
   Chip,
   Tabs,
   Tab,
@@ -20,13 +19,15 @@ import {
   ModalFooter,
   Textarea,
   Switch,
+
+  Input,
 } from "@heroui/react";
 import {
   Send,
   Trash2,
+    Badge,
   Eye,
   AlertTriangle,
-  Badge,
 } from "lucide-react";
 
 // Mock data giống hệt bảng bạn paste
@@ -71,7 +72,6 @@ const MOCK_RECEIVED_NOTIFICATIONS = [
 ];
 
 export default function NotificationManagementPage() {
-  const [tab, setTab] = useState("sent"); // Mặc định mở tab Sent Notifications
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
 
   // Form state cho modal send
@@ -94,6 +94,93 @@ export default function NotificationManagementPage() {
     setSendToAll(true);
     setPinAnnouncement(false);
     setIsSendModalOpen(false);
+  };
+
+  // Render body cho tab Sent Notifications (tránh lỗi type Element[])
+  const renderSentBody = () => {
+    if (MOCK_SENT_NOTIFICATIONS.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6} className="text-center py-10 text-slate-500">
+            No notifications have been sent yet
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return MOCK_SENT_NOTIFICATIONS.map((n) => (
+      <TableRow key={n.id}>
+        <TableCell className="font-medium">{n.title}</TableCell>
+        <TableCell>
+          <Chip
+            variant="flat"
+            size="sm"
+            className={`
+              font-black uppercase text-[9px] px-4
+              ${n.type === "SYSTEM" ? "bg-purple-500/15 text-purple-400" : "bg-teal-500/15 text-teal-400"}
+            `}
+          >
+            {n.type}
+          </Chip>
+        </TableCell>
+        <TableCell>{n.target}</TableCell>
+        <TableCell className="text-slate-500 dark:text-slate-400 text-sm">
+          {n.sentAt}
+        </TableCell>
+        <TableCell>{n.readCount.toLocaleString()}</TableCell>
+        <TableCell>
+          <div className="flex gap-2">
+            <Button isIconOnly size="sm" variant="flat">
+              <Eye size={16} />
+            </Button>
+            <Button isIconOnly size="sm" color="danger" variant="flat">
+              <Trash2 size={16} />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
+  // Render body cho tab Received Alerts
+  const renderReceivedBody = () => {
+    if (MOCK_RECEIVED_NOTIFICATIONS.length === 0) {
+      return (
+        <div className="text-center py-10 text-slate-500">
+          No system alerts received yet
+        </div>
+      );
+    }
+
+    return MOCK_RECEIVED_NOTIFICATIONS.map((n) => (
+      <div
+        key={n.id}
+        className={`p-5 rounded-xl border transition ${
+          n.isRead
+            ? "bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10"
+            : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 shadow-sm"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {!n.isRead && <Badge color="danger" />}
+            <div>
+              <div className="font-black text-lg flex items-center gap-2">
+                {n.title}
+                {n.type === "security" && <AlertTriangle size={18} className="text-red-500" />}
+              </div>
+              <p className="text-sm mt-1 text-slate-700 dark:text-slate-300">{n.message}</p>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                From: <span className="font-medium">{n.from}</span> • {n.receivedAt}
+              </div>
+            </div>
+          </div>
+          <Button isIconOnly size="sm" variant="light">
+            <Trash2 size={16} />
+          </Button>
+        </div>
+      </div>
+    ));
   };
 
   return (
@@ -128,11 +215,14 @@ export default function NotificationManagementPage() {
 
       {/* TABS - Mở mặc định tab Sent Notifications */}
       <Tabs
-        selectedKey={tab}
-        onSelectionChange={(key) => setTab(key as string)}
+        defaultSelectedKey="sent" // <-- Đảm bảo tab Sent mở ngay từ đầu
         color="primary"
         variant="underlined"
-        classNames={{ tabList: "gap-8" }}
+        classNames={{
+          tabList: "gap-8 border-b border-slate-200 dark:border-white/10 pb-2",
+          tab: "text-lg font-black uppercase tracking-wide",
+          cursor: "bg-indigo-600 h-1",
+        }}
       >
         <Tab title="Sent Notifications">
           <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
@@ -145,76 +235,13 @@ export default function NotificationManagementPage() {
                 <TableColumn>READ BY</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody>
-                {MOCK_SENT_NOTIFICATIONS.map((n) => (
-                  <TableRow key={n.id}>
-                    <TableCell className="font-medium">{n.title}</TableCell>
-                    <TableCell>
-                      <Chip
-                        variant="flat"
-                        size="sm"
-                        className={`
-                          font-black uppercase text-[9px] px-4
-                          ${n.type === "SYSTEM" ? "bg-purple-500/15 text-purple-400" : "bg-teal-500/15 text-teal-400"}
-                        `}
-                      >
-                        {n.type}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>{n.target}</TableCell>
-                    <TableCell className="text-slate-500 dark:text-slate-400 text-sm">
-                      {n.sentAt}
-                    </TableCell>
-                    <TableCell>{n.readCount.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button isIconOnly size="sm" variant="flat">
-                          <Eye size={16} />
-                        </Button>
-                        <Button isIconOnly size="sm" color="danger" variant="flat">
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+              <TableBody>{renderSentBody()}</TableBody>
             </Table>
           </div>
         </Tab>
 
         <Tab title="Received Alerts">
-          <div className="space-y-4">
-            {MOCK_RECEIVED_NOTIFICATIONS.map((n) => (
-              <div
-                key={n.id}
-                className={`p-5 rounded-xl border transition ${
-                  n.isRead
-                    ? "bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10"
-                    : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 shadow-sm"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    {!n.isRead && <Badge color="danger" />}
-                    <div>
-                      <div className="font-black text-lg flex items-center gap-2">
-                        {n.title}
-                        {n.type === "security" && <AlertTriangle size={18} className="text-red-500" />}
-                      </div>
-                      <p className="text-sm mt-1 text-slate-700 dark:text-slate-300">{n.message}</p>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                        From: <span className="font-medium">{n.from}</span> • {n.receivedAt}
-                      </div>
-                    </div>
-                  </div>
-                  <Button isIconOnly size="sm" variant="light">
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <div className="space-y-4">{renderReceivedBody()}</div>
         </Tab>
       </Tabs>
 

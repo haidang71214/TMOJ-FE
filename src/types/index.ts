@@ -150,6 +150,7 @@ export type PracticePackage = {
   level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
   published: boolean;
   disabled: boolean;
+  price: number;
   image:string;
   createdAt: string;
 };

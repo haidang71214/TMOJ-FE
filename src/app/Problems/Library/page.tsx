@@ -18,6 +18,21 @@ import {
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // State cho Like (trái tim)
+  const [likedProblems, setLikedProblems] = useState<Set<number>>(new Set());
+
+  const toggleLike = (problemId: number) => {
+    setLikedProblems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(problemId)) {
+        newSet.delete(problemId);
+      } else {
+        newSet.add(problemId);
+      }
+      return newSet;
+    });
+  };
+
   const allCategories = [
     { name: "Array", count: 2062 },
     { name: "String", count: 834 },
@@ -216,7 +231,7 @@ export default function LibraryPage() {
 
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
-      {/* SIDEBAR TRÁI - Màu #1C2737 */}
+      {/* SIDEBAR TRÁI */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
           ${isSidebarOpen ? "w-[260px]" : "w-0 border-none"}`}
@@ -228,30 +243,26 @@ export default function LibraryPage() {
 
       {/* NỘI DUNG CHÍNH */}
       <div className="flex-1 flex flex-col relative min-w-0">
-        {/* NÚT TOGGLE SIDEBAR - Căn chỉnh lại vị trí để không bị lệch */}
+        {/* NÚT TOGGLE SIDEBAR */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           style={{ left: isSidebarOpen ? "244px" : "12px" }}
           className="fixed top-24 z-50 w-8 h-8 bg-white dark:bg-[#1C2737] border border-[#A4B5C4] dark:border-[#344054] rounded-full flex items-center justify-center shadow-lg text-[#4B6382] dark:text-[#98A2B3] hover:text-[#071739] dark:hover:text-[#FFB800] transition-all duration-300 cursor-pointer hover:scale-110"
         >
-          {isSidebarOpen ? (
-            <ChevronLeft size={18} />
-          ) : (
-            <ChevronRight size={18} />
-          )}
+          {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
         </button>
 
-        <div className=" overflow-y-auto custom-scrollbar dark:bg-[#101828] ">
+        <div className="overflow-y-auto custom-scrollbar dark:bg-[#101828]">
           <div className="max-w-[1400px] mx-auto p-8 lg:p-12 flex flex-col lg:flex-row gap-10 items-start">
             <div className="flex-1 flex flex-col gap-8 w-full min-w-0">
               <QuestBanners />
 
-              {/* Category Area - Bo góc lớn và Glassmorphism nhẹ */}
+              {/* Category Area */}
               <div className="bg-white/50 dark:bg-[#1C2737]/40 p-6 rounded-[2rem] border border-[#A4B5C4]/20 dark:border-[#344054]/30 backdrop-blur-sm shadow-sm">
                 <CategoryTags categories={allCategories} />
               </div>
 
-              {/* TOPIC BUTTONS - Màu Vàng #FFB800 khi Active */}
+              {/* TOPIC BUTTONS */}
               <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
                 {[
                   "All Topics",
@@ -280,12 +291,7 @@ export default function LibraryPage() {
                 <div className="flex gap-3 w-full md:w-auto">
                   <Input
                     placeholder="Search questions..."
-                    startContent={
-                      <Search
-                        size={18}
-                        className="text-gray-400 dark:text-[#667085]"
-                      />
-                    }
+                    startContent={<Search size={18} className="text-gray-400 dark:text-[#667085]" />}
                     className="w-full md:w-[320px]"
                     classNames={{
                       inputWrapper:
@@ -326,9 +332,13 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              {/* TABLE AREA - Đồng bộ bo góc và bóng đổ */}
+              {/* TABLE AREA */}
               <div className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] shadow-xl border border-transparent dark:border-[#344054]/50 overflow-hidden transition-all duration-300 p-4">
-                <ProblemsTable problems={problems} />
+                <ProblemsTable
+                  problems={problems}
+                  likedProblems={likedProblems}
+                  toggleLike={toggleLike}
+                />
               </div>
             </div>
 

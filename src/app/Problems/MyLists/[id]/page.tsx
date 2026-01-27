@@ -77,6 +77,7 @@ const MY_LIST_PROBLEMS = [
 ];
 
 export default function MyListDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const currentId = params.id;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

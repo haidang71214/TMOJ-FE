@@ -21,7 +21,6 @@ import {
   Plus,
   Sparkles,
   Globe,
-  Notebook,
   Bookmark,
   ExternalLink,
 } from "lucide-react";
@@ -44,14 +43,20 @@ export default function ProblemsSidebar() {
       id: "HocDoi",
       title: "HocDoi",
       isPrivate: false,
-      icon: <Notebook size={20} />,
+      icon: <Bookmark size={20} />,
     },
-  ];
-
-  // THÊM: Dữ liệu mẫu cho Bookmarks
-  const myBookmarks = [
-    { id: "DP-Study", title: "DP Study", icon: <Bookmark size={20} /> },
-    { id: "Graph-Tips", title: "Graph Tips", icon: <Bookmark size={20} /> },
+    {
+      id: "Graph-Tips",
+      title: "Graph Tips",
+      isPrivate: true,
+      icon: <Bookmark size={20} />,
+    },
+    {
+      id: "DP-Study",
+      title: "DP Study",
+      isPrivate: false,
+      icon: <Bookmark size={20} />,
+    },
   ];
 
   const getItemClasses = (key: string) => {
@@ -90,7 +95,7 @@ export default function ProblemsSidebar() {
             endContent={
               <Chip
                 size="sm"
-                className="h-5 text-[9px] font-black bg-[#FF5C00] text-white dark:bg-white dark:text-[#FF5C00] border-none px-2 shadow-sm"
+                className="h-5 text-[9px] font-black bg-[#FF5C00] text-white dark:bg-white dark:text-[#FF5C00] px-2 shadow-sm"
               >
                 NEW
               </Chip>
@@ -113,14 +118,14 @@ export default function ProblemsSidebar() {
         </Listbox>
       </div>
 
-      {/* 2. COLLECTIONS SECTION */}
+      {/* 2. BOOKMARKS SECTION */}
       <div className="flex flex-col gap-3">
         <div className="flex justify-between items-center px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           <div
             className="flex items-center gap-2 group cursor-pointer"
-            onClick={() => router.push("/Problems/Collections")}
+            onClick={() => router.push("/Problems/MyLists")}
           >
-            <span>Collections</span>
+            <span>Bookmarks</span>
             <ExternalLink
               size={12}
               className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FF5C00]"
@@ -131,7 +136,7 @@ export default function ProblemsSidebar() {
             placement="bottom-end"
             classNames={{
               content:
-                "dark:bg-[#1C2737] border border-slate-200 dark:border-white/5 shadow-2xl rounded-2xl min-w-[160px]",
+                "dark:bg-[#1C2737] border dark:border-white/5 rounded-2xl min-w-[160px]",
             }}
           >
             <DropdownTrigger>
@@ -139,7 +144,7 @@ export default function ProblemsSidebar() {
                 isIconOnly
                 size="sm"
                 variant="light"
-                className="rounded-full w-6 h-6 min-w-0 hover:bg-slate-100 dark:hover:bg-white/10"
+                className="rounded-full w-6 h-6 hover:bg-slate-100 dark:hover:bg-white/10"
               >
                 <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
               </Button>
@@ -156,107 +161,51 @@ export default function ProblemsSidebar() {
                 startContent={<Plus size={16} />}
                 className="rounded-xl text-xs font-bold dark:text-white"
               >
-                New List
+                New Bookmark
               </DropdownItem>
               <DropdownItem
                 key="new-smart-list"
                 startContent={<Sparkles size={16} />}
                 className="text-blue-600 dark:text-[#00FF41] rounded-xl text-xs font-bold"
               >
-                Smart List
+                Smart Bookmark
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </div>
 
         <Listbox
-          aria-label="My Lists"
+          aria-label="My Bookmarks"
           onAction={(key) => router.push(`/Problems/MyLists/${String(key)}`)}
           className="p-0 gap-1"
         >
-          {myLists.map((list) => {
-            const isActive = pathname.includes(list.id);
-            return (
-              <ListboxItem
-                key={list.id}
-                startContent={list.icon}
-                endContent={
-                  list.isPrivate ? (
-                    <Lock
-                      size={14}
-                      className={
-                        isActive
-                          ? "opacity-100"
-                          : "opacity-40 text-slate-400 dark:text-white"
-                      }
-                    />
-                  ) : (
-                    <Globe
-                      size={14}
-                      className={
-                        isActive
-                          ? "opacity-100"
-                          : "opacity-40 text-slate-400 dark:text-white"
-                      }
-                    />
-                  )
-                }
-                className={getItemClasses(list.id)}
-              >
-                <span className="text-sm font-bold uppercase tracking-wider truncate block">
-                  {list.title}
-                </span>
-              </ListboxItem>
-            );
-          })}
-        </Listbox>
-      </div>
-
-      {/* 3. BOOKMARKS SECTION (PHẦN MỚI BỔ SUNG) */}
-      <div className="flex flex-col gap-3">
-        <div className="flex justify-between items-center px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          <div
-            className="flex items-center gap-2 group cursor-pointer"
-            onClick={() => router.push("/Problems/Bookmarks")}
-          >
-            <span>Bookmarks</span>
-            <ExternalLink
-              size={12}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FF5C00]"
-            />
-          </div>
-
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            className="rounded-full w-6 h-6 min-w-0 hover:bg-slate-100 dark:hover:bg-white/10"
-            onPress={() => router.push("/Problems/Bookmarks")}
-          >
-            <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
-          </Button>
-        </div>
-
-        <Listbox
-          aria-label="My Bookmarks"
-          onAction={(key) => router.push(`/Problems/Bookmarks/${String(key)}`)}
-          className="p-0 gap-1"
-        >
-          {myBookmarks.map((bookmark) => (
+          {myLists.map((list) => (
             <ListboxItem
-              key={bookmark.id}
-              startContent={bookmark.icon}
-              className={getItemClasses(bookmark.id)}
+              key={list.id}
+              startContent={list.icon}
+              endContent={
+                list.isPrivate ? (
+                  <Lock size={14} className="opacity-40" />
+                ) : (
+                  <Globe size={14} className="opacity-40" />
+                )
+              }
+              className={getItemClasses(list.id)}
             >
               <span className="text-sm font-bold uppercase tracking-wider truncate block">
-                {bookmark.title}
+                {list.title}
               </span>
             </ListboxItem>
           ))}
         </Listbox>
       </div>
 
-      <CreateListModal isOpen={isOpen} onOpenChange={onOpenChange} />
+      <CreateListModal
+        isOpen={isOpen}
+        isEdit={false}
+        onOpenChange={onOpenChange}
+        editData={null}
+      />
     </div>
   );
 }

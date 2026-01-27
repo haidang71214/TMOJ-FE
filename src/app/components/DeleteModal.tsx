@@ -15,7 +15,7 @@ interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
   userName?: string; // Đổi từ studentName thành userName
-  type?: "student" | "teacher"; // Thêm type để phân biệt đối tượng
+  type?: "student" | "teacher" | "bookmark"; // Thêm type để phân biệt đối tượng
 }
 
 export default function DeleteModal({
@@ -33,16 +33,19 @@ export default function DeleteModal({
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     // Hiển thị thông báo thành công tùy theo đối tượng
-    const message =
-      type === "teacher"
-        ? "Faculty member removed successfully"
-        : "Student removed successfully";
+    let message = "";
+    let desc = "";
 
-    const desc =
-      type === "teacher"
-        ? `${userName} has been removed from the faculty list.`
-        : `${userName} has been kicked out of the class.`;
-
+    if (type === "teacher") {
+      message = "Faculty member removed successfully";
+      desc = `${userName} has been removed from the faculty list.`;
+    } else if (type === "student") {
+      message = "Student removed successfully";
+      desc = `${userName} has been kicked out of the class.`;
+    } else if (type === "bookmark") {
+      message = "Bookmark deleted successfully";
+      desc = `The Bookmark "${userName}" has been removed.`;
+    }
     toast.error(message, {
       description: desc,
       icon: <Trash2 size={16} />,

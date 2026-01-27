@@ -196,7 +196,7 @@ export default function NotificationManagementPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    {!n.isRead && <Badge color="danger" content="" variant="solid" placement="top-left" />}
+                    {!n.isRead && <Badge color="danger" />}
                     <div>
                       <div className="font-black text-lg flex items-center gap-2">
                         {n.title}

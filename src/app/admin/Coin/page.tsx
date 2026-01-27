@@ -81,13 +81,15 @@ export default function CoinManagerPage() {
     <div className="space-y-10">
       {/* HEADER */}
           <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white">
-            COIN <span className="text-[#FF5C00]">PACKAGE</span>
+          <h1 className="text-3xl font-black uppercase">
+            Problem <span className="text-[#FF5C00]">Management</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-indigo-400 mt-2 italic">
-            Manage coin bundles & pricing
+          <p className="text-xs uppercase tracking-widest text-slate-500">
+            Create, edit and monitor programming & theory problems
           </p>
+        </div>
         </div>
 
         <Button

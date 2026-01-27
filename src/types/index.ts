@@ -153,4 +153,14 @@ export type PracticePackage = {
   price: number;
   image:string;
   createdAt: string;
+  problems?: string[];
 };
+export interface Problem {
+  id: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard"; // lowercase như trong mock
+  points: number;
+  // thêm field khác nếu cần, ví dụ:
+  // acceptance?: string;
+  // tags?: string[];
+}

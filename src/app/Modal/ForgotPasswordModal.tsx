@@ -13,11 +13,13 @@ export default function ForgotPasswordModal() {
   const { closeModal, openModal } = useModal();
 
   const handleSubmit = () => {
-   //  chỗ này nếu api trả lỗi thì báo không cho mở modal
-        addToast({ title: "Secret URL already send, please check your mail", color: "success" });
-        // tạm để này ha
-        openModal({ content: <ResetPassModal token="aaaaa" /> })
-      
+    //  chỗ này nếu api trả lỗi thì báo không cho mở modal
+    addToast({
+      title: "Secret URL already send, please check your mail",
+      color: "success",
+    });
+    // tạm để này ha
+    openModal({ content: <ResetPassModal token="aaaaa" /> });
   };
 
   return (
@@ -33,7 +35,8 @@ export default function ForgotPasswordModal() {
       {/* Header */}
       <div className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8">
         <h2 className="text-4xl font-black text-[#3F4755] dark:text-white tracking-tighter uppercase leading-none">
-          Forgot pass<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
+          Forgot pass
+          <span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
         </h2>
         <p className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
           Welcome to TMOJ

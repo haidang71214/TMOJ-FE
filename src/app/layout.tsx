@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   ],
 };
 
-interface RootLayoutProps {
+export interface RootLayoutProps {
   children: React.ReactNode;
 }
 

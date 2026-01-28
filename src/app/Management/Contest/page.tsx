@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Pagination,
+  useDisclosure,
 } from "@heroui/react";
 import {
   Edit3,
@@ -29,8 +30,18 @@ import {
   ChevronDown,
   SortAsc,
   RefreshCw,
+  Clock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ExtendTimeModal from "./../../components/ExtendTimeModal";
+interface Contest {
+  id: number;
+  title: string;
+  rule: string;
+  type: string;
+  status: string;
+  visible: boolean;
+}
 
 const CONTESTS_DATA = [
   {
@@ -87,6 +98,14 @@ export default function ContestListPage() {
     const end = start + rowsPerPage;
     return CONTESTS_DATA.slice(start, end);
   }, [page]);
+  // Logic cho Extend Modal
+  const extendModal = useDisclosure();
+  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+
+  const handleOpenExtend = (contest: Contest) => {
+    setSelectedContest(contest);
+    extendModal.onOpen();
+  };
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -245,6 +264,23 @@ export default function ContestListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
+                    {c.status === "Running" && (
+                      <Tooltip
+                        content="Extend Time"
+                        className="font-bold text-[10px]"
+                        color="success"
+                      >
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-[#22C55E] hover:bg-green-600 hover:text-white transition-all rounded-lg h-9 w-9"
+                          onClick={() => handleOpenExtend(c)}
+                        >
+                          <Clock size={16} />
+                        </Button>
+                      </Tooltip>
+                    )}
                     <Tooltip
                       content="Edit Details"
                       className="font-bold text-[10px]"
@@ -326,7 +362,11 @@ export default function ContestListPage() {
           />
         </div>
       </div>
-
+      <ExtendTimeModal
+        isOpen={extendModal.isOpen}
+        onOpenChange={extendModal.onOpenChange}
+        contest={selectedContest}
+      />
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;

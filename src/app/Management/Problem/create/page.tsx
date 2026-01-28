@@ -14,6 +14,7 @@ import {
   Divider,
   Tooltip,
   Chip,
+  useDisclosure,
 } from "@heroui/react";
 import {
   Save,
@@ -21,14 +22,19 @@ import {
   X,
   FileCode,
   ChevronLeft,
+  HelpCircle,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
+import TestcaseGuideModal from "./../../../components/TestcaseGuideModal";
 
 export default function CreateProblemPage() {
   const router = useRouter();
   const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+
+  // Logic mở Modal
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const addTag = (tag: ProblemTag) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
@@ -37,7 +43,6 @@ export default function CreateProblemPage() {
   const removeTag = (tag: ProblemTag) => {
     setSelectedTags((prev) => prev.filter((t) => t !== tag));
   };
-
 
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
@@ -316,40 +321,57 @@ export default function CreateProblemPage() {
         </div>
 
         {/* TESTCASE & FILE INFO */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <Tooltip
-            content="Upload file .zip chứa toàn bộ input/output testcase"
-            placement="top"
-          >
-            <div className="md:col-span-1 p-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-black/10 hover:border-blue-600 dark:hover:border-[#22C55E] transition-all group cursor-pointer">
-              <FileUp
-                size={32}
-                className="text-slate-300 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors"
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 ml-1">
+            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
+              Testcases Data
+            </label>
+            {/* NÚT DẤU HỎI MÀU VÀNG */}
+            <button
+              onClick={onOpen}
+              className="text-[#FFB800] hover:text-[#FFB800]/80 transition-colors animate-pulse hover:animate-none"
+            >
+              <HelpCircle size={16} strokeWidth={3} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <Tooltip
+              content="Upload file .zip chứa toàn bộ input/output testcase"
+              placement="top"
+            >
+              <div className="md:col-span-1 p-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-black/10 hover:border-blue-600 dark:hover:border-[#22C55E] transition-all group cursor-pointer">
+                <FileUp
+                  size={32}
+                  className="text-slate-300 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors"
+                />
+                <Button
+                  size="sm"
+                  className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-lg h-8 text-[9px] uppercase tracking-widest"
+                >
+                  Upload .zip
+                </Button>
+              </div>
+            </Tooltip>
+            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="Input Filename"
+                placeholder="input.txt"
+                labelPlacement="outside"
+                classNames={{
+                  inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
+                }}
               />
-              <Button
-                size="sm"
-                className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-lg h-8 text-[9px] uppercase tracking-widest"
-              >
-                Upload .zip
-              </Button>
+              <Input
+                label="Output Filename"
+                placeholder="output.txt"
+                labelPlacement="outside"
+                classNames={{
+                  inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
+                }}
+              />
             </div>
-          </Tooltip>
-          <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="Input Filename"
-              placeholder="input.txt"
-              labelPlacement="outside"
-              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
-            />
-            <Input
-              label="Output Filename"
-              placeholder="output.txt"
-              labelPlacement="outside"
-              classNames={{ inputWrapper: "rounded-2xl dark:bg-black/20 h-12" }}
-            />
           </div>
         </div>
-
         {/* ACTION BUTTONS */}
         <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
           <Button
@@ -368,6 +390,8 @@ export default function CreateProblemPage() {
           </Button>
         </div>
       </div>
+      {/* GỌI MODAL TẠI ĐÂY */}
+      <TestcaseGuideModal isOpen={isOpen} onOpenChange={onOpenChange} />
     </div>
   );
 }

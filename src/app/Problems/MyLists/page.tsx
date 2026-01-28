@@ -425,17 +425,18 @@ export default function MyListsPage() {
             </div>
           ))}
         </div>
-
-        <Pagination
-          total={pages}
-          page={page}
-          onChange={setPage}
-          showControls
-          classNames={{
-            cursor:
-              "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic shadow-lg shadow-orange-500/20",
-          }}
-        />
+        <div className="flex justify-center mt-10 w-full">
+          <Pagination
+            total={pages}
+            page={page}
+            onChange={setPage}
+            showControls
+            classNames={{
+              cursor:
+                "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic shadow-lg shadow-orange-500/20",
+            }}
+          />
+        </div>
       </div>
 
       <CreateListModal

@@ -151,7 +151,7 @@ export type PracticePackage = {
   published: boolean;
   disabled: boolean;
   price: number;
-  image:string;
+  image: string;
   createdAt: string;
   problems?: string[];
 };

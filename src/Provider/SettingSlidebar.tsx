@@ -3,20 +3,14 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
-import {
-  User,
-  Settings,
-  Shield,
-  Bell,
-  FlaskConical,
-} from "lucide-react";
+import { User, Settings, Shield, Bell, FlaskConical } from "lucide-react";
 
 const items = [
   { label: "Basic Info", href: "/settings", icon: User },
   { label: "Account", href: "/Settings/Account", icon: Settings },
   { label: "Lab", href: "/settings/lab", icon: FlaskConical },
   { label: "Privacy", href: "/settings/privacy", icon: Shield },
-  { label: "Notifications", href: "/settings/notifications", icon: Bell },
+  { label: "Notifications", href: "/Notifications", icon: Bell },
 ];
 
 export default function SettingsSidebar() {

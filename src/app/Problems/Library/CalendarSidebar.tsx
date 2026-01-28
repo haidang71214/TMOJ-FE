@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Card, CardBody, Button, Chip } from "@heroui/react";
-import { ChevronLeft, ChevronRight, Flame, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 
 export const CalendarSidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -10,21 +10,6 @@ export const CalendarSidebar = () => {
   const solvedDays = [5, 12, 18, 19, 22];
   const streakDays = [27, 28, 29, 30];
   const currentStreak = streakDays.length;
-
-  // State cho Like (trái tim) theo ngày
-  const [likedDays, setLikedDays] = useState<Set<number>>(new Set());
-
-  const toggleLike = (day: number) => {
-    setLikedDays((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(day)) {
-        newSet.delete(day);
-      } else {
-        newSet.add(day);
-      }
-      return newSet;
-    });
-  };
 
   const changeMonth = (offset: number) =>
     setCurrentDate(
@@ -138,21 +123,6 @@ export const CalendarSidebar = () => {
                   {isSolved && !isStreak && (
                     <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.4)]"></div>
                   )}
-
-                  {/* Ô Thích (trái tim) */}
-                  <button
-                    onClick={() => toggleLike(day)}
-                    className="absolute -top-1 right-0 focus:outline-none transition-all duration-200 hover:scale-110 active:scale-95"
-                  >
-                    <Heart
-                      size={14}
-                      className={`transition-colors ${
-                        isLiked
-                          ? "fill-red-500 text-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]"
-                          : "text-gray-400 hover:text-red-400 dark:text-[#475569] dark:hover:text-red-400"
-                      }`}
-                    />
-                  </button>
                 </div>
               );
             })}

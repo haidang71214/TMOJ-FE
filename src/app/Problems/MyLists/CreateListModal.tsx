@@ -182,7 +182,7 @@ export default function CreateListModal({
                 onPress={onClose}
                 className="font-black text-slate-500 dark:text-slate-400 hover:text-[#071739] hover:dark:text-white uppercase italic text-xs tracking-wider"
               >
-                Discard
+                Cancel
               </Button>
               <Button
                 onPress={() => handleAction(onClose)}

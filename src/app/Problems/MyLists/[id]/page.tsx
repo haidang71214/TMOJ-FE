@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
+import {
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/react";
 import {
   Play,
   Share2,
@@ -77,7 +84,6 @@ const MY_LIST_PROBLEMS = [
 ];
 
 export default function MyListDetailPage() {
-  const router = useRouter();
   const params = useParams();
   const currentId = params.id;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -98,7 +104,11 @@ export default function MyListDetailPage() {
     if (!problemToRemove) return;
 
     setMyList((prev) => prev.filter((p) => p.id !== problemToRemove));
-    alert(`Removed "${MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}" from favorites`);
+    alert(
+      `Removed "${
+        MY_LIST_PROBLEMS.find((p) => p.id === problemToRemove)?.title
+      }" from favorites`
+    );
 
     setIsRemoveModalOpen(false);
     setProblemToRemove(null);
@@ -311,7 +321,10 @@ export default function MyListDetailPage() {
                 <p className="text-sm">
                   Are you sure you want to remove{" "}
                   <span className="font-bold">
-                    {MY_LIST_PROBLEMS.find(p => p.id === problemToRemove)?.title}
+                    {
+                      MY_LIST_PROBLEMS.find((p) => p.id === problemToRemove)
+                        ?.title
+                    }
                   </span>{" "}
                   from your favorites list?
                 </p>

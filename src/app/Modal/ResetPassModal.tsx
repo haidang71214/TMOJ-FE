@@ -56,7 +56,7 @@ export default function ResetPassModal({ }: { token: string }) {
       {/* Header */}
       <div className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8">
         <h2 className="text-4xl font-black text-[#3F4755] dark:text-white tracking-tighter uppercase leading-none">
-          Sign in<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
+          Reset Password<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
         </h2>
         <p className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
           Welcome to TMOJ

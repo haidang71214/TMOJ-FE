@@ -11,6 +11,7 @@ export const CalendarSidebar = () => {
   const streakDays = [27, 28, 29, 30];
   const currentStreak = streakDays.length;
 
+
   const changeMonth = (offset: number) =>
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1)
@@ -89,8 +90,6 @@ export const CalendarSidebar = () => {
 
               const isStreak = streakDays.includes(day);
               const isSolved = solvedDays.includes(day);
-              const isLiked = likedDays.has(day);
-
               return (
                 <div
                   key={day}
@@ -123,6 +122,8 @@ export const CalendarSidebar = () => {
                   {isSolved && !isStreak && (
                     <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.4)]"></div>
                   )}
+
+                
                 </div>
               );
             })}

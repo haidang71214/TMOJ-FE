@@ -19,6 +19,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
 } from "@heroui/react";
 import {
   Plus,
@@ -32,66 +33,91 @@ import {
   SortAsc,
   ChevronDown,
   Tag,
+  Archive,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
+
+interface Problem {
+  id: number;
+  title: string;
+  difficulty: string;
+  submissions: number;
+  acRate: string;
+  visible: boolean;
+  contest: string;
+  tags: string[];
+}
 
 export default function GlobalProblemListPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  const allProblems = [
-    {
-      id: 1,
-      title: "A + B Problem",
-      difficulty: "Easy",
-      submissions: 1250,
-      acRate: "85%",
-      visible: true,
-      contest: "None",
-      tags: ["Basic"],
-    },
-    {
-      id: 501,
-      title: "Two Sum",
-      difficulty: "Medium",
-      submissions: 850,
-      acRate: "45%",
-      visible: true,
-      contest: "Spring 2025",
-      tags: ["Array", "Hash Table"],
-    },
-    {
-      id: 102,
-      title: "Quick Sort Implementation",
-      difficulty: "Hard",
-      submissions: 320,
-      acRate: "12%",
-      visible: false,
-      contest: "None",
-      tags: ["Sort", "Algorithm"],
-    },
-    {
-      id: 502,
-      title: "Longest Substring",
-      difficulty: "Medium",
-      submissions: 600,
-      acRate: "38%",
-      visible: true,
-      contest: "Spring 2025",
-      tags: ["String", "Sliding Window"],
-    },
-    {
-      id: 105,
-      title: "Binary Tree Level Order",
-      difficulty: "Medium",
-      submissions: 450,
-      acRate: "50%",
-      visible: true,
-      contest: "None",
-      tags: ["Tree"],
-    },
-  ];
+  // Logic Modal Archive
+  const archiveModal = useDisclosure();
+  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
+
+  const handleOpenArchive = (problem: Problem) => {
+    setSelectedProblem(problem);
+    archiveModal.onOpen();
+  };
+
+  const allProblems = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "A + B Problem",
+        difficulty: "Easy",
+        submissions: 1250,
+        acRate: "85%",
+        visible: true,
+        contest: "None",
+        tags: ["Basic"],
+      },
+      {
+        id: 501,
+        title: "Two Sum",
+        difficulty: "Medium",
+        submissions: 850,
+        acRate: "45%",
+        visible: true,
+        contest: "Spring 2025",
+        tags: ["Array", "Hash Table"],
+      },
+      {
+        id: 102,
+        title: "Quick Sort Implementation",
+        difficulty: "Hard",
+        submissions: 320,
+        acRate: "12%",
+        visible: false,
+        contest: "None",
+        tags: ["Sort", "Algorithm"],
+      },
+      {
+        id: 502,
+        title: "Longest Substring",
+        difficulty: "Medium",
+        submissions: 600,
+        acRate: "38%",
+        visible: true,
+        contest: "Spring 2025",
+        tags: ["String", "Sliding Window"],
+      },
+      {
+        id: 105,
+        title: "Binary Tree Level Order",
+        difficulty: "Medium",
+        submissions: 450,
+        acRate: "50%",
+        visible: true,
+        contest: "None",
+        tags: ["Tree"],
+      },
+    ],
+    []
+  );
 
   const pages = Math.ceil(allProblems.length / rowsPerPage);
 
@@ -99,7 +125,7 @@ export default function GlobalProblemListPage() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     return allProblems.slice(start, end);
-  }, [page]);
+  }, [page, allProblems]);
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -318,6 +344,23 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
+                    {/* NÚT ARCHIVE  */}
+                    <Tooltip
+                      content="Archive to Bookmark"
+                      className="font-bold text-[10px]"
+                      // color="warning"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={() => handleOpenArchive(p as Problem)}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#FFB800] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Archive size={16} />
+                      </Button>
+                    </Tooltip>
+
                     <Tooltip
                       content="Edit Detail"
                       className="font-bold text-[10px]"
@@ -394,6 +437,12 @@ export default function GlobalProblemListPage() {
           />
         </div>
       </div>
+      {/* GỌI MODAL ARCHIVE */}
+      <ArchiveProblemModal
+        isOpen={archiveModal.isOpen}
+        onOpenChange={archiveModal.onOpenChange}
+        problem={selectedProblem}
+      />
     </div>
   );
 }

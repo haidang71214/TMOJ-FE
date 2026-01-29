@@ -1,9 +1,16 @@
 "use client";
 
-import { NavbarItem } from '@heroui/navbar';
-import { addToast, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, User } from '@heroui/react';
-import webStorageClient from '@/utils/webStorageClient';
-import { useRouter } from 'next/navigation';
+import { NavbarItem } from "@heroui/navbar";
+import {
+  addToast,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  User,
+} from "@heroui/react";
+import webStorageClient from "@/utils/webStorageClient";
+import { useRouter } from "next/navigation";
 import {
   List,
   BookOpen,
@@ -15,25 +22,26 @@ import {
   Palette,
   LogOut,
   User2Icon,
-} from 'lucide-react';
-import React from 'react';
+} from "lucide-react";
+import React from "react";
 
 export default function InformationInNavbar() {
-  
   const router = useRouter();
   const handleLogout = () => {
     webStorageClient.logout();
-    addToast({ title: "Đăng xuất thành công", color: "success" });
+    addToast({ title: "Logout successfull!", color: "success" });
     router.push("/");
     localStorage.removeItem("user");
   };
-React.useEffect(() => {
-}, [handleLogout]);
+  React.useEffect(() => {}, [handleLogout]);
   const handleLink = (link: string) => router.push(link);
 
   // Giả sử bạn có dữ liệu user (tạm comment như code cũ)
   // const { data: user } = useGetUserInformationQuery();
-  const user = { name: "Đăng Hải", imagesUrl: "https://i.pravatar.cc/150?u=haidang" }; // demo
+  const user = {
+    name: "Đăng Hải",
+    imagesUrl: "https://i.pravatar.cc/150?u=haidang",
+  }; // demo
 
   return (
     <NavbarItem>
@@ -48,7 +56,8 @@ React.useEffect(() => {
               avatarProps={{
                 size: "sm",
                 src: user?.imagesUrl || "https://i.pravatar.cc/150?u=default",
-                className: "border-2 border-white/80 dark:border-[#071739]/80 shadow-md",
+                className:
+                  "border-2 border-white/80 dark:border-[#071739]/80 shadow-md",
               }}
               name=""
             />
@@ -67,23 +76,35 @@ React.useEffect(() => {
         >
           <DropdownItem
             key="mylists"
-            startContent={<List size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
+            startContent={
+              <List size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />
+            }
             onClick={() => handleLink("/Lists")}
           >
             <span className="font-bold text-sm">My Lists</span>
           </DropdownItem>
 
           <DropdownItem
-            key="notebook"
-            startContent={<BookOpen size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
-            onClick={() => handleLink("/Notebook")}
+            key="bookmark"
+            startContent={
+              <BookOpen
+                size={18}
+                className="text-[#4B6382] dark:text-[#98A2B3]"
+              />
+            }
+            onClick={() => handleLink("/Problems/MyLists")}
           >
-            <span className="font-bold text-sm">Notebook</span>
+            <span className="font-bold text-sm">Bookmarks</span>
           </DropdownItem>
 
           <DropdownItem
             key="progress"
-            startContent={<BarChart2 size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
+            startContent={
+              <BarChart2
+                size={18}
+                className="text-[#4B6382] dark:text-[#98A2B3]"
+              />
+            }
             onClick={() => handleLink("/Progress")}
           >
             <span className="font-bold text-sm">Progress</span>
@@ -91,7 +112,9 @@ React.useEffect(() => {
 
           <DropdownItem
             key="Coin"
-            startContent={<Coins size={18} className="text-[#A68868] dark:text-[#FFB800]" />}
+            startContent={
+              <Coins size={18} className="text-[#A68868] dark:text-[#FFB800]" />
+            }
             onClick={() => handleLink("/Coin")}
           >
             <span className="font-black text-sm bg-gradient-to-r from-[#A68868] to-[#071739] dark:from-[#FFB800] dark:to-[#E3C39D] bg-clip-text text-transparent">
@@ -101,7 +124,12 @@ React.useEffect(() => {
 
           <DropdownItem
             key="try-new"
-            startContent={<Sparkles size={18} className="text-[#A68868] dark:text-[#FFB800]" />}
+            startContent={
+              <Sparkles
+                size={18}
+                className="text-[#A68868] dark:text-[#FFB800]"
+              />
+            }
             onClick={() => handleLink("/New-features")}
           >
             Try New Features
@@ -109,7 +137,12 @@ React.useEffect(() => {
 
           <DropdownItem
             key="orders"
-            startContent={<ShoppingBag size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
+            startContent={
+              <ShoppingBag
+                size={18}
+                className="text-[#4B6382] dark:text-[#98A2B3]"
+              />
+            }
             onClick={() => handleLink("/Crders")}
           >
             Orders
@@ -117,24 +150,34 @@ React.useEffect(() => {
 
           <DropdownItem
             key="setting"
-            startContent={<SettingsIcon size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
+            startContent={
+              <SettingsIcon
+                size={18}
+                className="text-[#4B6382] dark:text-[#98A2B3]"
+              />
+            }
             onClick={() => handleLink("/Settings")}
           >
             Setting
           </DropdownItem>
-<DropdownItem
-  key="profile"
-  startContent={
-    <User2Icon className="w-[18px] h-[18px] text-[#4B6382] dark:text-[#98A2B3]" />
-  }
-  onClick={() => handleLink("/Profile")}
->
-  Profile
-</DropdownItem>
+          <DropdownItem
+            key="profile"
+            startContent={
+              <User2Icon className="w-[18px] h-[18px] text-[#4B6382] dark:text-[#98A2B3]" />
+            }
+            onClick={() => handleLink("/Profile")}
+          >
+            Profile
+          </DropdownItem>
 
           <DropdownItem
             key="appearance"
-            startContent={<Palette size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />}
+            startContent={
+              <Palette
+                size={18}
+                className="text-[#4B6382] dark:text-[#98A2B3]"
+              />
+            }
             onClick={() => handleLink("/Appearance")}
           >
             Appearance

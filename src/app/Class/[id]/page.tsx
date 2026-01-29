@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Tabs,
   Tab,
@@ -17,6 +17,14 @@ import {
   Chip,
   Divider,
   Pagination,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Input,
+  Textarea,
 } from "@heroui/react";
 import {
   ChevronLeft,
@@ -29,20 +37,99 @@ import {
   Zap,
   Rocket,
   User,
+  PlusCircle,
+  X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-export default function StudentClassDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function StudentClassDetailPage() {
   const router = useRouter();
-  const resolvedParams = use(params);
+  const params = useParams();
+  const classId = params?.id as string | undefined;
+
   const [mounted, setMounted] = useState(false);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
+  const is_teacher = true; // này sau nhét role teacher vào đây để check nhé
 
-  // Logic phân trang cho Slots
+  // Modal HeroUI
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [currentSlotId, setCurrentSlotId] = useState<string | null>(null);
+
+  // State cho form trong modal
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [rule, setRule] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [dueDate, setDueDate] = useState(""); // <-- Thêm trường Due Date
+  const [search, setSearch] = useState("");
+  const [selectedProblems, setSelectedProblems] = useState<Problem[]>([]);
+
+  type Problem = {
+    id: string;
+    name: string;
+    difficulty: "Easy" | "Medium" | "Hard";
+  };
+
+  const allProblems: Problem[] = [
+    { id: "p1", name: "Two Sum", difficulty: "Easy" },
+    { id: "p2", name: "Valid Parentheses", difficulty: "Easy" },
+    { id: "p3", name: "Merge Sort", difficulty: "Medium" },
+    { id: "p4", name: "Binary Search Tree", difficulty: "Hard" },
+    { id: "p5", name: "LRU Cache", difficulty: "Hard" },
+  ];
+
+  const filteredProblems = useMemo(
+    () =>
+      allProblems.filter(
+        (p) =>
+          p.name.toLowerCase().includes(search.toLowerCase()) &&
+          !selectedProblems.find((s) => s.id === p.id)
+      ),
+    [search, selectedProblems]
+  );
+
+  const addProblem = (problem: Problem) => {
+    setSelectedProblems((prev) => [...prev, problem]);
+    setSearch("");
+  };
+
+  const removeProblem = (id: string) => {
+    setSelectedProblems((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const isFormValid = title.trim() !== "" && selectedProblems.length > 0;
+
+  const handleSubmit = () => {
+    if (!isFormValid || !currentSlotId) return;
+
+    const payload = {
+      slot_id: currentSlotId,
+      title,
+      description,
+      rule,
+      start_time: startTime,
+      end_time: endTime,
+      due_date: dueDate, // <-- Thêm due_date vào payload
+      problems: selectedProblems.map((p) => p.id),
+    };
+
+    console.log("SUBMIT ASSIGNMENT FOR SLOT:", currentSlotId, payload);
+    // 👉 gọi API create assignment ở đây
+
+    // Reset form
+    setTitle("");
+    setDescription("");
+    setRule("");
+    setStartTime("");
+    setEndTime("");
+    setDueDate("");
+    setSearch("");
+    setSelectedProblems([]);
+    onClose();
+  };
+
+  // Pagination for Slots
   const [slotPage, setSlotPage] = useState(1);
   const slotsPerPage = 5;
 
@@ -52,12 +139,12 @@ export default function StudentClassDetailPage({
 
   const classInfo = useMemo(
     () => ({
-      id: resolvedParams.id || "PRF192_SP26",
+      id: classId || "PRF192_SP26",
       name: "Programming Fundamentals",
       semester: "Spring 2026",
       lecturer: "HOAINTT",
     }),
-    [resolvedParams.id]
+    [classId]
   );
 
   const myResult = {
@@ -116,7 +203,6 @@ export default function StudentClassDetailPage({
     []
   );
 
-  // Tính toán dữ liệu hiển thị theo trang
   const totalSlotPages = Math.ceil(allSlots.length / slotsPerPage);
   const currentSlots = useMemo(() => {
     const start = (slotPage - 1) * slotsPerPage;
@@ -257,18 +343,42 @@ export default function StudentClassDetailPage({
                     {expandedSlot === slot.id && (
                       <div className="px-8 pb-8 border-t border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
-                          <div className="lg:col-span-2 space-y-4">
-                            <p className="text-[11px] font-black uppercase italic text-blue-600 dark:text-[#FF5C00] opacity-80">
-                              Assignment Description
-                            </p>
-                            <div className="p-6 bg-slate-50 dark:bg-[#0A0F1C]/60 rounded-3xl text-sm italic font-medium text-slate-500 dark:text-slate-400 border dark:border-white/5">
-                              {slot.description}
+                          {/* LEFT: DESCRIPTION + CREATE BUTTON */}
+                          <div className="lg:col-span-2 space-y-6">
+                            {/* DESCRIPTION */}
+                            <div className="space-y-4">
+                              <p className="text-[11px] font-black uppercase italic text-blue-600 dark:text-[#FF5C00] opacity-80">
+                                Assignment Description
+                              </p>
+                              <div className="p-6 bg-slate-50 dark:bg-[#0A0F1C]/60 rounded-3xl text-sm italic font-medium text-slate-500 dark:text-slate-400 border dark:border-white/5">
+                                {slot.description}
+                              </div>
                             </div>
+
+                            {/* CREATE BUTTON */}
+                            {is_teacher && (
+                              <div className="flex justify-start pt-4">
+                                <Button
+                                  color="primary"
+                                  startContent={<PlusCircle size={18} />}
+                                  className="font-black italic bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-orange-600 dark:to-amber-600 text-white shadow-lg rounded-xl px-8 py-6 text-base hover:scale-[1.02] transition-all"
+                                  onPress={() => {
+                                    setCurrentSlotId(slot.id);
+                                    onOpen();
+                                  }}
+                                >
+                                  Create Assignment
+                                </Button>
+                              </div>
+                            )}
                           </div>
+
+                          {/* RIGHT: PROBLEM LIST */}
                           <div className="space-y-4">
                             <p className="text-[11px] font-black uppercase italic text-[#FF5C00] opacity-80">
                               Solve Problems
                             </p>
+
                             <div className="space-y-2">
                               {slot.problems.map((p, i) => (
                                 <Button
@@ -302,7 +412,6 @@ export default function StudentClassDetailPage({
                 </Card>
               ))}
 
-              {/* PHẦN PHÂN TRANG CHO SLOTS */}
               <div className="flex justify-center mt-6">
                 <Pagination
                   total={totalSlotPages}
@@ -435,6 +544,162 @@ export default function StudentClassDetailPage({
           </Tab>
         </Tabs>
       </div>
+
+      {/* HeroUI Modal */}
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        size="5xl"
+        placement="center"
+        backdrop="blur"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 px-10 pt-8">
+                <h3 className="text-xl font-black uppercase italic text-[#071739] dark:text-white">
+                  Create Assignment
+                </h3>
+                <p className="text-[11px] text-slate-400 italic">
+                  Slot ID: <span className="font-bold">{currentSlotId}</span>
+                </p>
+              </ModalHeader>
+
+              <ModalBody className="px-10 pb-10">
+                <div className="space-y-8">
+                  {/* BASIC INFO */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Input
+                      label="Assignment Title"
+                      placeholder="Enter assignment title"
+                      value={title}
+                      onValueChange={setTitle}
+                    />
+
+                    <Input
+                      type="datetime-local"
+                      label="Start Time"
+                      placeholder="dd/mm/yyyy --:--"
+                      value={startTime}
+                      onValueChange={setStartTime}
+                    />
+
+                    <Input
+                      type="datetime-local"
+                      label="End Time"
+                      placeholder="dd/mm/yyyy --:--"
+                      value={endTime}
+                      onValueChange={setEndTime}
+                    />
+
+                    {/* Thêm trường Set Due Date */}
+                    <Input
+                      type="datetime-local"
+                      label="Due Date (Deadline)"
+                      placeholder="dd/mm/yyyy --:--"
+                      value={dueDate}
+                      onValueChange={setDueDate}
+                    />
+
+                    <div className="lg:col-span-2">
+                      <Textarea
+                        label="Description"
+                        placeholder="Describe the assignment..."
+                        value={description}
+                        onValueChange={setDescription}
+                        minRows={4}
+                      />
+                    </div>
+
+                    <div className="lg:col-span-2">
+                      <Textarea
+                        label="Rules"
+                        placeholder="Submission rules, constraints, penalties..."
+                        value={rule}
+                        onValueChange={setRule}
+                        minRows={3}
+                      />
+                    </div>
+                  </div>
+
+                  <Divider className="bg-slate-200 dark:bg-white/5" />
+
+                  {/* ADD PROBLEM */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-black uppercase italic text-[#071739] dark:text-white">
+                      Add Problems
+                    </h4>
+
+                    <Input
+                      placeholder="Search problem..."
+                      value={search}
+                      onValueChange={setSearch}
+                    />
+
+                    {search && filteredProblems.length > 0 && (
+                      <div className="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden">
+                        {filteredProblems.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => addProblem(p)}
+                            className="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-slate-50 dark:hover:bg-white/5 transition"
+                          >
+                            <span className="font-bold text-sm text-[#071739] dark:text-white">
+                              {p.name}
+                            </span>
+                            <Chip
+                              size="sm"
+                              className="text-[9px] font-black uppercase"
+                            >
+                              {p.difficulty}
+                            </Chip>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedProblems.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProblems.map((p) => (
+                          <Chip
+                            key={p.id}
+                            className="font-black italic"
+                            endContent={
+                              <button onClick={() => removeProblem(p.id)}>
+                                <X size={12} />
+                              </button>
+                            }
+                          >
+                            {p.name}
+                          </Chip>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submit */}
+                  <div className="flex justify-end pt-4">
+                    <Button
+                      className="bg-blue-600 dark:bg-[#FF5C00] text-white font-black italic px-10 rounded-xl shadow-lg"
+                      onPress={handleSubmit}
+                      isDisabled={!isFormValid}
+                    >
+                      Create Assignment
+                    </Button>
+                  </div>
+                </div>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button variant="light" onPress={onClose}>
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {

@@ -9,6 +9,7 @@ interface PasswordInputProps {
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
+  isInvalid?: boolean;
 }
 
 export default function PasswordInput({
@@ -27,10 +28,7 @@ export default function PasswordInput({
       placeholder={placeholder}
       required={required}
       startContent={
-        <Lock
-          size={18}
-          className="text-[#3F4755] dark:text-[#FFB800]"
-        />
+        <Lock size={18} className="text-[#3F4755] dark:text-[#FFB800]" />
       }
       endContent={
         <button

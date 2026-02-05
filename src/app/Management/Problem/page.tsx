@@ -378,13 +378,16 @@ export default function GlobalProblemListPage() {
                       </Button>
                     </Tooltip>
                     <Tooltip
-                      content="Clone Problem"
+                      content="Remix Problem"
                       className="font-bold text-[10px]"
                     >
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
+                        onClick={() =>
+                          router.push(`/Management/Problem/${p.id}/remix`)
+                        }
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <Copy size={16} />

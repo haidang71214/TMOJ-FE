@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { use } from "react";
 import {
   Input,
   Button,
@@ -35,14 +35,17 @@ import {
 
 import { useRouter } from "next/navigation";
 import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
-import TestcaseGuideModal from "./../../../components/TestcaseGuideModal";
+import TestcaseGuideModal from "./../../../../components/TestcaseGuideModal";
 
-export default function CreateProblemPage() {
+export default function RemixProblemPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+  const unwrappedParams = use(params);
+  const id = unwrappedParams.id;
 
-  // Logic mở Modal
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const EditorToolbar = () => (
     <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1 flex-wrap">
       {[Heading1, Bold, Italic, Underline, List, Link2].map((Icon, i) => (
@@ -58,6 +61,11 @@ export default function CreateProblemPage() {
       ))}
     </div>
   );
+
+  const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+
+  // Logic mở Modal
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const addTag = (tag: ProblemTag) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
   };
@@ -81,15 +89,24 @@ export default function CreateProblemPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div className="space-y-2">
             <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-              CREATE <span className="text-[#FF5C00]">PROBLEM</span>
+              REMIX <span className="text-[#FF5C00]">PROBLEM</span>
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] italic">
-              Define new algorithm challenge
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
+                Global ID: #{id}
+              </span>
+              <Chip
+                size="sm"
+                variant="flat"
+                color="primary"
+                className="font-black uppercase text-[8px] h-5 italic px-2"
+              >
+                Master Data
+              </Chip>
+            </div>
           </div>
         </div>
       </div>
-
       <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
         {/* ROW 1: TITLE */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

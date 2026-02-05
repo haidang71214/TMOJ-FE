@@ -31,6 +31,7 @@ import {
   SortAsc,
   RefreshCw,
   Clock,
+  Copy,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
@@ -311,6 +312,22 @@ export default function ContestListPage() {
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <FolderCode size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip
+                      content="Remix Contest"
+                      className="font-bold text-[10px]"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={() =>
+                          router.push(`/Management/Contest/${c.id}/remix`)
+                        }
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Copy size={16} />
                       </Button>
                     </Tooltip>
                     <Tooltip

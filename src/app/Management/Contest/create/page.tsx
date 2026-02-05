@@ -29,7 +29,13 @@ export default function CreateContestPage() {
   const EditorToolbar = () => (
     <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1">
       {[Heading1, Bold, Italic, List, Link2].map((Icon, i) => (
-        <Button key={i} isIconOnly size="sm" variant="light" className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]">
+        <Button
+          key={i}
+          isIconOnly
+          size="sm"
+          variant="light"
+          className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]"
+        >
           <Icon size={16} />
         </Button>
       ))}
@@ -52,22 +58,29 @@ export default function CreateContestPage() {
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
             CREATE NEW <span className="text-[#FF5C00]">CONTEST</span>
           </h1>
-          <Chip variant="dot" color="warning" className="font-black uppercase text-[10px] border-none italic">Draft Mode</Chip>
+          <Chip
+            variant="dot"
+            color="warning"
+            className="font-black uppercase text-[10px] border-none italic"
+          >
+            Draft Mode
+          </Chip>
         </div>
       </div>
 
       {/* FORM SECTION */}
       <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
-        
         {/* TITLE */}
         <Input
           label="Contest Title"
           placeholder="e.g. TMOJ Spring Contest 2025"
           labelPlacement="outside"
           classNames={{
-            inputWrapper: "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-all",
-            label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
-            input: "font-bold italic uppercase tracking-tight text-lg"
+            inputWrapper:
+              "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-all",
+            label:
+              "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+            input: "font-bold italic uppercase tracking-tight text-lg",
           }}
         />
 
@@ -98,8 +111,10 @@ export default function CreateContestPage() {
             labelPlacement="outside"
             startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
-              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+              inputWrapper:
+                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label:
+                "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
           <Input
@@ -108,8 +123,10 @@ export default function CreateContestPage() {
             labelPlacement="outside"
             startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
-              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+              inputWrapper:
+                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label:
+                "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
           <Input
@@ -119,49 +136,93 @@ export default function CreateContestPage() {
             labelPlacement="outside"
             startContent={<Lock size={18} className="text-slate-400" />}
             classNames={{
-              inputWrapper: "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
+              inputWrapper:
+                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
+              label:
+                "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-3 ml-1",
             }}
           />
         </div>
 
         {/* CONFIGURATION BOX */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5">
           <RadioGroup
             label="Rule System"
             orientation="horizontal"
             defaultValue="acm"
             classNames={{
-              label: "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
+              label:
+                "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
             }}
           >
             <div className="flex gap-8">
-              <Radio value="acm" classNames={{ label: "text-xs font-black uppercase italic" }}>ACM</Radio>
-              <Radio value="oi" classNames={{ label: "text-xs font-black uppercase italic" }}>OI</Radio>
+              <Radio
+                value="acm"
+                classNames={{ label: "text-xs font-black uppercase italic" }}
+              >
+                ACM
+              </Radio>
+              <Radio
+                value="oi"
+                classNames={{ label: "text-xs font-black uppercase italic" }}
+              >
+                OI
+              </Radio>
             </div>
           </RadioGroup>
 
           <div className="flex flex-col gap-4">
-            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">Real-time Ranking</span>
-            <Switch 
-              defaultSelected 
+            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">
+              Real-time Ranking
+            </span>
+            <Switch
+              defaultSelected
               size="sm"
               classNames={{
-                wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                wrapper:
+                  "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
               }}
             />
           </div>
 
           <div className="flex flex-col gap-4">
-            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">Publicly Visible</span>
-            <Switch 
-              defaultSelected 
+            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">
+              Publicly Visible
+            </span>
+            <Switch
+              defaultSelected
               size="sm"
               classNames={{
-                wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                wrapper:
+                  "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
               }}
             />
           </div>
+
+          <RadioGroup
+            label="Public Solution"
+            orientation="horizontal"
+            defaultValue="acm"
+            classNames={{
+              label:
+                "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
+            }}
+          >
+            <div className="flex gap-8">
+              <Radio
+                value="acm"
+                classNames={{ label: "text-xs font-black uppercase italic" }}
+              >
+                After
+              </Radio>
+              <Radio
+                value="oi"
+                classNames={{ label: "text-xs font-black uppercase italic" }}
+              >
+                Always
+              </Radio>
+            </div>
+          </RadioGroup>
         </div>
 
         {/* FOOTER ACTIONS */}
@@ -182,7 +243,7 @@ export default function CreateContestPage() {
           </Button>
         </div>
       </div>
-      
+
       <style jsx global>{`
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
           filter: invert(0.5);

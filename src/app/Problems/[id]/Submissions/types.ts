@@ -2,7 +2,7 @@ export interface SubmissionData {
   id: string;
   status:
     | "Accepted"
-    | "Wrong Answer"
+    | "Compile Error"
     | "Time Limit Exceeded"
     | "Memory Limit Exceeded"
     | "Runtime Error"

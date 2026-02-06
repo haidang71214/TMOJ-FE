@@ -16,6 +16,11 @@ import {
 import { ChevronDown, Settings, Clock, Inbox } from "lucide-react";
 import { SubmissionData } from "./types";
 
+// 1. Sửa lỗi 'any': Định nghĩa kiểu dữ liệu rõ ràng cho Props
+interface SubmissionsTabProps {
+  onRowClick: (item: SubmissionData) => void;
+}
+
 const MOCK_SUBMISSIONS: SubmissionData[] = [
   {
     id: "1",
@@ -28,7 +33,7 @@ const MOCK_SUBMISSIONS: SubmissionData[] = [
   },
   {
     id: "2",
-    status: "Wrong Answer",
+    status: "Compile Error",
     language: "python3",
     runtime: "N/A",
     memory: "N/A",
@@ -37,7 +42,7 @@ const MOCK_SUBMISSIONS: SubmissionData[] = [
   },
 ];
 
-export const SubmissionsTab = () => {
+export const SubmissionsTab = ({ onRowClick }: SubmissionsTabProps) => {
   const [submissions] = useState<SubmissionData[]>(MOCK_SUBMISSIONS);
   const [statusFilter, setStatusFilter] = useState("Status");
   const [langFilter, setLangFilter] = useState("Language");
@@ -60,10 +65,15 @@ export const SubmissionsTab = () => {
       <Table
         aria-label="Submissions table"
         removeWrapper
+        // Sử dụng onRowAction để bắt sự kiện click chuẩn của HeroUI
+        onRowAction={(key) => {
+          const item = submissions.find((s) => s.id === key);
+          if (item) onRowClick(item);
+        }}
         classNames={{
           th: "bg-white dark:bg-[#162130] text-gray-400 dark:text-[#94A3B8] font-black text-[11px] uppercase tracking-wider border-b border-gray-100 dark:border-[#334155] py-4 first:pl-6",
           td: "py-5 first:pl-6 border-b border-gray-50 dark:border-[#1C2737] text-[13px] dark:text-[#CDD5DB] transition-colors",
-          tr: "hover:bg-gray-50 dark:hover:bg-[#101828] cursor-pointer group",
+          tr: "hover:bg-gray-50 dark:hover:bg-[#101828] cursor-pointer group outline-none",
         }}
       >
         <TableHeader>
@@ -80,7 +90,7 @@ export const SubmissionsTab = () => {
                 className="dark:text-[#F9FAFB]"
               >
                 <DropdownItem key="Accepted">Accepted</DropdownItem>
-                <DropdownItem key="Wrong Answer">Wrong Answer</DropdownItem>
+                <DropdownItem key="Compile Error">Compile Error</DropdownItem>
                 <DropdownItem key="Runtime Error">Runtime Error</DropdownItem>
               </DropdownMenu>
             </Dropdown>
@@ -95,6 +105,7 @@ export const SubmissionsTab = () => {
               </DropdownTrigger>
               <DropdownMenu
                 aria-label="Language Filter"
+                // 2. Sửa lỗi 'setLangFilter' unused: Gắn hàm vào onAction
                 onAction={(key) => setLangFilter(key as string)}
               >
                 <DropdownItem key="C++">C++</DropdownItem>
@@ -122,7 +133,7 @@ export const SubmissionsTab = () => {
                 <span
                   className={`font-black text-[14px] ${
                     item.status === "Accepted"
-                      ? "text-[#2cbb5d] dark:text-[#2cbb5d]"
+                      ? "text-[#2cbb5d]"
                       : "text-[#ef4743] dark:text-[#fb4444]"
                   }`}
                 >

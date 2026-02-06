@@ -13,7 +13,9 @@ import { DescriptionTab } from "./Description";
 import { EditorialTab } from "./Editorial";
 import { SolutionsTab } from "./Solutions";
 import { SubmissionsTab } from "./Submissions";
-
+import { CompileErrorTab } from "./CompileError";
+import { AcceptedTab } from "./Accepted";
+import { SubmissionData } from "./Submissions/types";
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
@@ -33,6 +35,14 @@ export default function ProblemDetailsPage() {
   const [code, setCode] = useState(
     `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        \n    }\n};`
   );
+  const handleSubmissionRowClick = (item: SubmissionData) => {
+    if (item.status === "Accepted") {
+      setActiveTab("accepted");
+    } else if (item.status === "Compile Error") {
+      setActiveTab("compileerror");
+    }
+    // Có thể bổ sung thêm Runtime Error nếu có tab riêng sau này
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditorDidMount = (editor: any) => {
     monacoEditorRef.current = editor;
@@ -90,6 +100,8 @@ export default function ProblemDetailsPage() {
               <Tab key="description" title="Description" />
               <Tab key="editorial" title="Editorial" />
               <Tab key="solutions" title="Solutions" />
+              <Tab key="compileerror" title="Compile Error" />
+              <Tab key="accepted" title="Accepted" />
               <Tab key="submissions" title="Submissions" />
             </Tabs>
           </div>
@@ -101,7 +113,11 @@ export default function ProblemDetailsPage() {
                 {activeTab === "description" && <DescriptionTab />}
                 {activeTab === "editorial" && <EditorialTab />}
                 {activeTab === "solutions" && <SolutionsTab />}
-                {activeTab === "submissions" && <SubmissionsTab />}
+                {activeTab === "compileerror" && <CompileErrorTab />}
+                {activeTab === "accepted" && <AcceptedTab />}
+                {activeTab === "submissions" && (
+                  <SubmissionsTab onRowClick={handleSubmissionRowClick} />
+                )}
               </div>
             </div>
           </div>

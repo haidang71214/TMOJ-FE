@@ -6,7 +6,8 @@ import { Providers } from "./providers";
 import { siteConfig } from "../config/site";
 import { fontSans } from "../config/fonts";
 import NavbarProvider from "../Provider/NavbarProvider";
-import { Footer } from "./components/Footer";
+// import { Footer } from "./components/Footer";
+import FooterWrapper from "./components/FooterWrapper";
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
@@ -44,8 +45,9 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
           <NavbarProvider />
           {children}
           <Toaster richColors position="top-right" />
+          <FooterWrapper />
         </Providers>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

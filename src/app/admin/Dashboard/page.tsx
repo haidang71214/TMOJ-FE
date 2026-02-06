@@ -1,11 +1,5 @@
 "use client";
-import {
-  Users,
-  Trophy,
-  Coins,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
+import { Users, Trophy, Coins, AlertTriangle, Activity } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -64,7 +58,7 @@ const revenueData = [
 
 const submissionRatio = [
   { name: "Accepted", value: 62 },
-  { name: "Wrong Answer", value: 25 },
+  { name: "Compile Error", value: 25 },
   { name: "Runtime Error", value: 13 },
 ];
 

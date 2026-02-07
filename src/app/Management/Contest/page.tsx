@@ -208,6 +208,8 @@ export default function ContestListPage() {
               <TableRow
                 key={c.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+// 
+                onClick={()=> router.push(`/Contest/${c.id}`)}
               >
                 <TableCell>
                   <span className="text-slate-400 font-black italic text-xs">

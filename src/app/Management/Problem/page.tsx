@@ -72,6 +72,7 @@ export default function GlobalProblemListPage() {
         submissions: 1250,
         acRate: "85%",
         visible: true,
+        access:false,
         contest: "None",
         tags: ["Basic"],
       },
@@ -82,6 +83,7 @@ export default function GlobalProblemListPage() {
         submissions: 850,
         acRate: "45%",
         visible: true,
+         access:false,
         contest: "Spring 2025",
         tags: ["Array", "Hash Table"],
       },
@@ -92,6 +94,7 @@ export default function GlobalProblemListPage() {
         submissions: 320,
         acRate: "12%",
         visible: false,
+         access:false,
         contest: "None",
         tags: ["Sort", "Algorithm"],
       },
@@ -102,6 +105,7 @@ export default function GlobalProblemListPage() {
         submissions: 600,
         acRate: "38%",
         visible: true,
+         access:false,
         contest: "Spring 2025",
         tags: ["String", "Sliding Window"],
       },
@@ -112,6 +116,7 @@ export default function GlobalProblemListPage() {
         submissions: 450,
         acRate: "50%",
         visible: true,
+         access:false,
         contest: "None",
         tags: ["Tree"],
       },
@@ -266,6 +271,7 @@ export default function GlobalProblemListPage() {
             <TableColumn>SOURCE</TableColumn>
             <TableColumn>AC RATE</TableColumn>
             <TableColumn>VISIBLE</TableColumn>
+            <TableColumn>ACCESS</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
           <TableBody>
@@ -342,6 +348,12 @@ export default function GlobalProblemListPage() {
                     }}
                   />
                 </TableCell>
+               <TableCell>
+  <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">
+    {p.access ? "PUBLIC" : "PRIVATE"}
+  </span>
+</TableCell>
+
                 <TableCell>
                   <div className="flex justify-end gap-2">
                     {/* NÚT ARCHIVE  */}

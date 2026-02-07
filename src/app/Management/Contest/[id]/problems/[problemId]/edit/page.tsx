@@ -221,7 +221,7 @@ export default function ProblemEditForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-6">
             <Input
-              label="Time Limit (ms)"
+              label="Time Limit (mm)"
               type="number"
               defaultValue="1000"
               labelPlacement="outside"

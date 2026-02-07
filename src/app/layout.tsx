@@ -44,7 +44,7 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
         <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
           <NavbarProvider />
           {children}
-          <Toaster richColors position="top-right" />
+          <Toaster richColors position="bottom-right" />
           <FooterWrapper />
         </Providers>
         {/* <Footer /> */}

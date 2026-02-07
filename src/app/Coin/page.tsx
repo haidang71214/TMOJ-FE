@@ -34,6 +34,13 @@ import DepositModal from "../components/DeposiModal";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation"; // Import useSearchParams
 
+interface MissionItem {
+  id: number;
+  title: string;
+  reward: number;
+  exp: number;
+  icon?: string;
+}
 /* ===== MOCK DATA GIỮ NGUYÊN ===== */
 const WALLET_DATA = {
   coins: 12500,
@@ -131,6 +138,96 @@ const PURCHASE_HISTORY = [
     status: "Completed",
   },
 ];
+const MISSIONS = {
+  checkIn: [
+    {
+      id: 1,
+      title: "Daily Check-in",
+      reward: 1,
+      type: "Coin",
+      icon: "🔥",
+      exp: 5,
+    },
+    {
+      id: 2,
+      title: "30-day Streak Check-in",
+      reward: 30,
+      type: "Coin",
+      icon: "📅",
+      exp: 50,
+    },
+    {
+      id: 3,
+      title: "Complete Daily Challenge",
+      reward: 10,
+      type: "Coin",
+      icon: "🎯",
+      exp: 20,
+    },
+  ],
+  contribution: [
+    {
+      id: 4,
+      title: "Contribute a Testcase",
+      reward: 100,
+      type: "Coin",
+      icon: "🛠️",
+      exp: 150,
+    },
+    {
+      id: 5,
+      title: "Contribute a Question",
+      reward: 1000,
+      type: "Coin",
+      icon: "💡",
+      exp: 500,
+    },
+    {
+      id: 6,
+      title: "File Content Issue",
+      reward: 100,
+      type: "Coin",
+      icon: "🚩",
+      exp: 50,
+    },
+  ],
+  contest: [
+    {
+      id: 7,
+      title: "Join a Weekly Contest",
+      reward: 50,
+      type: "Coin",
+      icon: "🏆",
+      exp: 100,
+    },
+    {
+      id: 8,
+      title: "First Time Rank Top 10",
+      reward: 500,
+      type: "Coin",
+      icon: "🥇",
+      exp: 1000,
+    },
+  ],
+  profile: [
+    {
+      id: 9,
+      title: "Complete Profile Info",
+      reward: 50,
+      type: "Coin",
+      icon: "👤",
+      exp: 100,
+    },
+    {
+      id: 10,
+      title: "Verify Email Address",
+      reward: 20,
+      type: "Coin",
+      icon: "📧",
+      exp: 50,
+    },
+  ],
+};
 
 // Tạo một component con để sử dụng useSearchParams (vì Next.js yêu cầu bọc Suspense khi dùng hook này)
 function CoinShopContent() {
@@ -143,7 +240,38 @@ function CoinShopContent() {
   const rowsPerPage = 8;
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const MissionCard = ({ mission }: { mission: MissionItem }) => (
+    <Card className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all group">
+      <CardBody className="p-5 flex flex-row items-center gap-4">
+        <div className="flex flex-col items-center justify-center min-w-[60px]">
+          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-2xl mb-1 group-hover:scale-110 transition-transform">
+            <Coins className="text-[#FFB800]" size={24} />
+          </div>
+          <span className="text-[#FFB800] font-[1000] italic text-sm">
+            +{mission.reward}
+          </span>
+        </div>
 
+        <div className="flex-1 space-y-3">
+          <div>
+            <h4 className="font-black uppercase italic text-sm text-[#071739] dark:text-white leading-tight">
+              {mission.title}
+            </h4>
+            <p className="text-[9px] font-bold text-blue-500 uppercase mt-1">
+              +{mission.exp} EXP Points
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="bordered"
+            className="border-[#FF5C00] text-[#FF5C00] font-black uppercase italic text-[10px] h-8 w-full rounded-lg hover:bg-[#FF5C00] hover:text-white transition-all"
+          >
+            Go to mission
+          </Button>
+        </div>
+      </CardBody>
+    </Card>
+  );
   useEffect(() => {
     setMounted(true);
     // LOGIC QUAN TRỌNG: Kiểm tra tham số tab trên URL
@@ -374,7 +502,69 @@ function CoinShopContent() {
             </div>
           </div>
         </Tab>
+        {/* EARN COIN */}
+        <Tab
+          key="earn"
+          title={
+            <div className="flex items-center gap-2">
+              <PlusCircle size={18} />
+              <span>Earn Coin</span>
+            </div>
+          }
+        >
+          <div className="mt-8 space-y-12 pb-12">
+            {/* Hàm render helper để code gọn hơn */}
+            {Object.entries(MISSIONS).map(([key, items]) => {
+              // Logic đặt tên tiêu đề dựa trên key
+              const titles: Record<
+                string,
+                { main: string; sub: string; color: string }
+              > = {
+                checkIn: {
+                  main: "Check-in",
+                  sub: "Missions",
+                  color: "text-[#FF5C00]",
+                },
+                contest: {
+                  main: "Contest",
+                  sub: "Challenges",
+                  color: "text-purple-500",
+                },
+                contribution: {
+                  main: "Contribution",
+                  sub: "Tasks",
+                  color: "text-blue-500",
+                },
+                profile: {
+                  main: "Profile",
+                  sub: "Completion",
+                  color: "text-emerald-500",
+                },
+              };
 
+              return (
+                <section key={key} className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-xl font-[1000] italic uppercase tracking-tighter text-slate-400 whitespace-nowrap">
+                      {titles[key].main}{" "}
+                      <span className={titles[key].color}>
+                        {titles[key].sub}
+                      </span>
+                    </h3>
+                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/5" />
+                  </div>
+
+                  {/* Grid đều 3 cột cho mọi loại nhiệm vụ */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {items.map((m) => (
+                      <MissionCard key={m.id} mission={m} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </Tab>
         {/* REWARDS LOG */}
         <Tab
           key="earnings"

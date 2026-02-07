@@ -44,7 +44,7 @@ const SUBJECTS = [
 const TEACHERS_DATA = [
   {
     id: "HOAINTT",
-    name: "Nguyen Thi Thanh Hoai",
+    name: "Nguyen Thi Thuy Hoai",
     dept: "Software Engineering",
     avatar: "https://i.pravatar.cc/150?u=hoai",
   },

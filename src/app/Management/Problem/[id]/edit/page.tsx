@@ -198,7 +198,7 @@ export default function GlobalProblemEditPage({
         {/* LIMITS & DIFFICULTY */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 items-end">
           <Input
-            label="Time Limit (ms)"
+            label="Time Limit (mm)"
             type="number"
             defaultValue="1000"
             labelPlacement="outside"

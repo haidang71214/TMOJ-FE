@@ -341,14 +341,14 @@ export default function UpcomingContests() {
               <input
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="INVITE CODE"
+                placeholder="ENTER INVITE CODE"
                 className="w-full rounded-2xl bg-white/30 border-none px-4 py-3 text-xs font-black uppercase italic placeholder:text-[#071739]/50 outline-none focus:bg-white transition-all text-center"
               />
               <Button
                 fullWidth
                 className="bg-[#071739] dark:bg-[#071739] text-white font-black rounded-2xl uppercase italic transition-all duration-300 hover:bg-[#00FF41] hover:text-[#071739] dark:hover:bg-[#00FF41] dark:hover:text-[#071739]"
               >
-                Enter
+                Join
               </Button>
             </CardBody>
           </Card>

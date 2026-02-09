@@ -13,53 +13,72 @@ import {
   Checkbox,
   Chip,
 } from "@heroui/react";
-import { Search, Database, X, ExternalLink } from "lucide-react";
+import { Search, Trophy, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// Định nghĩa interface cho dữ liệu tĩnh
-interface ProblemBankItem {
+// Định nghĩa interface cho dữ liệu Contest
+interface ContestBankItem {
   id: string;
   title: string;
-  difficulty: string;
+  status: string;
+  type: string;
 }
 
-const PROBLEM_BANK_DATA: ProblemBankItem[] = [
-  { id: "601", title: "Reverse Integer", difficulty: "Easy" },
-  { id: "602", title: "String to Integer", difficulty: "Medium" },
-  { id: "603", title: "Container With Most Water", difficulty: "Hard" },
-  { id: "604", title: "Integer to Roman", difficulty: "Medium" },
-  { id: "605", title: "Roman to Integer", difficulty: "Easy" },
-  { id: "606", title: "3Sum Closest", difficulty: "Medium" },
+const CONTEST_BANK_DATA: ContestBankItem[] = [
+  {
+    id: "101",
+    title: "FPTU Coding Master Spring 2026",
+    status: "Upcoming",
+    type: "Full Contest",
+  },
+  {
+    id: "102",
+    title: "Weekly Challenge #42: DP",
+    status: "Ended",
+    type: "Practice",
+  },
+  {
+    id: "103",
+    title: "Algorithm Masters Cup",
+    status: "Running",
+    type: "Tournament",
+  },
+  { id: "104", title: "Logic Sprint 2025", status: "Ended", type: "Practice" },
+  {
+    id: "105",
+    title: "Cyber Security Hackathon",
+    status: "Upcoming",
+    type: "Tournament",
+  },
 ];
 
-interface AddProblemModalProps {
+interface AddContestModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  onConfirm: (selectedProblems: ProblemBankItem[]) => void;
+  onConfirm: (selectedContests: ContestBankItem[]) => void;
 }
 
-export const AddProblemModal = ({
+export const AddContestModal = ({
   isOpen,
   onOpenChange,
   onConfirm,
-}: AddProblemModalProps) => {
+}: AddContestModalProps) => {
   const router = useRouter();
   const [searchBank, setSearchBank] = useState("");
-  const [filterDifficulty, setFilterDifficulty] = useState("all");
+  const [filterType, setFilterType] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredBank = useMemo(() => {
-    return PROBLEM_BANK_DATA.filter((p) => {
-      const matchSearch = p.title
+    return CONTEST_BANK_DATA.filter((c) => {
+      const matchSearch = c.title
         .toLowerCase()
         .includes(searchBank.toLowerCase());
-      const matchDifficulty =
-        filterDifficulty === "all" || p.difficulty === filterDifficulty;
-      return matchSearch && matchDifficulty;
+      const matchType = filterType === "all" || c.type === filterType;
+      return matchSearch && matchType;
     });
-  }, [searchBank, filterDifficulty]);
+  }, [searchBank, filterType]);
 
-  const handleSelectProblem = (id: string) => {
+  const handleSelectContest = (id: string) => {
     const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) newSelected.delete(id);
     else newSelected.add(id);
@@ -67,8 +86,7 @@ export const AddProblemModal = ({
   };
 
   const handleConfirm = (onClose: () => void) => {
-    // Lọc ra danh sách các đối tượng đã chọn thay vì dùng any
-    const selected = PROBLEM_BANK_DATA.filter((p) => selectedIds.has(p.id));
+    const selected = CONTEST_BANK_DATA.filter((c) => selectedIds.has(c.id));
     onConfirm(selected);
     setSelectedIds(new Set());
     onClose();
@@ -78,7 +96,7 @@ export const AddProblemModal = ({
     <Modal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="4xl"
+      size="5xl"
       scrollBehavior="inside"
       closeButton={
         <Button
@@ -97,24 +115,26 @@ export const AddProblemModal = ({
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-4 border-b border-slate-100 dark:border-white/5 py-6 px-10">
+              {/* HÀNG 1: TIÊU ĐỀ */}
               <div className="flex items-center gap-3">
-                <Database size={24} className="text-[#FF5C00]" />
+                <Trophy size={24} className="text-[#FF5C00]" />
                 <h2 className="text-2xl font-black uppercase italic tracking-tighter text-[#071739] dark:text-white leading-none">
-                  PROBLEM <span className="text-[#FF5C00]">BANK</span>
+                  CONTEST <span className="text-[#FF5C00]">BANK</span>
                 </h2>
               </div>
 
+              {/* HÀNG 2: MÔ TẢ VÀ NÚT BẤM */}
               <div className="flex items-center justify-between w-full pr-8">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-                  Select from your existing problems OR
+                  Select from existing contests OR
                 </p>
 
                 <Button
-                  onPress={() => router.push("/Management/Problem/create")}
+                  onPress={() => router.push("/Management/Contest/create")}
                   className="bg-blue-600/10 text-blue-600 dark:bg-[#FF5C00]/10 dark:text-[#FF5C00] font-black uppercase italic text-[10px] tracking-widest rounded-xl border border-blue-600/20 dark:border-[#FF5C00]/20 hover:scale-105 transition-all h-9 px-4"
                   endContent={<ExternalLink size={14} />}
                 >
-                  Create New Problem
+                  Create New Contest
                 </Button>
               </div>
             </ModalHeader>
@@ -122,7 +142,7 @@ export const AddProblemModal = ({
             <ModalBody className="p-8">
               <div className="flex gap-4 mb-6">
                 <Input
-                  placeholder="Search problem title..."
+                  placeholder="Search contest title..."
                   startContent={<Search size={18} className="text-slate-400" />}
                   value={searchBank}
                   onValueChange={setSearchBank}
@@ -133,65 +153,68 @@ export const AddProblemModal = ({
                   className="flex-1 font-bold"
                 />
                 <Select
-                  placeholder="Difficulty"
+                  placeholder="Contest Type"
                   className="w-48 font-bold"
-                  selectedKeys={[filterDifficulty]}
+                  selectedKeys={[filterType]}
                   onSelectionChange={(keys) =>
-                    setFilterDifficulty(Array.from(keys)[0] as string)
+                    setFilterType(Array.from(keys)[0] as string)
                   }
                   classNames={{
                     trigger: "rounded-2xl bg-slate-50 dark:bg-black/20 h-12",
                   }}
                 >
                   <SelectItem key="all" className="font-bold">
-                    All Levels
+                    All Types
                   </SelectItem>
-                  <SelectItem key="Easy" className="font-bold text-success">
-                    Easy
+                  <SelectItem key="Full Contest" className="font-bold">
+                    Full Contest
                   </SelectItem>
-                  <SelectItem key="Medium" className="font-bold text-warning">
-                    Medium
+                  <SelectItem key="Practice" className="font-bold">
+                    Practice
                   </SelectItem>
-                  <SelectItem key="Hard" className="font-bold text-danger">
-                    Hard
+                  <SelectItem key="Tournament" className="font-bold">
+                    Tournament
                   </SelectItem>
                 </Select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredBank.map((libProb) => (
+                {filteredBank.map((contest) => (
                   <div
-                    key={libProb.id}
-                    onClick={() => handleSelectProblem(libProb.id)}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${
-                      selectedIds.has(libProb.id)
-                        ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
+                    key={contest.id}
+                    onClick={() => handleSelectContest(contest.id)}
+                    className={`flex items-center justify-between p-5 rounded-2xl border transition-all cursor-pointer group ${
+                      selectedIds.has(contest.id)
+                        ? "border-blue-600 bg-blue-50/50 dark:border-[#FF5C00] dark:bg-[#FF5C00]/10"
                         : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
                     }`}
                   >
                     <div className="flex items-center gap-4">
                       <Checkbox
-                        isSelected={selectedIds.has(libProb.id)}
-                        color="primary"
+                        isSelected={selectedIds.has(contest.id)}
+                        color="warning"
                         classNames={{
-                          wrapper:
-                            "rounded-md after:bg-blue-600 dark:after:bg-[#22C55E]",
+                          wrapper: "rounded-md after:bg-[#FF5C00]",
                         }}
-                        onChange={() => handleSelectProblem(libProb.id)}
+                        onChange={() => handleSelectContest(contest.id)}
                       />
                       <div>
                         <p
                           className={`font-black uppercase italic transition-colors ${
-                            selectedIds.has(libProb.id)
-                              ? "text-blue-600 dark:text-[#22C55E]"
-                              : ""
+                            selectedIds.has(contest.id) ? "text-[#FF5C00]" : ""
                           }`}
                         >
-                          {libProb.title}
+                          {contest.title}
                         </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                          ID: #{libProb.id}
-                        </p>
+                        <div className="flex gap-2 items-center mt-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase italic">
+                            ID: #{contest.id}
+                          </span>
+                          <span className="text-slate-300">|</span>
+                          <span className="text-[9px] font-bold text-[#FF5C00] uppercase italic">
+                            {contest.status}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <Chip
@@ -199,7 +222,7 @@ export const AddProblemModal = ({
                       variant="flat"
                       className="font-black uppercase text-[9px]"
                     >
-                      {libProb.difficulty}
+                      {contest.type}
                     </Chip>
                   </div>
                 ))}
@@ -209,7 +232,7 @@ export const AddProblemModal = ({
             <ModalFooter className="border-t border-slate-100 dark:border-white/5 p-8">
               <div className="mr-auto">
                 <span className="text-xs font-black uppercase text-slate-400 italic">
-                  Selected: {selectedIds.size} Problems
+                  Selected: {selectedIds.size} Contests
                 </span>
               </div>
               <Button
@@ -220,7 +243,7 @@ export const AddProblemModal = ({
                 Cancel
               </Button>
               <Button
-                className="bg-blue-600 dark:bg-[#22C55E] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
+                className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
                 onPress={() => handleConfirm(onClose)}
                 isDisabled={selectedIds.size === 0}
               >

@@ -9,4 +9,5 @@ export interface SolutionData {
   comments: number;
   date: string;
   isEditorial?: boolean;
+  content?: string;
 }

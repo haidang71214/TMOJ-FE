@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react"; // Thêm useMemo
 import {
   Button,
   Input,
@@ -48,6 +48,18 @@ const MOCK_SOLUTIONS: SolutionData[] = [
     comments: 267,
     date: "1 week ago",
   },
+  // THÊM DỮ LIỆU MẪU CHO MY SOLUTION
+  {
+    id: 4,
+    author: "Rim (Me)", // Giả định đây là tên của bạn
+    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+    title: "My Optimized O(n) Approach with HashMap",
+    tags: ["Hash Table", "Python3", "My Solution"], // Có tag này để lọc
+    upvotes: 45,
+    views: "1.2K",
+    comments: 4,
+    date: "Just now",
+  },
 ];
 
 export const SolutionsTab = () => {
@@ -55,6 +67,31 @@ export const SolutionsTab = () => {
     null
   );
   const [sortBy, setSortBy] = useState("Hot");
+
+  // 1. Thêm State để theo dõi Tag đang chọn
+  const [selectedTag, setSelectedTag] = useState("All");
+
+  const tags = [
+    "All",
+    "My Solution",
+    "C++",
+    "Java",
+    "Python3",
+    "Array",
+    "Hash Table",
+  ];
+
+  // 2. Logic Filter dữ liệu
+  const filteredSolutions = useMemo(() => {
+    if (selectedTag === "All") return MOCK_SOLUTIONS;
+
+    // Nếu chọn "My Solution", tìm trong tags bài nào có tag đó hoặc check theo author
+    return MOCK_SOLUTIONS.filter(
+      (sol) =>
+        sol.tags.includes(selectedTag) ||
+        (selectedTag === "My Solution" && sol.author.includes("(Me)"))
+    );
+  }, [selectedTag]);
 
   if (selectedSolution) {
     return (
@@ -117,23 +154,17 @@ export const SolutionsTab = () => {
           </div>
         </div>
 
-        {/* 2. Tags Bar */}
+        {/* 2. Tags Bar - CẬP NHẬT ONCLICK */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {[
-            "All",
-            "My Solution",
-            "C++",
-            "Java",
-            "Python3",
-            "Array",
-            "Hash Table",
-          ].map((tag) => (
+          {tags.map((tag) => (
             <Button
               key={tag}
               size="sm"
               variant="flat"
+              // Cập nhật selectedTag khi nhấn
+              onClick={() => setSelectedTag(tag)}
               className={`rounded-full min-w-fit h-7 px-4 text-[11px] font-black transition-all ${
-                tag === "All"
+                selectedTag === tag // So sánh với state đang chọn
                   ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828]"
                   : "bg-gray-100 dark:bg-[#101828] text-gray-600 dark:text-[#94A3B8] hover:dark:bg-[#162130]"
               }`}
@@ -157,15 +188,21 @@ export const SolutionsTab = () => {
         </Button>
       </div>
 
-      {/* 4. Solutions List */}
+      {/* 4. Solutions List - SỬ DỤNG DỮ LIỆU ĐÃ FILTER */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        {MOCK_SOLUTIONS.map((sol) => (
-          <SolutionItem
-            key={sol.id}
-            solution={sol}
-            onClick={setSelectedSolution}
-          />
-        ))}
+        {filteredSolutions.length > 0 ? (
+          filteredSolutions.map((sol) => (
+            <SolutionItem
+              key={sol.id}
+              solution={sol}
+              onClick={setSelectedSolution}
+            />
+          ))
+        ) : (
+          <div className="p-10 text-center text-gray-400 text-sm italic font-bold">
+            No solutions found for &quot;{selectedTag}&quot;{" "}
+          </div>
+        )}
       </div>
     </div>
   );

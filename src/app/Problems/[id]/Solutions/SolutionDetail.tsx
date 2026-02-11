@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { ChevronLeft, Share2, Star, MoreHorizontal } from "lucide-react";
 import { SolutionData } from "./types";
@@ -7,13 +7,31 @@ import { VideoSolution } from "../Editorial/VideoSolution";
 import { SolutionArticle } from "../Editorial/SolutionArticle";
 import { EditorialDiscussion } from "../Editorial/EditorialDiscussion";
 import { EditorialActionBar } from "../Editorial/EditorialActionBar";
+import { PostSolution } from "./PostSolution";
 interface Props {
   solution: SolutionData;
   onBack: () => void;
 }
 
 export const SolutionDetail = ({ solution, onBack }: Props) => {
+  const [isEditing, setIsEditing] = useState(false);
   const commentRef = useRef<HTMLDivElement>(null);
+
+  if (isEditing) {
+    return (
+      <PostSolution
+        isEdit={true}
+        initialTitle={solution.title}
+        initialContent={solution.content}
+        onClose={() => setIsEditing(false)}
+        onSave={(data) => {
+          console.log("Dữ liệu mới sau khi sửa:", data);
+          setIsEditing(false);
+          // Ở đây Rim có thể gọi API cập nhật lại danh sách bài nộp
+        }}
+      />
+    );
+  }
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[#1C2737] animate-in fade-in slide-in-from-right-2 duration-300 font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-500">
       {/* 1. Header Navigation: Sticky & Glassmorphism nhẹ */}
@@ -82,6 +100,8 @@ export const SolutionDetail = ({ solution, onBack }: Props) => {
         initialUpvotes={4900}
         initialComments="2.7K"
         commentSectionRef={commentRef}
+        isMine={solution.author.includes("(Me)")}
+        onEdit={() => setIsEditing(true)}
       />
     </div>
   );

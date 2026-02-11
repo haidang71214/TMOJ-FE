@@ -18,7 +18,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { PostSolution } from "../PostSolution";
+import { PostSolution } from "../Solutions/PostSolution";
 // Data giả lập cho Runtime và Memory
 const RUNTIME_DATA = Array.from({ length: 40 }, (_, i) => ({
   name: `${i * 2}ms`,

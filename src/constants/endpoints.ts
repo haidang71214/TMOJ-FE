@@ -5,7 +5,9 @@ const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
   REGISTER:`${API_PREFIX}/auth/register`,
-  LOGOUT:`${API_PREFIX}/Auth/logout`
+  LOGOUT:`${API_PREFIX}/Auth/logout`,
+  FORGOT_PASSWORD:`${API_PREFIX}/Auth/forgot-password`,
+  RESET_PASSWORD:`${API_PREFIX}/Auth/reset-password`
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,

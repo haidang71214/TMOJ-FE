@@ -48,7 +48,14 @@ export interface RegisterResponseDto {
   email: string,
   password: string
 }
-
+export interface sendEmailForgotPassword{
+  email:string,
+}
+export interface resetPasswordInformation{
+  email: string,
+  token: string,
+  newPassword: string
+}
 export interface UserDto {
   id: string;
   name?: string | null;

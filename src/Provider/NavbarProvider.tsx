@@ -12,7 +12,6 @@ import {
   DropdownMenu,
   DropdownItem,
   Input,
-  addToast,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
 import ThemeToggle from "./ThemeToggle";
@@ -22,25 +21,15 @@ import RegisterModal from "@/app/Modal/RegisterModal";
 import LoginModal from "@/app/Modal/LoginModal";
 import { useModal } from "./ModalProvider";
 import NotificationInNavbar from "./Notification";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 
 export default function NavbarProvider() {
   const router = useRouter();
   const pathname = usePathname();
-  const [isUser, setIsUser] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsUser(localStorage.getItem("user") === "true");
-  }, []);
-
+ const { data: user } = useGetUserInformationQuery();
+  console.log(user);
+  
   const { openModal } = useModal();
-  const hihi = () => {
-    localStorage.setItem("user", "true");
-    addToast({
-      title: "Login Success",
-      color: "success",
-    });
-    router.refresh(); // re-render navbar
-  };
 
   const handleLink = (link: string) => router.push(link);
   const AcmeLogo = () => (
@@ -212,9 +201,9 @@ export default function NavbarProvider() {
           <ThemeToggle />
         </NavbarItem>
 
-        {isUser ? (
+        {user ? (
           <div className="flex">
-            <InformationInNavbar />
+           <InformationInNavbar  />
             <NotificationInNavbar />
           </div>
         ) : (
@@ -242,13 +231,7 @@ export default function NavbarProvider() {
                 className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
               >
                 Sign Up
-                <div
-                  onClick={() => {
-                    hihi();
-                  }}
-                >
-                  a
-                </div>
+                
               </Button>
             </NavbarItem>
           </div>

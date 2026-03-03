@@ -1,18 +1,19 @@
-import { useGoogleLoginMutation, useLoginMutation } from "@/store/queries/auth";
+import { useLoginMutation } from "@/store/queries/auth";
 import { addToast, Button, Checkbox, Divider, Input } from "@heroui/react";
-import { GoogleLogin } from "@react-oauth/google";
+// import { GoogleLogin } from "@react-oauth/google";
 import { ArrowRight, Mail, X } from "lucide-react";
 import { useState } from "react";
 import { useModal } from "../../Provider/ModalProvider";
 import PasswordInput from "../components/PasswordInput";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import RegisterModal from "./RegisterModal";
+import { ErrorForm } from "@/types";
 
 export default function LoginModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { isLoading }] = useLoginMutation();
-  const [googleLogin] = useGoogleLoginMutation();
+  // const [googleLogin] = useGoogleLoginMutation();
   const { closeModal, openModal } = useModal();
 
   const handleOpenForgotPass = ()=>{
@@ -23,13 +24,21 @@ export default function LoginModal() {
     e.preventDefault();
     try {
       const res = await login({ email, password }).unwrap();
-      if (res.result) {
+      if (res) {
+        console.log(res);
+        
         addToast({ title: "Welcome back!", color: "success" });
         closeModal();
       }
-    } catch {
-      addToast({ title: "Login Failed", color: "danger" });
-    }
+    }catch (err: unknown) {
+  const error = err as ErrorForm;
+      console.log(err);
+      
+  addToast({
+    title: error?.data?.data?.message ?? "Login failed!",
+    color: "danger",
+  });
+}
   };
 
   return (
@@ -112,7 +121,7 @@ export default function LoginModal() {
       <div className="flex flex-col gap-4 mt-2">
         <Divider className="dark:bg-[#474F5D] opacity-50" />
         <div className="flex flex-col items-center justify-center gap-3">
-            <div className="w-full relative">
+            {/* <div className="w-full relative">
               <div className="opacity-0 absolute inset-0 z-10 overflow-hidden pointer-events-auto">
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
@@ -164,7 +173,7 @@ export default function LoginModal() {
               >
                 Continue with Google
               </Button>
-            </div>
+            </div> */}
             
             <div className="w-full flex justify-center mt-1">
               <Button

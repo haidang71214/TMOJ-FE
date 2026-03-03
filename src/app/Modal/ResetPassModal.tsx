@@ -14,7 +14,7 @@ import { ArrowRight, X, Info, Check, AlertCircle } from "lucide-react"; // Xóa 
 import RegisterModal from "./RegisterModal";
 import PasswordInput from "../components/PasswordInput";
 
-export default function ResetPassModal({ token }: { token: string }) {
+export default function ResetPassModal() {
   const { closeModal, openModal } = useModal();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,7 +46,7 @@ export default function ResetPassModal({ token }: { token: string }) {
 
     setIsLoading(true);
     try {
-      console.log("Initiating password reset for token:", token);
+      console.log("Initiating password reset for token:", );
       await new Promise((resolve) => setTimeout(resolve, 1500));
       addToast({ title: "Password reset successfully!", color: "success" });
       closeModal();

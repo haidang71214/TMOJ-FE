@@ -7,20 +7,37 @@ import { useModal } from "../../Provider/ModalProvider";
 import { Mail, ArrowRight, X } from "lucide-react";
 import RegisterModal from "./RegisterModal";
 import ResetPassModal from "./ResetPassModal";
+import { useForgotpassMutation } from "@/store/queries/auth";
+import { ErrorForm } from "@/types";
 
 export default function ForgotPasswordModal() {
   const [email, setEmail] = useState("");
   const { closeModal, openModal } = useModal();
+  const [forgotpass] = useForgotpassMutation();
 
-  const handleSubmit = () => {
-    //  chỗ này nếu api trả lỗi thì báo không cho mở modal
+const handleSubmit = async (e:unknown) => {
+  e.preventDefault()
+  try {
+    const data = await forgotpass({ email }).unwrap(); // 👈 truyền payload
+    console.log(data);
+    
     addToast({
-      title: "Secret URL already send, please check your mail",
+      title: "Secret URL already sent, please check your mail",
       color: "success",
     });
-    // tạm để này ha
-    openModal({ content: <ResetPassModal token="aaaaa" /> });
-  };
+
+    openModal({
+      content: <ResetPassModal  />,
+    });
+  } catch (error: unknown) {
+  const err = error as ErrorForm;
+
+  addToast({
+    title: err?.data?.data?.message ?? "Failed to send reset email",
+    color: "danger",
+  });
+}
+};
 
   return (
     <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none">

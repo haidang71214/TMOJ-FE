@@ -1,4 +1,4 @@
-import { LoginRequest, LoginResponse, Logout, RegisterRequestDto, RegisterResponseDto } from "@/types";
+import { LoginRequest, LoginResponse, Logout, RegisterRequestDto, RegisterResponseDto, resetPasswordInformation, sendEmailForgotPassword } from "@/types";
 import { baseApi } from "../base";
 
 import { authEndpoint } from "@/constants/endpoints";
@@ -36,6 +36,20 @@ export const authApi = baseApi.injectEndpoints({
         body: params,
       }),
     }),
+    forgotpass: builder.mutation<{ result: void }, sendEmailForgotPassword>({
+      query: (params) => ({
+        url: authEndpoint.FORGOT_PASSWORD,
+        method: "POST",
+        body: params,
+      }),
+    }),
+    resetPassword: builder.mutation<{ result: void }, resetPasswordInformation>({
+      query: (params) => ({
+        url: authEndpoint.RESET_PASSWORD,
+        method: "POST",
+        body: params,
+      }),
+    }),
   }),
 });
 
@@ -44,5 +58,7 @@ export const {
   useLogoutMutation,
   useLoginMutation,
   useGoogleLoginMutation,
-  useRegisterMutation
+  useRegisterMutation,
+  useForgotpassMutation,
+  useResetPasswordMutation,
 } = authApi;

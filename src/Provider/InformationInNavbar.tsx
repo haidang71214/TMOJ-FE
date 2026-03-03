@@ -9,7 +9,6 @@ import {
   DropdownTrigger,
   User,
 } from "@heroui/react";
-import webStorageClient from "@/utils/webStorageClient";
 import { useRouter } from "next/navigation";
 import {
   List,
@@ -24,24 +23,30 @@ import {
   User2Icon,
 } from "lucide-react";
 import React from "react";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useLogoutMutation } from "@/store/queries/auth";
+import { useDispatch } from "react-redux";
+import { baseApi } from "@/store/base";
+import webStorageClient from "@/utils/webStorageClient";
 
 export default function InformationInNavbar() {
   const router = useRouter();
-  const handleLogout = () => {
-    webStorageClient.logout();
-    addToast({ title: "Logout successfull!", color: "success" });
-    router.push("/");
-    localStorage.removeItem("user");
-  };
-  React.useEffect(() => {}, [handleLogout]);
+    // 🔥 Lấy user trực tiếp từ RTK Query
+  const { data: user } = useGetUserInformationQuery();
   const handleLink = (link: string) => router.push(link);
-
-  // Giả sử bạn có dữ liệu user (tạm comment như code cũ)
-  // const { data: user } = useGetUserInformationQuery();
-  const user = {
-    name: "Đăng Hải",
-    imagesUrl: "https://i.pravatar.cc/150?u=haidang",
-  }; // demo
+  const [logout] = useLogoutMutation();
+  const dispatch = useDispatch();
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      dispatch(baseApi.util.resetApiState());
+      webStorageClient.logout();
+      addToast({ title: "Logout successful!", color: "success" });
+      router.push("/");
+    } catch  {
+      addToast({ title: "Logout failed!", color: "danger" });
+    }
+  };
 
   return (
     <NavbarItem>
@@ -55,14 +60,14 @@ export default function InformationInNavbar() {
               as="button"
               avatarProps={{
                 size: "sm",
-                src: user?.imagesUrl || "https://i.pravatar.cc/150?u=default",
+                src: user?.avatarUrl || "https://i.pravatar.cc/150?u=default",
                 className:
                   "border-2 border-white/80 dark:border-[#071739]/80 shadow-md",
               }}
               name=""
             />
             <span className="text-[11px] font-black tracking-tight text-[#071739] dark:text-[#FFB800]">
-              {user?.name || "Đăng Hải"}
+              {user?.firstName +" " + user?.lastName}
             </span>
           </div>
         </DropdownTrigger>
@@ -185,9 +190,11 @@ export default function InformationInNavbar() {
 
           <DropdownItem
             key="logout"
-            color="danger"
-            startContent={<LogOut size={18} />}
-            className="text-danger font-black data-[hover=true]:bg-danger/10 rounded-xl mt-2 border-t border-[#A4B5C4]/30 dark:border-[#344054]/70 pt-3"
+
+            startContent={<LogOut
+              className="text-danger"
+              size={18} />}
+            className="text-danger"
             onClick={handleLogout}
           >
             Sign Out

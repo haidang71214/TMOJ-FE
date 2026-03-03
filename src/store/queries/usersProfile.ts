@@ -10,9 +10,12 @@ export const userApi = baseApi.injectEndpoints({
         url: userProfileEndpoint.GET_PROFILE,
         method: "GET",
       }),
-      transformResponse: (response: { result: Users }) => response.result,
+      transformResponse: (response: { data: Users }) => {
+        console.log(`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${JSON.stringify(response)}`);
+        return response.data;
+      },
+      
       providesTags: ["User"], 
-      // vai trò của provided tag là cập nhật đồng bộ khi có 1 mutation xảy ra
     }),
 
     updateUserProfile: builder.mutation<void, UpdateUserDto>({

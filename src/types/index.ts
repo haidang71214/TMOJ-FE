@@ -9,42 +9,44 @@ export type LoginRequest = {
   password: string;
 };
 // đã nhét user vào đây
-export type LoginResponse = {
-  token: string;
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
   user: Users;
-};
-
+}
+export interface Logout {
+  message:string
+}
 export enum RoleEnums {
   CLIENT = 0,
   ADMIN = 1,
 }
 
 export interface Users {
-  id: string;
-  name?: string | null;
-  password?: string | null;
-  age: number;
-  imagesUrl?: string | null;
+  userId: string;
   email: string;
-  role: RoleEnums;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  username: string;
+  avatarUrl: string | null;
+  roles: string[];
 }
 
 export interface RegisterRequestDto {
-  name?: string | null;
-  password?: string | null;
-  age: number;
-  imagesUrl?: string | null;
-  email?: string | null;
+    firstName: string ,
+  lastName: string,
+  email: string,
+  password: string
 }
 
 export interface RegisterResponseDto {
-  id: number;
-  name?: string | null;
-  password?: string | null;
-  age: number;
-  imagesUrl?: string | null;
-  email?: string | null;
-  role: RoleEnums;
+    firstName: string ,
+  lastName: string,
+  email: string,
+  password: string
 }
 
 export interface UserDto {
@@ -163,4 +165,14 @@ export interface Problem {
   // thêm field khác nếu cần, ví dụ:
   // acceptance?: string;
   // tags?: string[];
+}
+export interface ErrorForm{
+  data: Data;
+}
+export interface Data{
+  data :MessageError;
+}
+
+export interface MessageError{
+  message:string;
 }

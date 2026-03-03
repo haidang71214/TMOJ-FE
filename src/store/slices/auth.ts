@@ -37,11 +37,11 @@ export const authSlice = createSlice({
     builder.addMatcher(
       authApi.endpoints.login.matchFulfilled,
       (state, action) => {
-        const user = action.payload?.result.user;
-        const token = action.payload?.result.token;
+        const user = action.payload?.data.user;
+const token = action.payload?.data.accessToken;
 
         webStorageClient.setToken(token);
-        webStorageClient.setUser(user);
+        webStorageClient.setUser(user); // set user cho localstorage
 
         state.user = user;
         state.isAuthenticatedAccount = true;

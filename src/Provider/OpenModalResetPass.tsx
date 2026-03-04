@@ -17,7 +17,7 @@ export default function AutoOpenResetPassModal() {
       openedRef.current = true;
 
       openModal({
-        content: <ResetPassModal token={token} />,
+        content: <ResetPassModal />,
       });
     }
   }, [searchParams, openModal]);

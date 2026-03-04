@@ -7,16 +7,20 @@ import {
 import webStorageClient from "@/utils/webStorageClient";
 import { BASE_URLS } from "@/constants";
 
-const rawBaseQuery = fetchBaseQuery({
+
+export const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URLS,
-  prepareHeaders: (headers) => {
+
+  prepareHeaders: (headers, { endpoint }) => {
     const token = webStorageClient.getToken();
-    console.log(token);
-    
-    if (token != undefined) {
-      headers.append("Authorization", `Bearer ${token}`);
+
+    // ❗ Không attach token cho login & refresh
+    const authEndpoints = ["login", "refreshToken"];
+
+    if (token && !authEndpoints.includes(endpoint)) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
-    console.log(headers.get("Authorization"));
+
     return headers;
   },
 });

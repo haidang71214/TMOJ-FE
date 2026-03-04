@@ -15,7 +15,7 @@ export default function ForgotPasswordModal() {
   const { closeModal, openModal } = useModal();
   const [forgotpass] = useForgotpassMutation();
 
-const handleSubmit = async (e:unknown) => {
+const handleSubmit = async (e:any) => {
   e.preventDefault()
   try {
     const data = await forgotpass({ email }).unwrap(); // 👈 truyền payload
@@ -91,8 +91,17 @@ const handleSubmit = async (e:unknown) => {
         >
           Reset Password
         </Button>
+       
       </form>
-
+      <div><p 
+  onClick={() =>
+    openModal({
+      content: <ResetPassModal />,
+    })
+  } className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
+      click here if you already send reset email 
+        </p></div>
+ 
       {/* Social Login */}
       <div className="flex flex-col gap-4 mt-2">
         <Divider className="dark:bg-[#474F5D] opacity-50" />

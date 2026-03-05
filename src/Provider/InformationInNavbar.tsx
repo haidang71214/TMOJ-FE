@@ -71,7 +71,7 @@ export default function InformationInNavbar() {
             </span>
           </div>
         </DropdownTrigger>
-
+     
         <DropdownMenu
           aria-label="User Menu"
           className="dark:text-[#F9FAFB] text-[#071739] py-2"
@@ -79,6 +79,17 @@ export default function InformationInNavbar() {
             base: "gap-3 rounded-xl data-[hover=true]:bg-[#A68868]/10 dark:data-[hover=true]:bg-[#FFB800]/15 transition-colors",
           }}
         >
+          {
+  user?.roles?.includes("admin") ? (
+    <DropdownItem
+      key="admin"
+      startContent={<Sparkles size={18} />}
+      onClick={() => router.push(`http://admin.lvh.me:3000/?token=${webStorageClient.getToken()}`)}
+    >
+      Admin Panel
+    </DropdownItem>
+  ) : null
+}
           <DropdownItem
             key="mylists"
             startContent={

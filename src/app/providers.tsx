@@ -15,6 +15,7 @@ import AuthProvider from "@/Provider/AuthProvider";
 import AutoOpenResetPassModal from "@/Provider/OpenModalResetPass";
 import { store } from "@/store";
 import { ModalProvider } from "../Provider/ModalProvider";
+import RedirectProvider from "@/Provider/RedirectProvider";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -32,8 +33,8 @@ export function Providers({ children, themeProps }:  Readonly<ProvidersProps>) {
   return (
   <Provider store={store}>
   <NextThemesProvider {...themeProps}>
-     
     <HeroUIProvider>
+      <RedirectProvider>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
         <ModalProvider>
                 <Suspense fallback={null}>
@@ -44,6 +45,7 @@ export function Providers({ children, themeProps }:  Readonly<ProvidersProps>) {
           </AuthProvider>
         </ModalProvider>
       </GoogleOAuthProvider>
+      </RedirectProvider>
       <ToastProvider placement="bottom-right" />
     </HeroUIProvider>
   </NextThemesProvider>

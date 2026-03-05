@@ -17,6 +17,13 @@ export const userApi = baseApi.injectEndpoints({
       
       providesTags: ["User"], 
     }),
+    getUserManual: builder.mutation<Users,string>({
+      query: (token:string) => ({
+        url:userProfileEndpoint.GET_PROFILE,
+        method: "GET",
+        headers: {"Authorization": token}
+      })
+    }),
 
     updateUserProfile: builder.mutation<void, UpdateUserDto>({
       query: (body) => ({
@@ -32,5 +39,6 @@ export const userApi = baseApi.injectEndpoints({
 
 export const {
   useUpdateUserProfileMutation,
-  useGetUserInformationQuery
+  useGetUserInformationQuery,
+  useGetUserManualMutation
 } = userApi;

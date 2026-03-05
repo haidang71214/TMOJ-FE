@@ -1,0 +1,48 @@
+import { ProblemEndPoint } from "@/constants/endpoints";
+import { baseApi } from "../base";
+import { CreateProblemDraftRequest, CreateProblemDraftResponse, ProblemListResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
+export const prolemApi = baseApi.injectEndpoints({
+  overrideExisting: true,
+  endpoints: (builder) => ({
+    getProblemListQuery: builder.query<ProblemListResponse, void>({
+  query: () => ({
+    url: ProblemEndPoint.GET_LIST_PROBLEM,
+    method: "GET",
+    
+  }),
+  providesTags: ["Problem"],
+}),
+
+createProblemDraft: builder.mutation<CreateProblemDraftResponse, CreateProblemDraftRequest>({
+  query: (body) => ({
+    url: `${ProblemEndPoint.CREATE_PROBLEM_DAFT}`,
+    method: "POST",
+    body,
+  }),
+  invalidatesTags: ["Problem"],
+}),
+// này để cấp phát bộ nhớ
+createTestSet: builder.mutation<ProblemTestsetResponse,{ id: string; body: ProblemTestsetCreate }>({
+  query: ({ id, body }) => ({
+    url: ProblemEndPoint.CREATE_TESTSET_PROBLEM.replace("{id}", id),
+    method: "POST",
+    body,
+  }),
+  invalidatesTags: ["Problem"],
+}),
+// này để lưu
+createTestCase: builder.mutation<CreateProblemDraftResponse, CreateProblemDraftRequest>({
+  query: (body) => ({
+    url: `${ProblemEndPoint.CREATE_PROBLEM_DAFT}`,
+    method: "POST",
+    body,
+  }),
+  invalidatesTags: ["Problem"],
+}),
+    }),
+  })
+export const {
+  useGetProblemListQueryQuery,
+  useCreateProblemDraftMutation,
+  useCreateTestSetMutation
+} = prolemApi;

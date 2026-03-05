@@ -1,7 +1,7 @@
 import { AdminUserEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import { Users } from "@/types";
-export const authApi = baseApi.injectEndpoints({
+export const userApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
      getUserList: builder.query<Users[], void>({
@@ -18,4 +18,4 @@ export const authApi = baseApi.injectEndpoints({
 
 export const {
   useGetUserListQuery,
-} = authApi;
+} = userApi;

@@ -64,14 +64,77 @@ export interface UserDto {
   age: number;
   role?: string | null;
 }
-
+export interface Problem {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  statusCode: "draft" | "published";
+  isActive: boolean;
+  acceptancePercent: number | null;
+  timeLimitMs: number;
+  memoryLimitKb: number;
+  createdAt: string;
+  publishedAt: string | null;
+}
+export interface ProblemListResponse {
+  data: Problem[];
+  message: string | null;
+  traceId: string;
+}
+export interface CreateProblemDraftRequest {
+  slug: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  typeCode: "algorithm" | "frontend" | "sql" /* thêm nếu có */;
+  visibilityCode: "public" | "private";
+  scoringCode: "acm" | "partial" | "oi" /* tùy hệ thống */;
+  descriptionMd: string;
+  displayIndex?: number;
+  timeLimitMs: number;
+  memoryLimitKb: number;
+  createdBy: string; // UUID của user
+}
+export interface ProblemDraft {
+  id: string;                    // UUID dạng string
+  slug: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";  // hoặc string nếu API linh hoạt hơn
+  statusCode: "draft" | "published";       // dựa trên response & code trước
+  isActive: boolean;
+  acceptancePercent: number | null;
+  timeLimitMs: number;
+  memoryLimitKb: number;
+  createdAt: string;             // ISO datetime string
+  publishedAt: string | null;    // ISO hoặc null
+}
+export interface CreateProblemDraftResponse {
+  data: ProblemDraft;
+  message: string | null;
+  traceId: string;
+}
 export interface CreateUserDto {
   name?: string | null;
   password?: string | null;
   imagesUrl?: string | null;
   age: number;
 }
-
+export interface ProblemTestsetResponse {
+  id: string;
+  problemId: string;
+  type: string;
+  isActive: boolean;
+  note?: string;
+  storageBlobId?: string;
+  expireAt?: string;
+  createdAt: string;
+}
+export interface ProblemTestsetCreate {
+  type: string;
+  note?: string;
+  createdBy?: string;
+  expireAt?: string;
+}
 export interface UpdateUserDto {
   name?: string | null;
   password?: string | null;

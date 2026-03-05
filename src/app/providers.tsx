@@ -29,27 +29,30 @@ declare module "@react-types/shared" {
     >;
   }
 }
-export function Providers({ children, themeProps }:  Readonly<ProvidersProps>) {
+export function Providers({ children, themeProps }: Readonly<ProvidersProps>) {
   return (
-  <Provider store={store}>
-  <NextThemesProvider {...themeProps}>
-    <HeroUIProvider>
-      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-        <ModalProvider>
-                <Suspense fallback={null}>
+    <Provider store={store}>
+      <NextThemesProvider {...themeProps}>
+        <HeroUIProvider>
+          <GoogleOAuthProvider
+            clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+          >
+            <ModalProvider>
+              <Suspense fallback={null}>
                 <AutoOpenResetPassModal />
-              </Suspense>
-      <RedirectProvider>
-          <AuthProvider>
-          {children}
-          </AuthProvider>
-      </RedirectProvider>
-        </ModalProvider>
-      </GoogleOAuthProvider>
-      <ToastProvider placement="bottom-right" />
-    </HeroUIProvider>
-  </NextThemesProvider>
-</Provider>
 
+                <RedirectProvider>
+                  <AuthProvider>
+                    {children}
+                  </AuthProvider>
+                </RedirectProvider>
+              </Suspense>
+            </ModalProvider>
+
+            <ToastProvider placement="bottom-right" />
+          </GoogleOAuthProvider>
+        </HeroUIProvider>
+      </NextThemesProvider>
+    </Provider>
   );
 }

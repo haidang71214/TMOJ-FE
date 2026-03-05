@@ -36,17 +36,29 @@ export default function InformationInNavbar() {
   const handleLink = (link: string) => router.push(link);
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-      dispatch(baseApi.util.resetApiState());
-      webStorageClient.logout();
-      addToast({ title: "Logout successful!", color: "success" });
+ const handleLogout = async () => {
+  try {
+    const host = window.location.host;
+    const is_admin = host.startsWith("admin.");
+
+    await logout().unwrap();
+
+    dispatch(baseApi.util.resetApiState());
+    webStorageClient.logout();
+
+    addToast({ title: "Logout successful!", color: "success" });
+
+    if (is_admin) {
+      // nếu đang ở admin subdomain → chuyển về domain chính
+      window.location.href = "http://lvh.me:3000"; 
+    } else {
       router.push("/");
-    } catch  {
-      addToast({ title: "Logout failed!", color: "danger" });
     }
-  };
+
+  } catch {
+    addToast({ title: "Logout failed!", color: "danger" });
+  }
+};
 
   return (
     <NavbarItem>
@@ -71,7 +83,7 @@ export default function InformationInNavbar() {
             </span>
           </div>
         </DropdownTrigger>
-
+     
         <DropdownMenu
           aria-label="User Menu"
           className="dark:text-[#F9FAFB] text-[#071739] py-2"
@@ -79,6 +91,17 @@ export default function InformationInNavbar() {
             base: "gap-3 rounded-xl data-[hover=true]:bg-[#A68868]/10 dark:data-[hover=true]:bg-[#FFB800]/15 transition-colors",
           }}
         >
+          {
+  user?.roles?.includes("admin") ? (
+    <DropdownItem
+      key="admin"
+      startContent={<Sparkles size={18} />}
+      onClick={() => router.push(`http://admin.lvh.me:3000/?token=${webStorageClient.getToken()}`)}
+    >
+      Admin Panel
+    </DropdownItem>
+  ) : null
+}
           <DropdownItem
             key="mylists"
             startContent={

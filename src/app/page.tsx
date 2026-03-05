@@ -99,7 +99,7 @@ export default function Home() {
     },
   ];
 
-  if (!mounted) return null;
+  if (!mounted) return <></>;
 
   return (
     <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex transition-colors duration-500">

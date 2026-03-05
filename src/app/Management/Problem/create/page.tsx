@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   Input,
@@ -11,285 +12,434 @@ import {
   Radio,
   Divider,
   Chip,
-  useDisclosure,
 } from "@heroui/react";
-import {
-  Save,
-  X,
-  FileCode,
-  ChevronLeft,
-} from "lucide-react";
 
+import { Save, X, ChevronLeft, ChevronRight, CheckCircle, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
+
 import { CreateProblemDraftRequest } from "@/types";
-import TestcaseGuideModal from "./../../../components/TestcaseGuideModal";
-import { useCreateProblemDraftMutation } from "@/store/queries/problem";
+import {
+  useCreateProblemDraftMutation,
+  useCreateTestCaseMutation,
+  useCreateTestSetMutation,
+} from "@/store/queries/problem";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+
+const STEPS = [
+  { label: "Problem Info", description: "Basic info & limits" },
+  { label: "TestSet", description: "Configure test data set" },
+  { label: "TestCases", description: "Upload zip file with test cases" },
+];
 
 export default function CreateProblemPage() {
   const router = useRouter();
-  const [createProblemDraft] = useCreateProblemDraftMutation();
-  const { data: userData, isLoading: isUserLoading } =useGetUserInformationQuery();
+
+  const [step, setStep] = React.useState(0);
+  const [createdProblemId, setCreatedProblemId] = React.useState<string | null>(null);
+  const [createdTestSetId, setCreatedTestSetId] = React.useState<string | null>(null);
+
+  const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
+  const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
+  const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
+  const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
+
+  // ── STEP 1: Problem form ──────────────────────────────────────────────────
   const [form, setForm] = React.useState<CreateProblemDraftRequest>({
-  slug: "",
-  title: "",
-  difficulty: "medium",
-  typeCode: "algorithm",
-  visibilityCode: "public",
-  scoringCode: "acm",
-  descriptionMd: "",
-  displayIndex: 1,
-  timeLimitMs: 1000,
-  memoryLimitKb: 262144,
-  createdBy: "",
-});
-const handlePublish = async () => {
-  if (!userData?.userId) {
-    alert("User not loaded yet");
-    return;
-  }
+    slug: "",
+    title: "",
+    difficulty: "medium",
+    typeCode: "algorithm",
+    visibilityCode: "public",
+    scoringCode: "acm",
+    descriptionMd: "",
+    displayIndex: 1,
+    timeLimitMs: 1000,
+    memoryLimitKb: 262144,
+    createdBy: "",
+  });
 
-  if (!form.slug || !form.title) {
-    alert("Slug and Title are required");
-    return;
-  }
+  // ── STEP 2: TestSet form ──────────────────────────────────────────────────
+  const [testset, setTestset] = React.useState({
+    type: "public",
+    note: "",
+  });
 
-  try {
-    const data = await createProblemDraft({
-      ...form,
-      createdBy: userData.userId,
-    }).unwrap();
+  // ── STEP 3: TestCase files ────────────────────────────────────────────────
+  const [zipFile, setZipFile] = React.useState<File | null>(null);
+  const [uploadedCases, setUploadedCases] = React.useState<{ name: string; total: number }[]>([]);
+  const zipRef = React.useRef<HTMLInputElement>(null);
 
-    console.log(data);
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
-    // redirect sang trang tạo testset
-    router.push(`/Management/Problem/${data.data.id}/CreateTestSet`);
+  const handleStep1 = async () => {
+    if (!userData?.userId) { alert("User not loaded yet"); return; }
+    if (!form.slug || !form.title) { alert("Slug and Title are required"); return; }
 
-  } catch (error) {
-    console.error("Create problem failed:", error);
-    alert("Create failed");
-  }
-};
-  // Logic mở Modal
-  const { isOpen, onOpenChange } = useDisclosure();
+    try {
+      const problem = await createProblemDraft({
+        ...form,
+        createdBy: userData.userId,
+      }).unwrap();
+
+      setCreatedProblemId(problem.data.id);
+      setStep(1);
+    } catch (error) {
+      console.error("Create problem failed:", error);
+      alert("Create problem failed");
+    }
+  };
+
+  const handleStep2 = async () => {
+    if (!createdProblemId) return;
+    if (!testset.type) { alert("TestSet type is required"); return; }
+
+    try {
+      const ts = await createTestSet({
+        id: createdProblemId,
+        body: testset,
+      }).unwrap();
+
+      setCreatedTestSetId(ts?.id ?? null);
+      setStep(2);
+    } catch (error) {
+      console.error("Create testset failed:", error);
+      alert("Create testset failed");
+    }
+  };
+
+  const handleUploadTestCase = async () => {
+    if (!createdProblemId || !createdTestSetId) return;
+    if (!zipFile) { alert("Please select a zip file"); return; }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", zipFile);
+      formData.append("replaceExisting", "true");
+      formData.append("testsetId", createdTestSetId);
+
+      const res = await createTestCase({
+        id: createdProblemId,
+        body: formData,
+      }).unwrap();
+
+      setUploadedCases((prev) => [
+        ...prev,
+        { name: zipFile.name, total: res.data?.total ?? 0 },
+      ]);
+      setZipFile(null);
+      if (zipRef.current) zipRef.current.value = "";
+    } catch (error) {
+      console.error("Upload testcase failed:", error);
+      alert("Upload testcase failed");
+    }
+  };
+
+  const handleFinish = () => {
+    router.push(`/Management/Problem/${createdProblemId}`);
+  };
+
+  // ── UI helpers ────────────────────────────────────────────────────────────
+
+  const StepIndicator = () => (
+    <div className="flex items-center gap-0 mb-2">
+      {STEPS.map((s, i) => (
+        <React.Fragment key={i}>
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all
+                ${i < step ? "bg-[#22C55E] text-white" : i === step ? "bg-[#071739] text-white" : "bg-slate-100 dark:bg-white/10 text-slate-400"}`}
+            >
+              {i < step ? <CheckCircle size={14} /> : i + 1}
+            </div>
+            <div className="hidden sm:block">
+              <div className={`text-[10px] font-black uppercase tracking-widest ${i === step ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>
+                {s.label}
+              </div>
+              <div className="text-[9px] text-slate-400">{s.description}</div>
+            </div>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div className={`flex-1 h-px mx-4 ${i < step ? "bg-[#22C55E]" : "bg-slate-200 dark:bg-white/10"}`} />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
-      {/* HEADER SECTION */}
+
+      {/* HEADER */}
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
           onPress={() => router.back()}
-          className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
           startContent={<ChevronLeft size={16} />}
+          className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 text-[10px]"
         >
           Back to Repository
         </Button>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div className="space-y-2">
-            <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-              CREATE <span className="text-[#FF5C00]">PROBLEM DRAFT</span>
-            </h1>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] italic">
-              Define new algorithm challenge
-            </p>
-          </div>
+
+        <div className="space-y-2">
+          <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white">
+            CREATE <span className="text-[#FF5C00]">PROBLEM</span>
+          </h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">
+            Define algorithm challenge, testset and testcases
+          </p>
         </div>
+
+        <StepIndicator />
       </div>
 
-      <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
-        {/* ROW 1: TITLE */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <Input
-  label="Title"
-  placeholder="Problem Title"
-  variant="flat"
-  value={form.title}
-  onChange={(e) =>
-    setForm({ ...form, title: e.target.value })
-  }
-/>
-        </div>
-<Input
-  label="Slug"
-  placeholder="two-sum"
-  variant="flat"
-  value={form.slug}
-  onChange={(e) =>
-    setForm({ ...form, slug: e.target.value })
-  }
-/>
-        <Divider className="my-4 dark:bg-white/10" />
-        {/* DESCRIPTION */}
-        <Textarea
-  placeholder="Detailed problem statement..."
-  value={form.descriptionMd}
-  onChange={(e) =>
-    setForm({ ...form, descriptionMd: e.target.value })
-  }
-/>
+      {/* ── STEP 1: Problem Info ───────────────────────────────────────────── */}
+      {step === 0 && (
+        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-12">
 
-        {/* CODE TEMPLATE - DARK STUDIO */}
-        <div className="space-y-3 group">
-          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
-            Initial Code Template
-          </label>
-          <div className="rounded-[2rem] border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50 dark:bg-[#121212] shadow-sm dark:shadow-2xl transition-all">
-            <div className="bg-slate-100/50 dark:bg-white/5 p-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-6">
-              <div className="flex items-center gap-2">
-                <FileCode size={18} className="text-[#FF5C00]" />
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest italic">
-                  solution_template.cpp
-                </span>
-              </div>
-              <Chip
-                size="sm"
-                variant="flat"
-                className="bg-blue-500/10 dark:bg-emerald-500/10 text-blue-600 dark:text-emerald-400 font-bold text-[8px]"
-              >
-                SYNTAX HIGH LIGHTING
-              </Chip>
-            </div>
-            <Textarea
-              variant="flat"
-              placeholder="// Write template code here..."
-              minRows={10}
-              classNames={{
-                inputWrapper: "bg-transparent shadow-none p-6 font-mono",
-                input:
-                  "text-slate-700 dark:text-[#00FF41] font-medium selection:bg-blue-200 dark:selection:bg-emerald-500/30",
+          <Input
+            label="Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+
+          <Input
+            label="Slug"
+            value={form.slug}
+            onChange={(e) => setForm({ ...form, slug: e.target.value })}
+          />
+
+          <Divider />
+
+          <Textarea
+            label="Description (Markdown)"
+            value={form.descriptionMd}
+            onChange={(e) => setForm({ ...form, descriptionMd: e.target.value })}
+            minRows={4}
+          />
+
+          <div className="grid grid-cols-3 gap-6">
+            <Input
+              label="Time Limit (ms)"
+              type="number"
+              value={form.timeLimitMs.toString()}
+              onChange={(e) => setForm({ ...form, timeLimitMs: Number(e.target.value) })}
+            />
+
+            <Input
+              label="Memory Limit (MB)"
+              type="number"
+              value={(form.memoryLimitKb / 1024).toString()}
+              onChange={(e) => setForm({ ...form, memoryLimitKb: Number(e.target.value) * 1024 })}
+            />
+
+            <Select
+              label="Difficulty"
+              selectedKeys={[form.difficulty]}
+              onSelectionChange={(keys) => {
+                const value = Array.from(keys)[0] as "easy" | "medium" | "hard";
+                setForm({ ...form, difficulty: value });
               }}
+            >
+              <SelectItem key="easy">Easy</SelectItem>
+              <SelectItem key="medium">Medium</SelectItem>
+              <SelectItem key="hard">Hard</SelectItem>
+            </Select>
+          </div>
+
+          <RadioGroup
+            label="Scoring Mode"
+            value={form.scoringCode}
+            onValueChange={(value) => setForm({ ...form, scoringCode: value as "acm" | "oi" })}
+          >
+            <Radio value="acm">ACM</Radio>
+            <Radio value="oi">OI</Radio>
+          </RadioGroup>
+
+          <Switch
+            isSelected={form.visibilityCode === "public"}
+            onValueChange={(checked) =>
+              setForm({ ...form, visibilityCode: checked ? "public" : "private" })
+            }
+          >
+            Public Visible
+          </Switch>
+
+          <div className="flex justify-between pt-8">
+            <Button
+              variant="flat"
+              startContent={<X size={18} />}
+              onPress={() => router.back()}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              startContent={<ChevronRight size={20} />}
+              onPress={handleStep1}
+              isLoading={isCreatingProblem}
+              isDisabled={isUserLoading || isCreatingProblem}
+              className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em]"
+            >
+              Next — TestSet
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 2: TestSet ────────────────────────────────────────────────── */}
+      {step === 1 && (
+        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
+
+          <div className="text-sm text-slate-400 font-bold">
+            Problem ID: <span className="text-black dark:text-white">{createdProblemId}</span>
+          </div>
+
+          <Select
+            label="TestSet Type"
+            placeholder="Select type"
+            selectedKeys={testset.type ? [testset.type] : []}
+            onSelectionChange={(keys) => {
+              const value = Array.from(keys)[0] as string;
+              setTestset({ ...testset, type: value });
+            }}
+          >
+            <SelectItem key="public">Public</SelectItem>
+            <SelectItem key="private">Private</SelectItem>
+            <SelectItem key="sample">Sample</SelectItem>
+          </Select>
+
+          <Divider className="my-4 dark:bg-white/10" />
+
+          <Textarea
+            label="Note (optional)"
+            placeholder="Optional note about this testset..."
+            value={testset.note}
+            onChange={(e) => setTestset({ ...testset, note: e.target.value })}
+          />
+
+          <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
+            <Button
+              variant="flat"
+              startContent={<ChevronLeft size={18} />}
+              onPress={() => setStep(0)}
+            >
+              Back
+            </Button>
+
+            <Button
+              startContent={<ChevronRight size={20} />}
+              onPress={handleStep2}
+              isLoading={isCreatingTestSet}
+              isDisabled={isCreatingTestSet}
+              className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl"
+            >
+              Next — TestCases
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 3: TestCases ─────────────────────────────────────────────── */}
+      {step === 2 && (
+        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
+
+          <div className="flex gap-6 text-sm text-slate-400 font-bold">
+            <span>Problem ID: <span className="text-black dark:text-white">{createdProblemId}</span></span>
+            {createdTestSetId && (
+              <span>TestSet ID: <span className="text-black dark:text-white">{createdTestSetId}</span></span>
+            )}
+          </div>
+
+          {/* Upload area */}
+          <div className="flex flex-col gap-3">
+            <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+              TestCase File (.zip)
+            </label>
+            <div
+              className="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-400 transition-colors"
+              onClick={() => zipRef.current?.click()}
+            >
+              <Upload size={28} className="text-slate-400" />
+              <span className="text-[11px] font-bold text-slate-400">
+                {zipFile ? zipFile.name : "Click to select zip file"}
+              </span>
+              {zipFile && (
+                <span className="text-[10px] text-slate-300">{(zipFile.size / 1024).toFixed(1)} KB</span>
+              )}
+            </div>
+            <input
+              ref={zipRef}
+              type="file"
+              accept=".zip"
+              className="hidden"
+              onChange={(e) => setZipFile(e.target.files?.[0] ?? null)}
             />
           </div>
-        </div>
 
-        {/* LIMITS, DIFFICULTY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 items-end">
-         <Input
-  label="Time Limit (ms)"
-  type="number"
-  value={form.timeLimitMs.toString()}
-  onChange={(e) =>
-    setForm({
-      ...form,
-      timeLimitMs: Number(e.target.value),
-    })
-  }
-/>
-          <Input
-  label="Memory Limit (MB)"
-  type="number"
-  value={(form.memoryLimitKb / 1024).toString()}
-  onChange={(e) =>
-    setForm({
-      ...form,
-      memoryLimitKb: Number(e.target.value) * 1024,
-    })
-  }
-/>
-          <Select
-  selectedKeys={[form.difficulty]}
-  onSelectionChange={(keys) => {
-    const value = Array.from(keys)[0] as
-      | "easy"
-      | "medium"
-      | "hard";
-    setForm({ ...form, difficulty: value });
-  }}
->
-            <SelectItem
-              key="easy"
-              className="font-bold uppercase text-[10px] text-emerald-500"
-            >
-              Easy
-            </SelectItem>
-            <SelectItem
-              key="medium"
-              className="font-bold uppercase text-[10px] text-amber-500"
-            >
-              Medium
-            </SelectItem>
-            <SelectItem
-              key="hard"
-              className="font-bold uppercase text-[10px] text-rose-500"
-            >
-              Hard
-            </SelectItem>
-          </Select>
-        </div>
-
-        {/* MODE SECTIONS - FIXED RADIOGROUP ERROR */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col justify-center">
-            <RadioGroup
-  value={form.scoringCode}
-  onValueChange={(value) =>
-    setForm({
-      ...form,
-      scoringCode: value as "acm" | "oi",
-    })
-  }
->
-              <Radio
-                value="acm"
-                classNames={{ label: "text-[11px] font-bold uppercase italic" }}
-              >
-                ACM (Penalty)
-              </Radio>
-              <Radio
-                value="oi"
-                classNames={{ label: "text-[11px] font-bold uppercase italic" }}
-              >
-                OI (Score based)
-              </Radio>
-            </RadioGroup>
+          <div className="text-[10px] text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl px-4 py-3 font-mono space-y-1">
+            <div>testsetId: <span className="text-blue-400">{createdTestSetId}</span></div>
+            <div>replaceExisting: <span className="text-green-400">true</span></div>
           </div>
 
+          <Button
+            startContent={<Upload size={16} />}
+            onPress={handleUploadTestCase}
+            isLoading={isCreatingTestCase}
+            isDisabled={!zipFile || isCreatingTestCase}
+            className="bg-[#071739] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em]"
+          >
+            Upload TestCases
+          </Button>
 
-          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col justify-center">
-              <div className="space-y-6">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
-              Visibility
-            </label>
-            <div className="space-y-4">
-              <Switch
-  isSelected={form.visibilityCode === "public"}
-  onValueChange={(checked) =>
-    setForm({
-      ...form,
-      visibilityCode: checked ? "public" : "private",
-    })
-  }
->
-                <span className="text-[10px] font-black uppercase italic text-slate-500 dark:text-slate-300">
-                  Public Visible
-                </span>
-              </Switch>
+          {/* Uploaded list */}
+          {uploadedCases.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                Upload History ({uploadedCases.length})
+              </h3>
+              <div className="flex flex-col gap-2">
+                {uploadedCases.map((tc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-white/5 px-5 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle size={14} className="text-green-500" />
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-white/70">
+                        {tc.name}
+                      </span>
+                    </div>
+                    <Chip size="sm" variant="flat" color="success">{tc.total} cases</Chip>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          <Divider />
+
+          <div className="flex justify-between items-center pt-4">
+            <Button
+              variant="flat"
+              startContent={<ChevronLeft size={18} />}
+              onPress={() => setStep(1)}
+            >
+              Back
+            </Button>
+
+            <Button
+              startContent={<Save size={20} />}
+              onPress={handleFinish}
+              className="bg-[#22C55E] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl hover:shadow-green-500/30 transition-all"
+            >
+              Finish & View Problem
+            </Button>
           </div>
         </div>
-        {/* ACTION BUTTONS */}
-        <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
-          <Button
-            variant="flat"
-            startContent={<X size={18} />}
-            className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all"
-            onClick={() => router.back()}
-          >
-            Discard Draft
-          </Button>
-          <Button
-            startContent={<Save size={20} strokeWidth={3} />}
-            onPress={handlePublish}
-  isDisabled={isUserLoading}
-            className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
-          >
-            Import TestSet Problem
-          </Button>
-        </div>
-      </div>
-      {/* GỌI MODAL TẠI ĐÂY */}
-      <TestcaseGuideModal isOpen={isOpen} onOpenChange={onOpenChange} />
+      )}
+
     </div>
   );
 }

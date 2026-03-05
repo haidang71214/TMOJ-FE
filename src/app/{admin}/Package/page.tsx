@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { Button, Chip, Image } from "@heroui/react";
 import {
-  Plus,
   EyeOff,
   Upload,
   Trash2,
-  Pencil,
 } from "lucide-react";
-import PracticePackageModal from "./PracticePackageModal";
+// import PracticePackageModal from "./PracticePackageModal";
 import { PracticePackage } from "@/types";
 
 // Thêm price vào mock (giá trị mặc định)
@@ -51,8 +49,8 @@ const MOCK_PACKAGES: PracticePackage[] = [
 
 export default function PracticePackagePage() {
   const [packages, setPackages] = useState<PracticePackage[]>(MOCK_PACKAGES);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<PracticePackage | null>(null);
+  // const [open, setOpen] = useState(false);
+  // const [editing, setEditing] = useState<PracticePackage | null>(null);
 
   return (
     <div className="space-y-8">
@@ -67,13 +65,13 @@ export default function PracticePackagePage() {
           </p>
         </div>
 
-        <Button
+        {/* <Button
           className="bg-[#FF5C00] text-white font-black"
           startContent={<Plus size={16} />}
           onPress={() => setOpen(true)}
         >
           Create Package
-        </Button>
+        </Button> */}
       </div>
 
       {/* LIST */}
@@ -132,13 +130,13 @@ export default function PracticePackagePage() {
 
               {/* ACTIONS */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button
+                {/* <Button
                   isIconOnly
                   size="sm"
                   onPress={() => setEditing(pkg)}
                 >
                   <Pencil size={16} />
-                </Button>
+                </Button> */}
 
                 <Button
                   isIconOnly
@@ -184,16 +182,16 @@ export default function PracticePackagePage() {
         ))}
       </div>
 
-      {/* CREATE MODAL */}
-      {open && (
+      CREATE MODAL
+      {/* {open && (
         <PracticePackageModal
           onClose={() => setOpen(false)}
           onCreate={(pkg) => setPackages((prev) => [...prev, pkg])}
         />
-      )}
+      )} */}
 
       {/* EDIT MODAL */}
-      {editing && (
+      {/* {editing && (
         <PracticePackageModal
           initialData={editing}
           onClose={() => setEditing(null)}
@@ -205,7 +203,7 @@ export default function PracticePackagePage() {
             )
           }
         />
-      )}
+      )} */}
     </div>
   );
 }

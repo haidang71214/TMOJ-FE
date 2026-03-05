@@ -24,10 +24,17 @@ const AdminUserEndPoint = {
     GET_USER_LOCK:`${API_PREFIX}/Auth/users/lock`,
     POST_ASSIGN_ROLE:`${API_PREFIX}/Auth/users/{id}/assign-role`
 }
+const ProblemEndPoint = {
+  GET_LIST_PROBLEM :`${API_PREFIX}/Problems`,
+  CREATE_PROBLEM_DAFT:`${API_PREFIX}/Problems/drafts`,
+  CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
+  CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testsets/{testsetId}/testcases`
+}
 
 export {
   authEndpoint,
   userProfileEndpoint,
-  AdminUserEndPoint
+  AdminUserEndPoint,
+  ProblemEndPoint
 };
 

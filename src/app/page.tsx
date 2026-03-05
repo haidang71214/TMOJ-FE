@@ -27,7 +27,6 @@ import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 import { Contest } from "@/types";
 import NewsFeed from "./components/NewsFeed";
-import { ACCESS_TOKEN } from "@/constants";
 // Types
 
 interface NewsPost {

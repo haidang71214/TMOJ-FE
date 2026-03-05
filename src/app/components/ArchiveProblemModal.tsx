@@ -17,7 +17,7 @@ import { toast } from "sonner";
 interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
-  problem: { id: number; title: string } | null;
+  problem: { id: string; title: string } | null;   // ← changed id to string
 }
 
 const MOCK_BOOKMARKS = [
@@ -44,6 +44,7 @@ export default function ArchiveProblemModal({
     }
 
     setIsArchiving(true);
+    // TODO: real API call here later
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     toast.success("Problem archived!", {
@@ -55,6 +56,8 @@ export default function ArchiveProblemModal({
     setSelectedBookmarks([]);
     onClose();
   };
+
+  if (!problem) return null; // optional guard (since modal won't open without it)
 
   return (
     <Modal
@@ -84,7 +87,7 @@ export default function ArchiveProblemModal({
                   Targeting
                 </p>
                 <p className="text-sm font-bold italic text-[#FF5C00] truncate">
-                  #{problem?.id} - {problem?.title}
+                  #{problem.id} - {problem.title}
                 </p>
               </div>
 

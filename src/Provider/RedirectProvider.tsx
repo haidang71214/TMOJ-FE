@@ -1,20 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import webStorageClient from "@/utils/webStorageClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetUserInformationQuery, useGetUserManualMutation } from "@/store/queries/usersProfile";
+import AdminPage from "@/app/{admin}/page";
+import NavbarProvider from "./NavbarProvider";
+import { Toaster } from "sonner";
+import FooterWrapper from "@/app/components/FooterWrapper";
 
 export default function RedirectProvider({ children }: { children: React.ReactNode }) {
     const params = useSearchParams();
     const router = useRouter();
     const [getUser] = useGetUserManualMutation();
     const { refetch } = useGetUserInformationQuery();
+    const [isAdminSubdomain, setAdminSubdomain] = useState(false);
 
     const handleRouting = async () => {
         const token = webStorageClient.getToken() ?? webStorageClient.get("__admin_access_token");
         const user = webStorageClient.getUser();
         const isAdminSubdomain = window.location.hostname.includes("admin");
+        setAdminSubdomain(isAdminSubdomain);
         if(isAdminSubdomain){
             console.log(`-------- Token: ${token}`)
             console.log(`-------- User: ${JSON.stringify(user)}`)
@@ -44,5 +50,8 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
         handleRouting();        
     }, []);
 
-    return <>{children}</>;
+    return isAdminSubdomain ? <><NavbarProvider />
+          <AdminPage />
+          <Toaster richColors position="bottom-right" />
+          <FooterWrapper /></> : <>{children}</>;
 }

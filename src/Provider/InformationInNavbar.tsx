@@ -36,17 +36,29 @@ export default function InformationInNavbar() {
   const handleLink = (link: string) => router.push(link);
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-      dispatch(baseApi.util.resetApiState());
-      webStorageClient.logout();
-      addToast({ title: "Logout successful!", color: "success" });
+ const handleLogout = async () => {
+  try {
+    const host = window.location.host;
+    const is_admin = host.startsWith("admin.");
+
+    await logout().unwrap();
+
+    dispatch(baseApi.util.resetApiState());
+    webStorageClient.logout();
+
+    addToast({ title: "Logout successful!", color: "success" });
+
+    if (is_admin) {
+      // nếu đang ở admin subdomain → chuyển về domain chính
+      window.location.href = "http://lvh.me:3000"; 
+    } else {
       router.push("/");
-    } catch  {
-      addToast({ title: "Logout failed!", color: "danger" });
     }
-  };
+
+  } catch {
+    addToast({ title: "Logout failed!", color: "danger" });
+  }
+};
 
   return (
     <NavbarItem>

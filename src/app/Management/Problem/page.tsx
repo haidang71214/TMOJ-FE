@@ -20,6 +20,7 @@ import {
   DropdownMenu,
   DropdownItem,
   useDisclosure,
+  Spinner,
 } from "@heroui/react";
 import {
   Plus,
@@ -27,26 +28,27 @@ import {
   Copy,
   Trash2,
   Search,
-  Filter,
   Download,
   RefreshCw,
   SortAsc,
   ChevronDown,
-  Tag,
   Archive,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { ErrorForm } from "@/types";
 
-interface Problem {
-  id: number;
+interface DisplayProblem {
+  id: string;
   title: string;
   difficulty: string;
-  submissions: number;
+  submissions?: number;           // API chưa có → để tạm optional hoặc fake
   acRate: string;
   visible: boolean;
-  contest: string;
-  tags: string[];
+  access: boolean;                 // giả sử public nếu published
+  contest: string;                 // tạm để "None" vì API chưa có
+  tags: string[];                  // API chưa trả tags → để rỗng hoặc xử lý sau
 }
 
 export default function GlobalProblemListPage() {
@@ -54,83 +56,73 @@ export default function GlobalProblemListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Logic Modal Archive
-  const archiveModal = useDisclosure();
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
+  // ── RTK Query ───────────────────────────────────────────────
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetProblemListQueryQuery();
 
-  const handleOpenArchive = (problem: Problem) => {
+  // ── Modal Archive ───────────────────────────────────────────
+  const archiveModal = useDisclosure();
+  const [selectedProblem, setSelectedProblem] = useState<DisplayProblem | null>(null);
+
+  const handleOpenArchive = (problem: DisplayProblem) => {
     setSelectedProblem(problem);
     archiveModal.onOpen();
   };
 
-  const allProblems = useMemo(
-    () => [
-      {
-        id: 1,
-        title: "A + B Problem",
-        difficulty: "Easy",
-        submissions: 1250,
-        acRate: "85%",
-        visible: true,
-        access:false,
-        contest: "None",
-        tags: ["Basic"],
-      },
-      {
-        id: 501,
-        title: "Two Sum",
-        difficulty: "Medium",
-        submissions: 850,
-        acRate: "45%",
-        visible: true,
-         access:false,
-        contest: "Spring 2025",
-        tags: ["Array", "Hash Table"],
-      },
-      {
-        id: 102,
-        title: "Quick Sort Implementation",
-        difficulty: "Hard",
-        submissions: 320,
-        acRate: "12%",
-        visible: false,
-         access:false,
-        contest: "None",
-        tags: ["Sort", "Algorithm"],
-      },
-      {
-        id: 502,
-        title: "Longest Substring",
-        difficulty: "Medium",
-        submissions: 600,
-        acRate: "38%",
-        visible: true,
-         access:false,
-        contest: "Spring 2025",
-        tags: ["String", "Sliding Window"],
-      },
-      {
-        id: 105,
-        title: "Binary Tree Level Order",
-        difficulty: "Medium",
-        submissions: 450,
-        acRate: "50%",
-        visible: true,
-         access:false,
-        contest: "None",
-        tags: ["Tree"],
-      },
-    ],
-    []
-  );
+  // ── Transform API data → display format ─────────────────────
+  const allProblems = useMemo<DisplayProblem[]>(() => {
+    if (!apiResponse?.data) return [];
 
-  const pages = Math.ceil(allProblems.length / rowsPerPage);
+    return apiResponse.data.map((p) => ({
+      id: p.id,
+      title: p.title,
+      difficulty: p.difficulty.toUpperCase(), // EASY → Easy, ...
+      submissions: undefined, // API chưa có → có thể thêm field sau
+      acRate: p.acceptancePercent != null ? `${p.acceptancePercent.toFixed(1)}%` : "—",
+      visible: p.statusCode === "published",
+      access: p.statusCode === "published", // giả sử published = public
+      contest: "None", // field này chưa có trong API response
+      tags: [], // API chưa trả tags → để sau khi có endpoint tag
+    }));
+  }, [apiResponse]);
+
+  const totalItems = allProblems.length;
+  const pages = Math.ceil(totalItems / rowsPerPage);
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     return allProblems.slice(start, end);
   }, [page, allProblems]);
+
+  // ── Loading / Error UI ──────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center">
+        <Spinner size="lg" color="primary" />
+        <p className="mt-4 text-slate-500">Đang tải danh sách bài tập...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center text-center p-8">
+        <div className="text-red-500 text-2xl mb-4">Có lỗi xảy ra</div>
+        <p className="text-slate-400 mb-6">
+          {(error as ErrorForm)?.data?.data?.message || "Không thể tải danh sách bài tập"}
+        </p>
+        <Button color="primary" onPress={refetch}>
+          Thử lại
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -153,7 +145,7 @@ export default function GlobalProblemListPage() {
         </Button>
       </div>
 
-      {/* FILTER BAR SECTION */}
+      {/* FILTER BAR */}
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
           placeholder="Search by title or ID..."
@@ -176,14 +168,10 @@ export default function GlobalProblemListPage() {
               Sort By
             </Button>
           </DropdownTrigger>
-          <DropdownMenu
-            aria-label="Sort Options"
-            className="font-bold uppercase text-[10px]"
-          >
+          <DropdownMenu aria-label="Sort Options" className="font-bold uppercase text-[10px]">
             <DropdownItem key="newest">Latest ID</DropdownItem>
             <DropdownItem key="title">Title A-Z</DropdownItem>
             <DropdownItem key="ac">AC Rate</DropdownItem>
-            <DropdownItem key="subs">Submissions</DropdownItem>
           </DropdownMenu>
         </Dropdown>
 
@@ -195,64 +183,29 @@ export default function GlobalProblemListPage() {
               "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
           }}
         >
-          <SelectItem
-            key="easy"
-            className="font-bold uppercase text-[10px] text-emerald-500"
-          >
+          <SelectItem key="easy" className="font-bold uppercase text-[10px] text-emerald-500">
             Easy
           </SelectItem>
-          <SelectItem
-            key="medium"
-            className="font-bold uppercase text-[10px] text-amber-500"
-          >
+          <SelectItem key="medium" className="font-bold uppercase text-[10px] text-amber-500">
             Medium
           </SelectItem>
-          <SelectItem
-            key="hard"
-            className="font-bold uppercase text-[10px] text-rose-500"
-          >
+          <SelectItem key="hard" className="font-bold uppercase text-[10px] text-rose-500">
             Hard
           </SelectItem>
         </Select>
 
-        <Select
-          placeholder="Tags"
-          className="w-44"
-          startContent={<Tag size={14} className="text-slate-400" />}
-          classNames={{
-            trigger:
-              "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
-          }}
-        >
-          <SelectItem key="dp" className="font-bold uppercase text-[10px]">
-            Dynamic Programming
-          </SelectItem>
-          <SelectItem key="math" className="font-bold uppercase text-[10px]">
-            Math
-          </SelectItem>
-          <SelectItem key="graph" className="font-bold uppercase text-[10px]">
-            Graph
-          </SelectItem>
-        </Select>
+        {/* Các filter khác giữ nguyên, sau này connect với query params nếu cần */}
 
-        <Button
-          variant="flat"
-          className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-6"
-          startContent={<Filter size={16} />}
-        >
-          More
-        </Button>
-
-        {/* REFRESH BUTTON: LUÔN CỐ ĐỊNH MÀU BLUE 600 */}
         <Button
           isIconOnly
           className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-90 ml-auto"
+          onPress={refetch}
         >
           <RefreshCw size={18} />
         </Button>
       </div>
 
-      {/* TABLE SECTION */}
+      {/* TABLE */}
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <Table
           aria-label="Problem Repository Table"
@@ -274,16 +227,14 @@ export default function GlobalProblemListPage() {
             <TableColumn>ACCESS</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
-          <TableBody>
+          <TableBody emptyContent="Chưa có bài tập nào">
             {items.map((p) => (
               <TableRow
                 key={p.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
                 <TableCell>
-                  <span className="text-slate-400 font-black italic text-xs">
-                    #{p.id}
-                  </span>
+                  <span className="text-slate-400 font-black italic text-xs">#{p.id}</span>
                 </TableCell>
                 <TableCell>
                   <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
@@ -292,14 +243,18 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {p.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    {p.tags.length === 0 ? (
+                      <span className="text-[8px] text-slate-400 italic">—</span>
+                    ) : (
+                      p.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -307,22 +262,20 @@ export default function GlobalProblemListPage() {
                     variant="flat"
                     size="sm"
                     className={`font-black uppercase text-[9px] px-2 ${
-                      p.difficulty === "Easy"
+                      p.difficulty === "EASY"
                         ? "bg-emerald-500/10 text-emerald-500"
-                        : p.difficulty === "Medium"
+                        : p.difficulty === "MEDIUM"
                         ? "bg-amber-500/10 text-amber-500"
                         : "bg-rose-500/10 text-rose-500"
                     }`}
                   >
-                    {p.difficulty}
+                    {p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1).toLowerCase()}
                   </Chip>
                 </TableCell>
                 <TableCell>
                   <span
                     className={`text-[10px] font-black uppercase ${
-                      p.contest === "None"
-                        ? "text-slate-400 italic"
-                        : "text-blue-600 dark:text-[#FF5C00]"
+                      p.contest === "None" ? "text-slate-400 italic" : "text-blue-600 dark:text-[#FF5C00]"
                     }`}
                   >
                     {p.contest}
@@ -330,85 +283,66 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col leading-tight">
-                    <span className="text-emerald-500 font-black italic text-sm">
-                      {p.acRate}
-                    </span>
+                    <span className="text-emerald-500 font-black italic text-sm">{p.acRate}</span>
                     <span className="text-[9px] text-slate-400 uppercase tracking-tighter">
-                      {p.submissions} Subs
+                      {p.submissions ?? "—"} Subs
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <Switch
-                    defaultSelected={p.visible}
+                    isSelected={p.visible}
                     size="sm"
+                    isReadOnly // nếu chưa có API toggle thì để read-only
                     classNames={{
-                      wrapper:
-                        "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                      wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
                     }}
                   />
                 </TableCell>
-               <TableCell>
-  <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">
-    {p.access ? "PUBLIC" : "PRIVATE"}
-  </span>
-</TableCell>
-
+                <TableCell>
+                  <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">
+                    {p.access ? "PUBLIC" : "DRAFT"}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    {/* NÚT ARCHIVE  */}
-                    <Tooltip
-                      content="Archive to Bookmark"
-                      className="font-bold text-[10px]"
-                      // color="warning"
-                    >
+                    <Tooltip content="Archive to Bookmark" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() => handleOpenArchive(p as Problem)}
+                        onClick={() => handleOpenArchive(p)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#FFB800] transition-all rounded-lg h-9 w-9"
                       >
                         <Archive size={16} />
                       </Button>
                     </Tooltip>
 
-                    <Tooltip
-                      content="Edit Detail"
-                      className="font-bold text-[10px]"
-                    >
+                    <Tooltip content="Edit Detail" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() =>
-                          router.push(`/Management/Problem/${p.id}/edit`)
-                        }
+                        onClick={() => router.push(`/Management/Problem/${p.id}/edit`)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <Edit size={16} />
                       </Button>
                     </Tooltip>
-                    <Tooltip
-                      content="Remix Problem"
-                      className="font-bold text-[10px]"
-                    >
+
+                    <Tooltip content="Remix Problem" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() =>
-                          router.push(`/Management/Problem/${p.id}/remix`)
-                        }
+                        onClick={() => router.push(`/Management/Problem/${p.id}/remix`)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <Copy size={16} />
                       </Button>
                     </Tooltip>
-                    <Tooltip
-                      content="Download Data"
-                      className="font-bold text-[10px]"
-                    >
+
+                    <Tooltip content="Download Data" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
@@ -418,6 +352,7 @@ export default function GlobalProblemListPage() {
                         <Download size={16} />
                       </Button>
                     </Tooltip>
+
                     <Tooltip content="Delete" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
@@ -435,24 +370,24 @@ export default function GlobalProblemListPage() {
           </TableBody>
         </Table>
 
-        {/* PAGINATION SECTION */}
-        <div className="flex w-full justify-center py-8">
-          <Pagination
-            isCompact
-            showControls
-            showShadow
-            color="primary"
-            page={page}
-            total={pages}
-            onChange={(p) => setPage(p)}
-            classNames={{
-              cursor:
-                "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
-            }}
-          />
-        </div>
+        {totalItems > 0 && (
+          <div className="flex w-full justify-center py-8">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={page}
+              total={pages}
+              onChange={(p) => setPage(p)}
+              classNames={{
+                cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
+              }}
+            />
+          </div>
+        )}
       </div>
-      {/* GỌI MODAL ARCHIVE */}
+
       <ArchiveProblemModal
         isOpen={archiveModal.isOpen}
         onOpenChange={archiveModal.onOpenChange}

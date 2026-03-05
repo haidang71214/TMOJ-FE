@@ -8,6 +8,7 @@ import AdminPage from "@/app/{admin}/page";
 import NavbarProvider from "./NavbarProvider";
 import { Toaster } from "sonner";
 import FooterWrapper from "@/app/components/FooterWrapper";
+import { ADMIN_PAGE_URL } from "@/constants";
 
 export default function RedirectProvider({ children }: { children: React.ReactNode }) {
     const params = useSearchParams();
@@ -27,9 +28,9 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
             
             if(params.has("token")){
 
-                console.log(params.get("token"));
+                console.log(new URL(ADMIN_PAGE_URL).hostname);
                 
-                webStorageClient.setToken(params.get("token")!, {domain:"admin.lvh.me"})
+                webStorageClient.setToken(params.get("token")!, {domain:new URL(ADMIN_PAGE_URL).hostname});
                 const user = await getUser(params.get("token")!).unwrap();
                 webStorageClient.setUser(user);
                 refetch();

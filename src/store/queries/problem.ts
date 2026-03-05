@@ -1,6 +1,6 @@
 import { ProblemEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { CreateProblemDraftRequest, CreateProblemDraftResponse, ProblemListResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
+import { CreateProblemDraftRequest, CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
 export const prolemApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -31,18 +31,20 @@ createTestSet: builder.mutation<ProblemTestsetResponse,{ id: string; body: Probl
   invalidatesTags: ["Problem"],
 }),
 // này để lưu
-createTestCase: builder.mutation<CreateProblemDraftResponse, CreateProblemDraftRequest>({
-  query: (body) => ({
-    url: `${ProblemEndPoint.CREATE_PROBLEM_DAFT}`,
+ createTestCase: builder.mutation<ProblemTestCaseUploadResponse,{ id: string; body: FormData }>({
+  query: ({ id, body }) => ({
+    url: ProblemEndPoint.CREATE_TESTCASE_PROBLEM.replace("{id}", id),
     method: "POST",
     body,
   }),
   invalidatesTags: ["Problem"],
 }),
     }),
+   
   })
 export const {
   useGetProblemListQueryQuery,
   useCreateProblemDraftMutation,
-  useCreateTestSetMutation
+  useCreateTestSetMutation,
+  useCreateTestCaseMutation
 } = prolemApi;

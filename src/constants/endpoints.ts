@@ -28,7 +28,7 @@ const ProblemEndPoint = {
   GET_LIST_PROBLEM :`${API_PREFIX}/Problems`,
   CREATE_PROBLEM_DAFT:`${API_PREFIX}/Problems/drafts`,
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
-  CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testsets/{testsetId}/testcases`
+  CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testcases`
 }
 
 export {

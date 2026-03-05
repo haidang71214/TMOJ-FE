@@ -34,18 +34,18 @@ export function Providers({ children, themeProps }:  Readonly<ProvidersProps>) {
   <Provider store={store}>
   <NextThemesProvider {...themeProps}>
     <HeroUIProvider>
-      <RedirectProvider>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
         <ModalProvider>
                 <Suspense fallback={null}>
                 <AutoOpenResetPassModal />
               </Suspense>
+      <RedirectProvider>
           <AuthProvider>
           {children}
           </AuthProvider>
+      </RedirectProvider>
         </ModalProvider>
       </GoogleOAuthProvider>
-      </RedirectProvider>
       <ToastProvider placement="bottom-right" />
     </HeroUIProvider>
   </NextThemesProvider>

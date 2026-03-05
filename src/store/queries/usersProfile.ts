@@ -1,7 +1,6 @@
 import { UpdateUserDto, Users } from "@/types";
 import { baseApi } from "../base";
 import { userProfileEndpoint } from "@/constants/endpoints";
-import webStorageClient from "@/utils/webStorageClient";
 
 export const userApi = baseApi.injectEndpoints({
 

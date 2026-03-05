@@ -230,7 +230,7 @@ export default function ProblemManagementPage() {
                 onPress={() => alert("Open create problem modal - not implemented yet")}
                 className="font-black uppercase tracking-wider mt-4"
               >
-                Create New Problem
+                Create New Problem 
               </Button>
             </div>
           </TableCell>

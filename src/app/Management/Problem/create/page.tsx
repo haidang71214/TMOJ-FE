@@ -7,65 +7,71 @@ import {
   Select,
   SelectItem,
   Textarea,
-  CheckboxGroup,
-  Checkbox,
   RadioGroup,
   Radio,
   Divider,
-  Tooltip,
   Chip,
   useDisclosure,
 } from "@heroui/react";
 import {
   Save,
-  FileUp,
   X,
   FileCode,
   ChevronLeft,
-  HelpCircle,
-  Trash2,
-  PlusCircle,
-  Heading1,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  Link2,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
-import { PROBLEM_TAG_LABEL, ProblemTag } from "@/types";
+import { CreateProblemDraftRequest } from "@/types";
 import TestcaseGuideModal from "./../../../components/TestcaseGuideModal";
+import { useCreateProblemDraftMutation } from "@/store/queries/problem";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 
 export default function CreateProblemPage() {
   const router = useRouter();
-  const [selectedTags, setSelectedTags] = React.useState<ProblemTag[]>([]);
+  const [createProblemDraft] = useCreateProblemDraftMutation();
+  const { data: userData, isLoading: isUserLoading } =useGetUserInformationQuery();
+  const [form, setForm] = React.useState<CreateProblemDraftRequest>({
+  slug: "",
+  title: "",
+  difficulty: "medium",
+  typeCode: "algorithm",
+  visibilityCode: "public",
+  scoringCode: "acm",
+  descriptionMd: "",
+  displayIndex: 1,
+  timeLimitMs: 1000,
+  memoryLimitKb: 262144,
+  createdBy: "",
+});
+const handlePublish = async () => {
+  if (!userData?.userId) {
+    alert("User not loaded yet");
+    return;
+  }
 
+  if (!form.slug || !form.title) {
+    alert("Slug and Title are required");
+    return;
+  }
+
+  try {
+    const data = await createProblemDraft({
+      ...form,
+      createdBy: userData.userId,
+    }).unwrap();
+
+    console.log(data);
+
+    // redirect sang trang tạo testset
+    router.push(`/Management/Problem/${data.data.id}/CreateTestSet`);
+
+  } catch (error) {
+    console.error("Create problem failed:", error);
+    alert("Create failed");
+  }
+};
   // Logic mở Modal
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const EditorToolbar = () => (
-    <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1 flex-wrap">
-      {[Heading1, Bold, Italic, Underline, List, Link2].map((Icon, i) => (
-        <Button
-          key={i}
-          isIconOnly
-          size="sm"
-          variant="light"
-          className="text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E]"
-        >
-          <Icon size={16} />
-        </Button>
-      ))}
-    </div>
-  );
-  const addTag = (tag: ProblemTag) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-  };
-
-  const removeTag = (tag: ProblemTag) => {
-    setSelectedTags((prev) => prev.filter((t) => t !== tag));
-  };
-
+  const { isOpen, onOpenChange } = useDisclosure();
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
       {/* HEADER SECTION */}
@@ -81,7 +87,7 @@ export default function CreateProblemPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div className="space-y-2">
             <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-              CREATE <span className="text-[#FF5C00]">PROBLEM</span>
+              CREATE <span className="text-[#FF5C00]">PROBLEM DRAFT</span>
             </h1>
             <p className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] italic">
               Define new algorithm challenge
@@ -94,40 +100,33 @@ export default function CreateProblemPage() {
         {/* ROW 1: TITLE */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <Input
-            label="Title"
-            placeholder="Problem Title"
-            variant="flat"
-            labelPlacement="outside"
-            className="md:col-span-3"
-            classNames={{
-              mainWrapper: "mt-4",
-              inputWrapper:
-                "rounded-2xl dark:bg-[#333A45] h-12 border-2 border-transparent focus-within:!border-[#FFB800]",
-              label:
-                "dark:text-white font-black uppercase text-[10px] tracking-widest mb-2 ml-1",
-            }}
-          />
+  label="Title"
+  placeholder="Problem Title"
+  variant="flat"
+  value={form.title}
+  onChange={(e) =>
+    setForm({ ...form, title: e.target.value })
+  }
+/>
         </div>
-
+<Input
+  label="Slug"
+  placeholder="two-sum"
+  variant="flat"
+  value={form.slug}
+  onChange={(e) =>
+    setForm({ ...form, slug: e.target.value })
+  }
+/>
         <Divider className="my-4 dark:bg-white/10" />
         {/* DESCRIPTION */}
-        <div className="space-y-3 group">
-          <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
-            Description
-          </label>
-          <div className="rounded-2xl border-2 border-slate-100 dark:border-white/10 overflow-hidden focus-within:border-blue-600 dark:focus-within:border-[#22C55E] bg-slate-50/30 dark:bg-black/10 transition-all">
-            <EditorToolbar />
-            <Textarea
-              placeholder="Detailed problem statement..."
-              variant="flat"
-              minRows={5}
-              classNames={{
-                inputWrapper: "bg-transparent shadow-none p-4",
-                input: "font-medium text-slate-600 dark:text-slate-300",
-              }}
-            />
-          </div>
-        </div>
+        <Textarea
+  placeholder="Detailed problem statement..."
+  value={form.descriptionMd}
+  onChange={(e) =>
+    setForm({ ...form, descriptionMd: e.target.value })
+  }
+/>
 
         {/* CODE TEMPLATE - DARK STUDIO */}
         <div className="space-y-3 group">
@@ -165,36 +164,38 @@ export default function CreateProblemPage() {
 
         {/* LIMITS, DIFFICULTY */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 items-end">
+         <Input
+  label="Time Limit (ms)"
+  type="number"
+  value={form.timeLimitMs.toString()}
+  onChange={(e) =>
+    setForm({
+      ...form,
+      timeLimitMs: Number(e.target.value),
+    })
+  }
+/>
           <Input
-            label="Time Limit (ms)"
-            type="number"
-            defaultValue="1000"
-            labelPlacement="outside"
-            classNames={{
-              inputWrapper:
-                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-            }}
-          />
-          <Input
-            label="Memory Limit (MB)"
-            type="number"
-            defaultValue="256"
-            labelPlacement="outside"
-            classNames={{
-              inputWrapper:
-                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-            }}
-          />
+  label="Memory Limit (MB)"
+  type="number"
+  value={(form.memoryLimitKb / 1024).toString()}
+  onChange={(e) =>
+    setForm({
+      ...form,
+      memoryLimitKb: Number(e.target.value) * 1024,
+    })
+  }
+/>
           <Select
-            label="Difficulty"
-            placeholder="Select level"
-            labelPlacement="outside"
-            defaultSelectedKeys={["medium"]}
-            classNames={{
-              trigger:
-                "rounded-2xl dark:bg-black/20 h-12 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E]",
-            }}
-          >
+  selectedKeys={[form.difficulty]}
+  onSelectionChange={(keys) => {
+    const value = Array.from(keys)[0] as
+      | "easy"
+      | "medium"
+      | "hard";
+    setForm({ ...form, difficulty: value });
+  }}
+>
             <SelectItem
               key="easy"
               className="font-bold uppercase text-[10px] text-emerald-500"
@@ -220,14 +221,14 @@ export default function CreateProblemPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col justify-center">
             <RadioGroup
-              label="Problem Type"
-              defaultValue="acm"
-              classNames={{
-                label:
-                  "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-6",
-                wrapper: "gap-4", // Sử dụng wrapper để chỉnh khoảng cách
-              }}
-            >
+  value={form.scoringCode}
+  onValueChange={(value) =>
+    setForm({
+      ...form,
+      scoringCode: value as "acm" | "oi",
+    })
+  }
+>
               <Radio
                 value="acm"
                 classNames={{ label: "text-[11px] font-bold uppercase italic" }}
@@ -242,226 +243,29 @@ export default function CreateProblemPage() {
               </Radio>
             </RadioGroup>
           </div>
-          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col justify-center">
-            <RadioGroup
-              label="IO Mode"
-              defaultValue="standard"
-              classNames={{
-                label:
-                  "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-6",
-                wrapper: "gap-4",
-              }}
-            >
-              <Radio
-                value="standard"
-                classNames={{ label: "text-[11px] font-bold uppercase italic" }}
-              >
-                Standard IO
-              </Radio>
-              <Radio
-                value="file"
-                classNames={{ label: "text-[11px] font-bold uppercase italic" }}
-              >
-                File IO
-              </Radio>
-            </RadioGroup>
-          </div>
-        </div>
 
-        {/* SETTINGS BLOCK */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 p-10 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 items-start">
-          <div className="space-y-6">
+
+          <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 flex flex-col justify-center">
+              <div className="space-y-6">
             <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
               Visibility
             </label>
             <div className="space-y-4">
               <Switch
-                size="sm"
-                defaultSelected
-                classNames={{
-                  wrapper:
-                    "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
-                }}
-              >
+  isSelected={form.visibilityCode === "public"}
+  onValueChange={(checked) =>
+    setForm({
+      ...form,
+      visibilityCode: checked ? "public" : "private",
+    })
+  }
+>
                 <span className="text-[10px] font-black uppercase italic text-slate-500 dark:text-slate-300">
                   Public Visible
                 </span>
               </Switch>
-              <Switch
-                size="sm"
-                defaultSelected
-                classNames={{
-                  wrapper:
-                    "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
-                }}
-              >
-                <span className="text-[10px] font-black uppercase italic text-slate-500 dark:text-slate-300">
-                  Share Results
-                </span>
-              </Switch>
             </div>
           </div>
-          <div className="flex flex-col gap-4">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Tags
-            </label>
-            <Select
-              placeholder="Select tag"
-              variant="flat"
-              classNames={{ trigger: "rounded-xl dark:bg-[#282E3A] h-10" }}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as ProblemTag;
-                if (value) addTag(value);
-              }}
-            >
-              {Object.values(ProblemTag).map((tag) => (
-                <SelectItem key={tag}>{PROBLEM_TAG_LABEL[tag]}</SelectItem>
-              ))}
-            </Select>
-            <div className="flex flex-wrap gap-2">
-              {selectedTags.map((tag) => (
-                <div
-                  key={tag}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFB800]/20 text-[#FFB800] text-[11px] font-bold"
-                >
-                  {PROBLEM_TAG_LABEL[tag]}
-                  <button
-                    onClick={() => removeTag(tag)}
-                    className="hover:text-red-500"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="col-span-2 space-y-5">
-            <label className="dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Languages
-            </label>
-            <CheckboxGroup
-              orientation="horizontal"
-              defaultValue={["C++", "Python"]}
-              classNames={{ wrapper: "gap-x-6 gap-y-4" }}
-            >
-              {["C++", "Java", "Python", "Go", "Rust", "Swift"].map((lang) => (
-                <Checkbox
-                  key={lang}
-                  value={lang}
-                  classNames={{
-                    label: "text-[10px] font-black uppercase italic",
-                    wrapper: "after:bg-blue-600 dark:after:bg-[#22C55E]",
-                  }}
-                >
-                  {lang}
-                </Checkbox>
-              ))}
-            </CheckboxGroup>
-          </div>
-        </div>
-
-        {/* SAMPLES MANAGEMENT */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest ml-1">
-              Example Samples
-            </label>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                startContent={<Trash2 size={14} />}
-                className="font-bold rounded-xl px-4 text-[10px] uppercase"
-              >
-                Remove
-              </Button>
-              <Button
-                size="sm"
-                variant="flat"
-                color="warning"
-                startContent={<PlusCircle size={14} />}
-                className="font-bold rounded-xl px-4 text-[10px] uppercase"
-              >
-                Add Sample
-              </Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10 bg-slate-50/50 dark:bg-[#071739]/30 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-white/10">
-            <Textarea
-              label="Sample Input"
-              variant="flat"
-              labelPlacement="outside"
-              placeholder="Input data..."
-              classNames={{
-                inputWrapper: "dark:bg-[#282E3A] rounded-xl",
-                label: "font-bold text-[10px] uppercase mb-2",
-              }}
-            />
-            <Textarea
-              label="Sample Output"
-              variant="flat"
-              labelPlacement="outside"
-              placeholder="Output data..."
-              classNames={{
-                inputWrapper: "dark:bg-[#282E3A] rounded-xl",
-                label: "font-bold text-[10px] uppercase mb-2",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* TESTCASE & FILE INFO */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 ml-1">
-            <label className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest">
-              Testcases Data
-            </label>
-            {/* NÚT DẤU HỎI MÀU VÀNG */}
-            <button
-              onClick={onOpen}
-              className="text-[#FFB800] hover:text-[#FFB800]/80 transition-colors animate-pulse hover:animate-none"
-            >
-              <HelpCircle size={16} strokeWidth={3} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <Tooltip
-              content="Upload file .zip chứa toàn bộ input/output testcase"
-              placement="top"
-            >
-              <div className="md:col-span-1 p-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-black/10 hover:border-blue-600 dark:hover:border-[#22C55E] transition-all group cursor-pointer">
-                <FileUp
-                  size={32}
-                  className="text-slate-300 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors"
-                />
-                <Button
-                  size="sm"
-                  className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-lg h-8 text-[9px] uppercase tracking-widest"
-                >
-                  Upload .zip
-                </Button>
-              </div>
-            </Tooltip>
-            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Input Filename"
-                placeholder="input.txt"
-                labelPlacement="outside"
-                classNames={{
-                  inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
-                }}
-              />
-              <Input
-                label="Output Filename"
-                placeholder="output.txt"
-                labelPlacement="outside"
-                classNames={{
-                  inputWrapper: "rounded-2xl dark:bg-black/20 h-12",
-                }}
-              />
-            </div>
           </div>
         </div>
         {/* ACTION BUTTONS */}
@@ -476,9 +280,11 @@ export default function CreateProblemPage() {
           </Button>
           <Button
             startContent={<Save size={20} strokeWidth={3} />}
+            onPress={handlePublish}
+  isDisabled={isUserLoading}
             className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
           >
-            Publish Problem
+            Import TestSet Problem
           </Button>
         </div>
       </div>

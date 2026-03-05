@@ -1,6 +1,7 @@
 import { UpdateUserDto, Users } from "@/types";
 import { baseApi } from "../base";
 import { userProfileEndpoint } from "@/constants/endpoints";
+import webStorageClient from "@/utils/webStorageClient";
 
 export const userApi = baseApi.injectEndpoints({
 
@@ -17,6 +18,13 @@ export const userApi = baseApi.injectEndpoints({
       
       providesTags: ["User"], 
     }),
+    getUserManual: builder.mutation<Users,string>({
+      query: (token:string) => ({
+        url:userProfileEndpoint.GET_PROFILE,
+        method: "GET",
+        headers: {"Authorization": token}
+      })
+    }),
 
     updateUserProfile: builder.mutation<void, UpdateUserDto>({
       query: (body) => ({
@@ -32,5 +40,6 @@ export const userApi = baseApi.injectEndpoints({
 
 export const {
   useUpdateUserProfileMutation,
-  useGetUserInformationQuery
+  useGetUserInformationQuery,
+  useGetUserManualMutation
 } = userApi;

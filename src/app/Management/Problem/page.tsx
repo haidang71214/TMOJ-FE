@@ -81,7 +81,7 @@ export default function GlobalProblemListPage() {
     return apiResponse.data.map((p) => ({
       id: p.id,
       title: p.title,
-      difficulty: p.difficulty.toUpperCase(), // EASY → Easy, ...
+      difficulty: p.difficulty?.toUpperCase() ?? "UNKNOWN",
       submissions: undefined, // API chưa có → có thể thêm field sau
       acRate: p.acceptancePercent != null ? `${p.acceptancePercent.toFixed(1)}%` : "—",
       visible: p.statusCode === "published",

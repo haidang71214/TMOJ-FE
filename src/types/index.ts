@@ -129,6 +129,18 @@ export interface ProblemTestsetResponse {
   expireAt?: string;
   createdAt: string;
 }
+export interface ProblemTestCaseUploadResult {
+  problemId: string;
+  slug: string;
+  testsetId: string;
+  savedTo: string;
+  total: number;
+}
+export interface ProblemTestCaseUploadResponse {
+  data: ProblemTestCaseUploadResult;
+  message?: string | null;
+  traceId: string;
+}
 export interface ProblemTestsetCreate {
   type: string;
   note?: string;

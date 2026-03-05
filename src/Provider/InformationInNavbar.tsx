@@ -28,6 +28,7 @@ import { useLogoutMutation } from "@/store/queries/auth";
 import { useDispatch } from "react-redux";
 import { baseApi } from "@/store/base";
 import webStorageClient from "@/utils/webStorageClient";
+import { ADMIN_PAGE_URL, PAGE_URL } from "@/constants";
 
 export default function InformationInNavbar() {
   const router = useRouter();
@@ -40,19 +41,16 @@ export default function InformationInNavbar() {
   try {
     const host = window.location.host;
     const is_admin = host.startsWith("admin.");
-
-    await logout().unwrap();
-
     dispatch(baseApi.util.resetApiState());
     webStorageClient.logout();
-
     addToast({ title: "Logout successful!", color: "success" });
-
     if (is_admin) {
       // nếu đang ở admin subdomain → chuyển về domain chính
-      window.location.href = "http://lvh.me:3000"; 
+      window.location.href = `${PAGE_URL}logout`; 
+          await logout().unwrap();
     } else {
       router.push("/");
+      await logout().unwrap();
     }
 
   } catch {
@@ -96,7 +94,7 @@ export default function InformationInNavbar() {
     <DropdownItem
       key="admin"
       startContent={<Sparkles size={18} />}
-      onClick={() => router.push(`http://admin.lvh.me:3000/?token=${webStorageClient.getToken()}`)}
+      onClick={() => router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`)}
     >
       Admin Panel
     </DropdownItem>

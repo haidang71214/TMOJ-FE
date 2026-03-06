@@ -22,7 +22,8 @@ export const userApi = baseApi.injectEndpoints({
         url:userProfileEndpoint.GET_PROFILE,
         method: "GET",
         headers: {"Authorization": token}
-      })
+      }),
+      
     }),
 
     updateUserProfile: builder.mutation<void, UpdateUserDto>({

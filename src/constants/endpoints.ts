@@ -30,11 +30,24 @@ const ProblemEndPoint = {
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
   CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testcases`
 }
-
+const ProblemListEndpoint = {
+  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/Problems`,
+  GET_DETAIL_PUBLIC_PROBLEM:`${API_PREFIX}/Problems/{id}`,
+}
+const SubmittionEndPoint = {
+  GET_SUBMITTION_FROM_USER:`${API_PREFIX}/problems/{problemId}/submissions`
+}
+const RuntimeEndpoint = {
+  GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
+  GET_DETAIL_RUNTIME : `${API_PREFIX}/Runtimes/{id}​`
+} 
 export {
   authEndpoint,
   userProfileEndpoint,
   AdminUserEndPoint,
-  ProblemEndPoint
+  ProblemEndPoint,
+  ProblemListEndpoint,
+  SubmittionEndPoint,
+  RuntimeEndpoint
 };
 

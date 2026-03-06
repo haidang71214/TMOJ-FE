@@ -3,8 +3,8 @@ import "./hehe.css";
 import React, { useState } from "react";
 import Sidebar from "../Sidebar";
 import { QuestBanners } from "./QuestBanners";
-import { CategoryTags } from "./CategoryTags";
-import { ProblemsTable, Problem } from "./ProblemsTable";
+
+import { ProblemsTable } from "./ProblemsTable";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { Input, Button, Progress } from "@heroui/react";
 import {
@@ -14,14 +14,15 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // State cho Like (trái tim)
-  const [likedProblems, setLikedProblems] = useState<Set<number>>(new Set());
+  const [likedProblems, setLikedProblems] = useState<Set<string>>(new Set());
 
-  const toggleLike = (problemId: number) => {
+  const toggleLike = (problemId: string) => {
     setLikedProblems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(problemId)) {
@@ -33,201 +34,8 @@ export default function LibraryPage() {
     });
   };
 
-  const allCategories = [
-    { name: "Array", count: 2062 },
-    { name: "String", count: 834 },
-    { name: "Hash Table", count: 763 },
-    { name: "Math", count: 642 },
-    { name: "Dynamic Programming", count: 633 },
-    { name: "Sorting", count: 489 },
-    { name: "Greedy", count: 447 },
-    { name: "Depth-First Search", count: 331 },
-    { name: "Binary Search", count: 330 },
-    { name: "Database", count: 310 },
-    { name: "Matrix", count: 267 },
-    { name: "Bit Manipulation", count: 265 },
-    { name: "Tree", count: 255 },
-    { name: "Breadth-First Search", count: 250 },
-    { name: "Two Pointers", count: 234 },
-    { name: "Prefix Sum", count: 230 },
-    { name: "Heap (Priority Queue)", count: 205 },
-    { name: "Simulation", count: 195 },
-    { name: "Counting", count: 183 },
-    { name: "Graph", count: 178 },
-    { name: "Binary Tree", count: 177 },
-    { name: "Stack", count: 176 },
-    { name: "Sliding Window", count: 159 },
-    { name: "Enumeration", count: 131 },
-    { name: "Design", count: 131 },
-    { name: "Backtracking", count: 111 },
-    { name: "Union Find", count: 98 },
-    { name: "Number Theory", count: 87 },
-    { name: "Linked List", count: 82 },
-    { name: "Ordered Set", count: 76 },
-  ];
-
-  const problems: Problem[] = [
-    {
-      id: 1,
-      title: "Two Sum",
-      acceptance: "56.7%",
-      difficulty: "Easy",
-      isLocked: false,
-      isSolved: true,
-    },
-    {
-      id: 2,
-      title: "Add Two Numbers",
-      acceptance: "47.5%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 3,
-      title: "Longest Substring Without Repeating Characters",
-      acceptance: "38.0%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: true,
-    },
-    {
-      id: 4,
-      title: "Median of Two Sorted Arrays",
-      acceptance: "45.4%",
-      difficulty: "Hard",
-      isLocked: true,
-      isSolved: false,
-    },
-    {
-      id: 5,
-      title: "Longest Palindromic Substring",
-      acceptance: "36.9%",
-      difficulty: "Medium",
-      isLocked: true,
-      isSolved: false,
-    },
-    {
-      id: 6,
-      title: "Zigzag Conversion",
-      acceptance: "53.0%",
-      difficulty: "Medium",
-      isLocked: true,
-      isSolved: false,
-    },
-    {
-      id: 7,
-      title: "Reverse Integer",
-      acceptance: "28.1%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: true,
-    },
-    {
-      id: 8,
-      title: "String to Integer (atoi)",
-      acceptance: "17.5%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 9,
-      title: "Palindrome Number",
-      acceptance: "57.2%",
-      difficulty: "Easy",
-      isLocked: false,
-      isSolved: true,
-    },
-    {
-      id: 10,
-      title: "Regular Expression Matching",
-      acceptance: "28.5%",
-      difficulty: "Hard",
-      isLocked: true,
-      isSolved: false,
-    },
-    {
-      id: 11,
-      title: "Container With Most Water",
-      acceptance: "54.8%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 12,
-      title: "Integer to Roman",
-      acceptance: "65.1%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 13,
-      title: "Roman to Integer",
-      acceptance: "62.4%",
-      difficulty: "Easy",
-      isLocked: false,
-      isSolved: true,
-    },
-    {
-      id: 14,
-      title: "Longest Common Prefix",
-      acceptance: "43.1%",
-      difficulty: "Easy",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 15,
-      title: "3Sum",
-      acceptance: "34.5%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 16,
-      title: "3Sum Closest",
-      acceptance: "45.8%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 17,
-      title: "Letter Combinations of a Phone Number",
-      acceptance: "60.2%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 18,
-      title: "4Sum",
-      acceptance: "35.9%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 19,
-      title: "Remove Nth Node From End of List",
-      acceptance: "45.2%",
-      difficulty: "Medium",
-      isLocked: false,
-      isSolved: false,
-    },
-    {
-      id: 20,
-      title: "Valid Parentheses",
-      acceptance: "40.8%",
-      difficulty: "Easy",
-      isLocked: false,
-      isSolved: true,
-    },
-  ];
+  const { data: problemResponse, isLoading } = useGetProblemListQuery();
+  const problems = problemResponse?.data || [];
 
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
@@ -256,11 +64,6 @@ export default function LibraryPage() {
           <div className="max-w-[1400px] mx-auto p-8 lg:p-12 flex flex-col lg:flex-row gap-10 items-start">
             <div className="flex-1 flex flex-col gap-8 w-full min-w-0">
               <QuestBanners />
-
-              {/* Category Area */}
-              <div className="bg-white/50 dark:bg-[#1C2737]/40 p-6 rounded-[2rem] border border-[#A4B5C4]/20 dark:border-[#344054]/30 backdrop-blur-sm shadow-sm">
-                <CategoryTags categories={allCategories} />
-              </div>
 
               {/* TOPIC BUTTONS */}
               <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
@@ -333,12 +136,22 @@ export default function LibraryPage() {
               </div>
 
               {/* TABLE AREA */}
-              <div className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] shadow-xl border border-transparent dark:border-[#344054]/50 overflow-hidden transition-all duration-300 p-4">
-                <ProblemsTable
-                  problems={problems}
-                  likedProblems={likedProblems}
-                  toggleLike={toggleLike}
-                />
+              <div className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] shadow-xl border border-transparent dark:border-[#344054]/50 overflow-hidden transition-all duration-300 p-4 min-h-[400px]">
+                {isLoading ? (
+                  <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium animate-pulse">
+                    Loading problems...
+                  </div>
+                ) : problems.length > 0 ? (
+                  <ProblemsTable
+                    problems={problems}
+                    likedProblems={likedProblems}
+                    toggleLike={toggleLike}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium">
+                    No problems found.
+                  </div>
+                )}
               </div>
             </div>
 

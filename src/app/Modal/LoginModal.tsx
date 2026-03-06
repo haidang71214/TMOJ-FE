@@ -20,26 +20,30 @@ export default function LoginModal() {
       openModal({ content: <ForgotPasswordModal /> })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await login({ email, password }).unwrap();
-      if (res) {
-        console.log(res);
-        
-        addToast({ title: "Welcome back!", color: "success" });
-        closeModal();
-      }
-    }catch (err: unknown) {
-  const error = err as ErrorForm;
-      console.log(err);
-      
-  addToast({
-    title: error?.data?.data?.message ?? "Login failed!",
-    color: "danger",
-  });
-}
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const res = await login({ email, password }).unwrap();
+
+    if (res) {
+      console.log(res);
+
+      addToast({ title: "Welcome back!", color: "success" });
+
+      closeModal();
+
+      // reload sau khi login thành công
+      window.location.reload();
+    }
+  } catch (err: unknown) {
+    const error = err as ErrorForm;
+
+    addToast({
+      title: error?.data?.data?.message ?? "Login failed!",
+      color: "danger",
+    });
+  }
+};
 
   return (
     <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none">

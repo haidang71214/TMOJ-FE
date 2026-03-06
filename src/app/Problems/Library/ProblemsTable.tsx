@@ -9,22 +9,15 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/react";
-import { CheckCircle2, Lock, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import Link from "next/link";
 
-export interface Problem {
-  id: number;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  isSolved: boolean;
-  isLocked: boolean;
-  acceptance?: string;
-}
+import { Problem } from "@/types";
 
 interface ProblemsTableProps {
   problems: Problem[];
-  likedProblems: Set<number>; // Truyền từ parent
-  toggleLike: (id: number) => void; // Hàm toggle từ parent
+  likedProblems: Set<string>; // Truyền từ parent
+  toggleLike: (id: string) => void; // Hàm toggle từ parent
 }
 
 export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsTableProps) => (
@@ -46,8 +39,8 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
     </TableHeader>
     <TableBody>
       {problems.map((p, index) => {
-        const problemSlug = p.title.toLowerCase().replace(/\s+/g, "-");
-        const isLiked = likedProblems.has(p.id); // <-- Đây là dòng gây lỗi cũ, nhưng giờ type đúng nên ok
+        
+        const isLiked = likedProblems.has(p.id);
 
         return (
           <TableRow
@@ -79,10 +72,10 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
             {/* Title */}
             <TableCell className="py-5 font-bold text-[14px] text-gray-900 dark:text-[#f8fafc] leading-none">
               <Link
-                href={`/Problems/${problemSlug}`}
+                href={`/Problems/${p.id}`}
                 className="hover:text-blue-600 dark:hover:text-[#E3C39D] transition-colors block w-full"
               >
-                <span className="opacity-50 mr-1">{p.id}.</span> {p.title}
+                <span className="opacity-50 mr-1">{index + 1}.</span> {p.title}
               </Link>
             </TableCell>
 
@@ -90,30 +83,22 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
             <TableCell className="text-center py-5">
               <span
                 className={`text-[12px] font-black px-2 py-1 rounded-md ${
-                  p.difficulty === "Easy"
+                  p.difficulty?.toLowerCase() === "easy"
                     ? "text-teal-500 bg-teal-500/10"
-                    : p.difficulty === "Medium"
+                    : p.difficulty?.toLowerCase() === "medium"
                     ? "text-orange-400 bg-orange-400/10"
                     : "text-red-500 bg-red-500/10"
                 }`}
               >
-                {p.difficulty}
+                {p.difficulty ? p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1) : ""}
               </span>
             </TableCell>
 
             {/* Status */}
             <TableCell className="text-right py-5 pr-4">
               <div className="flex justify-end items-center">
-                {p.isSolved ? (
-                  <CheckCircle2
-                    size={18}
-                    className="text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                  />
-                ) : p.isLocked ? (
-                  <Lock size={16} className="text-gray-300 dark:text-[#475569]" />
-                ) : (
-                  <span className="text-gray-200 dark:text-[#334155] font-light">—</span>
-                )}
+                 {/*  TODO: Map with user's solved status from API when available */}
+                 <span className="text-gray-200 dark:text-[#334155] font-light">—</span>
               </div>
             </TableCell>
           </TableRow>

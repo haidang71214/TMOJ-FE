@@ -1,156 +1,333 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Tabs, Tab } from "@heroui/react";
+import {
+  AlignLeft,
+  BookOpen,
+  Lightbulb,
+  Send,
+  TriangleAlert,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Settings2,
+  FlaskConical,
+  CheckSquare,
+  Timer,
+} from "lucide-react";
 
-import { Header } from "./coding/Header";
-import { EditorPanel } from "./coding/EditorPanel";
-import { TestcasePanel } from "./coding/TestcasePanel";
 import { ProblemListSidebar } from "./ProblemListSidebar";
+import { DescriptionTab } from "./Description/page";
+import { EditorialTab } from "./Editorial/page";
+import { SolutionsTab } from "./Solutions/page";
+import { SubmissionsTab } from "./Submissions/index";
+import { CompileErrorTab } from "./CompileError/page";
+import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 
-import { DescriptionTab } from "./Description";
-import { EditorialTab } from "./Editorial";
-import { SolutionsTab } from "./Solutions";
-import { SubmissionsTab } from "./Submissions";
-import { CompileErrorTab } from "./CompileError";
-import { AcceptedTab } from "./Accepted";
-import { SubmissionData } from "./Submissions/types";
+// ── Tab config ────────────────────────────────────────────────────────────
+const LEFT_TABS = [
+  { key: "description", label: "Description", Icon: AlignLeft },
+  { key: "editorial", label: "Editorial", Icon: BookOpen },
+  { key: "solutions", label: "Solutions", Icon: Lightbulb },
+  { key: "submissions", label: "Submissions", Icon: Send },
+  { key: "compileerror", label: "Compile Error", Icon: TriangleAlert },
+] as const;
+
+type LeftTabKey = (typeof LEFT_TABS)[number]["key"];
+
+// ── Right bottom tabs ─────────────────────────────────────────────────────
+const BOTTOM_TABS = [
+  { key: "testcase", label: "Testcase", Icon: FlaskConical },
+  { key: "result", label: "Test Result", Icon: CheckSquare },
+] as const;
+
+type BottomTabKey = (typeof BOTTOM_TABS)[number]["key"];
+
+// ── Resizable hook ────────────────────────────────────────────────────────
+function useResize(
+  initial: number,
+  min: number,
+  max: number,
+  direction: "horizontal" | "vertical"
+) {
+  const [size, setSize] = useState(initial);
+  const dragging = useRef(false);
+  const startPos = useRef(0);
+  const startSize = useRef(initial);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      dragging.current = true;
+      startPos.current = direction === "horizontal" ? e.clientX : e.clientY;
+      startSize.current = size;
+
+      const onMove = (ev: MouseEvent) => {
+        if (!dragging.current) return;
+        const delta =
+          direction === "horizontal"
+            ? ev.clientX - startPos.current
+            : ev.clientY - startPos.current;
+        setSize(Math.min(max, Math.max(min, startSize.current + delta)));
+      };
+      const onUp = () => {
+        dragging.current = false;
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [direction, max, min, size]
+  );
+
+  return { size, onMouseDown };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
 
-  const editorContainerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const monacoEditorRef = useRef<any>(null);
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("description");
-  const [editorActiveTab, setEditorActiveTab] = useState("code");
+  const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
+  const [activeBottomTab, setActiveBottomTab] =
+    useState<BottomTabKey>("testcase");
+  const [activeCase, setActiveCase] = useState(0);
 
-  const [testTab, setTestTab] = useState("testcase");
-  const [activeCase, setActiveCase] = useState(1);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const [code, setCode] = useState(
-    `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        \n    }\n};`
+  // Horizontal split: left panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { size: leftWidth, onMouseDown: onHDrag } = useResize(
+    520,
+    260,
+    900,
+    "horizontal"
   );
-  const handleSubmissionRowClick = (item: SubmissionData) => {
-    if (item.status === "Accepted") {
-      setActiveTab("accepted");
-    } else if (item.status === "Compile Error") {
-      setActiveTab("compileerror");
-    }
-    // Có thể bổ sung thêm Runtime Error nếu có tab riêng sau này
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleEditorDidMount = (editor: any) => {
-    monacoEditorRef.current = editor;
-  };
 
-  const handleFormatCode = () => {
-    if (monacoEditorRef.current) {
-      monacoEditorRef.current.getAction("editor.action.formatDocument")?.run();
-    }
-  };
+  // Vertical split in right panel: editor height (top portion)
+  const rightPanelRef = useRef<HTMLDivElement>(null);
+  const { size: editorHeight, onMouseDown: onVDrag } = useResize(
+    500,
+    160,
+    700,
+    "vertical"
+  );
 
-  const handleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      editorContainerRef.current?.requestFullscreen().catch((err) => {
-        console.error(`Error: ${err.message}`);
-      });
-    } else {
-      document.exitFullscreen();
+  // Reset tab when navigating to a new problem
+  useEffect(() => {
+    setActiveLeftTab("description");
+  }, [problemId]);
+
+  const renderLeftContent = () => {
+    switch (activeLeftTab) {
+      case "description":
+        return <DescriptionTab />;
+      case "editorial":
+        return <EditorialTab />;
+      case "solutions":
+        return <SolutionsTab />;
+      case "submissions":
+        return (
+          <SubmissionsTab
+            onRowClick={() => setActiveLeftTab("compileerror")}
+          />
+        );
+      case "compileerror":
+        return <CompileErrorTab />;
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#f0f0f0] dark:bg-[#101828] overflow-hidden font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-500">
-      {/* Sidebar danh sách bài tập */}
+    <div className="flex flex-col h-screen bg-[#EBEBEB] dark:bg-[#101828] overflow-hidden font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-300">
+      {/* ── TOP NAVBAR ──────────────────────────────────────────── */}
+      <header className="h-11 shrink-0 bg-white dark:bg-[#1C2737] border-b dark:border-[#334155] flex items-center px-3 gap-3 shadow-sm">
+        {/* Problem list toggle */}
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex items-center gap-1.5 text-[12px] font-black text-gray-400 dark:text-[#94A3B8] hover:text-black dark:hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828]"
+        >
+          <AlignLeft size={15} />
+          Problem List
+        </button>
+
+        <div className="flex items-center">
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
+            <ChevronLeft size={16} />
+          </button>
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        <div className="h-5 w-px bg-gray-200 dark:bg-[#334155]" />
+
+        {/* Problem title */}
+        <span className="text-[13px] font-black text-[#262626] dark:text-[#F9FAFB] truncate max-w-sm">
+          1. Two Sum
+        </span>
+
+        <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-[12px] text-gray-400 dark:text-[#667085]">
+            <Timer size={13} />
+            <span className="font-mono font-bold">0:00</span>
+          </div>
+          <div className="h-5 w-px bg-gray-200 dark:bg-[#334155]" />
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
+            <Maximize2 size={15} />
+          </button>
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
+            <Settings2 size={15} />
+          </button>
+        </div>
+      </header>
+
+      {/* Sidebar overlay */}
       <ProblemListSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         currentProblemId={problemId}
       />
 
-      {/* Header điều hướng chính */}
-      <Header
-        problemId={problemId}
-        isNoteActive={editorActiveTab === "note"}
-        onNoteClick={() => setEditorActiveTab("note")}
-        onProblemListClick={() => setIsSidebarOpen(true)}
-      />
-
-      <main className="flex flex-1 overflow-hidden p-2 gap-2 bg-[#f0f0f0] dark:bg-[#101828]">
-        {/* PANEL TRÁI: NỘI DUNG CHI TIẾT (Description, Editorial, v.v.) */}
-        <div className="w-1/2 bg-white dark:bg-[#1C2737] rounded-xl flex flex-col overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] transition-all duration-500">
-          {/* Tabs Navigation nội dung */}
-          <div className="bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] shrink-0 h-11 flex items-center">
-            <Tabs
-              aria-label="Content Tabs"
-              variant="underlined"
-              selectedKey={activeTab}
-              onSelectionChange={(key) => setActiveTab(key as string)}
-              classNames={{
-                tabList: "px-4 gap-6 h-full border-b-0",
-                cursor: "bg-black dark:bg-[#E3C39D] h-[2px]",
-                tab: "text-[11px] font-black uppercase tracking-wider dark:text-[#94A3B8] data-[selected=true]:dark:text-[#E3C39D] h-full",
-              }}
-            >
-              <Tab key="description" title="Description" />
-              <Tab key="editorial" title="Editorial" />
-              <Tab key="solutions" title="Solutions" />
-              <Tab key="compileerror" title="Compile Error" />
-              <Tab key="accepted" title="Accepted" />
-              <Tab key="submissions" title="Submissions" />
-            </Tabs>
+      {/* ── MAIN AREA ───────────────────────────────────────────── */}
+      <main
+        ref={containerRef}
+        className="flex flex-1 overflow-hidden p-2 gap-2"
+      >
+        {/* ═══ PANEL LEFT ═══════════════════════════════════════ */}
+        <div
+          style={{ width: leftWidth, minWidth: 260, maxWidth: 900 }}
+          className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0"
+        >
+          {/* Tab bar */}
+          <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2 gap-0.5 overflow-x-auto no-scrollbar">
+            {LEFT_TABS.map(({ key, label, Icon }) => {
+              const isActive = activeLeftTab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveLeftTab(key)}
+                  className={`flex items-center gap-1.5 px-3 h-11 text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all relative
+                    ${
+                      isActive
+                        ? "text-[#262626] dark:text-[#E3C39D] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:rounded-t-full after:bg-current"
+                        : "text-gray-400 dark:text-[#475569] hover:text-[#262626] dark:hover:text-[#94A3B8]"
+                    }`}
+                >
+                  <Icon size={12} />
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Vùng hiển thị nội dung các Tab */}
-          <div className="flex-1 overflow-hidden relative">
-            <div className="absolute inset-0 overflow-y-auto no-scrollbar p-1">
-              <div className="min-h-full">
-                {activeTab === "description" && <DescriptionTab />}
-                {activeTab === "editorial" && <EditorialTab />}
-                {activeTab === "solutions" && <SolutionsTab />}
-                {activeTab === "compileerror" && <CompileErrorTab />}
-                {activeTab === "accepted" && <AcceptedTab />}
-                {activeTab === "submissions" && (
-                  <SubmissionsTab onRowClick={handleSubmissionRowClick} />
-                )}
-              </div>
-            </div>
-          </div>
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">{renderLeftContent()}</div>
         </div>
 
-        {/* PANEL PHẢI: TRÌNH SOẠN THẢO VÀ TESTCASE */}
+        {/* ── HORIZONTAL DRAG HANDLE ── */}
         <div
-          ref={editorContainerRef}
-          className="w-1/2 flex flex-col gap-2 overflow-hidden min-w-0"
+          onMouseDown={onHDrag}
+          className="w-1.5 shrink-0 cursor-col-resize group flex items-center justify-center"
         >
-          {/* Trình soạn thảo Code */}
-          <div className="flex-1 min-h-0 bg-white dark:bg-[#1C2737] rounded-xl border border-gray-200 dark:border-[#334155] overflow-hidden flex flex-col shadow-sm">
-            <EditorPanel
-              activeTab={editorActiveTab}
-              setActiveTab={setEditorActiveTab}
-              code={code}
-              setCode={setCode}
-              onMount={handleEditorDidMount}
-              onFormat={handleFormatCode}
-              onFullScreen={handleFullScreen}
-            />
+          <div className="w-1 h-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+        </div>
+
+        {/* ═══ PANEL RIGHT ══════════════════════════════════════ */}
+        <div
+          ref={rightPanelRef}
+          className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
+        >
+          {/* ── RIGHT-TOP: CODE EDITOR ── */}
+          <SolutionSubmittion
+  editorHeight={editorHeight}
+  problemId={problemId}
+/>
+
+          {/* ── VERTICAL DRAG HANDLE ── */}
+          <div
+            onMouseDown={onVDrag}
+            className="h-1.5 shrink-0 cursor-row-resize group flex items-center justify-center"
+          >
+            <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
           </div>
 
-          {/* Panel Testcase / Kết quả */}
-          <div className="bg-white dark:bg-[#1C2737] rounded-xl border border-gray-200 dark:border-[#334155] overflow-hidden shadow-sm">
-            <TestcasePanel
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-              testTab={testTab}
-              setTestTab={setTestTab}
-              activeCase={activeCase}
-              setActiveCase={setActiveCase}
-            />
+          {/* ── RIGHT-BOTTOM: TESTCASE ── */}
+          <div className="flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0">
+            {/* Bottom Tab bar */}
+            <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2">
+              {BOTTOM_TABS.map(({ key, label, Icon }) => {
+                const isActive = activeBottomTab === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveBottomTab(key)}
+                    className={`flex items-center gap-1.5 px-3 h-11 text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all relative
+                      ${
+                        isActive
+                          ? "text-[#262626] dark:text-[#E3C39D] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:rounded-t-full after:bg-current"
+                          : "text-gray-400 dark:text-[#475569] hover:text-[#262626] dark:hover:text-[#94A3B8]"
+                      }`}
+                  >
+                    <Icon size={12} />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Testcase content */}
+            <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
+              {activeBottomTab === "testcase" ? (
+                <div className="space-y-4">
+                  {/* Case selector */}
+                  <div className="flex items-center gap-2">
+                    {["Case 1", "Case 2", "Case 3"].map((c, i) => (
+                      <button
+                        key={c}
+                        onClick={() => setActiveCase(i)}
+                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${
+                          activeCase === i
+                            ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                            : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                    <button className="p-1.5 rounded-lg bg-gray-100 dark:bg-[#101828] border dark:border-[#334155] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors text-[14px] font-black">
+                      +
+                    </button>
+                  </div>
+
+                  {/* Input fields */}
+                  {[
+                    {
+                      label: "nums =",
+                      values: ["[2,7,11,15]", "[3,2,4]", "[3,3]"],
+                    },
+                    { label: "target =", values: ["9", "6", "6"] },
+                  ].map(({ label, values }) => (
+                    <div key={label}>
+                      <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                        {label}
+                      </p>
+                      <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                        {values[activeCase]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Test Result placeholder */
+                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                  <CheckSquare size={36} strokeWidth={1.5} />
+                  <p className="text-[12px] font-bold uppercase tracking-widest">
+                    Run your code to see results
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

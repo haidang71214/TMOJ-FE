@@ -54,8 +54,33 @@ export default function InformationInNavbar() {
     }
 
   } catch {
-    addToast({ title: "Logout failed!", color: "danger" });
+    addToast({ title: "Logout Success", color: "danger" });
   }
+};
+const checkadminpage = () => {
+  if (!user?.roles?.includes("admin")) return null;
+
+  const isAdminPage =
+    typeof window !== "undefined" &&
+    (window.location.hostname.includes("admin") ||
+      window.location.pathname.startsWith("/admin"));
+
+  return (
+    <DropdownItem
+      key="admin"
+      startContent={<Sparkles size={18} />}
+      onClick={() => {
+        if (isAdminPage) {
+          console.log("backhome");
+          router.push(`${PAGE_URL}`);
+        } else {
+          router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`);
+        }
+      }}
+    >
+      {isAdminPage ? "Back Home" : "Admin Panel"}
+    </DropdownItem>
+  );
 };
 
   return (
@@ -89,17 +114,7 @@ export default function InformationInNavbar() {
             base: "gap-3 rounded-xl data-[hover=true]:bg-[#A68868]/10 dark:data-[hover=true]:bg-[#FFB800]/15 transition-colors",
           }}
         >
-          {
-  user?.roles?.includes("admin") ? (
-    <DropdownItem
-      key="admin"
-      startContent={<Sparkles size={18} />}
-      onClick={() => router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`)}
-    >
-      Admin Panel
-    </DropdownItem>
-  ) : null
-}
+  {checkadminpage()}
           <DropdownItem
             key="mylists"
             startContent={

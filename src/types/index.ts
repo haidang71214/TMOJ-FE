@@ -71,6 +71,7 @@ export interface Problem {
   difficulty: "easy" | "medium" | "hard";
   statusCode: "draft" | "published";
   isActive: boolean;
+  content?:string;
   acceptancePercent: number | null;
   timeLimitMs: number;
   memoryLimitKb: number;
@@ -257,4 +258,44 @@ export interface Data{
 
 export interface MessageError{
   message:string;
+}
+export interface SubmitResponse {
+  submissionId: string
+  statusCode: string
+  verdictCode: string
+  compile: SubmitCompile
+  summary: SubmitSummary
+  failed: SubmitFailedCase[]
+}
+
+export interface SubmitCompile {
+  ok: boolean
+  exitCode: number
+  stdout: string
+  stderr: string
+}
+
+export interface SubmitSummary {
+  passed: number
+  total: number
+  timeMs: number
+}
+
+export interface SubmitFailedCase {
+  ordinal: number
+  verdict: string
+  message: string
+}
+export interface Runtime {
+  id: string
+  runtimeName: string
+  runtimeVersion: string
+  imageRef: string | null
+  defaultTimeLimitMs: number
+  defaultMemoryLimitKb: number
+  isActive: boolean
+}export interface RuntimeResponse {
+  data: Runtime[]
+  message: string | null
+  traceId: string
 }

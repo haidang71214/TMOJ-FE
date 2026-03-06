@@ -33,7 +33,7 @@ export default function Page() {
         }
 
       } catch {
-        addToast({ title: "Logout failed!", color: "danger" });
+        addToast({ title: "Logout Success", color: "danger" });
       }
     };
 

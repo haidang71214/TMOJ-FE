@@ -2,7 +2,7 @@
 import React from "react";
 import { TriangleAlert, Copy, ChevronDown } from "lucide-react";
 
-export const CompileErrorTab = () => {
+export default function CompileErrorTab() {
   const mockError = `Line 3: error: expected ';' after expression
   solution.cpp:3:5: error: use of undeclared identifier 'vctor'
       vctor<int> nums = {1, 2, 3};

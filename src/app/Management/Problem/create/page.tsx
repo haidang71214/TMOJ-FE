@@ -135,7 +135,7 @@ export default function CreateProblemPage() {
   };
 
   const handleFinish = () => {
-    router.push(`/Management/Problem/${createdProblemId}`);
+    router.push(`/Problems/${createdProblemId}`);
   };
 
   // ── UI helpers ────────────────────────────────────────────────────────────

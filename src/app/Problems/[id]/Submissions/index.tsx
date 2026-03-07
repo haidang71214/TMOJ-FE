@@ -14,7 +14,7 @@ import {
   Button,
 } from "@heroui/react";
 import { ChevronDown, Settings, Clock, Inbox } from "lucide-react";
-import { SubmissionData } from "./types";
+import { SubmissionData } from "@/types";
 
 // 1. Sửa lỗi 'any': Định nghĩa kiểu dữ liệu rõ ràng cho Props
 interface SubmissionsTabProps {

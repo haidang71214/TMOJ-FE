@@ -18,12 +18,12 @@ import {
 } from "lucide-react";
 
 import { ProblemListSidebar } from "./ProblemListSidebar";
-import { DescriptionTab } from "./Description/page";
-import { EditorialTab } from "./Editorial/page";
-import { SolutionsTab } from "./Solutions/page";
 import { SubmissionsTab } from "./Submissions/index";
-import { CompileErrorTab } from "./CompileError/page";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
+import CompileErrorTab from "./CompileError/page";
+import DescriptionTab from "./Description/page";
+import EditorialTab from "./Editorial/page";
+import SolutionsTab from "./Solutions/page";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -200,7 +200,7 @@ export default function ProblemDetailsPage() {
           className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0"
         >
           {/* Tab bar */}
-          <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2 gap-0.5 overflow-x-auto no-scrollbar">
+          <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2 gap-0.5  no-scrollbar">
             {LEFT_TABS.map(({ key, label, Icon }) => {
               const isActive = activeLeftTab === key;
               return (
@@ -239,9 +239,10 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-          <SolutionSubmittion
+<SolutionSubmittion
   editorHeight={editorHeight}
   problemId={problemId}
+  onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
 />
 
           {/* ── VERTICAL DRAG HANDLE ── */}

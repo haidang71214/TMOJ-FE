@@ -299,3 +299,55 @@ export interface Runtime {
   message: string | null
   traceId: string
 }
+export interface SubmissionData {
+  id: string;
+  status:
+    | "Accepted"
+    | "Compile Error"
+    | "Time Limit Exceeded"
+    | "Memory Limit Exceeded"
+    | "Runtime Error"
+    | "Compile Error";
+  language: string;
+  runtime: string;
+  memory: string;
+  notes: string;
+  timestamp: string;
+}
+export enum VerdictCode {
+  AC = "ac",
+  WA = "wa",
+  RTE = "rte",
+  IR = "ir",
+  OLE = "ole",
+  MLE = "mle",
+  TLE = "tle",
+  IE = "ie",
+  CE = "ce"
+}
+// Interface đơn giản, gọn, dùng string từ enum
+export interface SubmissionResponse {
+  data: {
+    submissionId: string;
+    statusCode: string;           // "done", "pending", ...
+    verdictCode: VerdictCode;     // dùng enum ở đây
+    compile: {
+      ok: boolean;
+      exitCode: number;
+      stdout: string;
+      stderr: string;
+    };
+    summary: {
+      passed: number;
+      total: number;
+      timeMs: number;
+    };
+    failed: Array<{
+      ordinal: number;
+      message: string;
+      verdict?: VerdictCode;      // optional
+    }>;
+  };
+  message: string | null;
+  traceId: string;
+}

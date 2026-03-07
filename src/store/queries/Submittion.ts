@@ -1,10 +1,10 @@
-import { Runtime, RuntimeResponse, SubmitResponse } from "@/types";
+import { Runtime, RuntimeResponse, SubmissionResponse } from "@/types";
 import { baseApi } from "../base";
 import { RuntimeEndpoint, SubmittionEndPoint } from "@/constants/endpoints";
 
 export const SubmitionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    postSubmission: builder.mutation<{data: SubmitResponse}, { problemId: string; body: FormData }>({
+    postSubmission: builder.mutation< SubmissionResponse, { problemId: string; body: FormData }>({
   query: ({ problemId, body }) => ({
     url: SubmittionEndPoint.GET_SUBMITTION_FROM_USER.replace("{problemId}", problemId),
     method: "POST",

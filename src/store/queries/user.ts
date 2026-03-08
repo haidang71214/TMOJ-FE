@@ -11,9 +11,9 @@ export const userApi = baseApi.injectEndpoints({
       }),
       providesTags: ["User"], 
     }),
-    getUserRole : builder.query<{data :Users[]}, void>({
-      query: () => ({
-        url: AdminUserEndPoint.GET_USER_ROLE,
+    getUserRole : builder.query<{data :Users[]}, {roleName:string}>({
+      query: ({roleName}) => ({
+        url: AdminUserEndPoint.GET_USER_ROLE.replace("{roleName}",roleName),
         method: "GET",
       }),
       providesTags: ["User"], 

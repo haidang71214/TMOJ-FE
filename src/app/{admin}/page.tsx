@@ -58,7 +58,7 @@ export default function AdminPage() {
     package: <PracticePackagePage />,
     coin: <PracticePackagePage />,
     class:<ClassComponents/>,
-    Subject:<SubjectComponents/>,
+    subject:<SubjectComponents/>,
     settings: <div>Settings</div>,
   };
 

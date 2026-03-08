@@ -23,7 +23,7 @@ const AdminUserEndPoint = {
   GET_USER_UNLOCK:`${API_PREFIX}/Auth/users/unlock`,
     GET_USER_LOCK:`${API_PREFIX}/Auth/users/lock`,
     POST_ASSIGN_ROLE:`${API_PREFIX}/Auth/users/{id}/assign-role`,
-    GET_USER_ROLE:`${API_PREFIX}/User/role/admin`,
+    GET_USER_ROLE:`${API_PREFIX}/User/role/{roleName}`,
     ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`
 }
 const ProblemEndPoint = {

@@ -34,6 +34,8 @@ export default function RegisterModal() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   // Password Validation
   const validation = useMemo(() => {
@@ -75,21 +77,64 @@ export default function RegisterModal() {
       }).unwrap();
 
       addToast({
-        title: "Account created successfully, please chec your email to confirm !",
+        title: "Account created successfully, please check your email for the verification code!",
         color: "success",
       });
 
-      closeModal();
+      // Move to email verification step instead of closing
+      setStep(2);
     } catch (error: unknown) {
       console.log(error);
       
-  const err = error as ErrorForm;
+      const err = error as ErrorForm;
 
-  addToast({
-    title: err?.data?.data?.message || "Register failed!",
-    color: "danger",
-  });
-}
+      addToast({
+        title: err?.data?.data?.message || "Register failed!",
+        color: "danger",
+      });
+    }
+  };
+
+  const handleVerifyEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    const enteredOtp = otp.join("");
+    if (enteredOtp.length < 6) {
+      addToast({
+        title: "Please enter the 6-digit verification code.",
+        color: "danger",
+      });
+      return;
+    }
+
+    addToast({
+      title: "Email verified successfully!",
+      color: "success",
+    });
+    closeModal();
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) return; // Only allow 1 char
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value !== "" && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) {
+        (nextInput as HTMLInputElement).focus();
+      }
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && otp[index] === "" && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) {
+        (prevInput as HTMLInputElement).focus();
+      }
+    }
   };
 
   const PasswordRequirements = (
@@ -118,78 +163,117 @@ export default function RegisterModal() {
 
       <div className="flex flex-col gap-1 items-center text-center mt-2 mb-6">
         <h2 className="text-4xl font-[1000] text-[#3F4755] dark:text-white uppercase italic">
-          Sign up<span className="text-[#FFB800]">.</span>
+          {step === 1 ? (
+            <>Sign up<span className="text-[#FFB800]">.</span></>
+          ) : (
+            <>Verify<span className="text-[#FFB800]">.</span></>
+          )}
         </h2>
         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-2">
-          Create your TMOJ account
+          {step === 1 ? "Create your TMOJ account" : `Enter the verification code sent to ${email || "your email"}`}
         </p>
       </div>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            placeholder="First name"
-            variant="flat"
-            required
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            startContent={<IdCard size={16} className="text-[#FFB800]" />}
-            classNames={inputStyles}
-          />
-          <Input
-            placeholder="Last name"
-            variant="flat"
-            required
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            classNames={inputStyles}
-          />
-        </div>
-
-        <Input
-          type="email"
-          placeholder="example@tmoj.com"
-          variant="flat"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          startContent={<Mail size={16} className="text-[#FFB800]" />}
-          classNames={inputStyles}
-        />
-
-        <div className="relative">
-          <div className="flex justify-between items-center mb-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">
-              Password
-            </label>
-            <Popover placement="right" showArrow>
-              <PopoverTrigger>
-                <button type="button">
-                  <Info size={14} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent>{PasswordRequirements}</PopoverContent>
-            </Popover>
+      {step === 1 ? (
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              placeholder="First name"
+              variant="flat"
+              required
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              startContent={<IdCard size={16} className="text-[#FFB800]" />}
+              classNames={inputStyles}
+            />
+            <Input
+              placeholder="Last name"
+              variant="flat"
+              required
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              classNames={inputStyles}
+            />
           </div>
-          <PasswordInput value={password} onChange={setPassword} required />
-        </div>
 
-        <PasswordInput
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          required
-          placeholder="Confirm password"
-        />
+          <Input
+            type="email"
+            placeholder="example@tmoj.com"
+            variant="flat"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            startContent={<Mail size={16} className="text-[#FFB800]" />}
+            classNames={inputStyles}
+          />
 
-        <Button
-          type="submit"
-          isLoading={isLoading}
-          endContent={!isLoading && <ArrowRight size={18} />}
-          className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-[1000] rounded-2xl h-14 mt-4 uppercase"
-        >
-          Sign up now
-        </Button>
-      </form>
+          <div className="relative">
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[10px] font-black uppercase text-slate-400">
+                Password
+              </label>
+              <Popover placement="right" showArrow>
+                <PopoverTrigger>
+                  <button type="button">
+                    <Info size={14} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent>{PasswordRequirements}</PopoverContent>
+              </Popover>
+            </div>
+            <PasswordInput value={password} onChange={setPassword} required />
+          </div>
+
+          <PasswordInput
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            required
+            placeholder="Confirm password"
+          />
+
+          <Button
+            type="submit"
+            isLoading={isLoading}
+            endContent={!isLoading && <ArrowRight size={18} />}
+            className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-[1000] rounded-2xl h-14 mt-4 uppercase"
+          >
+            Sign up now
+          </Button>
+        </form>
+      ) : (
+        <form className="flex flex-col gap-6" onSubmit={handleVerifyEmail}>
+          <div className="flex justify-between gap-2">
+            {otp.map((digit, index) => (
+              <Input
+                key={index}
+                id={`otp-${index}`}
+                type="text"
+                value={digit}
+                maxLength={1}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                required
+                classNames={{
+                  inputWrapper: "w-12 h-14 bg-gray-100 dark:bg-[#333A45] rounded-xl flex justify-center border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800]",
+                  input: "text-center text-xl font-black text-[#3F4755] dark:text-white",
+                }}
+              />
+            ))}
+          </div>
+          
+          <Button
+            type="submit"
+            endContent={<Check size={18} />}
+            className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-[1000] rounded-2xl h-14 uppercase"
+          >
+            Verify Email
+          </Button>
+          
+          <p className="text-center text-[10px] font-bold text-gray-400 cursor-pointer hover:text-[#FFB800] mt-[-10px]">
+            Didn't receive the code? Resend
+          </p>
+        </form>
+      )}
 
       <Divider className="my-4" />
 

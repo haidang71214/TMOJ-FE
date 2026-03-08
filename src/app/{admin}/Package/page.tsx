@@ -6,6 +6,9 @@ import {
   EyeOff,
   Upload,
   Trash2,
+  Users,
+  Activity,
+  Layers,
 } from "lucide-react";
 // import PracticePackageModal from "./PracticePackageModal";
 import { PracticePackage } from "@/types";
@@ -21,7 +24,7 @@ const MOCK_PACKAGES: PracticePackage[] = [
     disabled: false,
     image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159",
     createdAt: "2025-12-01",
-    price: 0, // free
+    price: 0,
   },
   {
     id: "2",
@@ -45,7 +48,38 @@ const MOCK_PACKAGES: PracticePackage[] = [
     createdAt: "2025-12-20",
     price: 1200,
   },
+  {
+    id: "4",
+    name: "Data Structures in Java",
+    description: "Trees, Graphs, and Heaps",
+    level: "INTERMEDIATE",
+    published: true,
+    disabled: false,
+    image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea",
+    createdAt: "2026-01-05",
+    price: 500,
+  },
+  {
+    id: "5",
+    name: "Python for Data Science",
+    description: "Pandas, Numpy, and Matplotlib",
+    level: "BEGINNER",
+    published: true,
+    disabled: false,
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
+    createdAt: "2026-02-12",
+    price: 0,
+  },
 ];
+
+// Mock Stats Data per package
+const MOCK_STATS: Record<string, { enrolled: number; completionRate: number; modules: number }> = {
+  "1": { enrolled: 1240, completionRate: 68, modules: 5 },
+  "2": { enrolled: 850, completionRate: 45, modules: 8 },
+  "3": { enrolled: 320, completionRate: 22, modules: 12 },
+  "4": { enrolled: 610, completionRate: 55, modules: 6 },
+  "5": { enrolled: 2100, completionRate: 88, modules: 4 },
+};
 
 export default function PracticePackagePage() {
   const [packages, setPackages] = useState<PracticePackage[]>(MOCK_PACKAGES);
@@ -128,29 +162,48 @@ export default function PracticePackagePage() {
                 )}
               </div>
 
-              {/* ACTIONS */}
-              <div className="flex justify-end gap-2 pt-2">
-                {/* <Button
-                  isIconOnly
-                  size="sm"
-                  onPress={() => setEditing(pkg)}
-                >
-                  <Pencil size={16} />
-                </Button> */}
+              {/* PACKAGE STATISTICS */}
+              <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 dark:border-white/5">
+                <div className="flex flex-col items-center justify-center">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Users size={10} /> Enrolled</p>
+                  <p className="text-sm font-black text-slate-800 dark:text-white">{MOCK_STATS[pkg.id]?.enrolled || 0}</p>
+                </div>
+                <div className="flex flex-col items-center justify-center border-l border-slate-100 dark:border-white/5">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Activity size={10} /> Comp. Rate</p>
+                  <p className="text-sm font-black text-emerald-500">{MOCK_STATS[pkg.id]?.completionRate || 0}%</p>
+                </div>
+                <div className="flex flex-col items-center justify-center border-l border-slate-100 dark:border-white/5">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Layers size={10} /> Modules</p>
+                  <p className="text-sm font-black text-blue-500">{MOCK_STATS[pkg.id]?.modules || 0}</p>
+                </div>
+              </div>
 
-                <Button
-                  isIconOnly
-                  size="sm"
-                  onPress={() =>
-                    setPackages((prev) =>
-                      prev.map((p) =>
-                        p.id === pkg.id ? { ...p, published: !p.published } : p
-                      )
-                    )
-                  }
+              {/* ACTIONS */}
+              <div className="flex justify-between items-center pt-2">
+                <Button 
+                  size="sm" 
+                  className="bg-indigo-500/10 text-indigo-500 font-bold hover:bg-indigo-500 hover:text-white transition-colors"
+                  isDisabled={pkg.disabled}
                 >
-                  <Upload size={16} />
+                  Edit Modules
                 </Button>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    title={pkg.published ? "Unpublish Package" : "Publish Package"}
+                    className={pkg.published ? "bg-emerald-500/20 text-emerald-600" : "bg-slate-100 dark:bg-white/10 text-slate-400"}
+                    onPress={() =>
+                      setPackages((prev) =>
+                        prev.map((p) =>
+                          p.id === pkg.id ? { ...p, published: !p.published } : p
+                        )
+                      )
+                    }
+                  >
+                    <Upload size={16} />
+                  </Button>
 
                 <Button
                   isIconOnly
@@ -176,13 +229,14 @@ export default function PracticePackagePage() {
                 >
                   <Trash2 size={16} />
                 </Button>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      CREATE MODAL
+      {/* CREATE MODAL */}
       {/* {open && (
         <PracticePackageModal
           onClose={() => setOpen(false)}

@@ -22,7 +22,9 @@ const AdminUserEndPoint = {
    UNLOCK_USER_PUT:`${API_PREFIX}/Auth/users/{id}/unlock`,
   GET_USER_UNLOCK:`${API_PREFIX}/Auth/users/unlock`,
     GET_USER_LOCK:`${API_PREFIX}/Auth/users/lock`,
-    POST_ASSIGN_ROLE:`${API_PREFIX}/Auth/users/{id}/assign-role`
+    POST_ASSIGN_ROLE:`${API_PREFIX}/Auth/users/{id}/assign-role`,
+    GET_USER_ROLE:`${API_PREFIX}/User/role/admin`,
+    ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`
 }
 const ProblemEndPoint = {
   GET_LIST_PROBLEM :`${API_PREFIX}/Problems`,
@@ -40,7 +42,27 @@ const SubmittionEndPoint = {
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
   GET_DETAIL_RUNTIME : `${API_PREFIX}/Runtimes/{id}​`
-} 
+}
+const SubjectEndpoint = {
+  GET_ALL_SUBJECT: `${API_PREFIX}/Subject`,
+  GET_DETAIL_SUBJECT: `${API_PREFIX}/Subject/{id}`,
+  UPDATE_SUBJECT: `${API_PREFIX}/Subject/{id}`,
+  CREATE_SUBJECT: `${API_PREFIX}/Subject`,
+};
+const ClassEndpoint = {
+  GET_ALL_CLASS:`${API_PREFIX}/Class`,
+  CREATE_CLASS:`${API_PREFIX}/Class`,
+  GET_DETAIL_CLASS:`${API_PREFIX}/Class/{id}`,
+   PUT_CLASS_TEACHER:`${API_PREFIX}/Class/{id}/teacher`,
+   CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`,
+   DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`,
+   GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`,
+   POST_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
+   DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
+   JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`,
+  OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
+  // /api/v1/Class/{id}/report/export // cái này là gì hong biết
+}
 export {
   authEndpoint,
   userProfileEndpoint,
@@ -48,6 +70,8 @@ export {
   ProblemEndPoint,
   ProblemListEndpoint,
   SubmittionEndPoint,
-  RuntimeEndpoint
+  RuntimeEndpoint,
+  ClassEndpoint,
+  SubjectEndpoint
 };
 

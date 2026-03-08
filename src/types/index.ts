@@ -351,3 +351,68 @@ export interface SubmissionResponse {
   message: string | null;
   traceId: string;
 }
+export interface Semester {
+  semesterId: string;
+  code: string;
+  name: string;
+}
+export interface Subject {
+  subjectId: string;
+  code: string;
+  name: string;
+}
+export interface Teacher {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+}
+export interface ClassItem {
+  classId: string;
+
+  classCode: string;
+  className: string;
+
+  description: string;
+
+  startDate: string;
+  endDate: string;
+
+  isActive: boolean;
+
+  inviteCode: string;
+  inviteCodeExpiresAt: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  subject: Subject;
+
+  semester: Semester;
+
+  teacher: Teacher;
+
+  memberCount: number;
+}
+export interface ClassListData {
+  items: ClassItem[];
+  totalCount: number;
+}
+export interface ClassResponse {
+  data: ClassListData;
+  message: string;
+  traceId: string | null;
+}
+export interface CreateClassRequest {
+  subject_id: string;
+  semester_id: string;
+  class_code?: string | null;
+  class_name?: string | null;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  teacher_id?: string | null;
+}
+export interface UpdateClassTeacherPayload {
+  teacherId: string;
+}

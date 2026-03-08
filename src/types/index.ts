@@ -220,14 +220,15 @@ export interface Teacher {
 }
 
 export interface Subject {
-  id: string;
+  subjectId: string;
+  code: string;
   name: string;
-  department: string;
-  credits: number;
-  totalProblems: number;
-  visible: boolean;
+  description: string;
+  isActive: boolean;
   createdAt: string;
 }
+
+
 export type PracticePackage = {
   id: string;
   name: string;
@@ -266,6 +267,11 @@ export interface SubmitResponse {
   compile: SubmitCompile
   summary: SubmitSummary
   failed: SubmitFailedCase[]
+}
+export interface SubmitCreateForm {
+  code: string,
+  name: string,
+  description: string
 }
 
 export interface SubmitCompile {
@@ -356,10 +362,17 @@ export interface Semester {
   code: string;
   name: string;
 }
-export interface Subject {
-  subjectId: string;
+export interface SubjectCreateForm {
   code: string;
   name: string;
+  description: string
+}
+export interface SubjectResponseForm {
+ subjectId: string,
+code: string,
+name: string,
+description: string,
+isActive: boolean,
 }
 export interface Teacher {
   userId: string;

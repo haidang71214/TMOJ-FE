@@ -14,7 +14,7 @@ import {
   Input,
   Switch,
 } from "@heroui/react";
-import { Edit, Trash2, Calendar, Plus } from "lucide-react";
+import { Edit, Trash2, Calendar, Plus, Download } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
 import CoinPackageModal from "./CoinPackageModal";
 
@@ -50,8 +50,8 @@ const MOCK_PACKAGES: CoinPackage[] = [
     bonus: 10,
     image: "https://cdn-icons-png.flaticon.com/512/138/138292.png",
     startAt: "2026-02-01",
-    endAt: "2026-03-01",
-    active: false,
+    endAt: "2026-06-01",
+    active: true,
   },
   {
     id: 3,
@@ -60,9 +60,31 @@ const MOCK_PACKAGES: CoinPackage[] = [
     price: 499000,
     bonus: 20,
     image: "https://cdn-icons-png.flaticon.com/512/2649/2649421.png",
-    startAt: "2025-10-01",
-    endAt: "2025-12-01",
+    startAt: "2026-01-01",
+    endAt: "2026-12-31",
     active: true,
+  },
+  {
+    id: 4,
+    name: "Elite Bundle",
+    coins: 3000,
+    price: 999000,
+    bonus: 30,
+    image: "https://cdn-icons-png.flaticon.com/512/2619/2619045.png",
+    startAt: "2026-03-01",
+    endAt: "2026-09-01",
+    active: true,
+  },
+  {
+    id: 5,
+    name: "Lunar New Year Special",
+    coins: 888,
+    price: 388000,
+    bonus: 15,
+    image: "https://cdn-icons-png.flaticon.com/512/3050/3050215.png",
+    startAt: "2026-01-20",
+    endAt: "2026-02-20",
+    active: false,
   },
 ];
 
@@ -109,17 +131,26 @@ export default function CoinManagerPage() {
           </p>
         </div>
 
-        <Button
-          className="bg-[#FF5C00] text-white font-black"
-          startContent={<Plus size={16} />}
-          onClick={() =>
-            openModal({
-              content: <CoinPackageModal />,
-            })
-          }
-        >
-          Create Package
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            className="bg-slate-100 dark:bg-white/5 text-[#071739] dark:text-white font-black border border-slate-200 dark:border-white/10"
+            startContent={<Download size={16} />}
+            onPress={() => alert("Payment Report Downloaded")}
+          >
+            Export Payment Report
+          </Button>
+          <Button
+            className="bg-[#FF5C00] text-white font-black"
+            startContent={<Plus size={16} />}
+            onClick={() =>
+              openModal({
+                content: <CoinPackageModal />,
+              })
+            }
+          >
+            Create Package
+          </Button>
+        </div>
       </div>
 
       {/* GRID */}
@@ -136,8 +167,10 @@ export default function CoinManagerPage() {
                 {/* TOP */}
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={pkg.image}
+                      alt={pkg.name}
                       className="w-14 h-14 rounded-xl bg-slate-100 p-2"
                     />
                     <div>

@@ -401,6 +401,22 @@ export default function MyListsPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Tooltip content={item.isPrivate ? "Make Public" : "Make Private"}>
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    size="sm"
+                    className={`rounded-xl ${item.isPrivate ? "text-slate-400 hover:text-emerald-500" : "text-emerald-500 hover:text-slate-400"}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Toggle visibility mock logic
+                      alert(`Visibility changed to ${item.isPrivate ? 'Public' : 'Private'}`);
+                    }}
+                  >
+                    {item.isPrivate ? <Lock size={16} /> : <Globe size={16} />}
+                  </Button>
+                </Tooltip>
+                
                 <Tooltip content="Edit">
                   <Button
                     isIconOnly

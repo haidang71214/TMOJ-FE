@@ -21,6 +21,10 @@ import {
   Textarea,
   Skeleton,
   Switch,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@heroui/react";
 import {
   Plus,
@@ -34,6 +38,10 @@ import {
   AlertTriangle,
   RefreshCw,
   BookOpen, // Icon cho nút Editorial (có thể thay bằng FileText hoặc Edit3 nếu thích)
+  MoreVertical,
+  Download,
+  UploadCloud,
+  FileArchive,
 } from "lucide-react";
 
 // Type Problem (giữ nguyên)
@@ -298,6 +306,43 @@ export default function ProblemManagementPage() {
             >
               <BookOpen size={16} />
             </Button>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="flat">
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Extra Actions">
+                <DropdownItem
+                  key="upload"
+                  startContent={<UploadCloud size={14} />}
+                  onPress={() => alert("Upload New Solution triggered")}
+                >
+                  Upload New Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_testset"
+                  startContent={<FileArchive size={14} />}
+                  onPress={() => alert("Download Testset triggered")}
+                >
+                  Download Testset
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_solution"
+                  startContent={<Download size={14} />}
+                  onPress={() => alert("Download Solution triggered")}
+                >
+                  Download Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="set_score"
+                  startContent={<Pencil size={14} />}
+                  onPress={() => alert("Set Problem Score triggered")}
+                >
+                  Set Problem Score
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </TableCell>
       </TableRow>
@@ -381,6 +426,43 @@ export default function ProblemManagementPage() {
             >
               <BookOpen size={16} />
             </Button>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="flat">
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Extra Actions">
+                <DropdownItem
+                  key="upload"
+                  startContent={<UploadCloud size={14} />}
+                  onPress={() => alert("Upload New Solution triggered")}
+                >
+                  Upload New Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_testset"
+                  startContent={<FileArchive size={14} />}
+                  onPress={() => alert("Download Testset triggered")}
+                >
+                  Download Testset
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_solution"
+                  startContent={<Download size={14} />}
+                  onPress={() => alert("Download Solution triggered")}
+                >
+                  Download Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="set_score"
+                  startContent={<Pencil size={14} />}
+                  onPress={() => alert("Set Problem Score triggered")}
+                >
+                  Set Problem Score
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </TableCell>
       </TableRow>

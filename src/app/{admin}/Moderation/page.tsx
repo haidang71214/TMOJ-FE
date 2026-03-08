@@ -33,6 +33,10 @@ import {
   AlertTriangle,
   Users,
   Eye,
+  Edit2,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 
 // Types dựa trên schema
@@ -86,6 +90,28 @@ const MOCK_REPORTS: Report[] = [
     created_at: "2026-01-26 09:30",
     target_username: "spam_bot_01",
   },
+  {
+    id: "r4",
+    content_type: "problem",
+    content_id: "p-445",
+    content_preview: "Testcase #4 is mathematically impossible.",
+    reporter_username: "top_coder",
+    violation_type: "other",
+    status: "pending",
+    created_at: "2026-01-26 11:20",
+    target_username: "problem_setter_01",
+  },
+  {
+    id: "r5",
+    content_type: "comment",
+    content_id: "cmt-202",
+    content_preview: "Giving out answers in comments: 1-A, 2-C...",
+    reporter_username: "honest_user",
+    violation_type: "other",
+    status: "pending",
+    created_at: "2026-01-25 18:45",
+    target_username: "cheater_07",
+  },
 ];
 
 export default function ModerationManagementPage() {
@@ -93,9 +119,9 @@ export default function ModerationManagementPage() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
-  const handleTakeAction = (action: "warn" | "delete" | "block" | "hide") => {
+  const handleTakeAction = (action: "warn" | "delete" | "block" | "hide" | "edit" | "approve" | "reject" | "suspend") => {
     // Logic gọi API thực tế ở đây
-    alert(`Thực hiện hành động: ${action} cho report #${selectedReport?.id}`);
+    alert(`Thực hiện hành động: ${action.toUpperCase()} cho report #${selectedReport?.id}`);
     setActionModalOpen(false);
     setSelectedReport(null);
   };
@@ -125,7 +151,7 @@ export default function ModerationManagementPage() {
 
       {/* STATS OVERVIEW */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-amber-500/10 to-red-500/10">
+        <Card className="bg-linear-to-br from-amber-500/10 to-red-500/10">
           <CardBody className="text-center">
             <div className="text-4xl font-black text-amber-600 dark:text-amber-400">47</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
@@ -284,40 +310,91 @@ export default function ModerationManagementPage() {
 
                 <div>
                   <div className="font-black uppercase text-sm tracking-widest mb-3">
-                    Choose Action
+                    Moderation Actions
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {/* Content Actions */}
+                    {selectedReport?.content_type === "comment" && (
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        startContent={<Edit2 size={16} />}
+                        className="justify-start text-blue-600 dark:text-blue-400"
+                        onPress={() => handleTakeAction("edit")}
+                      >
+                        Edit Comment
+                      </Button>
+                    )}
+                    
+                    {(selectedReport?.content_type === "editorial" || selectedReport?.content_type === "problem") && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          startContent={<CheckCircle size={16} />}
+                          className="justify-start text-emerald-600 dark:text-emerald-400"
+                          onPress={() => handleTakeAction("approve")}
+                        >
+                          Approve Content
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          startContent={<XCircle size={16} />}
+                          className="justify-start text-red-600 dark:text-red-400"
+                          onPress={() => handleTakeAction("reject")}
+                        >
+                          Reject Content
+                        </Button>
+                      </>
+                    )}
+
                     <Button
+                      size="sm"
                       variant="flat"
-                      startContent={<AlertTriangle size={18} />}
-                      className="justify-start text-amber-600 dark:text-amber-400"
-                      onPress={() => handleTakeAction("warn")}
-                    >
-                      Warn User
-                    </Button>
-                    <Button
-                      variant="flat"
-                      startContent={<Trash2 size={18} />}
+                      startContent={<Trash2 size={16} />}
                       className="justify-start text-red-600 dark:text-red-400"
                       onPress={() => handleTakeAction("delete")}
                     >
                       Delete Content
                     </Button>
                     <Button
+                      size="sm"
                       variant="flat"
-                      startContent={<Ban size={18} />}
-                      className="justify-start text-purple-600 dark:text-purple-400"
-                      onPress={() => handleTakeAction("block")}
-                    >
-                      Block User
-                    </Button>
-                    <Button
-                      variant="flat"
-                      startContent={<EyeOff size={18} />}
+                      startContent={<EyeOff size={16} />}
                       className="justify-start text-slate-600 dark:text-slate-400"
                       onPress={() => handleTakeAction("hide")}
                     >
                       Hide Content
+                    </Button>
+
+                    {/* User Actions */}
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      startContent={<AlertTriangle size={16} />}
+                      className="justify-start text-amber-600 dark:text-amber-400 border-t border-slate-200 dark:border-white/10 mt-2"
+                      onPress={() => handleTakeAction("warn")}
+                    >
+                      Warn User
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      startContent={<Clock size={16} />}
+                      className="justify-start text-orange-600 dark:text-orange-400 border-t border-slate-200 dark:border-white/10 mt-2"
+                      onPress={() => handleTakeAction("suspend")}
+                    >
+                      Suspend User
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      startContent={<Ban size={16} />}
+                      className="justify-start text-purple-600 dark:text-purple-400 border-t border-slate-200 dark:border-white/10 mt-2"
+                      onPress={() => handleTakeAction("block")}
+                    >
+                      Block User
                     </Button>
                   </div>
                 </div>

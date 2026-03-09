@@ -24,6 +24,7 @@ import {
   useCreateTestSetMutation,
 } from "@/store/queries/problem";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { RequiredStar } from "@/Provider/RequiredStar";
 
 const STEPS = [
   { label: "Problem Info", description: "Basic info & limits" },
@@ -199,13 +200,25 @@ export default function CreateProblemPage() {
         <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-12">
 
           <Input
-            label="Title"
+              label={
+    <div className="flex items-center gap-1">
+      Title
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  } 
+  placeholder="Ex: Two Sum"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
 
           <Input
-            label="Slug"
+             label={
+    <div className="flex items-center gap-1">
+      slug
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  } 
+    placeholder="Ex: two-sum-problem"
             value={form.slug}
             onChange={(e) => setForm({ ...form, slug: e.target.value })}
           />
@@ -213,7 +226,13 @@ export default function CreateProblemPage() {
           <Divider />
 
           <Textarea
-            label="Description (Markdown)"
+                      
+ label={
+    <div className="flex items-center gap-1">
+      Description (Markdown)
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
             value={form.descriptionMd}
             onChange={(e) => setForm({ ...form, descriptionMd: e.target.value })}
             minRows={4}
@@ -221,31 +240,53 @@ export default function CreateProblemPage() {
 
           <div className="grid grid-cols-3 gap-6">
             <Input
-              label="Time Limit (ms)"
+             label={
+    <div className="flex items-center gap-1">
+      Time Limit (ms)
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
               type="number"
               value={form.timeLimitMs.toString()}
               onChange={(e) => setForm({ ...form, timeLimitMs: Number(e.target.value) })}
             />
 
             <Input
-              label="Memory Limit (MB)"
+              label={
+    <div className="flex items-center gap-1">
+      Memory Limit (MB)
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
               type="number"
               value={(form.memoryLimitKb / 1024).toString()}
               onChange={(e) => setForm({ ...form, memoryLimitKb: Number(e.target.value) * 1024 })}
             />
 
             <Select
-              label="Difficulty"
-              selectedKeys={[form.difficulty]}
+  label={
+    <div className="flex items-center gap-1">
+      Difficulty
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
+  placeholder="Example: Easy"
+   selectedKeys={[form.difficulty]}
               onSelectionChange={(keys) => {
                 const value = Array.from(keys)[0] as "easy" | "medium" | "hard";
                 setForm({ ...form, difficulty: value });
               }}
-            >
-              <SelectItem key="easy">Easy</SelectItem>
-              <SelectItem key="medium">Medium</SelectItem>
-              <SelectItem key="hard">Hard</SelectItem>
-            </Select>
+  labelPlacement="outside"
+  variant="bordered"
+  classNames={{
+    label: "font-black uppercase text-[10px] italic text-slate-500",
+    trigger: "rounded-xl",
+  }}
+>
+  <SelectItem key="easy">Easy</SelectItem>
+  <SelectItem key="medium">Medium</SelectItem>
+  <SelectItem key="hard">Hard</SelectItem>
+</Select>
           </div>
 
           <RadioGroup

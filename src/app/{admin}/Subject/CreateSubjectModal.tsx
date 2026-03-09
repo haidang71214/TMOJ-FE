@@ -9,6 +9,7 @@ import {
 
 import { useCreateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
+import { RequiredStar } from "@/Provider/RequiredStar";
 
 export default function CreateSubjectModal() {
   const { closeModal } = useModal();
@@ -75,7 +76,12 @@ export default function CreateSubjectModal() {
       <div className="px-6 py-4 flex flex-col gap-3">
         <div className="flex gap-3">
           <Input
-            label="Subject Code"
+            label={
+              <div className="flex items-center gap-1">
+                Subject Code
+                <RequiredStar rules={["Subject code is required"]} />
+              </div>
+            }
             placeholder="e.g. CS101"
             value={form.code}
             onChange={(e) => handleChange("code", e.target.value)}
@@ -88,8 +94,14 @@ export default function CreateSubjectModal() {
                 "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
             }}
           />
+
           <Input
-            label="Subject Name"
+            label={
+              <div className="flex items-center gap-1">
+                Subject Name
+                <RequiredStar rules={["Subject name is required"]} />
+              </div>
+            }
             placeholder="e.g. Introduction to CS"
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
@@ -105,7 +117,17 @@ export default function CreateSubjectModal() {
         </div>
 
         <Textarea
-          label="Description"
+          label={
+            <div className="flex items-center gap-1">
+              Description
+              <RequiredStar
+                rules={[
+                  "Description is required",
+                  "Minimum 10 characters",
+                ]}
+              />
+            </div>
+          }
           placeholder="Brief description of the subject..."
           value={form.description}
           onChange={(e) => handleChange("description", e.target.value)}

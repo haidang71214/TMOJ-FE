@@ -9,6 +9,7 @@ import {
   Select,
   SelectItem,
   Textarea,
+  Tooltip
 } from "@heroui/react";
 
 import { ArrowLeft, Info, Rocket } from "lucide-react";
@@ -20,6 +21,8 @@ import { useCreateClassMutation } from "@/store/queries/Class";
 import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { CreateClassRequest } from "@/types";
+import { useGetSemestersQuery } from "@/store/queries/Semester";
+import { RequiredStar } from "@/Provider/RequiredStar";
 
 export default function CreateClassPage() {
   const router = useRouter();
@@ -35,6 +38,10 @@ export default function CreateClassPage() {
     useGetUserRoleQuery({
       roleName: "teacher",
     });
+    // get những cái public
+ const { data: semesterData, isLoading: semesterLoading } =useGetSemestersQuery();
+
+const semesters = semesterData?.data?.items ?? [];
 
   const teachers = teacherData?.data ?? [];
 
@@ -68,14 +75,14 @@ export default function CreateClassPage() {
 
     try {
       const payload: CreateClassRequest = {
-        subject_id: form.subjectId,
-        semester_id: form.semesterId,
-        class_code: form.classCode || null,
-        class_name: form.className || null,
+        subjectId: form.subjectId,
+        semesterId: form.semesterId,
+        classCode: form.classCode || null,
+        className: form.className || null,
         description: form.description || null,
-        start_date: form.startDate || null,
-        end_date: form.endDate || null,
-        teacher_id: form.teacherId || null,
+        startDate: form.startDate || null,
+        endDate: form.endDate || null,
+        teacherId: form.teacherId || null,
       };
 
       await create_class(payload).unwrap();
@@ -129,7 +136,13 @@ export default function CreateClassPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <Select
-                  label="Subject"
+
+                label={
+    <div className="flex items-center gap-1">
+      Subject
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
                   placeholder="Select subject"
                   labelPlacement="outside"
                   variant="bordered"
@@ -146,6 +159,7 @@ export default function CreateClassPage() {
                     label:
                       "font-black uppercase text-[10px] italic text-slate-500",
                   }}
+                  
                 >
                   {subjects.map((s) => (
                     <SelectItem key={s.subjectId}>
@@ -154,24 +168,45 @@ export default function CreateClassPage() {
                   ))}
                 </Select>
 
-                <Input
-                  label="Semester ID"
-                  placeholder="SEM-2026-1"
-                  value={form.semesterId}
-                  onValueChange={(v) =>
-                    handleChange("semesterId", v)
-                  }
-                  labelPlacement="outside"
-                  variant="bordered"
-                  classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
-                    inputWrapper: "h-12 rounded-xl",
-                  }}
-                />
+                <Select
+   label={
+    <div className="flex items-center gap-1">
+      Semester
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
+  placeholder="Select semester"
+  labelPlacement="outside"
+  variant="bordered"
+  isLoading={semesterLoading}
+  selectedKeys={form.semesterId ? [form.semesterId] : []}
+  onSelectionChange={(keys) =>
+    handleChange("semesterId", Array.from(keys)[0] as string)
+  }
+  classNames={{
+    trigger: "h-12 rounded-xl",
+    label:
+      "font-black uppercase text-[10px] italic text-slate-500",
+  }}
+>
+  {semesters.map((s) => (
+    <SelectItem
+    
+      key={s.semesterId}
+      textValue={`${s.code}-${s.name}`}
+    >
+      {s.code}-{s.name}
+    </SelectItem>
+  ))}
+</Select>
 
                 <Input
-                  label="Class Code"
+                  label={
+    <div className="flex items-center gap-1">
+    Class Code
+      <RequiredStar rules={["Required field","Class Code must be unique"]} />
+    </div>
+  }
                   value={form.classCode}
                   onValueChange={(v) =>
                     handleChange("classCode", v)
@@ -186,7 +221,12 @@ export default function CreateClassPage() {
                 />
 
                 <Input
-                  label="Class Name"
+                      label={
+    <div className="flex items-center gap-1">
+    Class Name
+      <RequiredStar rules={["Required field","Class Name must be unique"]} />
+    </div>
+  }
                   value={form.className}
                   onValueChange={(v) =>
                     handleChange("className", v)
@@ -202,7 +242,12 @@ export default function CreateClassPage() {
 
                 <Input
                   type="date"
-                  label="Start Date"
+                      label={
+    <div className="flex items-center gap-1">
+    Start Date
+      <RequiredStar rules={["Required field","Cannot be before today"]} />
+    </div>
+  }
                   value={form.startDate}
                   onValueChange={(v) =>
                     handleChange("startDate", v)
@@ -218,7 +263,12 @@ export default function CreateClassPage() {
 
                 <Input
                   type="date"
-                  label="End Date"
+                      label={
+    <div className="flex items-center gap-1">
+    End Date
+      <RequiredStar rules={["Required field"]} />
+    </div>
+  }
                   value={form.endDate}
                   onValueChange={(v) =>
                     handleChange("endDate", v)
@@ -233,7 +283,11 @@ export default function CreateClassPage() {
                 />
 
                 <Select
-                  label="Teacher"
+                   label={
+    <div className="flex items-center gap-1">
+    Teacher
+      <RequiredStar rules={["Required field"]} />
+    </div>}
                   placeholder="Select teacher"
                   labelPlacement="outside"
                   variant="bordered"
@@ -258,21 +312,21 @@ export default function CreateClassPage() {
                   ))}
                 </Select>
 
-                <Textarea
-                  label="Description"
-                  value={form.description}
-                  onValueChange={(v) =>
-                    handleChange("description", v)
-                  }
-                  labelPlacement="outside"
-                  variant="bordered"
-                  className="md:col-span-2"
-                  classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
-                    inputWrapper: "rounded-xl",
-                  }}
-                />
+                <div className="flex flex-col gap-1 md:col-span-2">
+  <label className="font-black uppercase text-[10px] italic text-slate-500 flex items-center gap-1">
+    Description
+    <RequiredStar rules={["Required field"]} />
+  </label>
+
+  <Textarea
+    value={form.description}
+    onValueChange={(v) => handleChange("description", v)}
+    variant="bordered"
+    classNames={{
+      inputWrapper: "rounded-xl",
+    }}
+  />
+</div>
 
                 <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border-2 border-dashed border-divider flex items-center justify-between">
                   <span className="text-[10px] font-black uppercase italic text-slate-400">

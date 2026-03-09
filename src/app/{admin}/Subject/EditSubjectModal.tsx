@@ -6,6 +6,7 @@ import { Input, Button, Textarea } from "@heroui/react";
 import { useUpdateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
 import { SubjectResponseForm } from "@/types";
+import { RequiredStar } from "@/Provider/RequiredStar";
 
 interface EditSubjectModalProps {
   subject: SubjectResponseForm;
@@ -36,6 +37,7 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
 
   return (
     <div className="w-[480px] rounded-2xl overflow-hidden bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-indigo-500/20 shadow-xl dark:shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
+      
       {/* Header */}
       <div className="px-6 pt-5 pb-3 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/5 border-b border-amber-100 dark:border-amber-500/12">
         <div className="flex items-center gap-3 mb-1">
@@ -61,6 +63,7 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
           </div>
+
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
               Edit Subject
@@ -75,8 +78,14 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
       {/* Body */}
       <div className="px-6 py-4 flex flex-col gap-3">
         <div className="flex gap-3">
+
           <Input
-            label="Subject Code"
+            label={
+              <div className="flex items-center gap-1">
+                Subject Code
+                <RequiredStar rules={["Subject code is required"]} />
+              </div>
+            }
             placeholder="e.g. CS101"
             value={form.code}
             onChange={(e) => handleChange("code", e.target.value)}
@@ -89,8 +98,14 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
                 "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
             }}
           />
+
           <Input
-            label="Subject Name"
+            label={
+              <div className="flex items-center gap-1">
+                Subject Name
+                <RequiredStar rules={["Subject name is required"]} />
+              </div>
+            }
             placeholder="e.g. Introduction to CS"
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
@@ -106,7 +121,17 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
         </div>
 
         <Textarea
-          label="Description"
+          label={
+            <div className="flex items-center gap-1">
+              Description
+              <RequiredStar
+                rules={[
+                  "Description is required",
+                  "Minimum 10 characters",
+                ]}
+              />
+            </div>
+          }
           placeholder="Brief description of the subject..."
           value={form.description}
           onChange={(e) => handleChange("description", e.target.value)}
@@ -132,6 +157,7 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
         >
           Cancel
         </Button>
+
         <Button
           isLoading={isLoading}
           onPress={handleSubmit}

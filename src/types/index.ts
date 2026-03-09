@@ -429,3 +429,37 @@ export interface CreateClassRequest {
 export interface UpdateClassTeacherPayload {
   teacherId: string;
 }
+
+export interface SemesterItem {
+  semesterId: string;
+  code: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SemesterResponse {
+  data: {
+    items: SemesterItem[];
+    totalCount: number;
+  };
+  message: string;
+  traceId: string | null;
+}
+
+export interface CreateSemesterRequest {
+  code: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+}
+
+export interface UpdateSemesterRequest {
+  code?: string;
+  name?: string;
+  startAt?: string;
+  endAt?: string;
+  isActive: boolean
+}

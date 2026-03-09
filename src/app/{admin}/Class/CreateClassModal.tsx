@@ -13,6 +13,7 @@ import { useCreateClassMutation } from "@/store/queries/Class";
 import { useModal } from "@/Provider/ModalProvider";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
+import { CreateClassRequest } from "@/types";
 
 export default function CreateClassModal() {
   const { closeModal } = useModal();
@@ -46,14 +47,25 @@ export default function CreateClassModal() {
     }));
   };
 
-  const handleSubmit = async () => {
-    try {
-      await create_class(form).unwrap();
-      closeModal();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+const handleSubmit = async () => {
+  try {
+    const payload: CreateClassRequest = {
+      subject_id: form.subjectId,
+      semester_id: form.semesterId,
+      class_code: form.classCode || null,
+      class_name: form.className || null,
+      description: form.description || null,
+      start_date: form.startDate || null,
+      end_date: form.endDate || null,
+      teacher_id: form.teacherId || null,
+    };
+
+    await create_class(payload).unwrap();
+    closeModal();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   return (
     <div className="w-[560px] rounded-2xl overflow-hidden bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-indigo-500/20 shadow-xl dark:shadow-[0_25px_60px_rgba(0,0,0,0.5)]">

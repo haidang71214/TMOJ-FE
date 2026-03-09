@@ -20,6 +20,7 @@ import {
   useUpdateSemesterMutation,
 } from "@/store/queries/Semester";
 import { RequiredStar } from "@/Provider/RequiredStar";
+import { ErrorForm } from "@/types";
 
 
 export default function CreateUpdateSemester({
@@ -86,11 +87,14 @@ export default function CreateUpdateSemester({
         return;
       }
 
-      if (semester) {
-        await updateSemester({
-          id: semester.semesterId,
-          data: form,
-        }).unwrap();
+     if (semester) {
+  await updateSemester({
+    id: semester.semesterId,
+    data: {
+      ...form,
+      isActive: semester.isActive,
+    },
+  }).unwrap();
 
         addToast({
           title: "Success",
@@ -108,13 +112,14 @@ export default function CreateUpdateSemester({
       }
 
       setOpen(false);
-    } catch (err: any) {
-      addToast({
-        title: "Error",
-        description: err?.data?.data?.message || "Semester action failed",
-        color: "danger",
-      });
-    }
+    } catch (err) {
+  const error = err as ErrorForm;
+  addToast({
+    title: "Error",
+    description: error?.data?.data?.message || "Semester action failed",
+    color: "danger",
+  });
+}
   };
 
   return (

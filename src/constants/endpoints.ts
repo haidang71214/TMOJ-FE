@@ -27,7 +27,7 @@ const AdminUserEndPoint = {
     ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`
 }
 const ProblemEndPoint = {
-  GET_LIST_PROBLEM :`${API_PREFIX}/Problems`,
+  GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, 
   CREATE_PROBLEM_DAFT:`${API_PREFIX}/Problems/drafts`,
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
   CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testcases`
@@ -63,6 +63,14 @@ const ClassEndpoint = {
   OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
   // /api/v1/Class/{id}/report/export // cái này là gì hong biết
 }
+const SemesterEndpoint = {
+  GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,
+  GET_DETAIL_SEMESTER: `${API_PREFIX}/Semester/{id}`,
+  CREATE_SEMESTER: `${API_PREFIX}/Semester`,
+  UPDATE_SEMESTER: `${API_PREFIX}/Semester/{id}`,
+  DELETE_SEMESTER: `${API_PREFIX}/Semester/{id}`,
+  GET_ALL_SEMESTER:`${API_PREFIX}/Semester/all-semester`
+};
 export {
   authEndpoint,
   userProfileEndpoint,
@@ -72,6 +80,7 @@ export {
   SubmittionEndPoint,
   RuntimeEndpoint,
   ClassEndpoint,
-  SubjectEndpoint
+  SubjectEndpoint,
+  SemesterEndpoint
 };
 

@@ -49,7 +49,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // Thêm sonner
+import { toast } from "sonner";
+
+import { useGetClassDetailQuery, useUpdateClassTeacherMutation } from "@/store/queries/Class";
+import { useGetUserRoleQuery } from "@/store/queries/user";
 
 // --- INTERFACES ---
 import { Student } from "../../../../types/index";
@@ -95,6 +98,42 @@ export default function ClassDetailPage({
   const createSlotModal = useDisclosure();
   const addProblemModal = useDisclosure();
   const addContestModal = useDisclosure();
+  const updateTeacherModal = useDisclosure();
+
+  const classId = resolvedParams.id;
+  const { data: classData, isLoading: classLoading } = useGetClassDetailQuery({ id: classId });
+  const classDetail = classData?.data;
+
+  const [updateTeacher, { isLoading: isUpdatingTeacher }] = useUpdateClassTeacherMutation();
+  const { data: teacherData,  } = useGetUserRoleQuery({ roleName: "teacher" });
+  const teachers = teacherData?.data ?? [];
+
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [teacherSearch, setTeacherSearch] = useState("");
+
+  const filteredTeachers = teachers.filter(
+    (t) =>
+      t.displayName?.toLowerCase().includes(teacherSearch.toLowerCase()) ||
+      t.email?.toLowerCase().includes(teacherSearch.toLowerCase())
+  );
+
+  const handleUpdateTeacher = async () => {
+    if (!selectedTeacherId) {
+      toast.error("Please select a teacher");
+      return;
+    }
+    try {
+      await updateTeacher({
+        id: classId,
+        data: { teacherId: selectedTeacherId },
+      }).unwrap();
+      toast.success("Teacher updated successfully!");
+      updateTeacherModal.onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update teacher");
+    }
+  };
 
   const [slotTitle, setSlotTitle] = useState("");
   const [slotStartDate, setSlotStartDate] = useState("");
@@ -279,17 +318,21 @@ export default function ClassDetailPage({
           >
             Back
           </Button>
-          <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase">
-            <span className="text-[#FF5C00]">Owner: </span>HOAINTT
+          <div 
+            className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2 cursor-pointer hover:bg-slate-800 transition-colors"
+            onClick={() => updateTeacherModal.onOpen()}
+          >
+            <span className="text-[#FF5C00]">Owner: </span>{classDetail?.teacher?.displayName || "UNASSIGNED"}
+            <Pencil size={12} className="text-slate-400" />
           </div>
         </div>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
           <div className="space-y-2">
             <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
-              {resolvedParams.id}
+              {classDetail?.classCode || classId}
             </h2>
             <p className="font-bold italic text-slate-500 uppercase text-sm">
-              Programming Fundamentals
+              {classDetail?.className || "Loading..."}
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">

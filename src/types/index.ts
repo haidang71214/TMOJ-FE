@@ -417,14 +417,14 @@ export interface ClassResponse {
   traceId: string | null;
 }
 export interface CreateClassRequest {
-  subject_id: string;
-  semester_id: string;
-  class_code?: string | null;
-  class_name?: string | null;
+  subjectId: string;
+  semesterId: string;
+  classCode?: string | null;
+  className?: string | null;
   description?: string | null;
-  start_date?: string | null;
-  end_date?: string | null;
-  teacher_id?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  teacherId?: string | null;
 }
 export interface UpdateClassTeacherPayload {
   teacherId: string;

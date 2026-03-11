@@ -14,15 +14,14 @@ import {
 
 import {
   ChevronLeft,
-  CheckCircle2,
-  Clock,
   Pencil,
   ChevronDown,
-  Trash2,
   Code2,
-
   Eye,
   EyeOff,
+  BadgeCheck,
+  Hourglass,
+  Plus,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -30,6 +29,10 @@ import { useRouter } from "next/navigation";
 import { useGetClassDetailQuery } from "@/store/queries/Class";
 import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/queries/ClassSlot";
 import { ClassSlotResponse } from "@/types";
+import UpdateDueDateModal from "./UpdateDuaDateModal";
+import { useModal } from "@/Provider/ModalProvider";
+import ClassMembersPage from "./Member/ClassMembersPage";
+import AddStudentModal from "./Member/AddStudentToCLass";
 
 export default function ClassDetailPage({
   params,
@@ -43,7 +46,7 @@ export default function ClassDetailPage({
   const [mounted, setMounted] = useState(false);
   const [slotPage, setSlotPage] = useState(1);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
-
+  const { openModal } = useModal();
   const rowsPerPage = 10;
 
   useEffect(() => {
@@ -65,34 +68,55 @@ export default function ClassDetailPage({
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 text-[#071739] dark:text-white max-w-[1400px] mx-auto">
       {/* HEADER */}
-      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
-        <div className="flex justify-between items-center">
-          <Button
-            variant="light"
-            onPress={() => router.back()}
-            className="font-black text-slate-400 uppercase px-0 text-[10px]"
-            startContent={<ChevronLeft size={16} />}
-          >
-            Back
-          </Button>
+      <div className="flex justify-between items-start border-b border-slate-200 dark:border-white/10 pb-8">
 
-          <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2">
-            <span className="text-[#FF5C00]">Owner: </span>
-            {classDetail?.teacher?.displayName || "UNASSIGNED"}
-            <Pencil size={12} className="text-slate-400" />
-          </div>
-        </div>
+  {/* LEFT */}
+  <div className="flex flex-col gap-6">
 
-        <div className="space-y-2">
-          <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
-            {classDetail?.classCode || classId}
-          </h2>
+    <Button
+      variant="light"
+      onPress={() => router.back()}
+      className="font-black text-slate-400 uppercase px-0 text-[10px]"
+      startContent={<ChevronLeft size={16} />}
+    >
+      Back
+    </Button>
 
-          <p className="font-bold italic text-slate-500 uppercase text-sm">
-            {classDetail?.className || "Loading..."}
-          </p>
-        </div>
+    <div className="space-y-2">
+      <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
+        {classDetail?.classCode || classId}
+      </h2>
+
+      <p className="font-bold italic text-slate-500 uppercase text-sm">
+        {classDetail?.className || "Loading..."}
+      </p>
+
+      <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2 w-fit mt-3">
+        <span className="text-[#FF5C00]">Owner:</span>
+        {classDetail?.teacher?.displayName || "UNASSIGNED"}
+        <Pencil size={12} className="text-slate-400" />
       </div>
+    </div>
+
+  </div>
+
+  {/* RIGHT BUTTON */}
+  <Button
+    startContent={<Plus size={20} strokeWidth={3} />}
+    style={{marginTop:60}}
+    size="lg"
+    color="warning"
+     onPress={() =>
+   openModal({
+  content: <AddStudentModal classId={classId} />,
+})
+  }
+    className=" text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+  >
+    ADD STUDENT
+  </Button>
+
+</div>
 
       {/* TABS */}
       <Tabs
@@ -130,10 +154,10 @@ export default function ClassDetailPage({
                       <div className="flex items-center gap-5">
                         <div className="p-3 rounded-2xl bg-slate-100 text-slate-400">
                           {slot.isPublished ? (
-                            <CheckCircle2 size={24} />
-                          ) : (
-                            <Clock size={24} />
-                          )}
+  <BadgeCheck size={24} className="text-emerald-500" />
+) : (
+  <Hourglass size={24} className="text-slate-400" />
+)}
                         </div>
 
                         <div>
@@ -148,9 +172,26 @@ export default function ClassDetailPage({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button isIconOnly size="sm" variant="flat">
-                          <Pencil size={14} />
-                        </Button>
+                        <Button
+                        color="warning"
+  isIconOnly
+  size="sm"
+  variant="flat"
+  onPress={() =>
+    openModal({
+      content: (
+        <UpdateDueDateModal
+          classId={classId}
+          slotId={slot.id}
+          dueAt={slot.dueAt}
+          closeAt={slot.closeAt}
+        />
+      ),
+    })
+  }
+>
+  <Pencil size={14} />
+</Button>
                           <Button
                         isIconOnly
                         size="sm"
@@ -168,15 +209,7 @@ export default function ClassDetailPage({
                           <EyeOff className="text-gray-400" size={18} />
                         )}
                       </Button>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          color="danger"
-                        >
-                          <Trash2 size={14} />
-                          
-                        </Button>
+                       
 
                         <ChevronDown
                           size={20}
@@ -232,6 +265,9 @@ export default function ClassDetailPage({
             />
           </div>
         </Tab>
+        <Tab key="members" title="Members">
+  <ClassMembersPage params={params} />
+</Tab>
       </Tabs>
     </div>
   );

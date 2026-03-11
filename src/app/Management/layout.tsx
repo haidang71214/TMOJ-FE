@@ -65,7 +65,7 @@ export default function ManagementLayout({
       >
         <div className="w-[212px]">
           <h1 className="text-3xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic mb-8">
-            Admin <span className="text-[#FF5C00]">.</span>
+            Manager <span className="text-[#FF5C00]">.</span>
           </h1>
           <Listbox
             aria-label="Admin Menu"

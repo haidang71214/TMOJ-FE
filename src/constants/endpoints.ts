@@ -33,7 +33,7 @@ const ProblemEndPoint = {
   CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testcases`
 }
 const ProblemListEndpoint = {
-  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/Problems`,
+  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/problems?status=published`,
   GET_DETAIL_PUBLIC_PROBLEM:`${API_PREFIX}/Problems/{id}`,
 }
 const SubmittionEndPoint = {
@@ -61,7 +61,6 @@ const ClassEndpoint = {
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`,
   OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
-  // /api/v1/Class/{id}/report/export // cái này là gì hong biết
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,
@@ -71,7 +70,17 @@ const SemesterEndpoint = {
   DELETE_SEMESTER: `${API_PREFIX}/Semester/{id}`,
   GET_ALL_SEMESTER:`${API_PREFIX}/Semester/all-semester`
 };
+const ClassSlotEndpoint = {
+  GET_CLASS_SLOTS: `${API_PREFIX}/class/{classId}/slots`,
+  CREATE_CLASS_SLOT: `${API_PREFIX}/class/{classId}/slots`,
+  UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class/{classId}/slots/{slotId}/due-date`,
+  PUBLISH_SLOT: `${API_PREFIX}/class/{classId}/slots/{slotId}/publish`,
+  GET_SLOT_SCORES: `${API_PREFIX}/class/{classId}/slots/{slotId}/scores`,
+  GET_USER_SUBMISSION: `${API_PREFIX}/class/{classId}/slots/{slotId}/submissions/{userId}`,
+};
+
 export {
+  ClassSlotEndpoint,
   authEndpoint,
   userProfileEndpoint,
   AdminUserEndPoint,

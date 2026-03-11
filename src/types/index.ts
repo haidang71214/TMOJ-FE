@@ -34,7 +34,14 @@ export interface Users {
   avatarUrl: string | null;
   roles: string[];
 }
-
+export interface ClassMemberResponse {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  joinedAt: string;
+  isActive: boolean;
+}
 export interface RegisterRequestDto {
     firstName: string ,
   lastName: string,
@@ -556,4 +563,9 @@ export interface ClassSlotResponse {
   input?: string;
   expectedOutput?: string;
   actualOutput?: string;
+}
+
+export interface addClassMemberRequest {
+  userId?: string 
+  email?: string
 }

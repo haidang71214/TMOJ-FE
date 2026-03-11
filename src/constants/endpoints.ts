@@ -57,6 +57,7 @@ const ClassEndpoint = {
    CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`,
    DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`,
    GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`,
+   ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`, // add student vào 
    POST_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`,

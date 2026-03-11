@@ -14,9 +14,13 @@ import { useModal } from "@/Provider/ModalProvider";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
 import { CreateClassRequest } from "@/types";
+import { useGetSemestersQuery } from "@/store/queries/Semester";
+import { RequiredStar } from "@/Provider/RequiredStar";
 
 export default function CreateClassModal() {
   const { closeModal } = useModal();
+const { data: semesterData,  isLoading: semesterLoading  } =useGetSemestersQuery();
+const semesters = semesterData?.data?.items ?? [];
 
   const [create_class, { isLoading }] = useCreateClassMutation();
   const { data: subjectData, isLoading: subject_loading } =
@@ -50,14 +54,14 @@ export default function CreateClassModal() {
 const handleSubmit = async () => {
   try {
     const payload: CreateClassRequest = {
-      subject_id: form.subjectId,
-      semester_id: form.semesterId,
-      class_code: form.classCode || null,
-      class_name: form.className || null,
+      subjectId: form.subjectId,
+      semesterId: form.semesterId,
+      classCode: form.classCode || null,
+      className: form.className || null,
       description: form.description || null,
-      start_date: form.startDate || null,
-      end_date: form.endDate || null,
-      teacher_id: form.teacherId || null,
+      startDate: form.startDate || null,
+      endDate: form.endDate || null,
+      teacherId: form.teacherId || null,
     };
 
     await create_class(payload).unwrap();
@@ -150,7 +154,12 @@ const handleSubmit = async () => {
           <div className="flex flex-col gap-3">
             <div className="flex gap-3">
               <Select
-                label="Subject"
+                  label={
+                  <div className="flex items-center gap-1">
+                    Subject
+                    <RequiredStar rules={["Required field"]} />
+                  </div>
+                }
                 placeholder="Select subject"
                 isLoading={subject_loading}
                 selectedKeys={form.subjectId ? [form.subjectId] : []}
@@ -170,20 +179,38 @@ const handleSubmit = async () => {
                   <SelectItem key={s.subjectId}>{s.name}</SelectItem>
                 ))}
               </Select>
-
-              <Input
-                label="Semester ID"
-                placeholder="e.g. SEM-2026-1"
-                value={form.semesterId}
-                onChange={(e) => handleChange("semesterId", e.target.value)}
+                 <Select
+                 label={
+                  <div className="flex items-center gap-1">
+                    Semester
+                    <RequiredStar rules={["Required field"]} />
+                  </div>
+                }
+                placeholder="Select semester"
+                
                 variant="bordered"
+                isLoading={semesterLoading}
+                selectedKeys={form.semesterId ? [form.semesterId] : []}
+                onSelectionChange={(keys) =>
+                  handleChange("semesterId", Array.from(keys)[0] as string)
+                }
                 classNames={{
-                  inputWrapper:
-                    "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 focus-within:!border-indigo-500 transition-colors",
+                  trigger:
+                    "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 data-[focus=true]:border-indigo-500 transition-colors",
                   label: "text-gray-500 dark:text-slate-400",
-                  input: "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
+                  value: "text-gray-900 dark:text-white",
                 }}
-              />
+              >
+                {semesters.map((s) => (
+                  <SelectItem
+                  
+                    key={s.semesterId}
+                    textValue={`${s.code}-${s.name}`}
+                  >
+                    {s.code}-{s.name}
+                  </SelectItem>
+                ))}
+              </Select>
             </div>
 
             <Select

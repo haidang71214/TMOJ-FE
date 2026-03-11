@@ -28,6 +28,7 @@ import Link from "next/link";
 import { useGetClassesQuery } from "@/store/queries/Class";
 import CreateSlotForm from "./CreateClassSlotModal";
 import { useModal } from "@/Provider/ModalProvider";
+import UpdateTeacherModal from "./UpdateTeacherModal";
 
 export default function ClassListPage() {
   const [page, setPage] = useState(1);
@@ -37,6 +38,19 @@ export default function ClassListPage() {
 const openCreateSlotModal = (classId: string) => {
   openModal({
     content: <CreateSlotForm classId={classId} />,
+  });
+};
+const openUpdateTeacherForClass = (
+  classId: string,
+  currentTeacherId?: string
+) => {
+  openModal({
+    content: (
+      <UpdateTeacherModal
+        classId={classId}
+        currentTeacherId={currentTeacherId}
+      />
+    ),
   });
 };
   const { data, isLoading, refetch } = useGetClassesQuery();
@@ -50,6 +64,7 @@ const openCreateSlotModal = (classId: string) => {
     return classes.slice(start, end);
   }, [page, classes]);
 
+  
   const statsData = [
     { label: "Total Classes", value: classes.length.toString(), color: "text-blue-500" },
     { label: "Total Students", value: classes.reduce((sum, c) => sum + (c.memberCount || 0), 0).toString(), color: "text-[#FF5C00]" },
@@ -171,7 +186,7 @@ const openCreateSlotModal = (classId: string) => {
               key={cls.classId}
               className="h-full"
             >
-              <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] hover:-translate-y-1.5">
+              <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] ">
                 <CardBody className="p-2 flex flex-col justify-between h-full gap-5">
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-2">
@@ -211,22 +226,30 @@ const openCreateSlotModal = (classId: string) => {
 
                   <div className="flex items-center justify-between text-[#071739] dark:text-slate-500 font-bold text-[10px] uppercase tracking-tighter transition-all group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
                  <Button
-  variant="bordered"
-  size="sm"
-  radius="md"
-  className={`
-    border-blue-500/60 dark:border-[#22C55E]/60
-    text-blue-600 dark:text-[#22C55E]
-    hover:bg-blue-500/10 dark:hover:bg-[#22C55E]/10
-    hover:border-blue-500 dark:hover:border-[#22C55E]
-    min-w-[128px] font-semibold tracking-wide
-    transition-all duration-300
-  `}
-  startContent={<Plus size={16} />}
-  onPress={() => openCreateSlotModal(cls.classId)}
->
-  Add Slot
-</Button>
+                  variant="bordered"
+                  size="sm"
+                  radius="md"
+                  color="warning"
+                  startContent={<Plus size={16} />}
+                  onPress={() => openCreateSlotModal(cls.classId)}
+                >
+                  Add Slot
+                </Button>
+                  <Button
+                  variant="bordered"
+                  size="sm"
+                  radius="md"
+                  color="danger"
+                  startContent={<Plus size={16} />}
+                  onPress={() =>
+  openUpdateTeacherForClass(
+    cls.classId,
+    cls.teacher?.userId
+  )
+}
+                >
+                  Update Teacher
+                </Button>
                     <Link
                   href={`/Management/Class/${cls.classId}`}
                   className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-600 dark:group-hover:bg-[#22C55E] group-hover:text-white transition-all duration-300 shadow-sm"

@@ -85,7 +85,7 @@ export const classSlotApi = baseApi.injectEndpoints({
         url: ClassSlotEndpoint.UPDATE_SLOT_DUE_DATE
           .replace("{classId}", classId)
           .replace("{slotId}", slotId),
-        method: "PATCH",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ["ClassSlot"],

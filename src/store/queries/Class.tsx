@@ -1,6 +1,6 @@
 import { ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { ClassItem, ClassResponse, CreateClassRequest, UpdateClassTeacherPayload } from "@/types";
+import { addClassMemberRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, UpdateClassTeacherPayload } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -36,6 +36,24 @@ export const classApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Class"],
     }),
+   getClassMembers: builder.query<{data : ClassMemberResponse[]}, { id: string }>({
+  query: ({ id }) => ({
+    url: ClassEndpoint.GET_CLASS_MEMBERS.replace("{id}", id),
+    method: "GET",
+  }),
+  providesTags: ["Class"],
+}),
+addClassMembers: builder.mutation<
+  void,
+  { id: string; data: addClassMemberRequest }
+>({
+  query: ({ id, data }) => ({
+    url: ClassEndpoint.ADD_CLASS_MEMBERS.replace("{id}", id),
+    method: "POST",
+    body: data,
+  }),
+  invalidatesTags: ["Class"],
+}),
   }),
 });
 
@@ -45,4 +63,6 @@ export const {
    useGetClassDetailQuery,
    useCreateClassMutation,
    useUpdateClassTeacherMutation,
+   useGetClassMembersQuery,
+   useAddClassMembersMutation
 } = classApi;

@@ -14,6 +14,7 @@ import {
   Shredder,
   BookOpen,
   School,
+  Calendar,
 } from "lucide-react";
 
 
@@ -27,6 +28,7 @@ import UserManagerPage from "./Users/page";
 import PracticePackagePage from "./Package/page";
 import ClassComponents from "./Class/ClassComponents";
 import SubjectComponents from "./Subject/SubjectComponents";
+import SemesterComponents from "./Semester/SemesterComponents";
 
 
 const NAV = [
@@ -42,6 +44,7 @@ const NAV = [
   { name: "Notification", key: "notification", icon: Bell },
   { name: "Class", key: "class", icon: School },
   { name: "Subject", key: "subject", icon: BookOpen },
+  { name: "Semester", key: "semester", icon: Calendar },
 ];
 
 export default function AdminPage() {
@@ -59,6 +62,7 @@ export default function AdminPage() {
     coin: <PracticePackagePage />,
     class:<ClassComponents/>,
     subject:<SubjectComponents/>,
+    semester:<SemesterComponents/>,
     settings: <div>Settings</div>,
   };
 

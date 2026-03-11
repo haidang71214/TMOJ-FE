@@ -35,45 +35,7 @@ import ProfileTeacherModal from "../../components/ProfileModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
 import { Teacher, Student } from "@/types";
 
-const MOCK_TEACHERS: Teacher[] = [
-  {
-    id: 1,
-    teacherId: "HOAINTT",
-    name: "Nguyen Thi Thanh Hoai",
-    email: "hoaint@fpt.edu.vn",
-    avatar: "https://i.pravatar.cc/150?u=hoai",
-    dept: "Software Engineering",
-    status: "Active",
-    joinDate: "2020-05-10",
-    progress: 100,
-    total: 10,
-  },
-  {
-    id: 2,
-    teacherId: "RIMND",
-    name: "Nguyen Duy Rim",
-    email: "rimnd@fpt.edu.vn",
-    avatar: "https://i.pravatar.cc/150?u=rim",
-    dept: "Information System",
-    status: "Active",
-    joinDate: "2021-02-15",
-    progress: 85,
-    total: 9,
-  },
-  {
-    id: 3,
-    teacherId: "TAIHT",
-    name: "Huynh Tan Tai",
-    email: "taiht@fpt.edu.vn",
-    avatar: "https://i.pravatar.cc/150?u=tai",
-    dept: "Software Engineering",
-    status: "On Leave",
-    joinDate: "2019-11-20",
-    progress: 0,
-    total: 0,
-  },
-];
-
+const MOCK_TEACHERS: Teacher[] = []
 export default function TeacherListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 5;

@@ -9,7 +9,6 @@ import {
   Select,
   SelectItem,
   Textarea,
-  Tooltip
 } from "@heroui/react";
 
 import { ArrowLeft, Info, Rocket } from "lucide-react";

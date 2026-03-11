@@ -26,11 +26,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useGetClassesQuery } from "@/store/queries/Class";
+import CreateSlotForm from "./CreateClassSlotModal";
+import { useModal } from "@/Provider/ModalProvider";
 
 export default function ClassListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
+  const { openModal } = useModal();
 
+const openCreateSlotModal = (classId: string) => {
+  openModal({
+    content: <CreateSlotForm classId={classId} />,
+  });
+};
   const { data, isLoading, refetch } = useGetClassesQuery();
   const classes = data?.data?.items ?? [];
 
@@ -159,8 +167,7 @@ export default function ClassListPage() {
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-6">
           {items.map((cls) => (
-            <Link
-              href={`/Management/Class/${cls.classId}`}
+            <div
               key={cls.classId}
               className="h-full"
             >
@@ -203,14 +210,33 @@ export default function ClassListPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-[#071739] dark:text-slate-500 font-bold text-[10px] uppercase tracking-tighter transition-all group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
-                    <span>Enter Course</span>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-600 dark:group-hover:bg-[#22C55E] group-hover:text-white transition-all duration-300 shadow-sm">
-                      <ArrowRight size={14} />
-                    </div>
+                 <Button
+  variant="bordered"
+  size="sm"
+  radius="md"
+  className={`
+    border-blue-500/60 dark:border-[#22C55E]/60
+    text-blue-600 dark:text-[#22C55E]
+    hover:bg-blue-500/10 dark:hover:bg-[#22C55E]/10
+    hover:border-blue-500 dark:hover:border-[#22C55E]
+    min-w-[128px] font-semibold tracking-wide
+    transition-all duration-300
+  `}
+  startContent={<Plus size={16} />}
+  onPress={() => openCreateSlotModal(cls.classId)}
+>
+  Add Slot
+</Button>
+                    <Link
+                  href={`/Management/Class/${cls.classId}`}
+                  className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-600 dark:group-hover:bg-[#22C55E] group-hover:text-white transition-all duration-300 shadow-sm"
+                >
+                  <ArrowRight size={14} />
+                </Link>
                   </div>
                 </CardBody>
               </Card>
-            </Link>
+            </div>
           ))}
         </div>
 

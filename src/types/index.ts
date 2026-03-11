@@ -463,3 +463,97 @@ export interface UpdateSemesterRequest {
   endAt?: string;
   isActive: boolean
 }
+
+// ── ClassSlot (Assignment) Requests ───────────────────────
+
+export interface CreateClassSlotRequest {
+  slotNo: number;
+  title: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  mode: string; // "problemset" | "contest"
+  problems?: SlotProblemItem[];
+}
+
+export interface SlotProblemItem {
+  problemId: string;
+  ordinal?: number;
+  points?: number;
+  isRequired: boolean;
+}
+
+export interface UpdateClassSlotRequest {
+  title?: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  isPublished?: boolean;
+}
+
+export interface SetDueDateRequest {
+  dueAt: string;
+  closeAt?: string;
+}
+export interface ClassSlotResponse {
+  id: string;
+  classId: string;
+  slotNo: number;
+  title: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  mode: string;
+  contestId?: string;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  problems: SlotProblemResponse[];
+}export interface SlotProblemResponse {
+  problemId: string;
+  problemTitle?: string;
+  problemSlug?: string;
+  ordinal?: number;
+  points?: number;
+  isRequired: boolean;
+}export interface StudentSlotScoreResponse {
+  userId: string;
+  displayName?: string;
+  avatarUrl?: string;
+  problemScores: ProblemScoreEntry[];
+  totalScore: number;
+  solvedCount: number;
+}export interface ProblemScoreEntry {
+  problemId: string;
+  problemTitle?: string;
+  verdictCode?: string;
+  score?: number;
+  attempts: number;
+  lastSubmittedAt?: string;
+}export interface StudentSubmissionDetailResponse {
+  submissionId: string;
+  problemId: string;
+  problemTitle?: string;
+  verdictCode?: string;
+  finalScore?: number;
+  timeMs?: number;
+  memoryKb?: number;
+  statusCode?: string;
+  createdAt: string;
+  results: SubmissionResultEntry[];
+}export interface SubmissionResultEntry {
+  resultId: string;
+  statusCode?: string;
+  runtimeMs?: number;
+  memoryKb?: number;
+  checkerMessage?: string;
+  input?: string;
+  expectedOutput?: string;
+  actualOutput?: string;
+}

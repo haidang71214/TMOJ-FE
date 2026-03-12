@@ -20,7 +20,7 @@ import { useModal } from "@/Provider/ModalProvider";
 import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
 import { useCreateClassSlotMutation } from "@/store/queries/ClassSlot";
 import { CreateClassSlotRequest, ErrorForm, Problem } from "@/types";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 
 interface CreateSlotFormProps {
   classId: string;

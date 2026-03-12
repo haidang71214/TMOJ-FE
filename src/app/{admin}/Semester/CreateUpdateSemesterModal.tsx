@@ -11,7 +11,7 @@ import {
   useCreateSemesterMutation,
   useUpdateSemesterMutation,
 } from "@/store/queries/Semester";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 import { ErrorForm } from "@/types";
 import { useModal } from "@/Provider/ModalProvider";
 

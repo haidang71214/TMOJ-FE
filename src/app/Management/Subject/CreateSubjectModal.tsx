@@ -6,7 +6,7 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 
 export default function CreateSubjectModal() {
   const { closeModal } = useModal();

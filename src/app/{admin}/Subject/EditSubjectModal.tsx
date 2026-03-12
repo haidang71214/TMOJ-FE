@@ -6,7 +6,7 @@ import { Input, Button, Textarea } from "@heroui/react";
 import { useUpdateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
 import { SubjectResponseForm } from "@/types";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 
 interface EditSubjectModalProps {
   subject: SubjectResponseForm;

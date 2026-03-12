@@ -21,7 +21,7 @@ import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { CreateClassRequest } from "@/types";
 import { useGetSemestersQuery } from "@/store/queries/Semester";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 
 export default function CreateClassPage() {
   const router = useRouter();

@@ -24,7 +24,7 @@ import {
   useCreateTestSetMutation,
 } from "@/store/queries/problem";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
-import { RequiredStar } from "@/Provider/RequiredStar";
+import { RequiredStar } from "@/Common/RequiredStar";
 
 const STEPS = [
   { label: "Problem Info", description: "Basic info & limits" },

@@ -305,7 +305,7 @@ export default function GlobalProblemListPage() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-1">
                     <Tooltip content="Archive to Bookmark" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
@@ -342,16 +342,24 @@ export default function GlobalProblemListPage() {
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Download Data" className="font-bold text-[10px]">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
-                      >
-                        <Download size={16} />
-                      </Button>
-                    </Tooltip>
+                    <Dropdown placement="bottom-end" className="dark:bg-[#111c35] dark:border-white/10">
+                      <DropdownTrigger>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9"
+                        >
+                          <Download size={16} />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu aria-label="Judging Operations" className="font-bold uppercase text-[10px]">
+                        <DropdownItem key="dl-solution">Download Solution</DropdownItem>
+                        <DropdownItem key="dl-testset">Download Testset</DropdownItem>
+                        <DropdownItem key="ul-solution">Upload New Solution</DropdownItem>
+                        <DropdownItem key="set-score" className="text-amber-500">Set Problem's Score</DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
 
                     <Tooltip content="Delete" className="font-bold text-[10px]">
                       <Button

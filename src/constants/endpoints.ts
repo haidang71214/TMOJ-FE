@@ -79,7 +79,13 @@ const ClassSlotEndpoint = {
   GET_SLOT_SCORES: `${API_PREFIX}/class/{classId}/slots/{slotId}/scores`,
   GET_USER_SUBMISSION: `${API_PREFIX}/class/{classId}/slots/{slotId}/submissions/{userId}`,
 };
-
+const NotificationEndpoint = {
+  CREATE_NOTIFICATION: `${API_PREFIX}/notification`,
+  GET_NOTIFICATION_BY_USER: `${API_PREFIX}/notification/user/{userId}`,
+  GET_ALL_NOTIFICATION: `${API_PREFIX}/notification/all`,
+  MARK_AS_READ: `${API_PREFIX}/notification/read/{id}`,
+  DELETE_NOTIFICATION: `${API_PREFIX}/notification/{id}`,
+};
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -91,6 +97,7 @@ export {
   RuntimeEndpoint,
   ClassEndpoint,
   SubjectEndpoint,
-  SemesterEndpoint
+  SemesterEndpoint,
+  NotificationEndpoint
 };
 

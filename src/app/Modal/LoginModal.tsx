@@ -24,7 +24,8 @@ export default function LoginModal() {
   e.preventDefault();
   try {
     const res = await login({ email, password }).unwrap();
-
+    console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",res);
+    
     if (res) {
       console.log(res);
 

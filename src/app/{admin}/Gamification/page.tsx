@@ -1,39 +1,50 @@
 "use client";
 
-import { useState } from "react";
 import {
   Button,
-  Input,
-  Chip,
-  Switch,
   Card,
   CardBody,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
+  Chip,
+  Input,
   Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
+  ModalContent,
   ModalFooter,
-  Textarea,
+  ModalHeader,
   Select,
   SelectItem,
-  Tabs,
+  Switch,
   Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+  Tabs,
+  Textarea,
 } from "@heroui/react";
 import {
-  Plus,
-  Trophy,
+  Award,
   Coins,
   Pencil,
+  Plus,
   Trash2,
-  Award,
+  Trophy,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 // Mock data dựa trên schema
 interface Badge {
@@ -52,7 +63,7 @@ interface BadgeRule {
   id: string;
   badge_id: string;
   badge_name: string;
-  rule_type: "rank" | "streak_days" | "solved_count";
+  rule_type: "rank" | "streak_days" | "solved_count" | "complete_contest";
   target_entity: "contest" | "course" | "org" | "streak" | "problem";
   target_value: number;
   is_active: boolean;
@@ -71,6 +82,9 @@ const MOCK_BADGES: Badge[] = [
   { id: "1", name: "First Blood", badge_code: "first_blood", badge_category: "contest", badge_level: 1, is_repeatable: false, description: "Giải quyết problem đầu tiên trong contest", awarded_count: 342 },
   { id: "2", name: "7-Day Streak", badge_code: "streak_7", badge_category: "streak", badge_level: 1, is_repeatable: true, description: "Hoạt động liên tục 7 ngày", awarded_count: 128 },
   { id: "3", name: "Master Solver", badge_code: "master_100", badge_category: "problem", badge_level: 3, is_repeatable: false, description: "Giải ≥100 problems", awarded_count: 45 },
+  { id: "4", name: "Course Finisher", badge_code: "course_done", badge_category: "course", badge_level: 2, is_repeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awarded_count: 512 },
+  { id: "5", name: "Top 10 Global", badge_code: "top_10", badge_category: "contest", badge_level: 5, is_repeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awarded_count: 10 },
+  { id: "6", name: "Code Reviewer", badge_code: "reviewer", badge_category: "problem", badge_level: 2, is_repeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awarded_count: 88 },
 ];
 
 const MOCK_RULES: BadgeRule[] = [
@@ -79,7 +93,22 @@ const MOCK_RULES: BadgeRule[] = [
   { id: "r3", badge_id: "3", badge_name: "Master Solver", rule_type: "solved_count", target_entity: "problem", target_value: 100, is_active: true },
 ];
 
+const MOCK_ACHIEVEMENTS_CHART = [
+  { level: "Lv 1", awarded: 1200 },
+  { level: "Lv 2", awarded: 850 },
+  { level: "Lv 3", awarded: 420 },
+  { level: "Lv 4", awarded: 180 },
+  { level: "Lv 5", awarded: 45 },
+  { level: "Lv 6", awarded: 12 },
+];
 
+const MOCK_STREAK_CHART = [
+  { day: "Day 1-3", users: 5420 },
+  { day: "Day 4-7", users: 2100 },
+  { day: "Day 8-14", users: 850 },
+  { day: "Day 15-30", users: 320 },
+  { day: ">30 Days", users: 115 },
+];
 
 export default function GamificationManagementPage() {
   const [badges] = useState<Badge[]>(MOCK_BADGES);
@@ -111,7 +140,7 @@ export default function GamificationManagementPage() {
       r.id === selectedRule.id
         ? {
             ...r,
-            rule_type: editRuleType as "rank" | "streak_days" | "solved_count",
+            rule_type: editRuleType as "rank" | "streak_days" | "solved_count" | "complete_contest",
             target_entity: editTargetEntity as "contest" | "course" | "org" | "streak" | "problem",
             target_value: editTargetValue,
             is_active: editIsActive,
@@ -148,7 +177,7 @@ export default function GamificationManagementPage() {
 
       {/* STATS OVERVIEW */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-600/10 to-[#22C55E]/10 dark:from-blue-900/30 dark:to-green-900/30">
+        <Card className="bg-linear-to-br from-blue-600/10 to-[#22C55E]/10 dark:from-blue-900/30 dark:to-green-900/30">
           <CardBody className="text-center">
             <div className="text-4xl font-black text-blue-600 dark:text-[#22C55E]">12,847</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">Total Users</div>
@@ -180,6 +209,43 @@ export default function GamificationManagementPage() {
         </Card>
       </div>
 
+      {/* NEW: CHARTS SECTION */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-white border border-slate-200 dark:bg-black/40 dark:border-white/10 shadow-sm p-6 rounded-2xl">
+          <h3 className="font-black uppercase tracking-widest text-xs mb-6 text-fuchsia-500">
+            Overall Achievements (By Level)
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={MOCK_ACHIEVEMENTS_CHART}>
+              <XAxis dataKey="level" stroke="#64748b" />
+              <YAxis stroke="#64748b" />
+              <Tooltip />
+              <Bar dataKey="awarded" fill="#d946ef" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="bg-white border border-slate-200 dark:bg-black/40 dark:border-white/10 shadow-sm p-6 rounded-2xl">
+          <h3 className="font-black uppercase tracking-widest text-xs mb-6 text-[#22C55E]">
+            Learning Streak Distribution
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={MOCK_STREAK_CHART}>
+              <defs>
+                <linearGradient id="colorStreak" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#22C55E" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" stroke="#64748b" />
+              <YAxis stroke="#64748b" />
+              <Tooltip />
+              <Area type="monotone" dataKey="users" stroke="#22C55E" fillOpacity={1} fill="url(#colorStreak)" strokeWidth={3} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
       {/* TABS */}
       <Tabs color="primary" variant="underlined" classNames={{ tabList: "gap-6" }}>
         <Tab title="Badges & Rules">
@@ -201,7 +267,7 @@ export default function GamificationManagementPage() {
                     <TableRow key={b.id}>
                       <TableCell>
                         {b.icon_url ? (
-                          <img src={b.icon_url} alt="" className="w-10 h-10 rounded-lg" />
+                          <Image src={b.icon_url} alt="" className="w-10 h-10 rounded-lg" />
                         ) : (
                           <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center">
                             <Trophy size={20} />
@@ -355,6 +421,7 @@ export default function GamificationManagementPage() {
                   <SelectItem key="rank">Rank (Xếp hạng)</SelectItem>
                   <SelectItem key="streak_days">Streak Days (Chuỗi ngày)</SelectItem>
                   <SelectItem key="solved_count">Solved Count (Số problem giải)</SelectItem>
+                  <SelectItem key="complete_contest">Complete Contest (Tham gia Contest)</SelectItem>
                 </Select>
 
                 <Select

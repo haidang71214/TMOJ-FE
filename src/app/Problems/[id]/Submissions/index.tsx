@@ -1,20 +1,23 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Button,
-} from "@heroui/react";
-import { ChevronDown, Settings, Clock, Inbox } from "lucide-react";
 import { SubmissionData } from "@/types";
+import {
+  Button,
+  Card,
+  CardBody,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from "@heroui/react";
+import { Activity, Award, Ban, Bell, ChevronDown, Clock, Download, Flag, Inbox, Lock, RefreshCw, Settings, ShieldAlert } from "lucide-react";
+import { useState } from "react";
 
 // 1. Sửa lỗi 'any': Định nghĩa kiểu dữ liệu rõ ràng cho Props
 interface SubmissionsTabProps {
@@ -60,9 +63,59 @@ export const SubmissionsTab = ({ onRowClick }: SubmissionsTabProps) => {
     );
   }
 
+  // Calculate percentage of accepted code
+  const acceptedCount = submissions.filter(s => s.status === "Accepted").length;
+  const acPercentage = submissions.length > 0 ? Math.round((acceptedCount / submissions.length) * 100) : 0;
+
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#1C2737] font-sans transition-colors duration-500">
-      <Table
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-[#121A27] font-sans p-4 gap-4 transition-colors duration-500">
+      
+      {/* Admin Controls & Stats */}
+      <div className="flex flex-wrap gap-4 items-center justify-between bg-white dark:bg-[#1C2737] p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl">
+            <Award size={18} />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-black tracking-wider">Accepted Code</span>
+              <span className="text-lg font-[1000] leading-none">{acPercentage}%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl">
+            <Activity size={18} />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-black tracking-wider">Total Submissions</span>
+              <span className="text-lg font-[1000] leading-none">{submissions.length}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mock Admin Controls Workspace */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Input 
+              type="number" 
+              placeholder="Times of Sub." 
+              size="sm"
+              classNames={{ inputWrapper: "w-32 bg-slate-100 dark:bg-[#0A0F1C]" }} 
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Input 
+              type="number" 
+              placeholder="Submission Limit" 
+              size="sm"
+              classNames={{ inputWrapper: "w-36 bg-slate-100 dark:bg-[#0A0F1C]" }} 
+            />
+          </div>
+          <Button size="sm" color="primary" className="font-bold font-italic rounded-lg uppercase text-[10px]">
+            Apply Limits
+          </Button>
+        </div>
+      </div>
+
+      <Card className="flex-1 bg-white dark:bg-[#1C2737] border-none shadow-sm rounded-2xl overflow-hidden">
+        <CardBody className="p-0">
+          <Table
         aria-label="Submissions table"
         removeWrapper
         // Sử dụng onRowAction để bắt sự kiện click chuẩn của HeroUI
@@ -71,9 +124,9 @@ export const SubmissionsTab = ({ onRowClick }: SubmissionsTabProps) => {
           if (item) onRowClick(item);
         }}
         classNames={{
-          th: "bg-white dark:bg-[#162130] text-gray-400 dark:text-[#94A3B8] font-black text-[11px] uppercase tracking-wider border-b border-gray-100 dark:border-[#334155] py-4 first:pl-6",
-          td: "py-5 first:pl-6 border-b border-gray-50 dark:border-[#1C2737] text-[13px] dark:text-[#CDD5DB] transition-colors",
-          tr: "hover:bg-gray-50 dark:hover:bg-[#101828] cursor-pointer group outline-none",
+          th: "bg-[#F8FAFC] dark:bg-[#162130] text-gray-500 dark:text-[#94A3B8] font-black text-[11px] uppercase tracking-wider border-b border-gray-100 dark:border-[#334155] py-4 first:pl-6",
+          td: "py-4 first:pl-6 border-b border-slate-50 dark:border-[#1C2737] text-[13px] dark:text-[#CDD5DB] transition-colors",
+          tr: "hover:bg-slate-50 dark:hover:bg-[#101828] cursor-pointer group outline-none h-[72px]",
         }}
       >
         <TableHeader>
@@ -158,19 +211,48 @@ export const SubmissionsTab = ({ onRowClick }: SubmissionsTabProps) => {
                 {item.notes || "No notes"}
               </TableCell>
               <TableCell className="text-right pr-6">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  className="invisible group-hover:visible dark:text-[#667085] hover:dark:text-white"
-                >
-                  <Settings size={14} />
-                </Button>
+                <Dropdown placement="bottom-end" className="dark:bg-[#101828] dark:border-[#334155]">
+                  <DropdownTrigger>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      className="text-slate-400 hover:text-black dark:text-[#667085] hover:dark:text-white"
+                    >
+                      <Settings size={16} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label="Submission Actions" className="dark:text-[#F9FAFB] min-w-[200px]">
+                    <DropdownItem key="rejudge" startContent={<RefreshCw size={14} className="text-blue-500" />}>
+                      Rejudge Submission
+                    </DropdownItem>
+                    <DropdownItem key="remove" className="text-danger" color="danger" startContent={<Ban size={14} />}>
+                      Remove Submission
+                    </DropdownItem>
+                    <DropdownItem key="lock" startContent={<Lock size={14} className="text-amber-500" />}>
+                      Lock Submission Result
+                    </DropdownItem>
+                    <DropdownItem key="flag" startContent={<Flag size={14} className="text-rose-500" />}>
+                      Flag Submission
+                    </DropdownItem>
+                    <DropdownItem key="download" startContent={<Download size={14} className="text-emerald-500" />}>
+                      Download Submission
+                    </DropdownItem>
+                    <DropdownItem key="result" startContent={<ShieldAlert size={14} className="text-purple-500" />}>
+                      Receive Code Result
+                    </DropdownItem>
+                    <DropdownItem key="notification" startContent={<Bell size={14} className="text-orange-500" />}>
+                      Receive Judge Notification
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+        </CardBody>
+      </Card>
     </div>
   );
 };

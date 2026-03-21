@@ -1,15 +1,15 @@
+import { BASE_URLS } from "@/constants";
+import webStorageClient from "@/utils/webStorageClient";
 import {
-  fetchBaseQuery,
   BaseQueryFn,
   FetchArgs,
+  fetchBaseQuery,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import webStorageClient from "@/utils/webStorageClient";
-import { BASE_URL, BASE_URLS } from "@/constants";
 
 
 export const rawBaseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
+  baseUrl: BASE_URLS,
 
   prepareHeaders: (headers, { endpoint }) => {
     const token = webStorageClient.getToken();

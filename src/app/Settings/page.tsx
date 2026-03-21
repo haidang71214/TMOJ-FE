@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { Card, CardBody, Button } from "@heroui/react";
-import { Edit3, User, Briefcase, Code2 } from "lucide-react";
+import { Card, CardBody, Button, Switch } from "@heroui/react";
+import { Edit3, User, Briefcase, Code2, Bell } from "lucide-react";
 
 export default function SettingsPage() {
   const basicInfo = [
@@ -122,6 +122,46 @@ export default function SettingsPage() {
             >
               Edit
             </Button>
+          </CardBody>
+        </Card>
+      </section>
+      {/* NOTIFICATION PREFERENCES SECTION */}
+      <section className="space-y-4 pb-10">
+        <div className="flex items-center gap-3 px-2">
+          <Bell size={20} className="text-[#FF5C00]" />
+          <h2 className="text-xl font-[1000] italic uppercase tracking-tight text-[#071739] dark:text-white">
+            Notifications
+          </h2>
+        </div>
+        <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] shadow-sm overflow-hidden">
+          <CardBody className="p-0 divide-y divide-slate-100 dark:divide-white/5">
+            <div className="flex items-center justify-between py-6 px-8 group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+              <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
+                Email Alerts
+              </span>
+              <span className="text-sm font-bold flex-1 text-slate-400 italic">
+                Receive important updates via email
+              </span>
+              <Switch defaultSelected color="primary" />
+            </div>
+            <div className="flex items-center justify-between py-6 px-8 group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+              <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
+                Push Notifications
+              </span>
+              <span className="text-sm font-bold flex-1 text-slate-400 italic">
+                In-app notifications for activities
+              </span>
+              <Switch defaultSelected color="primary" />
+            </div>
+            <div className="flex items-center justify-between py-6 px-8 group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+              <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
+                Marketing
+              </span>
+              <span className="text-sm font-bold flex-1 text-slate-400 italic">
+                Special offers and event invites
+              </span>
+              <Switch color="primary" />
+            </div>
           </CardBody>
         </Card>
       </section>

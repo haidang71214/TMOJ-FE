@@ -13,6 +13,8 @@ import {
   Bell,
   Award,
   Shredder,
+  PieChart,
+  FolderArchive,
 } from "lucide-react";
 
 const NAV = [
@@ -24,8 +26,10 @@ const NAV = [
   { name: "Gamification", path: "/Gamification", icon: Award },
   { name: "Package", path: "/Package", icon: Package },
   { name: "Coin Package", path: "/Coin", icon: Coins },
-  {name:"MODERATION & REPORT", path:"/Moderation", icon: Shredder},
+  { name: "MODERATION & REPORT", path: "/Moderation", icon: Shredder },
   { name: "Notification", path: "/Notification", icon: Bell },
+  { name: "Reports", path: "/Reports", icon: PieChart },
+  { name: "File Storage", path: "/FileStorage", icon: FolderArchive },
 ];
 
 export default function AdminLayout({
@@ -56,7 +60,7 @@ useEffect(() => {
       className="
         min-h-screen flex
         bg-slate-100 text-slate-800
-        dark:bg-gradient-to-br dark:from-[#0B0F1A] dark:via-[#120B2E] dark:to-[#05010F]
+        dark:bg-linear-to-br dark:from-[#0B0F1A] dark:via-[#120B2E] dark:to-[#05010F]
         dark:text-slate-200
       "
     >
@@ -86,7 +90,7 @@ useEffect(() => {
                   flex items-center gap-4 px-4 py-3 rounded-xl transition-all
                   ${
                     active
-                      ? "bg-indigo-100 text-indigo-700 dark:bg-gradient-to-r dark:from-cyan-400/20 dark:to-fuchsia-500/20 dark:text-cyan-600 shadow"
+                      ? "bg-indigo-100 text-indigo-700 dark:bg-linear-to-r dark:from-cyan-400/20 dark:to-fuchsia-500/20 dark:text-cyan-600 shadow"
                       : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-cyan-300"
                   }
                 `}
@@ -117,7 +121,7 @@ useEffect(() => {
 
           <div className="flex items-center gap-4">
 
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center text-black font-black">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center text-black font-black">
               A
             </div>
           </div>

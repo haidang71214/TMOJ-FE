@@ -1,141 +1,186 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { Trophy, Clock, Users } from "lucide-react";
+import React, { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { 
+  HelpCircle, BarChart2, Award, 
+  AlertCircle, Clock
+} from "lucide-react";
+import { 
+   Table, TableHeader, TableColumn, TableBody, 
+  TableRow, TableCell, Card, CardBody, Divider 
+} from "@heroui/react";
 
 type ProblemItem = {
   id: number;
   displayId: string;
   title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  visible: boolean;
 };
 
-const difficultyColor = {
-  Easy: "text-[#17c964] bg-[#17c964]/10",
-  Medium: "text-[#f5a524] bg-[#f5a524]/10",
-  Hard: "text-[#f31260] bg-[#f31260]/10",
-};
-
-export default function Page() {
+export default function ContestDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const contestId = params.id as string;
+  
+  const [selectedTab] = useState("info");
 
   const problems: ProblemItem[] = [
-    { id: 501, displayId: "A", title: "Two Sum", difficulty: "Easy", visible: true },
-    { id: 502, displayId: "B", title: "Longest Substring", difficulty: "Medium", visible: true },
+    { id: 1, displayId: "A", title: "Awesome MST Problem" },
+    { id: 2, displayId: "B", title: "Backbone Network" },
+    { id: 3, displayId: "C", title: "Coloring Polygon" },
+    { id: 4, displayId: "D", title: "Distinctive Number" },
+    { id: 5, displayId: "E", title: "Even Paths" },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220]">
-      {/* ================= HERO ================= */}
-      <div className="relative overflow-hidden">
-        {/* Glow background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#071739] via-[#0B1220] to-black" />
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-[#FF5C00]/20 blur-[120px] rounded-full" />
+    <div className="w-full">
 
-        <div className="relative z-10 py-24 text-center text-white space-y-10">
-          {/* Trophy */}
-          <div className="flex justify-center">
-            <div className="p-6 rounded-[2.5rem] bg-white/10 backdrop-blur border border-white/20 shadow-xl">
-              <Trophy size={64} className="text-[#FFB800]" />
-            </div>
-          </div>
+      {/* MAIN CONTENT AREA */}
+      <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
+        
+        {/* INFO TAB CONTENT */}
+        {selectedTab === "info" && (
+          <div className="space-y-6 animate-in fade-in zoom-in-[0.99] duration-300">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <h1 className="text-4xl md:text-5xl font-black italic tracking-tight">
-            FPTU CODING MASTER
-            <span className="text-[#FF5C00]"> SPRING 2026</span>
-          </h1>
-
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-6 pt-6">
-            <StatCard icon={<Users />} label="Students" value="1240" />
-            <StatCard icon={<Clock />} label="Duration" value="02h 45m" />
-          </div>
-        </div>
-      </div>
-
-      {/* ================= PROBLEMS ================= */}
-      <div className="max-w-5xl mx-auto px-6 py-16 space-y-6">
-        <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-black text-[#071739] dark:text-white">
-    Problems
-  </h2>
-
-  <button
-    className="group relative flex items-center gap-3 px-6 py-3 rounded-2xl
-      bg-[#071739] dark:bg-[#00FF41]
-      text-white dark:text-[#071739]
-      font-black uppercase tracking-wider text-sm
-      shadow-lg hover:shadow-2xl
-      transition-all duration-300"
-  >
-    {/* Glow */}
-    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100
-      bg-gradient-to-r from-[#FF5C00]/30 to-transparent transition" />
-
-    <span className="relative">Export Contest Result</span>
-  </button>
-</div>
-
-        {problems.map((p) => (
-          <div
-            key={p.id}
-            onClick={() => router.push("/Problems/two-sum")}
-            className="group relative flex items-center justify-between p-6 rounded-[2rem]
-              bg-white dark:bg-[#1C2737]
-              border border-slate-200 dark:border-white/5
-              shadow-sm hover:shadow-2xl
-              transition-all duration-300 cursor-pointer"
-          >
-            {/* Glow hover */}
-            <div className="absolute inset-0 rounded-[2rem] opacity-0 group-hover:opacity-100 bg-gradient-to-r from-[#FF5C00]/10 to-transparent transition" />
-
-            <div className="relative flex items-center gap-6">
-              {/* Index */}
-              <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#071739] text-white font-black">
-                {p.displayId}
-              </div>
-
-              <div>
-                <div className="font-black text-lg text-[#071739] dark:text-white">
-                  {p.title}
+              {/* LEFT / MAIN COLUMN: Info & Rules */}
+              <div className="lg:col-span-12 space-y-6">
+                
+                {/* CONTEST STATUS BANNER */}
+                <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-center gap-4 shadow-sm relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-sky-400"></div>
+                  <h2 className="text-xl sm:text-2xl text-blue-600 dark:text-sky-400 font-semibold m-0 flex items-center gap-2">
+                    Contest has ended
+                  </h2>
+                  <div className="hidden sm:block w-[1px] h-6 bg-slate-300 dark:bg-slate-700"></div>
+                  <div className="flex items-center gap-2 text-[15px] font-medium text-slate-600 dark:text-slate-300">
+                    <Clock className="w-4 h-4 text-blue-500 dark:text-sky-400" />
+                    <p>
+                      05 hrs, 00 mins <span className="opacity-70 font-normal mx-1">from</span> Mar 25, 2022, 9:30 +07
+                    </p>
+                  </div>
                 </div>
-                <span
-                  className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold uppercase ${difficultyColor[p.difficulty]}`}
-                >
-                  {p.difficulty}
-                </span>
+
+                {/* CONTEST RULES */}
+                <Card className="shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#1e293b]/50 rounded-xl">
+                  <CardBody className="p-6 sm:px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[14px] sm:text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">
+                      
+                      {/* Rule block 1 */}
+                      <div>
+                        <h3 className="flex items-center gap-2 mb-3 text-slate-900 dark:text-slate-100 font-semibold px-2 py-1 bg-slate-100 dark:bg-slate-800/50 rounded-md inline-flex">
+                          <AlertCircle className="w-4 h-4 text-orange-500" />
+                          Unrated
+                        </h3>
+                        <ul className="list-none pl-2 space-y-2 mt-2">
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>This contest requires you to <strong className="font-semibold text-blue-600 dark:text-sky-400">pass all test cases</strong> of a problem to get points.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>This contest <strong className="font-semibold text-slate-800 dark:text-slate-200">does not</strong> use pretests.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>This contest <strong className="font-semibold text-slate-800 dark:text-slate-200">has no limit</strong> on the number of submissions.</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Rule block 2 */}
+                      <div>
+                        <h3 className="flex items-center gap-2 mb-3 text-slate-900 dark:text-slate-100 font-semibold px-2 py-1 bg-slate-100 dark:bg-slate-800/50 rounded-md inline-flex">
+                          <Award className="w-4 h-4 text-blue-500" />
+                          ICPC Format
+                        </h3>
+                        <ul className="list-none pl-2 space-y-2 mt-2">
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>The score of a problem will be the score of the submission with the highest score.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>Submissions prior to the highest scoring submission will incur a <strong className="font-semibold text-red-500 dark:text-red-400">20-minute penalty.</strong></span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span> 
+                            <span>Ties will be broken by the total time of the <strong className="font-semibold text-slate-800 dark:text-slate-200">last submission that changed the result</strong> (for a 0 point problem, penalty applies). If still tied, it is decided by the <strong className="font-semibold text-slate-800 dark:text-slate-200">time of the last result-changing submission.</strong></span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <Divider className="my-5 bg-slate-200 dark:bg-slate-700/50" />
+                    
+                    <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium">
+                      <BarChart2 className="w-[14px] h-[14px] text-blue-500" />
+                      The scoreboard is continuously updated during the contest.
+                    </p>
+                  </CardBody>
+                </Card>
+
               </div>
             </div>
 
-            <span className="relative font-black text-sm uppercase text-[#FF5C00]">
-              Solve →
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+            {/* PROBLEMS TABLE */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-2 px-1">
+                <HelpCircle className="w-5 h-5 text-blue-600 dark:text-sky-400" />
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
+                  Problem List
+                </h3>
+              </div>
 
-/* ===== COMPONENT ===== */
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="px-8 py-4 rounded-2xl bg-white/10 backdrop-blur border border-white/20 shadow-lg text-center">
-      <div className="flex justify-center mb-2 text-[#FF5C00]">{icon}</div>
-      <div className="text-xs uppercase tracking-widest text-slate-300">
-        {label}
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/80 overflow-hidden">
+                <Table 
+                  aria-label="Problems table" 
+                  removeWrapper
+                  classNames={{
+                    base: "min-w-full",
+                    table: "min-w-full",
+                    th: "bg-slate-50 dark:bg-[#0f172a] text-slate-600 dark:text-slate-400 font-semibold text-[13px] uppercase tracking-wider py-3 first:rounded-none last:rounded-none border-b border-slate-200 dark:border-slate-800",
+                    td: "py-3 lg:py-4 text-sm font-medium border-b border-slate-100 dark:border-slate-800/50 group-last:border-none relative z-10",
+                    tr: "hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group",
+                  }}
+                >
+                  <TableHeader>
+                    <TableColumn key="id" className="w-[60px] lg:w-[80px] text-center">#</TableColumn>
+                    <TableColumn key="title">Problem Name</TableColumn>
+                  </TableHeader>
+                  <TableBody items={problems}>
+                    {(item) => (
+                      <TableRow key={item.id} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.id}`)}>
+                        <TableCell className="text-center font-bold text-slate-700 dark:text-slate-300">
+                          {item.displayId}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-blue-600 dark:text-sky-400 group-hover:underline transition-all">
+                            ICPC 2021 Regional - {item.displayId}: {item.title}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* OTHER TABS PLACEHOLDER */}
+        {selectedTab !== "info" && (
+          <div className="py-24 text-center text-slate-500 flex flex-col items-center gap-4 animate-in fade-in zoom-in-[0.98] duration-300">
+            <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+              <AlertCircle className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+            </div>
+            <p className="text-lg font-medium text-slate-600 dark:text-slate-400">Content is being updated...</p>
+          </div>
+        )}
       </div>
-      <div className="text-xl font-black">{value}</div>
+
     </div>
   );
 }

@@ -72,9 +72,6 @@ export default function ProblemsSidebar() {
     <div className="w-full max-w-[260px] shrink-0 flex flex-col gap-8 py-2">
       {/* 1. EXPLORER SECTION */}
       <div className="flex flex-col gap-3">
-        <span className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          Explorer
-        </span>
         <Listbox
           aria-label="Navigation"
           onAction={(key) => router.push(`/Problems/${String(key)}`)}

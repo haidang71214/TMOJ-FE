@@ -12,8 +12,13 @@ const config = {
   ],
   darkMode: "class",
   theme: {
-  extend: {},
-  heroui: {
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
+      },
+    },
+    heroui: {
     defaultTheme: "light",
     themes: {
       light: {

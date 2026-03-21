@@ -104,7 +104,6 @@ export default function NavbarProvider() {
         <div className="hidden lg:flex gap-6 items-center">
           {/* Cập nhật danh sách Tabs ở đây */}
           {[
-            "Explore",
             "Problems",
             "Contest",
             "Class",
@@ -114,8 +113,7 @@ export default function NavbarProvider() {
           ].map((item) => {
             // Logic điều hướng đặc biệt cho các tab
             let link = `/${item}`;
-            if (item === "Explore") link = "/Explore";
-            if (item === "Problems") link = "/Problems/Library";
+         if (item === "Problems") link = "/Problems/Library";
             if (item === "Class") link = "/Class";
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") {
@@ -141,7 +139,8 @@ export default function NavbarProvider() {
               <NavbarItem key={item}>
                 <Link
                   onClick={() => handleLink(link)}
-                  className={`font-black text-[13px] cursor-pointer transition-colors ${
+                  style={{marginRight:20}}
+                  className={`font-black text-[16px]  cursor-pointer transition-colors ${
                     isActive
                       ? "text-[#ff8904]"
                       : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
@@ -152,38 +151,6 @@ export default function NavbarProvider() {
               </NavbarItem>
             );
           })}
-
-          <NavbarItem>
-            <Dropdown className="dark:bg-[#282E3A] border dark:border-[#3F4755]">
-              <DropdownTrigger>
-                <Button
-                  disableRipple
-                  className="p-0 bg-transparent text-[#4B6382] dark:text-[#A0AEC0] font-black text-[13px] hover:text-[#071739] dark:hover:text-[#ff8904]"
-                  endContent={<ChevronDown size={14} />}
-                  variant="light"
-                >
-                  More
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="More options"
-                className="dark:text-white"
-              >
-                <DropdownItem
-                  key="interview"
-                  onClick={() => handleLink("/Interview")}
-                >
-                  Interview Prep
-                </DropdownItem>
-                <DropdownItem
-                  key="store"
-                  onClick={() => handleLink("/Premium")}
-                >
-                  Store
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </NavbarItem>
         </div>
       </NavbarContent>
 
@@ -209,10 +176,6 @@ export default function NavbarProvider() {
             }
             type="search"
           />
-        </NavbarItem>
-
-        <NavbarItem>
-          <ThemeToggle />
         </NavbarItem>
 
         {user ? (

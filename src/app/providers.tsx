@@ -1,11 +1,8 @@
 "use client";
 
-import type { ThemeProviderProps } from "next-themes";
-
 import { HeroUIProvider } from "@heroui/react"; // Sửa từ @heroui/system
 import { ToastProvider } from "@heroui/toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Suspense } from "react";
@@ -19,7 +16,6 @@ import RedirectProvider from "@/Provider/RedirectProvider";
 
 export interface ProvidersProps {
   children: React.ReactNode;
-  themeProps?: ThemeProviderProps;
 }
 
 declare module "@react-types/shared" {
@@ -29,11 +25,11 @@ declare module "@react-types/shared" {
     >;
   }
 }
-export function Providers({ children, themeProps }: Readonly<ProvidersProps>) {
+export function Providers({ children }: Readonly<ProvidersProps>) {
+  const router = useRouter();
   return (
     <Provider store={store}>
-      <NextThemesProvider {...themeProps}>
-        <HeroUIProvider>
+        <HeroUIProvider navigate={router.push}>
           <GoogleOAuthProvider
             clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
           >
@@ -52,7 +48,6 @@ export function Providers({ children, themeProps }: Readonly<ProvidersProps>) {
             <ToastProvider placement="bottom-right" />
           </GoogleOAuthProvider>
         </HeroUIProvider>
-      </NextThemesProvider>
     </Provider>
   );
 }

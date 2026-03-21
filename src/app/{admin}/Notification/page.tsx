@@ -28,6 +28,9 @@ import {
     Badge,
   Eye,
   AlertTriangle,
+  BookOpen,
+  Settings2,
+  Lock,
 } from "lucide-react";
 
 // Mock data giống hệt bảng bạn paste
@@ -47,6 +50,22 @@ const MOCK_SENT_NOTIFICATIONS = [
     target: "All Users",
     sentAt: "2026-01-27 14:30",
     readCount: 856,
+  },
+  {
+    id: "n3",
+    title: "PRJ301 Course Update",
+    type: "SUBJECT",
+    target: "PRJ301 Students",
+    sentAt: "2026-01-26 10:00",
+    readCount: 450,
+  },
+  {
+    id: "n4",
+    title: "Weekly Honor Roll Published",
+    type: "SYSTEM",
+    target: "All Users",
+    sentAt: "2026-01-25 09:15",
+    readCount: 3102,
   },
 ];
 
@@ -69,6 +88,15 @@ const MOCK_RECEIVED_NOTIFICATIONS = [
     receivedAt: "2026-01-26 22:10",
     isRead: false,
   },
+  {
+    id: "r3",
+    title: "High Traffic Warning",
+    message: "Current concurrent users exceeding 3,000. Monitor judge engine delay.",
+    type: "system",
+    from: "Monitor",
+    receivedAt: "2026-01-26 18:30",
+    isRead: true,
+  },
 ];
 
 export default function NotificationManagementPage() {
@@ -79,6 +107,20 @@ export default function NotificationManagementPage() {
   const [message, setMessage] = useState("");
   const [sendToAll, setSendToAll] = useState(true);
   const [pinAnnouncement, setPinAnnouncement] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [targetSubject, setTargetSubject] = useState("");
+
+  const [notificationTypes] = useState([
+    { id: "t1", name: "System Alerts", enabled: true },
+    { id: "t2", name: "Contest Reminders", enabled: true },
+    { id: "t3", name: "New Editorials", enabled: false },
+    { id: "t4", name: "Course Updates", enabled: true },
+  ]);
+
+  const [editorials] = useState([
+    { id: "e1", title: "Two Sum - Optimal Solution", author: "admin", date: "2026-03-08" },
+    { id: "e2", title: "Dijkstra's Algorithm Guide", author: "john_doe", date: "2026-03-05" },
+  ]);
 
   const handleSendNotification = () => {
     if (!title.trim() || !message.trim()) {
@@ -93,6 +135,8 @@ export default function NotificationManagementPage() {
     setMessage("");
     setSendToAll(true);
     setPinAnnouncement(false);
+    setScheduledDate("");
+    setTargetSubject("");
     setIsSendModalOpen(false);
   };
 
@@ -132,6 +176,9 @@ export default function NotificationManagementPage() {
           <div className="flex gap-2">
             <Button isIconOnly size="sm" variant="flat">
               <Eye size={16} />
+            </Button>
+            <Button isIconOnly size="sm" color="warning" variant="flat">
+              <BookOpen size={16} /> {/* Mock Update Announcement icon */}
             </Button>
             <Button isIconOnly size="sm" color="danger" variant="flat">
               <Trash2 size={16} />
@@ -202,7 +249,7 @@ export default function NotificationManagementPage() {
           onPress={() => setIsSendModalOpen(true)}
           className="
             bg-indigo-600 text-white
-            dark:bg-gradient-to-r dark:from-cyan-400 dark:to-fuchsia-500
+            dark:bg-linear-to-r dark:from-cyan-400 dark:to-fuchsia-500
             dark:text-black
             font-black h-11 px-6 rounded-xl shadow-lg
             uppercase text-[10px] tracking-wider
@@ -240,8 +287,53 @@ export default function NotificationManagementPage() {
           </div>
         </Tab>
 
-        <Tab title="Received Alerts">
+        <Tab title="Received Alerts" key="received">
           <div className="space-y-4">{renderReceivedBody()}</div>
+        </Tab>
+
+        <Tab title="Configuration & Moderation" key="config">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Notification Types Settings */}
+            <div className="p-6 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Settings2 className="text-indigo-600" />
+                <h3 className="font-black text-lg">Notification Types</h3>
+              </div>
+              <p className="text-xs text-slate-500 mb-4">Toggle global system notifications</p>
+              
+              <div className="space-y-3">
+                {notificationTypes.map(type => (
+                  <div key={type.id} className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
+                    <span className="font-bold">{type.name}</span>
+                    <Switch defaultSelected={type.enabled} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Editorial Moderation */}
+            <div className="p-6 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Lock className="text-fuchsia-500" />
+                <h3 className="font-black text-lg">Editorial Moderation</h3>
+              </div>
+              <p className="text-xs text-slate-500 mb-4">Manage submitted problem editorials</p>
+              
+              <div className="space-y-3">
+                {editorials.map(editorial => (
+                  <div key={editorial.id} className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
+                    <div>
+                      <p className="font-bold text-sm truncate w-48">{editorial.title}</p>
+                      <p className="text-[10px] text-slate-400">@{editorial.author} • {editorial.date}</p>
+                    </div>
+                    <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => alert("Deleted Editorial")}>
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </Tab>
       </Tabs>
 
@@ -301,10 +393,32 @@ export default function NotificationManagementPage() {
                       classNames={{ wrapper: "group-data-[selected=true]:bg-fuchsia-500" }}
                     />
                   </div>
+
+                  {!sendToAll && (
+                    <Input
+                      label="Target Subject Code"
+                      placeholder="e.g. PRJ301"
+                      value={targetSubject}
+                      onValueChange={setTargetSubject}
+                      classNames={{
+                        inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
+                      }}
+                    />
+                  )}
+
+                  <Input
+                    label="Schedule Date/Time (Optional)"
+                    type="datetime-local"
+                    value={scheduledDate}
+                    onValueChange={setScheduledDate}
+                    classNames={{
+                      inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
+                    }}
+                  />
                 </div>
 
                 <div className="text-xs text-slate-500 dark:text-slate-400 italic">
-                  This will appear in every user notification center immediately.
+                  This will appear in every target user&apos;s notification center.
                 </div>
               </ModalBody>
               <ModalFooter className="border-t border-slate-200 dark:border-white/10 pt-4">

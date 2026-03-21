@@ -1,37 +1,38 @@
 "use client";
 
 import {
+  Avatar,
   Button,
   Card,
   CardBody,
   CardHeader,
   Chip,
-  Tabs,
-  Tab,
-  Progress,
   Divider,
   Modal,
+  ModalBody,
   ModalContent,
   ModalHeader,
-  ModalBody,
+  Progress,
+  Tab,
+  Tabs,
   useDisclosure,
-  Avatar,
 } from "@heroui/react";
 import {
-  Flame,
-  Edit3,
   Award,
-  Globe,
-  ChevronRight,
-  Terminal,
-  Zap,
-  Lock,
-  Star,
-  Github,
-  Linkedin,
+  Bookmark,
   Cake,
+  ChevronRight,
+  Edit3,
+  Flame,
+  Github,
+  Globe,
+  Linkedin,
+  Lock,
   MapPin,
+  Star,
+  Terminal,
   User,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
@@ -126,6 +127,12 @@ export default function ProfilePage() {
       isLocked: true,
       color: "#94a3b8",
     },
+  ];
+
+  const MOCK_PUBLIC_COLLECTIONS = [
+    { id: "c1", title: "Dynamic Programming Top 50", count: 50, date: "2 weeks ago" },
+    { id: "c2", title: "Graph Algorithms", count: 12, date: "1 month ago" },
+    { id: "c3", title: "Interview Prep 2026", count: 150, date: "2 days ago" },
   ];
 
   const SOLVED_COUNT = 226;
@@ -552,8 +559,40 @@ export default function ProfilePage() {
               </Tab>
               {/* KHÔI PHỤC CÁC TAB BỊ THIẾU */}
               <Tab key="collections" title="Collections">
-                <div className="p-10 text-center text-slate-400 italic font-black uppercase text-xs">
-                  No collections found.
+                <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
+                  {MOCK_PUBLIC_COLLECTIONS.map((col) => (
+                    <div
+                      key={col.id}
+                      className="py-6 flex justify-between items-center group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-[#FF5C00] group-hover:bg-[#FF5C00]/20 transition-colors">
+                          <Bookmark size={20} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-base font-black uppercase italic group-hover:text-[#FF5C00] transition-colors text-[#071739] dark:text-white leading-none">
+                            {col.title}
+                          </p>
+                          <p className="text-[9px] font-black uppercase italic text-slate-400">
+                            {col.count} Problems
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors">
+                        <span className="text-[10px] font-bold uppercase italic">
+                          {col.date}
+                        </span>
+                        <ChevronRight size={16} />
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="light"
+                    className="w-full mt-6 font-black uppercase italic text-[10px] text-[#FF5C00] tracking-[0.2em]"
+                  >
+                    View All Collections →
+                  </Button>
                 </div>
               </Tab>
               <Tab key="solutions" title="Solutions">
@@ -602,7 +641,7 @@ export default function ProfilePage() {
                   {badges.map((badge) => (
                     <div
                       key={badge.id}
-                      className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-4 transition-all relative overflow-hidden group ${
+                      className={`p-6 rounded-4xl border-2 flex flex-col items-center gap-4 transition-all relative overflow-hidden group ${
                         badge.isLocked
                           ? "border-slate-100 dark:border-white/5 grayscale opacity-60"
                           : "border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg"

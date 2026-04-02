@@ -1,4 +1,3 @@
-"use client";  // ← giữ nguyên nếu component này cần client-side (nhưng thực tế layout thường là server component → có thể bỏ nếu không cần "use client")
 
 import React from "react";
 import ContestHeader from "./components/ContestHeader";

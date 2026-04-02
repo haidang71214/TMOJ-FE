@@ -12,6 +12,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
+  Layers,
 } from "lucide-react";
 
 export default function StudyPlanPage() {
@@ -22,7 +23,7 @@ export default function StudyPlanPage() {
     <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans flex relative transition-colors duration-500">
       {/* 1. SIDEBAR: Giữ sticky top-0 h-screen để luôn bám theo khi cuộn Main Content */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl
+        className={`transition-all duration-300 ease-in-out border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden shrink-0 z-40 shadow-xl
           ${isSidebarOpen ? "w-[260px]" : "w-0 border-none"}`}
       >
         <div className="w-[260px] p-6 pr-2">
@@ -120,6 +121,15 @@ export default function StudyPlanPage() {
                   <Database size={80} className="text-cyan-400 opacity-20" />
                 }
               />
+              <PlanCard
+                title="System Design"
+                desc="Prepare for SD Interview"
+                bgGradient="bg-gradient-to-br from-[#1e1b4b] to-[#312e81]"
+                className="rounded-[2.5rem] shadow-2xl border border-white/5 h-48"
+                icon={
+                  <Layers size={80} className="text-indigo-400 opacity-20" />
+                }
+              />
             </div>
           </section>
 
@@ -136,13 +146,13 @@ export default function StudyPlanPage() {
                   title="30 Days of Pandas"
                   desc="Essential for data interviews"
                   image="/pandas-icon.png"
-                  className="rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-md"
+                  className="rounded-4xl border border-slate-100 dark:border-white/5 shadow-md"
                 />
                 <ListCard
                   title="30 Days of JavaScript"
                   desc="Master JS basics in 30 Qs"
                   image="/js-icon.png"
-                  className="rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-md"
+                  className="rounded-4xl border border-slate-100 dark:border-white/5 shadow-md"
                 />
               </div>
             </section>
@@ -158,14 +168,14 @@ export default function StudyPlanPage() {
                   title="Top Interview 150"
                   desc="Must-do List for Prep"
                   image="/top150.png"
-                  className="rounded-[2rem]"
+                  className="rounded-4xl"
                 />
                 <ListCard
                   title="Premium Algo 100"
                   desc="TMOJ Staff Pick"
                   image="/algo.png"
                   isLocked
-                  className="rounded-[2rem]"
+                  className="rounded-4xl"
                 />
               </div>
             </section>

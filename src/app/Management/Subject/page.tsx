@@ -8,115 +8,57 @@ import {
   TableRow,
   TableCell,
   Button,
-  Switch,
   Tooltip,
   Input,
   Chip,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Pagination,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-  Autocomplete,
-  AutocompleteItem,
+  Spinner,
 } from "@heroui/react";
 import {
   Plus,
   Edit3,
-  Trash2,
   Search,
   Filter,
   RefreshCw,
-  ChevronDown,
-  Save,
 } from "lucide-react";
-import { toast } from "sonner";
-import DeleteModal from "../../components/DeleteModal";
-import { Subject } from "@/types";
-
-const MOCK_SUBJECTS: Subject[] = [
-  {
-    id: "SDN302",
-    name: "NodeJS & Express Development",
-    department: "Software Engineering",
-    credits: 3,
-    totalProblems: 120,
-    visible: true,
-    createdAt: "2025-01-01",
-  },
-  {
-    id: "PRN231",
-    name: "Cross-platform with .NET",
-    department: "Software Engineering",
-    credits: 3,
-    totalProblems: 85,
-    visible: true,
-    createdAt: "2025-01-02",
-  },
-  {
-    id: "DBI202",
-    name: "Database Introduction",
-    department: "Information System",
-    credits: 3,
-    totalProblems: 200,
-    visible: false,
-    createdAt: "2025-01-03",
-  },
-];
-
-const DEPARTMENTS = [
-  { label: "Software Engineering", value: "Software Engineering" },
-  { label: "Information System", value: "Information System" },
-  { label: "Artificial Intelligence", value: "Artificial Intelligence" },
-];
+import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
+import { useModal } from "@/Provider/ModalProvider";
+import CreateSubjectModal from "./CreateSubjectModal";
+import EditSubjectModal from "./EditSubjectModal";
+import { SubjectResponseForm } from "@/types";
 
 export default function SubjectListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+  const { openModal } = useModal();
+  const { data, isLoading } = useGetAllSubjectQueryQuery();
+  const subjects = data?.data?.items ?? [];
 
-  const createModal = useDisclosure();
-  const deleteModal = useDisclosure();
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const pages = Math.ceil(MOCK_SUBJECTS.length / rowsPerPage);
+  const pages = Math.ceil(subjects.length / rowsPerPage);
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
-    return MOCK_SUBJECTS.slice(start, start + rowsPerPage);
-  }, [page]);
+    return subjects.slice(start, start + rowsPerPage);
+  }, [page, subjects]);
 
-  const handleSubmit = async (onClose: () => void) => {
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast.success(isEditMode ? "Subject Updated!" : "Subject Created!", {
-      description: isEditMode
-        ? "The changes have been saved successfully."
-        : "New subject has been added to the system.",
+  const handleOpenEdit = (subject: SubjectResponseForm) => {
+    openModal({
+      content: <EditSubjectModal subject={subject} />,
     });
-
-    setIsSubmitting(false);
-    onClose();
-  };
-
-  const handleOpenEdit = (subject: Subject) => {
-    setIsEditMode(true);
-    setSelectedSubject(subject);
-    createModal.onOpen();
   };
 
   const handleOpenCreate = () => {
-    setIsEditMode(false);
-    setSelectedSubject(null);
-    createModal.onOpen();
+    openModal({
+      content: <CreateSubjectModal />,
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size="lg" color="warning" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -151,28 +93,12 @@ export default function SubjectListPage() {
           className="max-w-xs font-bold italic"
         />
 
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-divider font-[1000] text-[10px] uppercase italic text-[#071739] dark:text-white"
-              startContent={<Filter size={16} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              Department
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Filter Dept">
-            {DEPARTMENTS.map((dept) => (
-              <DropdownItem
-                key={dept.value}
-                className="font-bold uppercase text-[10px] italic"
-              >
-                {dept.label}
-              </DropdownItem>
-            ))}
-          </DropdownMenu>
-        </Dropdown>
+        <Button
+          isIconOnly
+          className="h-12 w-12 rounded-xl bg-slate-200 dark:bg-[#111c35] text-slate-500 dark:text-white shadow-sm transition-transform hover:scale-105"
+        >
+          <Filter size={18} />
+        </Button>
 
         <Button
           isIconOnly
@@ -196,20 +122,22 @@ export default function SubjectListPage() {
           <TableHeader>
             <TableColumn>CODE</TableColumn>
             <TableColumn>SUBJECT NAME</TableColumn>
-            <TableColumn>DEPARTMENT</TableColumn>
-            <TableColumn className="text-center">CREDITS</TableColumn>
-            <TableColumn className="text-center">VISIBLE</TableColumn>
+            <TableColumn>DESCRIPTION</TableColumn>
+            <TableColumn className="text-center">STATUS</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
-          <TableBody>
-            {items.map((s) => (
+          <TableBody
+            items={items}
+            emptyContent="No subjects found."
+          >
+            {(s) => (
               <TableRow
-                key={s.id}
+                key={s.subjectId}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
                 <TableCell>
                   <span className="font-[1000] italic text-blue-600 dark:text-[#FF5C00] uppercase tracking-tighter">
-                    {s.id}
+                    {s.code}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -218,23 +146,19 @@ export default function SubjectListPage() {
                   </span>
                 </TableCell>
                 <TableCell>
+                  <span className="text-xs text-slate-500 max-w-[200px] truncate block">
+                    {s.description || "—"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
                   <Chip
                     variant="flat"
                     size="sm"
-                    className="font-black uppercase text-[9px] px-2 bg-blue-500/10 text-blue-500 border-none"
+                    className="font-black uppercase text-[9px] px-2"
+                    color={s.isActive ? "success" : "default"}
                   >
-                    {s.department}
+                    {s.isActive ? "ACTIVE" : "INACTIVE"}
                   </Chip>
-                </TableCell>
-                <TableCell className="text-center font-black italic">
-                  {s.credits}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Switch
-                    defaultSelected={s.visible}
-                    size="sm"
-                    color="success"
-                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
@@ -249,24 +173,11 @@ export default function SubjectListPage() {
                         <Edit3 size={18} />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Delete Subject" color="danger">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => {
-                          setSelectedSubject(s);
-                          deleteModal.onOpen();
-                        }}
-                        className="text-danger"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </Tooltip>
+                    
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
 
@@ -285,116 +196,6 @@ export default function SubjectListPage() {
           />
         </div>
       </div>
-
-      {/* CREATE / EDIT MODAL */}
-      <Modal
-        isOpen={createModal.isOpen}
-        onOpenChange={createModal.onOpenChange}
-        backdrop="blur"
-        classNames={{ base: "rounded-[2.5rem] dark:bg-[#111c35] p-2" }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="uppercase font-[1000] italic text-xl">
-                {isEditMode ? "Update" : "New"}{" "}
-                <span className="text-[#FF5C00]">Subject</span>
-              </ModalHeader>
-              <ModalBody className="gap-6">
-                <Input
-                  label="Subject Code"
-                  placeholder="e.g. SDN302"
-                  defaultValue={selectedSubject?.id}
-                  variant="bordered"
-                  labelPlacement="outside"
-                  classNames={{
-                    label:
-                      "font-black text-[10px] uppercase italic text-slate-400",
-                  }}
-                />
-                <Input
-                  label="Subject Name"
-                  placeholder="e.g. Node JS"
-                  defaultValue={selectedSubject?.name}
-                  variant="bordered"
-                  labelPlacement="outside"
-                  classNames={{
-                    label:
-                      "font-black text-[10px] uppercase italic text-slate-400",
-                  }}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Credits"
-                    type="number"
-                    defaultValue={selectedSubject?.credits.toString()}
-                    variant="bordered"
-                    labelPlacement="outside"
-                    classNames={{
-                      label:
-                        "font-black text-[10px] uppercase italic text-slate-400",
-                    }}
-                  />
-
-                  <Autocomplete
-                    label={
-                      <span className="font-black text-[10px] uppercase italic text-slate-400">
-                        Department
-                      </span>
-                    }
-                    placeholder="Select or type new"
-                    variant="bordered"
-                    labelPlacement="outside"
-                    allowsCustomValue
-                    defaultSelectedKey={selectedSubject?.department}
-                    classNames={{
-                      base: "max-w-full",
-                      popoverContent: "bg-[#111c35] border border-divider",
-                    }}
-                  >
-                    {DEPARTMENTS.map((dept) => (
-                      <AutocompleteItem
-                        key={dept.value}
-                        className="font-bold uppercase text-[10px] italic"
-                      >
-                        {dept.label}
-                      </AutocompleteItem>
-                    ))}
-                  </Autocomplete>
-                </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant="light"
-                  onPress={onClose}
-                  className="font-black text-[10px] uppercase italic"
-                  isDisabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-[#FF5C00] text-white font-black text-[10px] uppercase italic shadow-lg"
-                  isLoading={isSubmitting}
-                  onPress={() => handleSubmit(onClose)}
-                  startContent={!isSubmitting && <Save size={16} />}
-                >
-                  {isEditMode ? "Save Changes" : "Create Subject"}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* DELETE MODAL */}
-      <DeleteModal
-        isOpen={deleteModal.isOpen}
-        onOpenChange={deleteModal.onOpenChange}
-        userName={selectedSubject?.id}
-        type="student" // Bạn có thể thêm case 'subject' vào DeleteModal sau
-      />
-
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;

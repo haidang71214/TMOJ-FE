@@ -35,7 +35,7 @@ const MOCK_SOLUTIONS = [
   },
 ];
 
-export const SolutionsTab = () => {
+export default function SolutionsTab () {
   return (
     <div className="h-full overflow-y-auto no-scrollbar">
       {/* Header */}

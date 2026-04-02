@@ -17,7 +17,7 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
     const { refetch } = useGetUserInformationQuery();
     const [isAdminSubdomain, setAdminSubdomain] = useState(false);
 
-    const handleRouting = async () => {
+    const handleRouting = async () => { // hande routing
         const token = webStorageClient.getToken() ?? webStorageClient.get("__admin_access_token");
         const user = webStorageClient.getUser();
         const isAdminSubdomain = window.location.hostname.includes("admin");
@@ -41,7 +41,7 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
             if(!token){
                 window.location.href = window.location.origin.replace("admin.", "");
             }
-            if(!user?.roles.includes("admin")){
+            if(!user?.roles?.includes("admin")){
                 window.location.href = window.location.origin.replace("admin.", "");
             }
         }
@@ -52,6 +52,7 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
     }, []);
 
     return isAdminSubdomain ? <><NavbarProvider />
+        
           <AdminPage />
           <Toaster richColors position="bottom-right" />
           <FooterWrapper /></> : <>{children}</>;

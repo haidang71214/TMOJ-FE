@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Pagination,
+  Spinner,
 } from "@heroui/react";
 import {
   Search,
@@ -24,97 +25,62 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-
-const CLASSES_DATA = [
-  {
-    id: "SDN302",
-    name: "Server-Side development with NodeJS, Express, and MongoDB",
-    semester: "FALL 2025",
-    students: 35,
-    problems: 120,
-  },
-  {
-    id: "WDP301",
-    name: "Web Development Project - Dự án phát triển Web",
-    semester: "FALL 2025",
-    students: 42,
-    problems: 85,
-  },
-  {
-    id: "MLN122",
-    name: "Political economics of Marxism – Leninism",
-    semester: "FALL 2025",
-    students: 60,
-    problems: 45,
-  },
-  {
-    id: "PRM392",
-    name: "Mobile Programming - Lập trình di động",
-    semester: "FALL 2025",
-    students: 28,
-    problems: 150,
-  },
-  {
-    id: "PRF192",
-    name: "Programming Fundamentals",
-    semester: "SPRING 2026",
-    students: 50,
-    problems: 200,
-  },
-  {
-    id: "PRO192",
-    name: "Object-Oriented Programming",
-    semester: "SPRING 2026",
-    students: 45,
-    problems: 180,
-  },
-  {
-    id: "DBI202",
-    name: "Introduction to Databases",
-    semester: "SPRING 2026",
-    students: 55,
-    problems: 110,
-  },
-  {
-    id: "OSG202",
-    name: "Operating Systems",
-    semester: "SPRING 2026",
-    students: 30,
-    problems: 95,
-  },
-  {
-    id: "SWE301",
-    name: "Software Requirement",
-    semester: "SUMMER 2026",
-    students: 20,
-    problems: 60,
-  },
-  {
-    id: "IOT102",
-    name: "Introduction to IoT",
-    semester: "SUMMER 2026",
-    students: 15,
-    problems: 130,
-  },
-];
-
-const STATS_DATA = [
-  { label: "Total Classes", value: "12", color: "text-blue-500" },
-  { label: "Total Students", value: "450", color: "text-[#FF5C00]" },
-  { label: "Total Problems", value: "1,200", color: "text-emerald-500" },
-];
+import { useGetClassesQuery } from "@/store/queries/Class";
+import CreateSlotForm from "./CreateClassSlotModal";
+import { useModal } from "@/Provider/ModalProvider";
+import UpdateTeacherModal from "./UpdateTeacherModal";
 
 export default function ClassListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
+  const { openModal } = useModal();
 
-  const pages = Math.ceil(CLASSES_DATA.length / rowsPerPage);
+const openCreateSlotModal = (classId: string) => {
+  openModal({
+    content: <CreateSlotForm classId={classId} />,
+  });
+};
+const openUpdateTeacherForClass = (
+  classId: string,
+  currentTeacherId?: string
+) => {
+  openModal({
+    content: (
+      <UpdateTeacherModal
+        classId={classId}
+        currentTeacherId={currentTeacherId}
+      />
+    ),
+  });
+};
+  const { data, isLoading, refetch } = useGetClassesQuery();
+  const classes = data?.data?.items ?? [];
+
+  const pages = Math.ceil(classes.length / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return CLASSES_DATA.slice(start, end);
-  }, [page]);
+    return classes.slice(start, end);
+  }, [page, classes]);
+
+  
+  const statsData = [
+    { label: "Total Classes", value: classes.length.toString(), color: "text-blue-500" },
+    { label: "Total Students", value: classes.reduce((sum, c) => sum + (c.memberCount || 0), 0).toString(), color: "text-[#FF5C00]" },
+    { label: "Active Classes", value: classes.filter(c => c.isActive).length.toString(), color: "text-emerald-500" },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center min-h-[400px]">
+        <Spinner size="lg" color="secondary" />
+        <p className="text-sm text-slate-500 animate-pulse mt-3 font-semibold tracking-wide">
+          Loading classes...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -140,7 +106,7 @@ export default function ClassListPage() {
 
       {/* MINIMAL STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
-        {STATS_DATA.map((stat, i) => (
+        {statsData.map((stat, i) => (
           <Card
             key={i}
             className="bg-white dark:bg-[#111c35] border-none rounded-2xl shadow-sm"
@@ -205,6 +171,7 @@ export default function ClassListPage() {
 
         <Button
           isIconOnly
+          onPress={() => refetch()}
           className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
         >
           <RefreshCw size={18} />
@@ -215,73 +182,109 @@ export default function ClassListPage() {
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-6">
           {items.map((cls) => (
-            <Link
-              href={`/Management/Class/${cls.id}`}
-              key={cls.id}
+            <div
+              key={cls.classId}
               className="h-full"
             >
-              <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] hover:-translate-y-1.5">
+              <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm group h-full border-b-4 border-transparent hover:border-blue-600 dark:hover:border-[#22C55E] ">
                 <CardBody className="p-2 flex flex-col justify-between h-full gap-5">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start gap-2">
                       <Chip
                         variant="flat"
                         size="sm"
                         className="font-black bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 uppercase italic text-[9px] h-5"
                       >
-                        {cls.semester}
+                        {cls.semester?.code || "N/A"}
                       </Chip>
-                      <span className="text-[10px] font-black text-[#071739] dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors uppercase italic">
-                        {cls.id}
+                      <span className="text-[10px] font-black text-[#071739] dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors uppercase italic break-all text-right">
+                        {cls.classCode}
                       </span>
                     </div>
 
-                    <h3 className="text-sm font-black text-[#071739] dark:text-slate-200 leading-snug tracking-tight line-clamp-2 h-10 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
-                      {cls.name}
+                    <h3 className="text-sm font-black text-[#071739] dark:text-slate-200 leading-snug tracking-tight line-clamp-2 h-10 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors gap-1">
+                      {cls.className}
+                      <br/>
+                      <span className="text-[10px] text-slate-500 inline-block font-semibold mt-0.5">{cls.subject?.name}</span>
                     </h3>
 
                     <div className="flex items-center gap-4 pt-1">
                       <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                         <Users size={12} className="text-blue-500" />
                         <p className="text-[10px] font-bold italic tracking-tight">
-                          {cls.students}
+                          {cls.memberCount || 0}
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                        <BookOpen size={12} className="text-emerald-500" />
+                        <BookOpen size={12} className={cls.isActive ? "text-emerald-500" : "text-red-500"} />
                         <p className="text-[10px] font-bold italic tracking-tight">
-                          {cls.problems}
+                          {cls.isActive ? "Active" : "Inactive"}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-[#071739] dark:text-slate-500 font-bold text-[10px] uppercase tracking-tighter transition-all group-hover:text-blue-600 dark:group-hover:text-[#22C55E]">
-                    <span>Enter Course</span>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-600 dark:group-hover:bg-[#22C55E] group-hover:text-white transition-all duration-300 shadow-sm">
-                      <ArrowRight size={14} />
-                    </div>
+                 <Button
+                  variant="bordered"
+                  size="sm"
+                  radius="md"
+                  color="warning"
+                  startContent={<Plus size={16} />}
+                  onPress={() => openCreateSlotModal(cls.classId)}
+                >
+                  Add Slot
+                </Button>
+                  <Button
+                  variant="bordered"
+                  size="sm"
+                  radius="md"
+                  color="danger"
+                  startContent={<Plus size={16} />}
+                  onPress={() =>
+  openUpdateTeacherForClass(
+    cls.classId,
+    cls.teacher?.userId
+  )
+}
+                >
+                  Update Teacher
+                </Button>
+                    <Link
+                  href={`/Management/Class/${cls.classId}`}
+                  className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-600 dark:group-hover:bg-[#22C55E] group-hover:text-white transition-all duration-300 shadow-sm"
+                >
+                  <ArrowRight size={14} />
+                </Link>
                   </div>
                 </CardBody>
               </Card>
-            </Link>
+            </div>
           ))}
         </div>
 
+        {classes.length === 0 && !isLoading && (
+          <div className="p-10 text-center text-slate-500 font-medium">
+            No classes found. Create one to get started!
+          </div>
+        )}
+
         {/* PAGINATION */}
-        <div className="flex w-full justify-center py-4">
-          <Pagination
-            isCompact
-            showControls
-            showShadow
-            page={page}
-            total={pages}
-            onChange={(p) => setPage(p)}
-            classNames={{
-              cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold",
-            }}
-          />
-        </div>
+        {classes.length > 0 && (
+          <div className="flex w-full justify-center py-4">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              page={page}
+              total={pages}
+              onChange={(p) => setPage(p)}
+              classNames={{
+                cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <style jsx global>{`

@@ -21,6 +21,10 @@ import {
   Textarea,
   Skeleton,
   Switch,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@heroui/react";
 import {
   Plus,
@@ -34,116 +38,36 @@ import {
   AlertTriangle,
   RefreshCw,
   BookOpen, // Icon cho nút Editorial (có thể thay bằng FileText hoặc Edit3 nếu thích)
+  MoreVertical,
+  Download,
+  UploadCloud,
+  FileArchive,
 } from "lucide-react";
-
-// Type Problem (giữ nguyên)
-interface Problem {
-  id: string;
-  title: string;
-  slug: string;
-  difficulty: "easy" | "medium" | "hard" | "expert";
-  points: number;
-  problem_type: "coding" | "theory" | "quiz" | "reading";
-  time_limit_ms: number;
-  memory_limit_kb: number;
-  status: "pending_review" | "approved" | "rejected";
-  is_public: boolean;
-  submissions_count?: number;
-  accepted_rate?: number;
-  created_at: string;
-  created_by_username: string;
-  rejection_reason?: string;
-}
-
-// Mock data (giữ nguyên)
-const MOCK_PROBLEMS: Problem[] = [
-  {
-    id: "p1",
-    title: "Two Sum",
-    slug: "two-sum",
-    difficulty: "easy",
-    points: 100,
-    problem_type: "coding",
-    time_limit_ms: 1000,
-    memory_limit_kb: 128000,
-    status: "approved",
-    is_public: true,
-    submissions_count: 1247,
-    accepted_rate: 68.4,
-    created_at: "2025-11-15",
-    created_by_username: "teacher1",
-  },
-  {
-    id: "p2",
-    title: "Longest Palindromic Substring",
-    slug: "longest-palindromic-substring",
-    difficulty: "medium",
-    points: 200,
-    problem_type: "coding",
-    time_limit_ms: 2000,
-    memory_limit_kb: 256000,
-    status: "approved",
-    is_public: true,
-    submissions_count: 856,
-    accepted_rate: 42.1,
-    created_at: "2025-12-05",
-    created_by_username: "admin",
-  },
-  {
-    id: "p3",
-    title: "Advanced Graph Shortest Path",
-    slug: "advanced-graph-path",
-    difficulty: "hard",
-    points: 350,
-    problem_type: "coding",
-    time_limit_ms: 3000,
-    memory_limit_kb: 512000,
-    status: "pending_review",
-    is_public: false,
-    submissions_count: 0,
-    accepted_rate: 0,
-    created_at: "2026-01-25",
-    created_by_username: "teacher_hai",
-  },
-  {
-    id: "p4",
-    title: "Database Normalization Quiz",
-    slug: "db-normalization-quiz",
-    difficulty: "medium",
-    points: 80,
-    problem_type: "quiz",
-    time_limit_ms: 0,
-    memory_limit_kb: 0,
-    status: "pending_review",
-    is_public: false,
-    submissions_count: 0,
-    accepted_rate: 0,
-    created_at: "2026-01-26",
-    created_by_username: "lecturer_khoa",
-  },
-  {
-    id: "p5",
-    title: "Old Problem - Duplicate",
-    slug: "old-duplicate",
-    difficulty: "easy",
-    points: 50,
-    problem_type: "theory",
-    time_limit_ms: 0,
-    memory_limit_kb: 0,
-    status: "rejected",
-    is_public: false,
-    submissions_count: 0,
-    accepted_rate: 0,
-    created_at: "2026-01-20",
-    created_by_username: "user_test",
-    rejection_reason: "Duplicate content with existing problem #p1",
-  },
-];
+import CreateProblem from "./CreateProblem";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { Problem } from "@/types";
+import { useEffect } from "react";
 
 export default function ProblemManagementPage() {
   const router = useRouter();
-  const [problems, setProblems] = useState<Problem[]>(MOCK_PROBLEMS);
+  
+  // Use the API query
+  const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
+  // Safe extraction of the problem array
+  const apiProblems: Problem[] = problemListData?.data || [];
+
+  // We still need local state if we want optimistic updates for Approve/Reject 
+  // before building out the mutations for them.
+  const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingProblem, setIsCreatingProblem] = useState(false);
+
+  // Sync API data to local state when it loads
+  useEffect(() => {
+    if (problemListData?.data) {
+      setProblems(problemListData.data);
+    }
+  }, [problemListData]);
 
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -151,9 +75,8 @@ export default function ProblemManagementPage() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   // Lọc dữ liệu
-  const pendingProblems = problems.filter((p) => p.status === "pending_review");
-  const approvedProblems = problems.filter((p) => p.status === "approved");
-  const rejectedProblems = problems.filter((p) => p.status === "rejected");
+  const pendingProblems = problems.filter((p) => p.statusCode === "draft");
+  const approvedProblems = problems.filter((p) => p.statusCode === "published");
 
   const handleApprove = (problem: Problem) => {
     setSelectedProblem(problem);
@@ -164,7 +87,7 @@ export default function ProblemManagementPage() {
     if (!selectedProblem) return;
     setProblems((prev) =>
       prev.map((p) =>
-        p.id === selectedProblem.id ? { ...p, status: "approved", is_public: true } : p
+        p.id === selectedProblem.id ? { ...p, statusCode: "published" } : p
       )
     );
     setIsApproveModalOpen(false);
@@ -182,7 +105,7 @@ export default function ProblemManagementPage() {
     setProblems((prev) =>
       prev.map((p) =>
         p.id === selectedProblem.id
-          ? { ...p, status: "rejected", rejection_reason: rejectionReason }
+          ? { ...p, statusCode: "draft" }
           : p
       )
     );
@@ -190,17 +113,15 @@ export default function ProblemManagementPage() {
     setSelectedProblem(null);
   };
 
-  const refreshData = () => {
+  const refreshData = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setProblems([...MOCK_PROBLEMS]);
-      setIsLoading(false);
-    }, 800);
+    await refetch();
+    setIsLoading(false);
   };
 
   // Render body cho Pending tab
   const renderPendingBody = () => {
-    if (isLoading) {
+    if (isLoading || isQueryLoading) {
       return (
         <TableRow>
           <TableCell colSpan={7}>
@@ -227,7 +148,7 @@ export default function ProblemManagementPage() {
               <Button
                 color="primary"
                 startContent={<Plus size={18} />}
-                onPress={() => alert("Open create problem modal - not implemented yet")}
+                onPress={() => setIsCreatingProblem(true)}
                 className="font-black uppercase tracking-wider mt-4"
               >
                 Create New Problem 
@@ -246,7 +167,7 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <Chip variant="flat" color="secondary" size="sm">
-            {prob.problem_type.toUpperCase()}
+            ALGORITHM
           </Chip>
         </TableCell>
         <TableCell>
@@ -258,12 +179,12 @@ export default function ProblemManagementPage() {
               prob.difficulty === "hard" ? "danger" : "default"
             }
           >
-            {prob.difficulty.toUpperCase()}
+            {prob.difficulty}
           </Chip>
         </TableCell>
-        <TableCell>{prob.points}</TableCell>
-        <TableCell className="font-medium">{prob.created_by_username}</TableCell>
-        <TableCell className="text-slate-500">{prob.created_at}</TableCell>
+        <TableCell>100</TableCell>
+        <TableCell>Unknown</TableCell>
+        <TableCell className="text-slate-500">{new Date(prob.createdAt).toLocaleDateString()}</TableCell>
         <TableCell>
           <div className="flex gap-2">
             <Button
@@ -298,6 +219,43 @@ export default function ProblemManagementPage() {
             >
               <BookOpen size={16} />
             </Button>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="flat">
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Extra Actions">
+                <DropdownItem
+                  key="upload"
+                  startContent={<UploadCloud size={14} />}
+                  onPress={() => alert("Upload New Solution triggered")}
+                >
+                  Upload New Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_testset"
+                  startContent={<FileArchive size={14} />}
+                  onPress={() => alert("Download Testset triggered")}
+                >
+                  Download Testset
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_solution"
+                  startContent={<Download size={14} />}
+                  onPress={() => alert("Download Solution triggered")}
+                >
+                  Download Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="set_score"
+                  startContent={<Pencil size={14} />}
+                  onPress={() => alert("Set Problem Score triggered")}
+                >
+                  Set Problem Score
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </TableCell>
       </TableRow>
@@ -324,7 +282,7 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <Chip variant="flat" color="secondary" size="sm">
-            {prob.problem_type.toUpperCase()}
+            ALGORITHM
           </Chip>
         </TableCell>
         <TableCell>
@@ -336,29 +294,27 @@ export default function ProblemManagementPage() {
               prob.difficulty === "hard" ? "danger" : "default"
             }
           >
-            {prob.difficulty.toUpperCase()}
+            {prob.difficulty}
           </Chip>
         </TableCell>
-        <TableCell>{prob.points}</TableCell>
+        <TableCell>100</TableCell>
         <TableCell>
-          {prob.problem_type === "coding" ? (
             <div className="text-xs">
               <Clock size={14} className="inline mr-1" />
-              {(prob.time_limit_ms / 1000).toFixed(1)}s
+              {(prob.timeLimitMs / 1000).toFixed(1)}s
               <br />
               <Database size={14} className="inline mr-1" />
-              {(prob.memory_limit_kb / 1024).toFixed(0)}MB
+              {(prob.memoryLimitKb / 1024).toFixed(0)}MB
             </div>
-          ) : "-"}
         </TableCell>
-        <TableCell>{prob.submissions_count?.toLocaleString() || "0"}</TableCell>
+        <TableCell>0</TableCell>
         <TableCell>
-          <span className={prob.accepted_rate && prob.accepted_rate > 60 ? "text-emerald-500" : "text-amber-500"}>
-            {prob.accepted_rate?.toFixed(1) || "—"}%
+          <span className={prob.acceptancePercent && prob.acceptancePercent > 60 ? "text-emerald-500" : "text-amber-500"}>
+            {prob.acceptancePercent?.toFixed(1) || "—"}%
           </span>
         </TableCell>
         <TableCell>
-          <Switch isSelected={prob.is_public} size="sm" />
+          <Switch isSelected={prob.statusCode === "published"} size="sm" />
         </TableCell>
         <TableCell>
           <div className="flex gap-2">
@@ -381,65 +337,62 @@ export default function ProblemManagementPage() {
             >
               <BookOpen size={16} />
             </Button>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="flat">
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Extra Actions">
+                <DropdownItem
+                  key="upload"
+                  startContent={<UploadCloud size={14} />}
+                  onPress={() => alert("Upload New Solution triggered")}
+                >
+                  Upload New Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_testset"
+                  startContent={<FileArchive size={14} />}
+                  onPress={() => alert("Download Testset triggered")}
+                >
+                  Download Testset
+                </DropdownItem>
+                <DropdownItem
+                  key="dl_solution"
+                  startContent={<Download size={14} />}
+                  onPress={() => alert("Download Solution triggered")}
+                >
+                  Download Solution
+                </DropdownItem>
+                <DropdownItem
+                  key="set_score"
+                  startContent={<Pencil size={14} />}
+                  onPress={() => alert("Set Problem Score triggered")}
+                >
+                  Set Problem Score
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </TableCell>
       </TableRow>
     ));
   };
 
-  // Render body cho Rejected tab
-  const renderRejectedBody = () => {
-    if (rejectedProblems.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={7} className="text-center py-20 text-slate-500">
-            No rejected problems
-          </TableCell>
-        </TableRow>
-      );
-    }
 
-    return rejectedProblems.map((prob) => (
-      <TableRow key={prob.id}>
-        <TableCell>
-          <div className="font-bold">{prob.title}</div>
-          <div className="text-xs text-slate-500">{prob.slug}</div>
-        </TableCell>
-        <TableCell>
-          <Chip variant="flat" color="secondary" size="sm">
-            {prob.problem_type.toUpperCase()}
-          </Chip>
-        </TableCell>
-        <TableCell>
-          <Chip size="sm" color="danger">
-            {prob.difficulty.toUpperCase()}
-          </Chip>
-        </TableCell>
-        <TableCell className="font-medium">{prob.created_by_username}</TableCell>
-        <TableCell className="text-red-600 dark:text-red-400 text-sm">
-          {prob.rejection_reason || "No reason provided"}
-        </TableCell>
-        <TableCell>{prob.created_at}</TableCell>
-        <TableCell>
-          <div className="flex gap-2">
-            <Button isIconOnly size="sm">
-              <Eye size={16} />
-            </Button>
-            {/* Nút mới: Chuyển đến trang edit Editorial (nếu muốn cho phép edit lại) */}
-            <Button
-              isIconOnly
-              size="sm"
-              color="default"
-              onPress={() => router.push(`/problems/${prob.id}/editorial`)}
-              title="Chỉnh sửa Editorial"
-            >
-              <BookOpen size={16} />
-            </Button>
-          </div>
-        </TableCell>
-      </TableRow>
-    ));
-  };
+
+  if (isCreatingProblem) {
+    return (
+      <CreateProblem
+        onCancel={() => setIsCreatingProblem(false)}
+        onFinish={() => {
+          setIsCreatingProblem(false);
+          refreshData();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8 pb-20">
@@ -459,13 +412,14 @@ export default function ProblemManagementPage() {
             variant="bordered"
             startContent={<RefreshCw size={16} />}
             onPress={refreshData}
-            isLoading={isLoading}
+            isLoading={isLoading || isQueryLoading}
           >
             Refresh
           </Button>
           <Button
             className="bg-[#0B1C3D] text-white font-black"
             startContent={<Plus size={16} />}
+            onPress={() => setIsCreatingProblem(true)}
           >
             Create New Problem
           </Button>
@@ -519,22 +473,7 @@ export default function ProblemManagementPage() {
           </div>
         </Tab>
 
-        <Tab title={`Rejected (${rejectedProblems.length})`}>
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
-            <Table aria-label="Rejected Problems" removeWrapper>
-              <TableHeader>
-                <TableColumn>TITLE / SLUG</TableColumn>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>DIFFICULTY</TableColumn>
-                <TableColumn>SUBMITTED BY</TableColumn>
-                <TableColumn>REJECTION REASON</TableColumn>
-                <TableColumn>SUBMITTED AT</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
-              </TableHeader>
-              <TableBody>{renderRejectedBody()}</TableBody>
-            </Table>
-          </div>
-        </Tab>
+        
       </Tabs>
 
       {/* MODAL APPROVE */}
@@ -549,7 +488,7 @@ export default function ProblemManagementPage() {
               <ModalBody>
                 <p>Are you sure to <strong>APPROVE</strong> and publish:</p>
                 <p className="font-bold mt-2">{selectedProblem?.title}</p>
-                <p className="text-sm text-slate-500">by {selectedProblem?.created_by_username}</p>
+                <p className="text-sm text-slate-500">by Unknown</p>
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>

@@ -39,6 +39,21 @@ export const subjectApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Subject"],
     }),
+    getImportTemplate: builder.mutation<Blob, void>({
+      query: () => ({
+        url: SubjectEndpoint.IMPORT_TEMPLATE,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+    importClass: builder.mutation<void, FormData>({
+      query: (data) => ({
+        url: SubjectEndpoint.IMPORT_CLASS,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Subject"],
+    }),
   }),
 });
 
@@ -47,4 +62,6 @@ export const {
   useGetDetailSubjectQueryQuery,
   useCreateSubjectMutation,
   useUpdateSubjectMutation,
+  useGetImportTemplateMutation,
+  useImportClassMutation,
 } = subjectApi;

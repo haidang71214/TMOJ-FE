@@ -43,6 +43,14 @@ export const classApi = baseApi.injectEndpoints({
   }),
   providesTags: ["Class"],
 }),
+
+    exportClass: builder.mutation<Blob, { id: string }>({
+      query: ({ id }) => ({
+        url: ClassEndpoint.EXPORT_CLASS.replace("{id}", id),
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
 addClassMembers: builder.mutation<
   void,
   { id: string; data: addClassMemberRequest }
@@ -64,5 +72,6 @@ export const {
    useCreateClassMutation,
    useUpdateClassTeacherMutation,
    useGetClassMembersQuery,
-   useAddClassMembersMutation
+   useAddClassMembersMutation,
+   useExportClassMutation
 } = classApi;

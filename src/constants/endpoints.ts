@@ -14,7 +14,7 @@ const userProfileEndpoint = {
   UPDATE_INFOMATION: `${API_PREFIX}/users/profile`
 }
 const AdminUserEndPoint = {
-  GET_LIST_USER : `${API_PREFIX}/User/list-all`,
+  GET_LIST_USER : `${API_PREFIX}/User/list-all`, // bệt đuôi api vô
   CREATE_USER : `${API_PREFIX}/User`,
   GET_DETAIL_USER: `${API_PREFIX}/User/{id}`,
   DELETE_USER:`${API_PREFIX}/User/Pid}`,
@@ -48,20 +48,23 @@ const SubjectEndpoint = {
   GET_DETAIL_SUBJECT: `${API_PREFIX}/Subject/{id}`,
   UPDATE_SUBJECT: `${API_PREFIX}/Subject/{id}`,
   CREATE_SUBJECT: `${API_PREFIX}/Subject`,
+  IMPORT_TEMPLATE: `${API_PREFIX}/Class/import/template`,
+  IMPORT_CLASS: `${API_PREFIX}/Class/import`,
 };
 const ClassEndpoint = {
   GET_ALL_CLASS:`${API_PREFIX}/Class`,
   CREATE_CLASS:`${API_PREFIX}/Class`,
   GET_DETAIL_CLASS:`${API_PREFIX}/Class/{id}`,
    PUT_CLASS_TEACHER:`${API_PREFIX}/Class/{id}/teacher`,
-   CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`,
-   DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`,
+   CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`, // chưa làm
+   DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`, // chưa làm
    GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`,
    ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`, // add student vào 
    POST_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
-   JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`,
+   JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`, // chưa làm
   OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
+  EXPORT_CLASS: `${API_PREFIX}/Class/{id}/report/export`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,
@@ -86,6 +89,8 @@ const NotificationEndpoint = {
   MARK_AS_READ: `${API_PREFIX}/notification/read/{id}`,
   DELETE_NOTIFICATION: `${API_PREFIX}/notification/{id}`,
 };
+// rim đã ở đây 
+// a hihi 
 export {
   ClassSlotEndpoint,
   authEndpoint,

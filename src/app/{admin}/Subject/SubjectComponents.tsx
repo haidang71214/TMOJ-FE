@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import {
   useGetAllSubjectQueryQuery,
+  useGetImportTemplateMutation,
+  useImportClassMutation,
 } from "@/store/queries/Subject";
+
+import { Download, Upload } from "lucide-react";
 
 import {
   Table,
@@ -24,7 +28,44 @@ import { useModal } from "@/Provider/ModalProvider";
 export default function SubjectComponents() {
   const { openModal } = useModal();
   const { data, isLoading } = useGetAllSubjectQueryQuery();
+  const [getImportTemplate] = useGetImportTemplateMutation();
+  const [importClass] = useImportClassMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const subjects = data?.data?.items ?? [];
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await getImportTemplate().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Class_Import_Template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download template", error);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      await importClass(formData).unwrap();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Failed to import class", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -51,11 +92,32 @@ export default function SubjectComponents() {
             Manage all subjects in the system
           </p>
         </div>
-
-        <Button
-          className="font-semibold text-white"
-          style={{
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".xlsx, .xls"
+            onChange={handleImport}
+          />
+          <Button
+            className="font-semibold text-white bg-blue-500 shadow-md"
+            startContent={<Download size={16} />}
+            onPress={handleDownloadTemplate}
+          >
+            Template
+          </Button>
+          <Button
+            className="font-semibold text-white bg-purple-500 shadow-md"
+            startContent={<Upload size={16} />}
+            onPress={() => fileInputRef.current?.click()}
+          >
+            Import
+          </Button>
+          <Button
+            className="font-semibold text-white"
+            style={{
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
             boxShadow:
               "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
           }}
@@ -83,6 +145,7 @@ export default function SubjectComponents() {
         >
           Create Subject
         </Button>
+        </div>
       </div>
 
       {/* STATS */}

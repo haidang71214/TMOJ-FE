@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Table,
   TableHeader,
@@ -20,8 +20,10 @@ import {
   Search,
   Filter,
   RefreshCw,
+  Download,
+  Upload,
 } from "lucide-react";
-import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
+import { useGetAllSubjectQueryQuery, useGetImportTemplateMutation, useImportClassMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
 import CreateSubjectModal from "./CreateSubjectModal";
 import EditSubjectModal from "./EditSubjectModal";
@@ -32,6 +34,10 @@ export default function SubjectListPage() {
   const rowsPerPage = 10;
   const { openModal } = useModal();
   const { data, isLoading } = useGetAllSubjectQueryQuery();
+  const [getImportTemplate] = useGetImportTemplateMutation();
+  const [importClass] = useImportClassMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const subjects = data?.data?.items ?? [];
 
   const pages = Math.ceil(subjects.length / rowsPerPage);
@@ -39,6 +45,39 @@ export default function SubjectListPage() {
     const start = (page - 1) * rowsPerPage;
     return subjects.slice(start, start + rowsPerPage);
   }, [page, subjects]);
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await getImportTemplate().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Class_Import_Template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download template", error);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      await importClass(formData).unwrap();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Failed to import class", error);
+    }
+  };
 
   const handleOpenEdit = (subject: SubjectResponseForm) => {
     openModal({
@@ -72,13 +111,36 @@ export default function SubjectListPage() {
             Manage academic subjects and repositories
           </p>
         </div>
-        <Button
-          onPress={handleOpenCreate}
-          startContent={<Plus size={20} strokeWidth={3} />}
-          className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
-        >
-          CREATE NEW SUBJECT
-        </Button>
+        <div className="flex items-center gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".xlsx, .xls"
+            onChange={handleImport}
+          />
+          <Button
+            startContent={<Download size={16} strokeWidth={3} />}
+            onPress={handleDownloadTemplate}
+            className="bg-blue-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          >
+            TEMPLATE
+          </Button>
+          <Button
+            startContent={<Upload size={16} strokeWidth={3} />}
+            onPress={() => fileInputRef.current?.click()}
+            className="bg-purple-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          >
+            IMPORT
+          </Button>
+          <Button
+            onPress={handleOpenCreate}
+            startContent={<Plus size={20} strokeWidth={3} />}
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          >
+            CREATE NEW SUBJECT
+          </Button>
+        </div>
       </div>
 
       {/* FILTER & SEARCH SECTION */}

@@ -11,6 +11,7 @@ import {
   BookOpenCheck,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -41,6 +42,7 @@ export default function ManagementLayout({
     { key: "Teacher", label: "Teacher", icon: <GraduationCap size={20} /> },
     { key: "Subject", label: "Subject", icon: <BookOpenCheck size={20} /> },
     { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
+    {key: "Semester", label: "Semester", icon: <Calendar size={20} />}
   ];
 
   if (!mounted) return null;
@@ -63,7 +65,7 @@ export default function ManagementLayout({
       >
         <div className="w-[212px]">
           <h1 className="text-3xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic mb-8">
-            Teacher<span className="text-[#FF5C00]">.</span>
+            Manager <span className="text-[#FF5C00]">.</span>
           </h1>
           <Listbox
             aria-label="Admin Menu"

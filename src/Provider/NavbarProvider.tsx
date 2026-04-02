@@ -119,20 +119,20 @@ export default function NavbarProvider() {
             if (item === "Class") link = "/Class";
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") {
-  if (user?.roles?.includes("teacher")) {
-    link = "/Management/Contest";
-  } 
-  // admin và manager có thể vào đây
- else if (
-  user?.roles?.includes("manager") ||
-  user?.roles?.includes("admin")
-) {
-  link = "/Management/Contest";
-}
-  else {
-    return null; 
-  }
-}
+            if (user?.roles?.includes("teacher")) {
+              link = "/Management/Contest";
+            } 
+            // admin và manager có thể vào đây
+          else if (
+            user?.roles?.includes("manager") ||
+            user?.roles?.includes("admin")
+          ) {
+            link = "/Management/Problem";
+          }
+            else {
+              return null; 
+            }
+          }
             if (item === "Coin") link = "/Coin";
 
             const isActive = pathname.startsWith(`/${item}`);

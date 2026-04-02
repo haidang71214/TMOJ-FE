@@ -2,7 +2,7 @@
 import React from "react";
 import { Lock } from "lucide-react";
 
-export const EditorialTab = () => {
+export default function EditorialTab() {
   return (
     <div className="h-full flex flex-col items-center justify-center px-6 py-10 text-center gap-4">
       <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">

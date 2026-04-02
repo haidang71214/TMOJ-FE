@@ -34,7 +34,14 @@ export interface Users {
   avatarUrl: string | null;
   roles: string[];
 }
-
+export interface ClassMemberResponse {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  joinedAt: string;
+  isActive: boolean;
+}
 export interface RegisterRequestDto {
     firstName: string ,
   lastName: string,
@@ -220,14 +227,15 @@ export interface Teacher {
 }
 
 export interface Subject {
-  id: string;
+  subjectId: string;
+  code: string;
   name: string;
-  department: string;
-  credits: number;
-  totalProblems: number;
-  visible: boolean;
+  description: string;
+  isActive: boolean;
   createdAt: string;
 }
+
+
 export type PracticePackage = {
   id: string;
   name: string;
@@ -267,6 +275,11 @@ export interface SubmitResponse {
   summary: SubmitSummary
   failed: SubmitFailedCase[]
 }
+export interface SubmitCreateForm {
+  code: string,
+  name: string,
+  description: string
+}
 
 export interface SubmitCompile {
   ok: boolean
@@ -298,4 +311,261 @@ export interface Runtime {
   data: Runtime[]
   message: string | null
   traceId: string
+}
+export interface SubmissionData {
+  id: string;
+  status:
+    | "Accepted"
+    | "Compile Error"
+    | "Time Limit Exceeded"
+    | "Memory Limit Exceeded"
+    | "Runtime Error"
+    | "Compile Error";
+  language: string;
+  runtime: string;
+  memory: string;
+  notes: string;
+  timestamp: string;
+}
+export enum VerdictCode {
+  AC = "ac",
+  WA = "wa",
+  RTE = "rte",
+  IR = "ir",
+  OLE = "ole",
+  MLE = "mle",
+  TLE = "tle",
+  IE = "ie",
+  CE = "ce"
+}
+// Interface đơn giản, gọn, dùng string từ enum
+export interface SubmissionResponse {
+  data: {
+    submissionId: string;
+    statusCode: string;           // "done", "pending", ...
+    verdictCode: VerdictCode;     // dùng enum ở đây
+    compile: {
+      ok: boolean;
+      exitCode: number;
+      stdout: string;
+      stderr: string;
+    };
+    summary: {
+      passed: number;
+      total: number;
+      timeMs: number;
+    };
+    failed: Array<{
+      ordinal: number;
+      message: string;
+      verdict?: VerdictCode;      // optional
+    }>;
+  };
+  message: string | null;
+  traceId: string;
+}
+export interface Semester {
+  semesterId: string;
+  code: string;
+  name: string;
+}
+export interface SubjectCreateForm {
+  code: string;
+  name: string;
+  description: string
+}
+export interface SubjectResponseForm {
+ subjectId: string,
+code: string,
+name: string,
+description: string,
+isActive: boolean,
+}
+export interface Teacher {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+}
+export interface ClassItem {
+  classId: string;
+
+  classCode: string;
+  className: string;
+
+  description: string;
+
+  startDate: string;
+  endDate: string;
+
+  isActive: boolean;
+
+  inviteCode: string;
+  inviteCodeExpiresAt: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  subject: Subject;
+
+  semester: Semester;
+
+  teacher: Teacher;
+
+  memberCount: number;
+}
+export interface ClassListData {
+  items: ClassItem[];
+  totalCount: number;
+}
+export interface ClassResponse {
+  data: ClassListData;
+  message: string;
+  traceId: string | null;
+}
+export interface CreateClassRequest {
+  subjectId: string;
+  semesterId: string;
+  classCode?: string | null;
+  className?: string | null;
+  description?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  teacherId?: string | null;
+}
+export interface UpdateClassTeacherPayload {
+  teacherId: string;
+}
+
+export interface SemesterItem {
+  semesterId: string;
+  code: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SemesterResponse {
+  data: {
+    items: SemesterItem[];
+    totalCount: number;
+  };
+  message: string;
+  traceId: string | null;
+}
+
+export interface CreateSemesterRequest {
+  code: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+}
+
+export interface UpdateSemesterRequest {
+  code?: string;
+  name?: string;
+  startAt?: string;
+  endAt?: string;
+  isActive: boolean
+}
+
+// ── ClassSlot (Assignment) Requests ───────────────────────
+
+export interface CreateClassSlotRequest {
+  slotNo: number;
+  title: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  mode: string; // "problemset" | "contest"
+  problems?: SlotProblemItem[];
+}
+
+export interface SlotProblemItem {
+  problemId: string;
+  ordinal?: number;
+  points?: number;
+  isRequired: boolean;
+}
+
+export interface UpdateClassSlotRequest {
+  title?: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  isPublished?: boolean;
+}
+
+export interface SetDueDateRequest {
+  dueAt: string;
+  closeAt?: string;
+}
+export interface ClassSlotResponse {
+  id: string;
+  classId: string;
+  slotNo: number;
+  title: string;
+  description?: string;
+  rules?: string;
+  openAt?: string;
+  dueAt?: string;
+  closeAt?: string;
+  mode: string;
+  contestId?: string;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  problems: SlotProblemResponse[];
+}export interface SlotProblemResponse {
+  problemId: string;
+  problemTitle?: string;
+  problemSlug?: string;
+  ordinal?: number;
+  points?: number;
+  isRequired: boolean;
+}export interface StudentSlotScoreResponse {
+  userId: string;
+  displayName?: string;
+  avatarUrl?: string;
+  problemScores: ProblemScoreEntry[];
+  totalScore: number;
+  solvedCount: number;
+}export interface ProblemScoreEntry {
+  problemId: string;
+  problemTitle?: string;
+  verdictCode?: string;
+  score?: number;
+  attempts: number;
+  lastSubmittedAt?: string;
+}export interface StudentSubmissionDetailResponse {
+  submissionId: string;
+  problemId: string;
+  problemTitle?: string;
+  verdictCode?: string;
+  finalScore?: number;
+  timeMs?: number;
+  memoryKb?: number;
+  statusCode?: string;
+  createdAt: string;
+  results: SubmissionResultEntry[];
+}export interface SubmissionResultEntry {
+  resultId: string;
+  statusCode?: string;
+  runtimeMs?: number;
+  memoryKb?: number;
+  checkerMessage?: string;
+  input?: string;
+  expectedOutput?: string;
+  actualOutput?: string;
+}
+
+export interface addClassMemberRequest {
+  userId?: string 
+  email?: string
 }

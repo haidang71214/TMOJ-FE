@@ -4,7 +4,7 @@ import { FileText, Clock, Database, Calendar, CheckCircle2 } from "lucide-react"
 import { useParams } from "next/navigation";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 
-export const DescriptionTab = () => {
+export default function DescriptionTab() {
   const { id } = useParams<{ id: string }>();
 
   const {
@@ -70,9 +70,9 @@ export const DescriptionTab = () => {
       </div>
 
       {/* Nội dung chính */}
-      <div className="text-[14px] leading-7 text-[#3D3D3D] dark:text-[#CDD5DB]">
+      {/* <div className="text-[14px] leading-7 text-[#3D3D3D] dark:text-[#CDD5DB]">
         <div dangerouslySetInnerHTML={{ __html: problem.content }} />
-      </div>
+      </div> */}
 
       {/* Metadata - chỉ hiển thị field có thật */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 dark:bg-[#101828] rounded-xl p-5 border dark:border-[#334155]">

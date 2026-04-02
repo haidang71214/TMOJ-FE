@@ -34,6 +34,7 @@ export default function UserManagerPage() {
  const { data, isLoading } = useGetUserListQuery();
 
 const apiUsers = data?.data ?? [];
+console.log("aaaaaaaaaaa", apiUsers);
 
 const items = useMemo(() => {
   const start = (page - 1) * ROWS_PER_PAGE;
@@ -144,7 +145,7 @@ const items = useMemo(() => {
                 <TableCell>{u.username}</TableCell>
                 <TableCell>
                   <Chip size="sm" variant="flat" color="primary">
-                    {u.roles}
+                    {u.role}
                   </Chip>
                 </TableCell>
                 {/* <TableCell>

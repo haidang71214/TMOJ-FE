@@ -41,7 +41,7 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
             if(!token){
                 window.location.href = window.location.origin.replace("admin.", "");
             }
-            if(!user?.roles?.includes("admin")){
+            if(user?.role !== "admin"){
                 window.location.href = window.location.origin.replace("admin.", "");
             }
         }

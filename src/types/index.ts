@@ -16,6 +16,13 @@ export interface LoginResponse {
   tokenType: string;
   user: Users;
 }
+export interface LoginGGResponse {
+  accessToken: string;
+  expiresIn: number;
+  refreshToken: string;
+  tokenType: string;
+  user: Users;
+}
 export interface Logout {
   message:string
 }
@@ -32,7 +39,7 @@ export interface Users {
   displayName: string;
   username: string;
   avatarUrl: string | null;
-  roles: string[];
+  role: string;
 }
 export interface ClassMemberResponse {
   userId: string;

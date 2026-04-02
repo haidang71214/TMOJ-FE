@@ -1,53 +1,54 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
 import {
+  Avatar,
+  Button,
   Card,
   CardBody,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Avatar,
-  Select,
-  SelectItem,
   Input,
   Pagination,
-  Button,
   Progress,
+  Select,
+  SelectItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
 } from "@heroui/react";
 import {
-  Search,
-  Trophy,
-  Medal,
-  Crown,
-  RefreshCw,
-  Users,
-  BookOpen,
-  ArrowUpRight,
-  LayoutList,
-  BarChart3,
-  Timer,
-  LineChart as LineChartIcon,
   AreaChart as AreaChartIcon,
-  TrendingUp,
+  ArrowUpRight,
+  BarChart3,
+  BookOpen,
+  Crown,
+  LayoutList,
+  LineChart as LineChartIcon,
+  Medal,
+  RefreshCw,
+  RotateCcw,
+  Search,
   Target,
+  Timer,
+  TrendingUp,
+  Trophy,
+  Users,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  LineChart,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
 } from "recharts";
 
 const RANKING_DATA = [
@@ -223,13 +224,13 @@ export default function RankingPage() {
                     rankStyles.border
                   } ${rankStyles.shadow} ${
                     isFirst
-                      ? "bg-gradient-to-br from-[#071739] to-[#1a2a4a] text-white scale-110 z-20 h-[360px]"
+                      ? "bg-linear-to-br from-[#071739] to-[#1a2a4a] text-white scale-110 z-20 h-[360px]"
                       : "bg-white dark:bg-[#1C2737] h-[280px] z-10"
                   }`}
                 >
                   <CardBody className="p-6 flex flex-col items-center justify-center text-center gap-3 relative">
                     <div
-                      className={`absolute -top-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border-2 z-30 transform -translate-y-[30%] border-white ${rankStyles.badge} text-white`}
+                      className={`absolute top-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border-2 z-30 transform -translate-y-[30%] border-white ${rankStyles.badge} text-white`}
                     >
                       {isFirst ? (
                         <Crown size={24} />
@@ -310,7 +311,7 @@ export default function RankingPage() {
         )}
 
         {/* FILTERS TOOLBAR */}
-        <Card className="bg-white dark:bg-[#1C2737] rounded-[2rem] border-none shadow-sm">
+        <Card className="bg-white dark:bg-[#1C2737] rounded-4xl border-none shadow-sm">
           <CardBody className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <Input
@@ -341,17 +342,37 @@ export default function RankingPage() {
                 <SelectItem key="sp26">SPRING 2026</SelectItem>
               </Select>
               <Select
-                placeholder="Contest"
+                placeholder="Subject"
                 startContent={<BookOpen size={16} />}
+                classNames={{
+                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
+                }}
+              >
+                <SelectItem key="cs101">Java OOP</SelectItem>
+                <SelectItem key="cs201">Data Structures</SelectItem>
+                <SelectItem key="cs301">Algorithms</SelectItem>
+              </Select>
+              <Select
+                placeholder="Contest"
+                startContent={<Trophy size={16} />}
                 classNames={{
                   trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
                 }}
               >
                 <SelectItem key="all">Global Rank</SelectItem>
               </Select>
-              <Button className="bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] shadow-lg">
-                Search
-              </Button>
+              <div className="flex gap-2">
+                <Button className="flex-1 bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] shadow-lg">
+                  Search
+                </Button>
+                <Button 
+                  isIconOnly
+                  title="Reset Ranking (Admin)"
+                  className="bg-red-500/10 text-red-500 border border-red-500/20 font-[1000] italic h-12 w-12 shrink-0 rounded-2xl uppercase shadow-lg hover:bg-red-500 hover:text-white transition-colors"
+                >
+                  <RotateCcw size={16} />
+                </Button>
+              </div>
             </div>
           </CardBody>
         </Card>

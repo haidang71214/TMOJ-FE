@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useRef } from "react";
 import {
   Tabs,
   Tab,
@@ -22,11 +22,13 @@ import {
   BadgeCheck,
   Hourglass,
   Plus,
+  Download,
+  Upload,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
-import { useGetClassDetailQuery } from "@/store/queries/Class";
+import { useGetClassDetailQuery, useExportClassMutation } from "@/store/queries/Class";
 import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/queries/ClassSlot";
 import { ClassSlotResponse } from "@/types";
 import UpdateDueDateModal from "./UpdateDuaDateModal";
@@ -43,6 +45,7 @@ export default function ClassDetailPage({
   const resolvedParams = use(params);
   const classId = resolvedParams.id;
   const [publishSlot] = usePublishClassSlotMutation();
+  const [exportClass] = useExportClassMutation();
   const [mounted, setMounted] = useState(false);
   const [slotPage, setSlotPage] = useState(1);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
@@ -63,6 +66,25 @@ export default function ClassDetailPage({
   const slots = slotData?.data ?? [];
   console.log(slots);
   
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportClass({ id: classId }).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Class_${classId}_Export.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export class", error);
+    }
+  };
+
+
+
   if (!mounted) return null;
 
   return (
@@ -101,20 +123,31 @@ export default function ClassDetailPage({
   </div>
 
   {/* RIGHT BUTTON */}
-  <Button
-    startContent={<Plus size={20} strokeWidth={3} />}
-    style={{marginTop:60}}
-    size="lg"
-    color="warning"
-     onPress={() =>
-   openModal({
-  content: <AddStudentModal classId={classId} />,
-})
-  }
-    className=" text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
-  >
-    ADD STUDENT
-  </Button>
+  <div className="flex gap-3 items-center" style={{marginTop:60}}>
+    <Button
+      startContent={<Download size={16} strokeWidth={3} />}
+      size="lg"
+      color="success"
+      variant="flat"
+      onPress={handleExport}
+      className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700 flex-shrink-0"
+    >
+      EXPORT
+    </Button>
+    <Button
+      startContent={<Plus size={20} strokeWidth={3} />}
+      size="lg"
+      color="warning"
+      onPress={() =>
+        openModal({
+          content: <AddStudentModal classId={classId} />,
+        })
+      }
+      className="text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 flex-shrink-0"
+    >
+      ADD STUDENT
+    </Button>
+  </div>
 
 </div>
 

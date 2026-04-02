@@ -7,15 +7,10 @@ import {
   Link,
   Button,
   NavbarBrand,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Input,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
-import ThemeToggle from "./ThemeToggle";
-import { ChevronDown, Search as SearchIcon } from "lucide-react";
+import {  Search as SearchIcon } from "lucide-react";
 import InformationInNavbar from "./InformationInNavbar";
 import RegisterModal from "@/app/Modal/RegisterModal";
 import LoginModal from "@/app/Modal/LoginModal";
@@ -116,7 +111,7 @@ export default function NavbarProvider() {
          if (item === "Problems") link = "/Problems/Library";
             if (item === "Class") link = "/Class";
             if (item === "Ranking") link = "/Ranking";
-            if (item === "Management") {
+            if (item === "Management") { 
             if (user?.roles?.includes("teacher")) {
               link = "/Management/Contest";
             } 

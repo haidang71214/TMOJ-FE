@@ -4,7 +4,7 @@ import { Users } from "@/types";
 export const userApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-     getUserList: builder.query< {data :Users[]}, void>({
+     getUserList: builder.query< {data :Users[]}, void>({ // query 
       query: () => ({
         url: AdminUserEndPoint.GET_LIST_USER,
         method: "GET",

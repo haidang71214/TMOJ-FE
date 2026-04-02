@@ -16,6 +16,13 @@ export interface LoginResponse {
   tokenType: string;
   user: Users;
 }
+export interface LoginGGResponse {
+  accessToken: string;
+  expiresIn: number;
+  refreshToken: string;
+  tokenType: string;
+  user: Users;
+}
 export interface Logout {
   message:string
 }

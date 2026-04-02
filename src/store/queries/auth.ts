@@ -1,4 +1,4 @@
-import { LoginRequest, LoginResponse, Logout, RegisterRequestDto, RegisterResponseDto, resetPasswordInformation, sendEmailForgotPassword } from "@/types";
+import { LoginGGResponse, LoginRequest, LoginResponse, Logout, RegisterRequestDto, RegisterResponseDto, resetPasswordInformation, sendEmailForgotPassword } from "@/types";
 import { baseApi } from "../base";
 
 import { authEndpoint } from "@/constants/endpoints";
@@ -22,7 +22,7 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    googleLogin: builder.mutation<{ result: LoginResponse }, { tokenId: string }>({
+    googleLogin: builder.mutation<{ data: LoginGGResponse }, { tokenId: string }>({
       query: (params) => ({
         url: authEndpoint.GOOGLE_LOGIN,
         method: "POST",

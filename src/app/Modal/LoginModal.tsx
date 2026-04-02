@@ -139,7 +139,7 @@ export default function LoginModal() {
                         if (res?.data?.accessToken) {
                           addToast({ title: "Welcome back!", color: "success" });
                           closeModal();
-                          window.location.reload();
+              
                         }
                       }
                     } catch (error: unknown) {

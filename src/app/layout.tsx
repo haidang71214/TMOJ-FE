@@ -4,7 +4,7 @@ import { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import { Providers } from "./providers";
 import { siteConfig } from "../config/site";
-import { fontSans } from "../config/fonts";
+import { fontSans, fontMono } from "../config/fonts";
 import NavbarProvider from "../Provider/NavbarProvider";
 // import { Footer } from "./components/Footer";
 import FooterWrapper from "./components/FooterWrapper";
@@ -37,11 +37,12 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
       <body
         suppressHydrationWarning
         className={clsx(
-          "min-h-screen  font-sans antialiased bg-gray-50 ",
-          fontSans.variable
+          "min-h-screen font-sans antialiased bg-gray-50",
+          fontSans.variable,
+          fontMono.variable
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
+        <Providers>
           <NavbarProvider />
           {children}
           <Toaster richColors position="bottom-right" />

@@ -32,7 +32,7 @@ export interface Users {
   displayName: string;
   username: string;
   avatarUrl: string | null;
-  roles: string[];
+  role: string;
 }
 export interface ClassMemberResponse {
   userId: string;

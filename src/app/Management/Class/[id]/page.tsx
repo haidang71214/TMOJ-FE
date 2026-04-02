@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Tabs,
   Tab,
@@ -23,7 +23,6 @@ import {
   Hourglass,
   Plus,
   Download,
-  Upload,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";

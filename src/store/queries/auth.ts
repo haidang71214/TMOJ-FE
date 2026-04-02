@@ -28,6 +28,7 @@ export const authApi = baseApi.injectEndpoints({
         method: "POST",
         body: params,
       }),
+       invalidatesTags: ["User"],
     }),
     register: builder.mutation<{ result: RegisterResponseDto }, RegisterRequestDto>({
       query: (params) => ({

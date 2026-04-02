@@ -4,7 +4,7 @@ const API_PREFIX = "api/v1";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
-  REGISTER:`${API_PREFIX}/auth/register`,
+  REGISTER:`${API_PREFIX}/Auth/register`,
   LOGOUT:`${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD:`${API_PREFIX}/Auth/forgot-password`,
   RESET_PASSWORD:`${API_PREFIX}/Auth/reset-password`

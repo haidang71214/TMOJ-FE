@@ -37,14 +37,34 @@ export const authSlice = createSlice({
     builder.addMatcher(
       authApi.endpoints.login.matchFulfilled,
       (state, action) => {
-        const user = action.payload?.data.user;
-const token = action.payload?.data.accessToken;
+        const user = action.payload?.data?.user;
+        const token = action.payload?.data?.accessToken;
 
-        webStorageClient.setToken(token);
-        webStorageClient.setUser(user); // set user cho localstorage
+        if (token) {
+          webStorageClient.setToken(token); // đây
+          webStorageClient.setUser(user);
 
-        state.user = user;
-        state.isAuthenticatedAccount = true;
+          state.user = user;
+          state.isAuthenticatedAccount = true;
+        }
+      },
+    );
+    builder.addMatcher(
+      authApi.endpoints.googleLogin.matchFulfilled,
+      (state, action) => {
+        // googleLogin might return payload.result or payload.data based on current type definitions
+        const payload = action.payload as any;
+        const responseData = payload?.result || payload?.data || payload;
+        const user = responseData?.user;
+        const token = responseData?.accessToken;
+
+        if (token) {
+          webStorageClient.setToken(token);
+          webStorageClient.setUser(user);
+
+          state.user = user;
+          state.isAuthenticatedAccount = true;
+        }
       },
     );
   },

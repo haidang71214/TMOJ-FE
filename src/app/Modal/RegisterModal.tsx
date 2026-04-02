@@ -69,13 +69,14 @@ export default function RegisterModal() {
     }
 
     try {
-      await register({
+    const res =   await register({
         firstName,
         lastName,
         email,
         password,
       }).unwrap();
-
+      console.log("res",res);
+      
       addToast({
         title: "Account created successfully, please check your email for the verification code!",
         color: "success",

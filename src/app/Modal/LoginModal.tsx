@@ -1,4 +1,4 @@
-import { useLoginMutation } from "@/store/queries/auth";
+import { useLoginMutation, useGoogleLoginMutation } from "@/store/queries/auth";
 import { addToast, Button, Checkbox, Divider, Input } from "@heroui/react";
 // import { GoogleLogin } from "@react-oauth/google";
 import { ArrowRight, Mail, X } from "lucide-react";
@@ -8,12 +8,13 @@ import PasswordInput from "../components/PasswordInput";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import RegisterModal from "./RegisterModal";
 import { ErrorForm } from "@/types";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { isLoading }] = useLoginMutation();
-  // const [googleLogin] = useGoogleLoginMutation();
+  const [googleLogin] = useGoogleLoginMutation();
   const { closeModal, openModal } = useModal();
 
   const handleOpenForgotPass = ()=>{
@@ -121,21 +122,24 @@ export default function LoginModal() {
           Sign in
         </Button>
       </form>
-
-      {/* Social Login */}
       <div className="flex flex-col gap-4 mt-2">
         <Divider className="dark:bg-[#474F5D] opacity-50" />
         <div className="flex flex-col items-center justify-center gap-3">
-            {/* <div className="w-full relative">
+           <div className="w-full relative">
               <div className="opacity-0 absolute inset-0 z-10 overflow-hidden pointer-events-auto">
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
                     try {
                       if (credentialResponse.credential) {
+                        console.log("lon");
+                        
                         const res = await googleLogin({ tokenId: credentialResponse.credential }).unwrap();
-                        if (res.result) {
+                        console.log("resaaaaaaaaaaa",res);
+                      
+                        if (res?.data?.accessToken) {
                           addToast({ title: "Welcome back!", color: "success" });
                           closeModal();
+              
                         }
                       }
                     } catch (error: unknown) {
@@ -178,7 +182,7 @@ export default function LoginModal() {
               >
                 Continue with Google
               </Button>
-            </div> */}
+            </div> 
             
             <div className="w-full flex justify-center mt-1">
               <Button

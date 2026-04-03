@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   Table,
   TableHeader,
@@ -18,20 +18,75 @@ import {
   ModalBody,
   ModalFooter,
   Input,
+  addToast,
 } from "@heroui/react";
 
-import { Edit3, UserPlus, Shield, Lock, KeyRound } from "lucide-react";
-import { useRouter } from "next/navigation";
-
+import { Edit3, UserPlus, Shield, Lock, Unlock, KeyRound, Download, Upload } from "lucide-react";
 import { Users as ApiUser } from "@/types";
-import { useGetUserListQuery } from "@/store/queries/user";
+import { useGetUserListQuery, useDownloadImportUserTemplateMutation, useImportUsersMutation, useLockUserMutation, useUnlockUserMutation } from "@/store/queries/user";
+import { useModal } from "@/Provider/ModalProvider";
+import CreateUserModal from "./CreateUserModal";
 
 const ROWS_PER_PAGE = 10;
 
 export default function UserManagerPage() {
-  const router = useRouter();
+  const { openModal } = useModal();
   const [page, setPage] = useState(1);
  const { data, isLoading } = useGetUserListQuery();
+  const [downloadTemplate, { isLoading: isDownloading }] = useDownloadImportUserTemplateMutation();
+  const [importUsers, { isLoading: isImporting }] = useImportUsersMutation();
+  const [lockUser] = useLockUserMutation();
+  const [unlockUser] = useUnlockUserMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleToggleLock = async (u: ApiUser) => {
+    try {
+      if (u.isLocked) {
+        await unlockUser(u.userId).unwrap();
+        addToast({ title: "Account unlocked successfully", color: "success" });
+      } else {
+        await lockUser(u.userId).unwrap();
+        addToast({ title: "Account locked successfully", color: "success" });
+      }
+    } catch (e) {
+      console.error("Lock/Unlock error:", e);
+      addToast({ title: "Failed to update account status", color: "danger" });
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadTemplate().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "user_import_template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Template download error:", error);
+      addToast({ title: "Failed to download template", color: "danger" });
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await importUsers(formData).unwrap();
+      addToast({ title: `Import successful: ${res.data.successCount} succeeded, ${res.data.failedCount} failed`, color: "success" });
+    } catch (error) {
+      addToast({ title: "Failed to import users", color: "danger" });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
 const apiUsers = data?.data ?? [];
 console.log("aaaaaaaaaaa", apiUsers);
@@ -68,7 +123,7 @@ const items = useMemo(() => {
   if (isLoading) {
     return (
       <div className="p-10 text-center font-bold text-indigo-600 dark:text-cyan-400">
-        Đang tải danh sách người dùng...
+        Loading users...
       </div>
     );
   }
@@ -76,7 +131,7 @@ const items = useMemo(() => {
   if (apiUsers.length === 0) {
     return (
       <div className="p-10 text-center text-slate-500 dark:text-slate-400">
-        Chưa có người dùng nào.
+        No users found.
       </div>
     );
   }
@@ -87,21 +142,50 @@ const items = useMemo(() => {
       <div className="flex justify-between items-center border-b border-slate-200 dark:border-white/10 pb-8">
         <div>
           <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
-            <span className="text-indigo-700 dark:text-cyan-400">User</span>{" "}
-            <span className="text-fuchsia-500">Management</span>
+            <span className="text-indigo-600 dark:text-indigo-400">User</span>{" "}
+            <span className="text-purple-500">Management</span>
           </h1>
-          <p className="text-[11px] font-bold uppercase tracking-widest mt-2 italic text-slate-500 dark:text-indigo-400">
-            Quản lý người dùng, vai trò, quyền hạn & bảo mật
+          <p className="text-[11px] font-bold uppercase tracking-widest mt-2 italic text-slate-500 dark:text-slate-400">
+            Manage users, roles, permissions & security
           </p>
         </div>
 
-        <Button
-          startContent={<UserPlus size={18} />}
-          onClick={() => router.push("/Management/Admin/create")}
-          className="bg-indigo-600 text-white dark:bg-gradient-to-r dark:from-cyan-400 dark:to-fuchsia-500 dark:text-black font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider active:scale-95"
-        >
-          Tạo người dùng mới
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            startContent={<Download size={18} />}
+            onClick={handleDownloadTemplate}
+            isLoading={isDownloading}
+            className="bg-emerald-500 text-white dark:bg-emerald-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-emerald-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
+          >
+            Template
+          </Button>
+
+          <div>
+            <input
+              type="file"
+              accept=".xlsx"
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={handleImport}
+            />
+            <Button
+              startContent={<Upload size={18} />}
+              onClick={() => fileInputRef.current?.click()}
+              isLoading={isImporting}
+              className="bg-sky-500 text-white dark:bg-sky-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-sky-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
+            >
+              Import
+            </Button>
+          </div>
+
+          <Button
+            startContent={<UserPlus size={18} />}
+            onClick={() => openModal({ content: <CreateUserModal /> })}
+            className="bg-indigo-500 text-white dark:bg-indigo-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-indigo-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
+          >
+            New User
+          </Button>
+        </div>
       </div>
 
       {/* TABLE */}
@@ -133,7 +217,6 @@ const items = useMemo(() => {
             <TableColumn>USERNAME</TableColumn>
             <TableColumn>FULL NAME</TableColumn>
             <TableColumn>ROLE</TableColumn>
-            {/* <TableColumn>STATUS</TableColumn> */}
             <TableColumn>ACTIONS</TableColumn>
           </TableHeader>
 
@@ -142,7 +225,7 @@ const items = useMemo(() => {
               <TableRow key={u.userId}>
                 <TableCell className="text-xs text-slate-400">#{u.userId}</TableCell>
                 <TableCell className="font-black">{u.username}</TableCell>
-                <TableCell>{u.username}</TableCell>
+                <TableCell>{`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.username}</TableCell>
                 <TableCell>
                   <Chip size="sm" variant="flat" color="primary">
                     {u.role}
@@ -158,7 +241,7 @@ const items = useMemo(() => {
                 </TableCell> */}
                 <TableCell>
                   <div className="flex gap-2">
-                    <Tooltip content="Chỉnh sửa thông tin">
+                    <Tooltip content="Edit user">
                       <Button
                         isIconOnly
                         size="sm"
@@ -169,19 +252,25 @@ const items = useMemo(() => {
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Thay đổi vai trò">
+                    <Tooltip content="Change role">
                       <Button isIconOnly size="sm" variant="flat">
                         <Shield size={16} />
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Khóa / Mở tài khoản">
-                      <Button isIconOnly size="sm" variant="flat">
-                        <Lock size={16} />
+                    <Tooltip content={u.isLocked ? "Unlock account" : "Lock account"}>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        color={u.isLocked ? "danger" : "primary"}
+                        onPress={() => handleToggleLock(u)}
+                      >
+                        {u.isLocked ? <Lock size={16} /> : <Unlock size={16} />}
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Reset mật khẩu">
+                    <Tooltip content="Reset password">
                       <Button isIconOnly size="sm" variant="flat">
                         <KeyRound size={16} />
                       </Button>
@@ -209,22 +298,22 @@ const items = useMemo(() => {
       </div>
 
       {/* EDIT MODAL */}
-      <Modal isOpen={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <ModalContent>
+      <Modal isOpen={isEditModalOpen} onOpenChange={setIsEditModalOpen} classNames={{ backdrop: "bg-black/50 backdrop-blur-md" }}>
+        <ModalContent className="m-4">
           {(onClose) => (
             <>
               <ModalHeader className="text-xl font-bold">
-                Chỉnh sửa người dùng {selectedUser?.username}
+                Edit user {selectedUser?.username}
               </ModalHeader>
               <ModalBody className="gap-6 py-6">
                 <Input
-                  label="Họ và tên"
+                  label="Full Name"
                   value={editFullName}
                   onValueChange={setEditFullName}
                   variant="bordered"
                 />
                 <Input
-                  label="Email"
+                  label="Email Address"
                   value={editEmail}
                   onValueChange={setEditEmail}
                   variant="bordered"
@@ -232,13 +321,13 @@ const items = useMemo(() => {
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button
                   className="bg-indigo-600 text-white font-bold"
                   onPress={handleSaveEdit}
                 >
-                  Lưu thay đổi
+                  Save Changes
                 </Button>
               </ModalFooter>
             </>

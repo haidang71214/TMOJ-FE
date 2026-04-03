@@ -11,7 +11,6 @@ import {
   ClassSlotResponse,
   StudentSlotScoreResponse,
   StudentSubmissionDetailResponse,
-  // ... các type khác nếu cần
 } from "@/types";
 
 export const classSlotApi = baseApi.injectEndpoints({

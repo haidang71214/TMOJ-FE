@@ -18,13 +18,15 @@ const AdminUserEndPoint = {
   CREATE_USER : `${API_PREFIX}/User`,
   GET_DETAIL_USER: `${API_PREFIX}/User/{id}`,
   DELETE_USER:`${API_PREFIX}/User/Pid}`,
-  LOCK_USER_PUT:`${API_PREFIX}/Auth/users/{id}/lock`,
-   UNLOCK_USER_PUT:`${API_PREFIX}/Auth/users/{id}/unlock`,
+  LOCK_USER_PUT:`${API_PREFIX}/user/{id}/lock`,
+   UNLOCK_USER_PUT:`${API_PREFIX}/user/{id}/unlock`,
   GET_USER_UNLOCK:`${API_PREFIX}/Auth/users/unlock`,
     GET_USER_LOCK:`${API_PREFIX}/Auth/users/lock`,
     POST_ASSIGN_ROLE:`${API_PREFIX}/Auth/users/{id}/assign-role`,
     GET_USER_ROLE:`${API_PREFIX}/User/role/{roleName}`,
-    ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`
+    ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`,
+    GET_USER_IMPORT_TEMPLATE: `${API_PREFIX}/user/import/template`,
+    IMPORT_USERS: `${API_PREFIX}/user/import`,
 }
 const ProblemEndPoint = {
   GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, 
@@ -72,7 +74,9 @@ const SemesterEndpoint = {
   CREATE_SEMESTER: `${API_PREFIX}/Semester`,
   UPDATE_SEMESTER: `${API_PREFIX}/Semester/{id}`,
   DELETE_SEMESTER: `${API_PREFIX}/Semester/{id}`,
-  GET_ALL_SEMESTER:`${API_PREFIX}/Semester/all-semester`
+  GET_ALL_SEMESTER:`${API_PREFIX}/Semester/all-semester`,
+  IMPORT_TEMPLATE: `${API_PREFIX}/Semester/import/template`,
+  IMPORT_SEMESTER: `${API_PREFIX}/Semester/import`,
 };
 const ClassSlotEndpoint = {
   GET_CLASS_SLOTS: `${API_PREFIX}/class/{classId}/slots`,

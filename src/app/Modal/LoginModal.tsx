@@ -72,7 +72,7 @@ export default function LoginModal() {
           <Input
             type="email"
             placeholder="Email address"
-            value={email}
+            value={email} 
             onChange={(e) => setEmail(e.target.value)}
             required
             startContent={
@@ -139,7 +139,7 @@ export default function LoginModal() {
                         if (res?.data?.accessToken) {
                           addToast({ title: "Welcome back!", color: "success" });
                           closeModal();
-              
+                        window.location.reload();
                         }
                       }
                     } catch (error: unknown) {

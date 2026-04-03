@@ -40,6 +40,32 @@ export interface Users {
   username: string;
   avatarUrl: string | null;
   role: string;
+  
+  isLocked?: boolean;
+}
+
+export enum UserRole {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  MANAGER = "manager",
+  ADMIN = "admin",
+}
+
+export const USER_ROLE_LABEL: Record<UserRole, string> = {
+  [UserRole.STUDENT]: "Student",
+  [UserRole.TEACHER]: "Teacher",
+  [UserRole.MANAGER]: "Manager",
+  [UserRole.ADMIN]: "Admin",
+};
+export interface ImportUsersResponse {
+  code: number;
+  message: string;
+  data: {
+    totalProcessed: number;
+    successCount: number;
+    failedCount: number;
+    errors: string[];
+  };
 }
 export interface ClassMemberResponse {
   userId: string;
@@ -575,4 +601,17 @@ export interface ClassSlotResponse {
 export interface addClassMemberRequest {
   userId?: string 
   email?: string
+}
+export interface CreateUserRequest {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  roles: string[];
+}
+
+export interface CreateUserResponse {
+  message: string;
+  userId: string;
 }

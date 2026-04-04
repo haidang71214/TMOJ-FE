@@ -1,22 +1,32 @@
-import { useGetRuntimeListQuery, useGetRuntimeDetailQuery, usePostSubmissionMutation } from "@/store/queries/Submittion"
+import { 
+  useGetRuntimeListQuery, 
+  useGetRuntimeDetailQuery,
+  usePostSubmissionMutation,
+  useGetSubmissionQuery,
+} from "@/store/queries/Submittion"
+
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
 import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
-import { VerdictCode } from "@/types"
 
 interface SolutionSubmittionProps {
-   editorHeight: number;
+  editorHeight: number;
   problemId: string;
   onSubmitSuccess?: () => void;
 }
 
 export default function SolutionSubmittion({
-   editorHeight,
+  editorHeight,
   problemId,
   onSubmitSuccess,
 }: SolutionSubmittionProps) {
+  
+  const [submissionId, setSubmissionId] = useState<string | null>(null)
+  const [hasShownResultToast, setHasShownResultToast] = useState(false)
+
+  // Queries
   const { data: user, isLoading: isUserLoading } = useGetUserInformationQuery()
   const isLoggedIn = !!user
 
@@ -41,7 +51,50 @@ public:
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
-  // Auto chọn runtime mặc định
+  // Query lấy submission với cấu hình quan trọng
+  const { data: submissionData, refetch } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { 
+      skip: !submissionId,
+      refetchOnMountOrArgChange: true,   // Đảm bảo luôn fetch dữ liệu mới khi submissionId thay đổi
+    }
+  )
+  useEffect(() => {
+    if (!submissionData?.data?.verdictCode || hasShownResultToast) return
+
+    const verdict = submissionData.data.verdictCode
+    // chú ý cái này
+    addToast({
+      title: verdict,
+      color: verdict === "Accepted" ? "success" : "danger",
+    })
+
+    setHasShownResultToast(true)
+
+    if (verdict === "Accepted" && onSubmitSuccess) {
+      onSubmitSuccess()
+    }
+  }, [submissionData?.data?.verdictCode])
+
+  // Reset toast state khi thay đổi submissionId (nộp lần mới)
+  useEffect(() => {
+    if (submissionId) {
+      setHasShownResultToast(false)
+    }
+  }, [submissionId])
+
+  // Polling lấy kết quả mỗi 10 giây
+  useEffect(() => {
+    if (!submissionId) return
+
+    const timer = setTimeout(() => {
+      refetch()
+    }, 10000)
+
+    return () => clearTimeout(timer)
+  }, [submissionId, refetch])
+
+  // Auto chọn runtime C++ mặc định
   useEffect(() => {
     if (runtimes.length > 0 && selectedRuntimeId === null) {
       const preferred = runtimes.find(r => 
@@ -70,94 +123,56 @@ public:
   }
 
   const language = getLanguage(selectedRuntime?.runtimeName)
-     const handleRun = async () => {
-    if (!selectedRuntimeId || !code.trim() || !isLoggedIn) return
+
+  // ==================== HANDLE SUBMIT ====================
+
+  const handleRun = async () => {
+    if (!selectedRuntimeId || !code.trim() || !isLoggedIn || isSubmitting) return
+
+    // Reset submissionId trước để xóa dữ liệu cũ hoàn toàn
+    setSubmissionId(null)
 
     const formData = new FormData()
-    
-    // ← Sửa ở đây: append SourceCode dạng string trực tiếp (không dùng Blob)
     formData.append("SourceCode", code)
-    
     formData.append("RuntimeId", selectedRuntimeId)
     formData.append("StopOnFirstFail", "true")
-    // formData.append("ReturnIO", "true")
 
     try {
-      const response = await postSubmission({ 
-        problemId, 
-        body: formData 
+      const response = await postSubmission({
+        problemId,
+        body: formData
       }).unwrap()
-      console.log("aaaaaaaaaaaaaaa", response);
-      
-      const { data } = response
 
-      if (data.status == "queued") {
+      const newSubmissionId = response?.data?.submissionId || response?.submissionId
+
+      if (!newSubmissionId) {
         addToast({
-          title: "AC! Chạy thành công hết test cases 🎉",
-          color: "success",
+          title: "Không lấy được submissionId",
+          color: "warning"
         })
-      } else {
-        addToast({
-          title: "Lỗi Rồi !! Bravoooo 🎉",
-          color: "danger",
-        })
-        // let title = "Submit thất bại"
-        // let description = ""
-        // let color: "danger" | "warning" = "danger"
-
-        // switch (data.verdictCode) {
-        //   case VerdictCode.WA:
-        //     title = "WA - Wrong Answer"
-        //     description = `Sai ở test ${data?.failed[0]?.ordinal || "?"}: ${data?.failed[0]?.message || "Output không khớp"}`
-        //     break
-        //   case VerdictCode.TLE:
-        //     title = "TLE - Time Limit Exceeded"
-        //     description = `Chạy quá thời gian (${data?.summary.timeMs}ms)`
-        //     color = "warning"
-        //     break
-        //   case VerdictCode.RTE:
-        //     title = "RTE - Runtime Exception"
-        //     description = data?.failed[0]?.message || "Lỗi runtime (div0, segfault, ...)"
-        //     break
-        //   case VerdictCode.MLE:
-        //     title = "MLE - Memory Limit Exceeded"
-        //     description = "Dùng quá nhiều bộ nhớ"
-        //     break
-        //   case VerdictCode.OLE:
-        //     title = "OLE - Output Limit Exceeded"
-        //     description = "In ra quá nhiều dữ liệu"
-        //     break
-        //   case VerdictCode.IR:
-        //     title = "IR - Invalid Return"
-        //     description = "Exit code không phải 0"
-        //     break
-        //   case VerdictCode.IE:
-        //     title = "IE - Internal Error"
-        //     description = "Lỗi hệ thống, thử submit lại hoặc báo admin"
-        //     break
-        //   case VerdictCode.CE:
-        //     title = "CE - Compilation Error"
-        //     description = "Lỗi biên dịch - kiểm tra cú pháp code"
-        //     break
-        //   default:
-        //     title = `Lỗi không xác định (${data?.verdictCode})`
-        // }
-
-        addToast({ title, description, color })
+        return
       }
 
-      onSubmitSuccess?.()
+      // Set submissionId mới
+      setSubmissionId(newSubmissionId)
+
+      // Toast thông báo đã nộp
+      addToast({
+        title: "Đã nộp code! Đang chờ kết quả...",
+        color: "success"
+      })
+
     } catch (error) {
-      console.error("Submit error:", error)
-      addToast({ title: "Run thất bại.", color: "danger" })
+      console.error(error)
+      addToast({ 
+        title: "Run thất bại.", 
+        color: "danger" 
+      })
     }
   }
 
   const handleSubmit = async () => {
-    // Tương tự handleRun, nhưng có thể thêm confirm hoặc khác biệt logic nếu backend phân biệt Run vs Submit
-    if (window.confirm("Bạn chắc chắn muốn Submit?")) {
-      await handleRun() // tạm dùng chung logic, sau này tách nếu cần
-    }
+    await handleRun()
   }
 
   return (

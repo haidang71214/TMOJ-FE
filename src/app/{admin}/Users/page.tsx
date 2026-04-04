@@ -82,6 +82,8 @@ export default function UserManagerPage() {
       const res = await importUsers(formData).unwrap();
       addToast({ title: `Import successful: ${res.data.successCount} succeeded, ${res.data.failedCount} failed`, color: "success" });
     } catch (error) {
+      console.log(error);
+      
       addToast({ title: "Failed to import users", color: "danger" });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";

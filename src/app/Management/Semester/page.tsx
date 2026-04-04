@@ -32,6 +32,7 @@ import {
 } from "@/store/queries/Semester";
 import CreateUpdateSemester from "./CreateUpdateSemester";
 import { CreateSemesterRequest, ErrorForm } from "@/types";
+import SemesterImportExport from "@/Provider/ImportExportSemesterButton";
 
 export default function SemesterPage() {
   const [page, setPage] = useState(1);
@@ -150,13 +151,17 @@ await updateSemester({
             Manage and monitor all academic semesters
           </p>
         </div>
-        <Button
-          startContent={<Plus size={20} strokeWidth={3} />}
-          onPress={handleOpenCreate}
-          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
-        >
-          CREATE NEW SEMESTER
-        </Button>
+       <div className="flex gap-3">
+  <SemesterImportExport />
+
+  <Button
+    startContent={<Plus size={20} strokeWidth={3} />}
+    onPress={handleOpenCreate}
+    className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+  >
+    CREATE NEW SEMESTER
+  </Button>
+</div>
       </div>
 
       {/* FILTER BAR */}

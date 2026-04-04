@@ -32,7 +32,7 @@ interface SelectedProblem {
   points: number;
   isRequired: boolean;
 }
-
+// này đổi thành class semester id
 export default function CreateSlotForm({ classId }: CreateSlotFormProps) {
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();

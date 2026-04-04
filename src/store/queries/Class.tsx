@@ -5,10 +5,24 @@ export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
     // đã test
-    getClasses: builder.query<ClassResponse, void>({
-  query: () => ({
+  // Trong endpoints của createApi
+getClasses: builder.query<ClassResponse, {
+  semesterId?: string;
+  subjectId?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}>({
+  query: (params = {}) => ({
     url: ClassEndpoint.GET_ALL_CLASS,
     method: "GET",
+    params: {
+      semesterId: params.semesterId ,
+      subjectId: params.subjectId,
+      search: params.search,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 20,
+    },
   }),
   providesTags: ["Class"],
 }),
@@ -19,6 +33,7 @@ export const classApi = baseApi.injectEndpoints({
   }),
   providesTags: ["Class"],
 }),
+// đã fix xong
      createClass: builder.mutation<ClassItem, CreateClassRequest>({
       query: (data) => ({
         url: ClassEndpoint.CREATE_CLASS,

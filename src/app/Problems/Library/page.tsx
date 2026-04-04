@@ -36,7 +36,8 @@ export default function LibraryPage() {
 
   const { data: problemResponse, isLoading } = useGetProblemListQuery();
   const problems = problemResponse?.data || [];
-
+  console.log("aaaa" , problemResponse);
+  
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
       {/* SIDEBAR TRÁI */}

@@ -53,7 +53,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   const [form, setForm] = React.useState<CreateProblemDraftRequest>({
     slug: "",
     title: "",
-    difficulty: "medium",
+    // difficulty: "medium",
     typeCode: "algorithm",
     visibilityCode: "public",
     scoringCode: "acm",

@@ -160,6 +160,9 @@ export interface CreateUserDto {
   age: number;
 }
 export interface ProblemTestsetResponse {
+  data:HiHi
+}
+export interface HiHi {
   id: string;
   problemId: string;
   type: string;
@@ -613,10 +616,14 @@ export interface CreateUserResponse {
   message: string;
   userId: string;
 }
-export interface SubmitResponseV2 {
+
+export interface SubmitResponseV1 {
   submissionId: string;      // Guid → string trong TS
   judgeRunId: string; // Guid? → optional
   judgeJobId: string;        // Guid → string
   status: string;
   verdictCode:string;
+}
+export interface SubmitResponseV2 {
+  data: SubmitResponseV1
 }

@@ -69,90 +69,87 @@ public:
     return "cpp"
   }
 
-  const getFileExtension = (runtimeName: string = "") => {
-    const lower = runtimeName.toLowerCase()
-    if (lower.includes("c++") || lower.includes("g++")) return ".cpp"
-    if (lower.includes("c ") || lower.includes("gcc")) return ".c"
-    return ".cpp"
-  }
-
   const language = getLanguage(selectedRuntime?.runtimeName)
-  const fileExtension = getFileExtension(selectedRuntime?.runtimeName)
-  const fileName = `Solution${fileExtension}`
-
-  const handleRun = async () => {
+     const handleRun = async () => {
     if (!selectedRuntimeId || !code.trim() || !isLoggedIn) return
 
     const formData = new FormData()
-    const blob = new Blob([code], { type: "text/plain" })
-    formData.append("file", blob, fileName)
+    
+    // ← Sửa ở đây: append SourceCode dạng string trực tiếp (không dùng Blob)
+    formData.append("SourceCode", code)
+    
     formData.append("RuntimeId", selectedRuntimeId)
     formData.append("StopOnFirstFail", "true")
-    formData.append("ReturnIO", "true")
+    // formData.append("ReturnIO", "true")
 
     try {
-     const response = await postSubmission({ problemId, body: formData }).unwrap();
-const { data } = response; 
-if (data.verdictCode === VerdictCode.AC) {
-  addToast({
-    title: "AC! Chạy thành công hết test cases 🎉",
-    color: "success",
-  });
-} else {
-  // Các trường hợp fail
-  let title = "Submit thất bại";
-  let description = "";
-  let color: "danger" | "warning" = "danger";
+      const response = await postSubmission({ 
+        problemId, 
+        body: formData 
+      }).unwrap()
+      console.log("aaaaaaaaaaaaaaa", response);
+      
+      const { data } = response
 
-  switch (data.verdictCode) {
-    case VerdictCode.WA:
-      title = "WA - Wrong Answer";
-      description = `Sai ở test ${data?.failed[0]?.ordinal || "?"}: ${data?.failed[0]?.message || "Output không khớp"}`;
-      break;
-    case VerdictCode.TLE:
-      title = "TLE - Time Limit Exceeded";
-      description = `Chạy quá thời gian (${data?.summary.timeMs}ms)`;
-      color = "warning";
-      break;
-    case VerdictCode.RTE:
-      title = "RTE - Runtime Exception";
-      description = data?.failed[0]?.message || "Lỗi runtime (div0, segfault, ...)";
-      break;
-    case VerdictCode.MLE:
-      title = "MLE - Memory Limit Exceeded";
-      description = "Dùng quá nhiều bộ nhớ";
-      break;
-    case VerdictCode.OLE:
-      title = "OLE - Output Limit Exceeded";
-      description = "In ra quá nhiều dữ liệu";
-      break;
-    case VerdictCode.IR:
-      title = "IR - Invalid Return";
-      description = "Exit code không phải 0";
-      break;
-    case VerdictCode.IE:
-      title = "IE - Internal Error";
-      description = "Lỗi hệ thống, thử submit lại hoặc báo admin";
-      break;
-      case VerdictCode.CE:
-      title = "CE - Compilation Error";
-      description = "Lỗi biên dịch - kiểm tra cú pháp code";
-      break;
-    default:
-      title = `Lỗi không xác định (${data?.verdictCode})`;
-  }
+      if (data.status == "queued") {
+        addToast({
+          title: "AC! Chạy thành công hết test cases 🎉",
+          color: "success",
+        })
+      } else {
+        addToast({
+          title: "Lỗi Rồi !! Bravoooo 🎉",
+          color: "danger",
+        })
+        // let title = "Submit thất bại"
+        // let description = ""
+        // let color: "danger" | "warning" = "danger"
 
-  addToast({
-    title,
-    description,
-    color,
-  });
-}
+        // switch (data.verdictCode) {
+        //   case VerdictCode.WA:
+        //     title = "WA - Wrong Answer"
+        //     description = `Sai ở test ${data?.failed[0]?.ordinal || "?"}: ${data?.failed[0]?.message || "Output không khớp"}`
+        //     break
+        //   case VerdictCode.TLE:
+        //     title = "TLE - Time Limit Exceeded"
+        //     description = `Chạy quá thời gian (${data?.summary.timeMs}ms)`
+        //     color = "warning"
+        //     break
+        //   case VerdictCode.RTE:
+        //     title = "RTE - Runtime Exception"
+        //     description = data?.failed[0]?.message || "Lỗi runtime (div0, segfault, ...)"
+        //     break
+        //   case VerdictCode.MLE:
+        //     title = "MLE - Memory Limit Exceeded"
+        //     description = "Dùng quá nhiều bộ nhớ"
+        //     break
+        //   case VerdictCode.OLE:
+        //     title = "OLE - Output Limit Exceeded"
+        //     description = "In ra quá nhiều dữ liệu"
+        //     break
+        //   case VerdictCode.IR:
+        //     title = "IR - Invalid Return"
+        //     description = "Exit code không phải 0"
+        //     break
+        //   case VerdictCode.IE:
+        //     title = "IE - Internal Error"
+        //     description = "Lỗi hệ thống, thử submit lại hoặc báo admin"
+        //     break
+        //   case VerdictCode.CE:
+        //     title = "CE - Compilation Error"
+        //     description = "Lỗi biên dịch - kiểm tra cú pháp code"
+        //     break
+        //   default:
+        //     title = `Lỗi không xác định (${data?.verdictCode})`
+        // }
 
-onSubmitSuccess?.();
+        addToast({ title, description, color })
+      }
+
+      onSubmitSuccess?.()
     } catch (error) {
       console.error("Submit error:", error)
-       addToast({ title: "Run thất bại.", color: "danger" });
+      addToast({ title: "Run thất bại.", color: "danger" })
     }
   }
 

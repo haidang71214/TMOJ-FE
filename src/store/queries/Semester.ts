@@ -63,6 +63,23 @@ export const semesterApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Semester"],
     }),
+
+    getSemesterImportTemplate: builder.mutation<Blob, void>({
+      query: () => ({
+        url: SemesterEndpoint.IMPORT_TEMPLATE,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+    
+    importSemesters: builder.mutation<void, FormData>({
+      query: (data) => ({
+        url: SemesterEndpoint.IMPORT_SEMESTER,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Semester"],
+    }),
   }),
 });
 
@@ -73,4 +90,6 @@ export const {
   useCreateSemesterMutation,
   useUpdateSemesterMutation,
   useDeleteSemesterMutation,
+  useGetSemesterImportTemplateMutation,
+  useImportSemestersMutation,
 } = semesterApi;

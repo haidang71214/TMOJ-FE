@@ -40,6 +40,32 @@ export interface Users {
   username: string;
   avatarUrl: string | null;
   role: string;
+  
+  isLocked?: boolean;
+}
+
+export enum UserRole {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  MANAGER = "manager",
+  ADMIN = "admin",
+}
+
+export const USER_ROLE_LABEL: Record<UserRole, string> = {
+  [UserRole.STUDENT]: "Student",
+  [UserRole.TEACHER]: "Teacher",
+  [UserRole.MANAGER]: "Manager",
+  [UserRole.ADMIN]: "Admin",
+};
+export interface ImportUsersResponse {
+  code: number;
+  message: string;
+  data: {
+    totalProcessed: number;
+    successCount: number;
+    failedCount: number;
+    errors: string[];
+  };
 }
 export interface ClassMemberResponse {
   userId: string;
@@ -100,7 +126,7 @@ export interface ProblemListResponse {
 export interface CreateProblemDraftRequest {
   slug: string;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  // difficulty: "easy" | "medium" | "hard";
   typeCode: "algorithm" | "frontend" | "sql" /* thêm nếu có */;
   visibilityCode: "public" | "private";
   scoringCode: "acm" | "partial" | "oi" /* tùy hệ thống */;
@@ -108,7 +134,6 @@ export interface CreateProblemDraftRequest {
   displayIndex?: number;
   timeLimitMs: number;
   memoryLimitKb: number;
-  createdBy: string; // UUID của user
 }
 export interface ProblemDraft {
   id: string;                    // UUID dạng string
@@ -373,6 +398,7 @@ export interface SubmissionResponse {
 }
 export interface Semester {
   semesterId: string;
+  semesterCode: string;
   code: string;
   name: string;
 }
@@ -394,32 +420,32 @@ export interface Teacher {
   email: string;
   avatarUrl: string | null;
 }
+export interface ClassInstance {
+  classSemesterId: string;
+  semesterId: string;
+  semesterCode: string;
+  subjectId: string;
+  subjectCode: string;
+  subjectName: string;
+  subjectDescription: string;
+  startAt: string;           // ví dụ: "2026-03-11"
+  endAt: string;             // ví dụ: "2026-03-29"
+  inviteCode: string | null;
+  inviteCodeExpiresAt: string | null;
+  createdAt: string;
+  teacher: Teacher;
+  memberCount: number;
+}
 export interface ClassItem {
   classId: string;
-
   classCode: string;
-  className: string;
-
-  description: string;
-
-  startDate: string;
-  endDate: string;
-
   isActive: boolean;
-
-  inviteCode: string;
-  inviteCodeExpiresAt: string | null;
-
   createdAt: string;
   updatedAt: string;
+  
+  instances: ClassInstance[];     // ← Quan trọng: một class có thể có nhiều instance (nhiều môn/semester)
 
-  subject: Subject;
-
-  semester: Semester;
-
-  teacher: Teacher;
-
-  memberCount: number;
+  totalMemberCount: number;       // tổng thành viên của tất cả instances
 }
 export interface ClassListData {
   items: ClassItem[];
@@ -434,10 +460,6 @@ export interface CreateClassRequest {
   subjectId: string;
   semesterId: string;
   classCode?: string | null;
-  className?: string | null;
-  description?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
   teacherId?: string | null;
 }
 export interface UpdateClassTeacherPayload {
@@ -575,4 +597,23 @@ export interface ClassSlotResponse {
 export interface addClassMemberRequest {
   userId?: string 
   email?: string
+}
+export interface CreateUserRequest {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  roles: string[];
+}
+
+export interface CreateUserResponse {
+  message: string;
+  userId: string;
+}
+export interface SubmitResponseV2 {
+  submissionId: string;      // Guid → string trong TS
+  judgeRunId?: string | null; // Guid? → optional
+  judgeJobId: string;        // Guid → string
+  status: string;
 }

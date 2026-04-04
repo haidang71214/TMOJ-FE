@@ -6,7 +6,6 @@ import {
   Button,
   Select,
   SelectItem,
-  Textarea,
 } from "@heroui/react";
 
 import { useCreateClassMutation } from "@/store/queries/Class";
@@ -37,10 +36,6 @@ const semesters = semesterData?.data?.items ?? [];
     subjectId: "",
     semesterId: "",
     classCode: "",
-    className: "",
-    description: "",
-    startDate: "",
-    endDate: "",
     teacherId: "",
   });
 
@@ -57,10 +52,6 @@ const handleSubmit = async () => {
       subjectId: form.subjectId,
       semesterId: form.semesterId,
       classCode: form.classCode || null,
-      className: form.className || null,
-      description: form.description || null,
-      startDate: form.startDate || null,
-      endDate: form.endDate || null,
       teacherId: form.teacherId || null,
     };
 
@@ -122,19 +113,6 @@ const handleSubmit = async () => {
               placeholder="e.g. CS101-01"
               value={form.classCode}
               onChange={(e) => handleChange("classCode", e.target.value)}
-              variant="bordered"
-              classNames={{
-                inputWrapper:
-                  "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 focus-within:!border-indigo-500 transition-colors",
-                label: "text-gray-500 dark:text-slate-400",
-                input: "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
-              }}
-            />
-            <Input
-              label="Class Name"
-              placeholder="e.g. Intro to CS"
-              value={form.className}
-              onChange={(e) => handleChange("className", e.target.value)}
               variant="bordered"
               classNames={{
                 inputWrapper:
@@ -234,59 +212,6 @@ const handleSubmit = async () => {
                 <SelectItem key={t.userId}>{t.displayName}</SelectItem>
               ))}
             </Select>
-
-            <Textarea
-              label="Description"
-              placeholder="Brief description of the class..."
-              value={form.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              variant="bordered"
-              minRows={1}
-              maxRows={2}
-              classNames={{
-                inputWrapper:
-                  "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 focus-within:!border-indigo-500 transition-colors",
-                label: "text-gray-500 dark:text-slate-400",
-                input: "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Section: Schedule */}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2">
-            Schedule
-          </p>
-          <div className="flex gap-3">
-            <Input
-              label="Start Date"
-              placeholder="YYYY-MM-DD"
-              type="date"
-              value={form.startDate}
-              onChange={(e) => handleChange("startDate", e.target.value)}
-              variant="bordered"
-              classNames={{
-                inputWrapper:
-                  "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 focus-within:!border-indigo-500 transition-colors",
-                label: "text-gray-500 dark:text-slate-400",
-                input: "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
-              }}
-            />
-            <Input
-              label="End Date"
-              placeholder="YYYY-MM-DD"
-              type="date"
-              value={form.endDate}
-              onChange={(e) => handleChange("endDate", e.target.value)}
-              variant="bordered"
-              classNames={{
-                inputWrapper:
-                  "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 hover:border-indigo-400 dark:hover:border-indigo-400/50 focus-within:!border-indigo-500 transition-colors",
-                label: "text-gray-500 dark:text-slate-400",
-                input: "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500",
-              }}
-            />
           </div>
         </div>
       </div>

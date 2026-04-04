@@ -32,7 +32,7 @@ const ProblemEndPoint = {
   GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, 
   CREATE_PROBLEM_DAFT:`${API_LON}/Problems/drafts`,
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
-  CREATE_TESTCASE_PROBLEM:`${API_LON}/problems/{id}/testcases`
+  CREATE_TESTCASE_PROBLEM:`${API_LON}/Testsets/{id}/testcases`
 }
 const ProblemListEndpoint = {
   GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/problems?status_code=archived`,

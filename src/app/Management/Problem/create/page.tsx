@@ -41,7 +41,7 @@ export default function CreateProblemPage() {
 
   const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
   const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
-  const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
+  const [createTestCase] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
 
   // ── STEP 1: Problem form ──────────────────────────────────────────────────  difficulty: "medium",
@@ -94,7 +94,8 @@ export default function CreateProblemPage() {
       formData.append("timeLimitMs", form.timeLimitMs.toString());
       formData.append("memoryLimitKb", form.memoryLimitKb.toString());
       const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData
-      setCreatedProblemId(problem.data.id);
+      console.log(problem); // ok
+      setCreatedProblemId(problem.data.id); // đang lấy set problem id
       setStep(1);
     } catch (error) {
       console.error("Create problem failed:", error);
@@ -111,8 +112,9 @@ export default function CreateProblemPage() {
         id: createdProblemId,
         body: testset,
       }).unwrap();
-
-      setCreatedTestSetId(ts?.id ?? null);
+     console.log("aaaaaaaaaaaaa",ts); 
+     
+      setCreatedTestSetId(ts?.data?.id ?? null); // đang lấy testset id
       setStep(2);
     } catch (error) {
       console.error("Create testset failed:", error);
@@ -123,18 +125,18 @@ export default function CreateProblemPage() {
   const handleUploadTestCase = async () => {
     if (!createdProblemId || !createdTestSetId) return;
     if (!zipFile) { alert("Please select a zip file"); return; }
-
+    
     try {
       const formData = new FormData();
       formData.append("file", zipFile);
       formData.append("replaceExisting", "true");
-      formData.append("testsetId", createdTestSetId);
+      formData.append("testsetId", createdTestSetId); // lấy testsetDI rồi
 
       const res = await createTestCase({
-        id: createdProblemId,
+        id: createdProblemId, // problemId
         body: formData,
       }).unwrap();
-
+      
       setUploadedCases((prev) => [
         ...prev,
         { name: zipFile.name, total: res.data?.total ?? 0 },
@@ -148,6 +150,7 @@ export default function CreateProblemPage() {
   };
 
   const handleFinish = () => {
+    handleUploadTestCase();
     router.push(`/Problems/${createdProblemId}`);
   };
 
@@ -436,7 +439,7 @@ export default function CreateProblemPage() {
             <div>replaceExisting: <span className="text-green-400">true</span></div>
           </div>
 
-          <Button
+          {/* <Button
             startContent={<Upload size={16} />}
             onPress={handleUploadTestCase}
             isLoading={isCreatingTestCase}
@@ -444,7 +447,7 @@ export default function CreateProblemPage() {
             className="bg-[#071739] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em]"
           >
             Upload TestCases
-          </Button>
+          </Button> */}
 
           {/* Uploaded list */}
           {uploadedCases.length > 0 && (

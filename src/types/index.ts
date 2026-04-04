@@ -572,7 +572,9 @@ export interface ClassSlotResponse {
   score?: number;
   attempts: number;
   lastSubmittedAt?: string;
-}export interface StudentSubmissionDetailResponse {
+
+}
+export interface StudentSubmissionDetailResponse {
   submissionId: string;
   problemId: string;
   problemTitle?: string;
@@ -613,7 +615,8 @@ export interface CreateUserResponse {
 }
 export interface SubmitResponseV2 {
   submissionId: string;      // Guid → string trong TS
-  judgeRunId?: string | null; // Guid? → optional
+  judgeRunId: string; // Guid? → optional
   judgeJobId: string;        // Guid → string
   status: string;
+  verdictCode:string;
 }

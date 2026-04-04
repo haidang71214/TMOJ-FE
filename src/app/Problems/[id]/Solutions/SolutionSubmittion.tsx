@@ -143,7 +143,7 @@ public:
         body: formData
       }).unwrap()
 
-      const newSubmissionId = response?.data?.submissionId || response?.submissionId
+      const newSubmissionId = response?.data?.submissionId
 
       if (!newSubmissionId) {
         addToast({

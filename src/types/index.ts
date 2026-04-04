@@ -399,6 +399,7 @@ export interface SubmissionResponse {
 }
 export interface Semester {
   semesterId: string;
+  semesterCode: string;
   code: string;
   name: string;
 }
@@ -420,32 +421,32 @@ export interface Teacher {
   email: string;
   avatarUrl: string | null;
 }
+export interface ClassInstance {
+  classSemesterId: string;
+  semesterId: string;
+  semesterCode: string;
+  subjectId: string;
+  subjectCode: string;
+  subjectName: string;
+  subjectDescription: string;
+  startAt: string;           // ví dụ: "2026-03-11"
+  endAt: string;             // ví dụ: "2026-03-29"
+  inviteCode: string | null;
+  inviteCodeExpiresAt: string | null;
+  createdAt: string;
+  teacher: Teacher;
+  memberCount: number;
+}
 export interface ClassItem {
   classId: string;
-
   classCode: string;
-  className: string;
-
-  description: string;
-
-  startDate: string;
-  endDate: string;
-
   isActive: boolean;
-
-  inviteCode: string;
-  inviteCodeExpiresAt: string | null;
-
   createdAt: string;
   updatedAt: string;
 
-  subject: Subject;
+  instances: ClassInstance[];     // ← Quan trọng: một class có thể có nhiều instance (nhiều môn/semester)
 
-  semester: Semester;
-
-  teacher: Teacher;
-
-  memberCount: number;
+  totalMemberCount: number;       // tổng thành viên của tất cả instances
 }
 export interface ClassListData {
   items: ClassItem[];
@@ -460,10 +461,6 @@ export interface CreateClassRequest {
   subjectId: string;
   semesterId: string;
   classCode?: string | null;
-  className?: string | null;
-  description?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
   teacherId?: string | null;
 }
 export interface UpdateClassTeacherPayload {

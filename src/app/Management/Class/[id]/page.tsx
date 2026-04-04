@@ -107,16 +107,11 @@ export default function ClassDetailPage({
       <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
         {classDetail?.classCode || classId}
       </h2>
-
-      <p className="font-bold italic text-slate-500 uppercase text-sm">
-        {classDetail?.className || "Loading..."}
-      </p>
-
-      <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2 w-fit mt-3">
+      {/* <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2 w-fit mt-3">
         <span className="text-[#FF5C00]">Owner:</span>
-        {classDetail?.teacher?.displayName || "UNASSIGNED"}
+        {classDetail?.instances?.map((a)=) || "UNASSIGNED"}
         <Pencil size={12} className="text-slate-400" />
-      </div>
+      </div> */}
     </div>
 
   </div>

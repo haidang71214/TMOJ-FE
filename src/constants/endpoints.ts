@@ -1,6 +1,6 @@
 const API_PREFIX = "api/v1";
 // ví dụ về những cái endpoint
-
+const API_LON = "api/v2";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
@@ -30,16 +30,17 @@ const AdminUserEndPoint = {
 }
 const ProblemEndPoint = {
   GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, 
-  CREATE_PROBLEM_DAFT:`${API_PREFIX}/Problems/drafts`,
+  CREATE_PROBLEM_DAFT:`${API_LON}/Problems/drafts`,
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
-  CREATE_TESTCASE_PROBLEM:`${API_PREFIX}/problems/{id}/testcases`
+  CREATE_TESTCASE_PROBLEM:`${API_LON}/problems/{id}/testcases`
 }
 const ProblemListEndpoint = {
-  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/problems?status=published`,
+  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/problems?status_code=archived`,
   GET_DETAIL_PUBLIC_PROBLEM:`${API_PREFIX}/Problems/{id}`,
 }
 const SubmittionEndPoint = {
-  GET_SUBMITTION_FROM_USER:`${API_PREFIX}/problems/{problemId}/submissions`
+  GET_SUBMITTION_FROM_USER:`${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
+   GET_SUBMITTION:`${API_LON}/submissions/{submissionId}`
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
@@ -79,12 +80,12 @@ const SemesterEndpoint = {
   IMPORT_SEMESTER: `${API_PREFIX}/Semester/import`,
 };
 const ClassSlotEndpoint = {
-  GET_CLASS_SLOTS: `${API_PREFIX}/class/{classId}/slots`,
-  CREATE_CLASS_SLOT: `${API_PREFIX}/class/{classId}/slots`,
-  UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class/{classId}/slots/{slotId}/due-date`,
-  PUBLISH_SLOT: `${API_PREFIX}/class/{classId}/slots/{slotId}/publish`,
-  GET_SLOT_SCORES: `${API_PREFIX}/class/{classId}/slots/{slotId}/scores`,
-  GET_USER_SUBMISSION: `${API_PREFIX}/class/{classId}/slots/{slotId}/submissions/{userId}`,
+  GET_CLASS_SLOTS: `${API_PREFIX}/class-instance/{classId}/slots`,
+  CREATE_CLASS_SLOT: `${API_PREFIX}/class-instance/{instanceId}/slots`,
+  UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/due-date`,
+  PUBLISH_SLOT: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/publish`,
+  GET_SLOT_SCORES: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/scores`,
+  GET_USER_SUBMISSION: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/submissions/{userId}`,
 };
 const NotificationEndpoint = {
   CREATE_NOTIFICATION: `${API_PREFIX}/notification`,

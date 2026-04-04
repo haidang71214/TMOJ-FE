@@ -126,7 +126,7 @@ export interface ProblemListResponse {
 export interface CreateProblemDraftRequest {
   slug: string;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  // difficulty: "easy" | "medium" | "hard";
   typeCode: "algorithm" | "frontend" | "sql" /* thêm nếu có */;
   visibilityCode: "public" | "private";
   scoringCode: "acm" | "partial" | "oi" /* tùy hệ thống */;
@@ -134,7 +134,6 @@ export interface CreateProblemDraftRequest {
   displayIndex?: number;
   timeLimitMs: number;
   memoryLimitKb: number;
-  createdBy: string; // UUID của user
 }
 export interface ProblemDraft {
   id: string;                    // UUID dạng string
@@ -443,7 +442,7 @@ export interface ClassItem {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-
+  
   instances: ClassInstance[];     // ← Quan trọng: một class có thể có nhiều instance (nhiều môn/semester)
 
   totalMemberCount: number;       // tổng thành viên của tất cả instances
@@ -611,4 +610,10 @@ export interface CreateUserRequest {
 export interface CreateUserResponse {
   message: string;
   userId: string;
+}
+export interface SubmitResponseV2 {
+  submissionId: string;      // Guid → string trong TS
+  judgeRunId?: string | null; // Guid? → optional
+  judgeJobId: string;        // Guid → string
+  status: string;
 }

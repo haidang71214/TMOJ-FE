@@ -44,11 +44,10 @@ export default function CreateProblemPage() {
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
 
-  // ── STEP 1: Problem form ──────────────────────────────────────────────────
+  // ── STEP 1: Problem form ──────────────────────────────────────────────────  difficulty: "medium",
   const [form, setForm] = React.useState<CreateProblemDraftRequest>({
     slug: "",
     title: "",
-    difficulty: "medium",
     typeCode: "algorithm",
     visibilityCode: "public",
     scoringCode: "acm",
@@ -56,7 +55,6 @@ export default function CreateProblemPage() {
     displayIndex: 1,
     timeLimitMs: 1000,
     memoryLimitKb: 262144,
-    createdBy: "",
   });
 
   // ── STEP 2: TestSet form ──────────────────────────────────────────────────
@@ -73,15 +71,29 @@ export default function CreateProblemPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleStep1 = async () => {
-    if (!userData?.userId) { alert("User not loaded yet"); return; }
-    if (!form.slug || !form.title) { alert("Slug and Title are required"); return; }
+    if (!userData?.userId) {
+      alert("User not loaded yet");
+      return;
+    }
+    if (!form.slug || !form.title) {
+      alert("Slug and Title are required");
+      return;
+    }
 
     try {
-      const problem = await createProblemDraft({
-        ...form,
-        createdBy: userData.userId,
-      }).unwrap();
+      const formData = new FormData();
 
+      // Thêm tất cả các trường vào FormData
+      formData.append("slug", form.slug);
+      formData.append("title", form.title);
+      // formData.append("difficulty", form.difficulty);
+      formData.append("typeCode", form.typeCode);
+      formData.append("visibilityCode", form.visibilityCode);
+      formData.append("scoringCode", form.scoringCode);
+      formData.append("descriptionMd", form.descriptionMd);
+      formData.append("timeLimitMs", form.timeLimitMs.toString());
+      formData.append("memoryLimitKb", form.memoryLimitKb.toString());
+      const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData
       setCreatedProblemId(problem.data.id);
       setStep(1);
     } catch (error) {
@@ -263,7 +275,7 @@ export default function CreateProblemPage() {
               onChange={(e) => setForm({ ...form, memoryLimitKb: Number(e.target.value) * 1024 })}
             />
 
-            <Select
+            {/* <Select
   label={
     <div className="flex items-center gap-1">
       Difficulty
@@ -286,7 +298,7 @@ export default function CreateProblemPage() {
   <SelectItem key="easy">Easy</SelectItem>
   <SelectItem key="medium">Medium</SelectItem>
   <SelectItem key="hard">Hard</SelectItem>
-</Select>
+</Select> */}
           </div>
 
           <RadioGroup

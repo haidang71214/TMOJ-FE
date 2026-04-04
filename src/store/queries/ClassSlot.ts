@@ -57,7 +57,7 @@ export const classSlotApi = baseApi.injectEndpoints({
       { classId: string; data: CreateClassSlotRequest }
     >({
       query: ({ classId, data }) => ({
-        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{classId}", classId),
+        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{instanceId}", classId),
         method: "POST",
         body: data,
       }),

@@ -53,7 +53,7 @@ interface ClassItem {
 
 export default function ClassComponents() {
   const { openModal } = useModal();
-  const { data, isLoading } = useGetClassesQuery();
+  const { data, isLoading } = useGetClassesQuery({});
 
   const classes: ClassItem[] = data?.data?.items ?? [];
 

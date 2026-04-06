@@ -629,3 +629,66 @@ export interface SubmitResponseV1 {
 export interface SubmitResponseV2 {
   data: SubmitResponseV1
 }
+export interface DiscussionResponseData {
+  data: DiscussionCommentResponse[];
+  message: string | null;
+  traceId?: string;
+}
+
+export interface DiscussionCommentResponse {
+  id: string;
+  discussionId: string;
+  userId: string;
+  content: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Custom properties from join/aggregation
+  userFullName?: string;
+  userAvatar?: string;
+  likesCount?: number;
+  isLiked?: boolean;
+  isDisliked?: boolean;
+  repliesCount?: number;
+  replies?: DiscussionCommentResponse[];
+}
+export interface CreateDiscussionRequest {
+  problemId: string;
+  userId: string;
+  title?: string | null;
+  content?: string | null;
+}
+
+export interface CreateCommentRequest {
+  discussionId: string;
+  userId: string;
+  content: string | null;
+  parentId: string | null; // null for top-level comment
+}
+
+export interface UpdateCommentRequest {
+  commentId: string;
+  content: string | null;
+}
+
+export interface VoteCommentRequest {
+  commentId: string;
+  vote: number; // 1 for upvote, -1 for downvote, 0 to remove vote? (Backend implementation usually)
+}
+
+export interface HideCommentRequest {
+  commentId: string;
+}
+
+export interface ProblemDiscussionResponse {
+  id: string;
+  problemId: string;
+  userId: string;
+  title: string;
+  content: string;
+  isPinned: boolean;
+  isLocked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

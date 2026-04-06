@@ -1,19 +1,9 @@
 "use client";
 
 import React from "react";
-import {
-  FileText,
-  Clock,
-  Database,
-  Calendar,
-  CheckCircle2,
-import { 
-  CheckCircle2, Clock, Cpu, Target, FileText, Activity, AlertCircle 
-} from "lucide-react";
+import {CheckCircle2, Clock, Cpu, Target, Activity, AlertCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
-import { useAppSelector } from "@/utils/redux";
-import { Discussion } from "@/app/components/Discussion";
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

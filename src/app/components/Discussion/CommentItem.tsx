@@ -16,9 +16,7 @@ import {
   Share2,
   Pencil,
   EyeOff,
-  ArrowUp
 } from "lucide-react";
-import { DiscussionCommentResponse } from "@/types";
 import { CommentInput } from "./CommentInput";
 import { useAppSelector } from "@/utils/redux";
 
@@ -35,6 +33,7 @@ interface Props {
 
 import { useUpdateCommentMutation, useHideCommentMutation } from "@/store/queries/discussion";
 import { toast } from "sonner";
+import { DiscussionCommentResponse } from "@/types";
 
 export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess }: Props) => {
   const [showReplies, setShowReplies] = useState(false);

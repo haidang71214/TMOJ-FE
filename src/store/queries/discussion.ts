@@ -5,7 +5,6 @@ import {
   CreateDiscussionRequest,
   VoteCommentRequest,
   CreateCommentRequest,
-  DiscussionCommentResponse,
   UpdateCommentRequest,
   HideCommentRequest
 } from "@/types";

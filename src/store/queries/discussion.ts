@@ -35,10 +35,8 @@ export const discussionApi = baseApi.injectEndpoints({
         url: DiscussionEndpoint.VOTE_COMMENT,
         method: "POST", // Adjust to POST/PUT depending on actual API details
         body: body,
-        responseHandler: (response) => response.text(),
       }),
-      // Optimistic updates are handled in components or can be added here
-      invalidatesTags: [], // Not invalidating everything to avoid full refetch if optimistic is used
+      invalidatesTags: ["Discussion"], // Not invalidating everything to avoid full refetch if optimistic is used
     }),
     
     createComment: builder.mutation<any, CreateCommentRequest>({
@@ -48,7 +46,8 @@ export const discussionApi = baseApi.injectEndpoints({
         body,
       }),
       // Không cần invalidate nữa vì ta sẽ dùng Optimistic UI
-      invalidatesTags: [],
+      
+      invalidatesTags: ["Discussion"],
     }),
     
     updateComment: builder.mutation<any, UpdateCommentRequest>({
@@ -58,7 +57,8 @@ export const discussionApi = baseApi.injectEndpoints({
         body: body,
         responseHandler: (response) => response.text(),
       }),
-      invalidatesTags: [],
+     
+      invalidatesTags: ["Discussion"],
     }),
     
     hideComment: builder.mutation<any, HideCommentRequest>({
@@ -68,7 +68,8 @@ export const discussionApi = baseApi.injectEndpoints({
         body: body,
         responseHandler: (response) => response.text(),
       }),
-      invalidatesTags: [],
+      
+      invalidatesTags: ["Discussion"],
     }),
   }),
 });

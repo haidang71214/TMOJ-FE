@@ -16,7 +16,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 import CreateClassModal from "./CreateClassModal";
-import SlotManagement from "./SlotManagement";
+import SlotManagement from "./ClassSemesterManager";
 import { useModal } from "@/Provider/ModalProvider";
 
 // ── Interfaces (đặt ở đây hoặc import từ file types) ──
@@ -262,7 +262,7 @@ export default function ClassComponents() {
 
                   <TableCell>
                     <div className="flex justify-center gap-1">
-                      <Tooltip content="Manage Slots" placement="top">
+                      <Tooltip content="Manage Semester In Class" placement="top">
                         <Button
                           isIconOnly
                           size="sm"
@@ -282,11 +282,6 @@ export default function ClassComponents() {
                             <line x1="12" y1="12" x2="12" y2="16" />
                           </svg>
                         </Button>
-                      </Tooltip>
-
-                      {/* Các button khác giữ nguyên hoặc có thể thêm sau */}
-                      <Tooltip content="View Details" placement="top">
-                        <Button isIconOnly size="sm" variant="flat" className="...">👁️</Button>
                       </Tooltip>
                       <Tooltip content="Edit" placement="top">
                         <Button isIconOnly size="sm" variant="flat" className="...">✏️</Button>

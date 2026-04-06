@@ -75,21 +75,34 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   const zipRef = React.useRef<HTMLInputElement>(null);
 
   const handleStep1 = async () => {
-    if (!userData?.userId) { alert("User not loaded yet"); return; }
-    if (!form.slug || !form.title) { alert("Slug and Title are required"); return; }
+  if (!userData?.userId) {
+    alert("User not loaded yet");
+    return;
+  }
 
-    try {
-      const problem = await createProblemDraft({
-        ...form,
-      }).unwrap();
+  if (!form.slug || !form.title) {
+    alert("Slug and Title are required");
+    return;
+  }
 
-      setCreatedProblemId(problem.data.id);
-      setStep(1);
-    } catch (error) {
-      console.error("Create problem failed:", error);
-      alert("Create problem failed");
-    }
-  };
+  try {
+    const formData = new FormData();
+
+    Object.entries(form).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    const problem = await createProblemDraft(formData).unwrap();
+
+    setCreatedProblemId(problem.data.id);
+    setStep(1);
+  } catch (error) {
+    console.error("Create problem failed:", error);
+    alert("Create problem failed");
+  }
+};
 
   const handleStep2 = async () => {
     if (!createdProblemId) return;

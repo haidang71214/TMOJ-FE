@@ -21,7 +21,7 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const { data: discussionResponse, isLoading, isError } = useGetProblemDiscussionsQuery({ problemId });
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
-
+  
   const [comments, setComments] = useState<DiscussionCommentResponse[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
 

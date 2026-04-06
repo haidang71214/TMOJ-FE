@@ -11,9 +11,8 @@ import {
   ClassSlotResponse,
   StudentSlotScoreResponse,
   StudentSubmissionDetailResponse,
-  // ... các type khác nếu cần
 } from "@/types";
-
+// mấy cái này đổi thành class-instance
 export const classSlotApi = baseApi.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
@@ -58,7 +57,7 @@ export const classSlotApi = baseApi.injectEndpoints({
       { classId: string; data: CreateClassSlotRequest }
     >({
       query: ({ classId, data }) => ({
-        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{classId}", classId),
+        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{instanceId}", classId),
         method: "POST",
         body: data,
       }),

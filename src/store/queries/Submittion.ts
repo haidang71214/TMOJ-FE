@@ -1,4 +1,4 @@
-import { Runtime, RuntimeResponse, SubmissionResponse } from "@/types";
+import { Runtime, RuntimeResponse, SubmissionResponse, SubmitResponseV2 } from "@/types";
 import { baseApi } from "../base";
 import { RuntimeEndpoint, SubmittionEndPoint } from "@/constants/endpoints";
 
@@ -12,6 +12,12 @@ export const SubmitionApi = baseApi.injectEndpoints({
   }),
   invalidatesTags: ["submittion"],
 }),
+getSubmission: builder.query<SubmitResponseV2, {submissionId:string}>({
+    query: ({submissionId}) => ({
+      url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),     // ← thay url này bằng endpoint thật mà backend của bạn vừa làm
+      method: "GET",
+    }),
+  }),
 // get toàn bộ phần runtime, và get chi tiết phần runtime
 getRuntimeList: builder.query<RuntimeResponse, void>({
   query: () => ({
@@ -31,6 +37,7 @@ getRuntimeList: builder.query<RuntimeResponse, void>({
 
 
 export const {
+  useGetSubmissionQuery,
   usePostSubmissionMutation,
   useGetRuntimeListQuery,
   useGetRuntimeDetailQuery,

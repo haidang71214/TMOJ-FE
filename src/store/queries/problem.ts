@@ -13,9 +13,12 @@ export const prolemApi = baseApi.injectEndpoints({
   providesTags: ["Problem"],
 }),
 
-createProblemDraft: builder.mutation<CreateProblemDraftResponse, CreateProblemDraftRequest>({ // put,
+createProblemDraft: builder.mutation<
+  CreateProblemDraftResponse,
+  CreateProblemDraftRequest
+>({
   query: (body) => ({
-    url: `${ProblemEndPoint.CREATE_PROBLEM_DAFT}`,
+    url: ProblemEndPoint.CREATE_PROBLEM_DAFT,
     method: "POST",
     body,
   }),

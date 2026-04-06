@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   FileText,
@@ -6,173 +7,177 @@ import {
   Database,
   Calendar,
   CheckCircle2,
+import { 
+  CheckCircle2, Clock, Cpu, Target, FileText, Activity, AlertCircle 
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useAppSelector } from "@/utils/redux";
 import { Discussion } from "@/app/components/Discussion";
 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+
+// Types
+interface Problem {
+  title: string;
+  content?: string;
+  difficulty?: string;
+  statusCode?: string;
+  isActive?: boolean;
+  timeLimitMs?: number;
+  memoryLimitKb?: number;
+  acceptancePercent?: number;
+}
+
+const DIFFICULTY_MAP: Record<string, { color: string; bg: string; border: string; label: string }> = {
+  easy:   { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", label: "Easy" },
+  medium: { color: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",   label: "Medium" },
+  hard:   { color: "text-rose-700",     bg: "bg-rose-50",    border: "border-rose-200",     label: "Hard" },
+};
+
+const DEFAULT_DIFFICULTY = DIFFICULTY_MAP.easy;
+
+const getDifficulty = (difficulty?: string) => 
+  DIFFICULTY_MAP[difficulty?.toLowerCase() ?? "easy"] ?? DEFAULT_DIFFICULTY;
+
 export default function DescriptionTab() {
   const { id } = useParams<{ id: string }>();
 
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useGetDetailProblemPublicQuery({ id }, { skip: !id });
+  const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery(
+    { id }, 
+    { skip: !id }
+  );
 
-  const problem = response?.data;
-  const user = useAppSelector((state) => state.auth.user);
-  const currentUserId = user?.userId || "";
+  const problem = response?.data as Problem | undefined;
 
   if (isLoading) {
     return (
-      <div className="h-full px-6 py-5 flex items-center justify-center text-gray-500 dark:text-gray-400">
-        Đang tải...
+      <div className="h-full px-8 py-8 flex flex-col items-center justify-center text-slate-400 space-y-4 bg-white">
+        <div className="w-10 h-10 border-4 border-slate-100 border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="animate-pulse">Đang tải mô tả bài toán...</p>
       </div>
     );
   }
 
   if (isError || !problem) {
     return (
-      <div className="h-full px-6 py-5 flex items-center justify-center text-red-500">
-        Không tìm thấy bài toán.
+      <div className="h-full px-8 py-8 flex flex-col items-center justify-center text-rose-500 space-y-4 bg-white">
+        <AlertCircle size={48} className="text-rose-500/50" />
+        <p>Không tìm thấy bài toán hoặc đã có lỗi xảy ra.</p>
       </div>
     );
   }
 
-  // Map difficulty style
-  const difficultyMap: Record<
-    string,
-    { bg: string; text: string; label: string }
-  > = {
-    easy: { bg: "bg-cyan-500/10", text: "text-cyan-500", label: "Easy" },
-    medium: { bg: "bg-amber-500/10", text: "text-amber-500", label: "Medium" },
-    hard: { bg: "bg-red-500/10", text: "text-red-500", label: "Hard" },
-  };
-
-  const diff = difficultyMap[problem.difficulty?.toLowerCase() ?? "easy"];
-
-  // Format ngày tháng đơn giản
-  const formatDate = (dateStr: string | null) =>
-    dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "Not publish";
+  const diff = getDifficulty(problem.difficulty);
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-5 space-y-6 no-scrollbar">
-      {/* Title + Difficulty */}
-      <div className="space-y-3">
-        <h1 className="text-xl font-black text-[#262626] dark:text-[#F9FAFB]">
+    <div className="h-full overflow-y-auto px-6 md:px-10 py-8 space-y-10 no-scrollbar bg-slate-50 text-slate-700 selection:bg-orange-500/20">
+      
+      {/* Header */}
+      <div className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600 tracking-tight">
           {problem.title}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${diff.bg} ${diff.text}`}
-          >
+        <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
+          <span className={`px-3 py-1 rounded-full border ${diff.bg} ${diff.color} ${diff.border} flex items-center gap-1.5 shadow-sm`}>
+            <Activity size={14} />
             {diff.label}
           </span>
+          
+          {problem.statusCode && (
+            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+              {problem.statusCode}
+            </span>
+          )}
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-gray-400 dark:text-[#667085] bg-gray-100 dark:bg-[#101828] border dark:border-[#334155]">
-            <FileText size={11} /> {problem.statusCode}
+          <span className={`px-3 py-1 rounded-full border flex items-center gap-1.5 shadow-sm
+            ${problem.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}
+          >
+            <CheckCircle2 size={14} className={problem.isActive ? "text-emerald-600" : "text-slate-400"} />
+            {problem.isActive ? "Đang hoạt động" : "Tạm ngưng"}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Description Content - Render thật từ Markdown */}
+      <div className="prose prose-slate prose-headings:text-slate-900 prose-headings:font-bold 
+                      prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-800 
+                      prose-a:text-orange-600 hover:prose-a:text-orange-500 
+                      max-w-none text-[15.5px] leading-relaxed">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
+          components={{
+            code({ inline, className, children, ...props }: any) {
+              return !inline ? (
+                <div className="my-6 rounded-xl overflow-hidden bg-white border border-slate-200 shadow-sm">
+                  <div className="flex items-center px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-rose-400"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                    </div>
+                  </div>
+                  <pre className="p-4 overflow-auto text-sm bg-transparent !m-0">
+                    <code className={`${className} text-slate-800 font-mono`} {...props}>
+                      {children}
+                    </code>
+                  </pre>
+                </div>
+              ) : (
+                <code className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded-md text-[0.9em] font-mono border border-orange-100" {...props}>
+                  {children}
+                </code>
+              );
+            },
+            // Ẩn tiêu đề "Subtasks" nếu có trong markdown (tránh trùng với phần UI tĩnh)
+            h1: ({ children }) => (String(children).toLowerCase().trim() === "subtasks" ? null : <h1>{children}</h1>),
+            h2: ({ children }) => (String(children).toLowerCase().trim() === "subtasks" ? null : <h2>{children}</h2>),
+            h3: ({ children }) => (String(children).toLowerCase().trim() === "subtasks" ? null : <h3>{children}</h3>),
+          }}
+        >
+          {problem.content || "Chưa có mô tả cho bài toán này."}
+        </ReactMarkdown>
+      </div>
+      {/* Metadata */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-orange-200 transition-all group">
+          <div className="p-3 rounded-xl bg-orange-50 text-orange-500 group-hover:scale-110 transition-all">
+            <Clock size={20} />
           </div>
+          <div>
+            <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Time Limit</div>
+            <div className="font-bold text-slate-800">{problem.timeLimitMs} ms</div>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-gray-400 dark:text-[#667085] bg-gray-100 dark:bg-[#101828] border dark:border-[#334155]">
-            <CheckCircle2 size={11} />{" "}
-            {problem.isActive ? "Active" : "Inactive"}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-blue-200 transition-all group">
+          <div className="p-3 rounded-xl bg-blue-50 text-blue-500 group-hover:scale-110 transition-all">
+            <Cpu size={20} />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Memory Limit</div>
+            <div className="font-bold text-slate-800">{problem.memoryLimitKb} KB</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-amber-200 transition-all group">
+          <div className="p-3 rounded-xl bg-amber-50 text-amber-500 group-hover:scale-110 transition-all">
+            <Target size={20} />
+          </div>
+          <div>
+            <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Acceptance</div>
+            <div className="font-bold text-slate-800">
+              {problem.acceptancePercent?.toFixed(1) ?? "?"}%
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Nội dung chính */}
-      <div className="text-[14px] leading-7 text-[#3D3D3D] dark:text-[#CDD5DB] prose dark:prose-invert max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: problem.content ?? "" }} />
-      </div>
-
-      {/* Metadata - chỉ hiển thị field có thật */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 dark:bg-[#101828] rounded-xl p-5 border dark:border-[#334155]">
-        <div className="flex items-center gap-3">
-          <FileText size={16} className="text-gray-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">Slug</p>
-            <p className="text-[14px] font-mono text-[#262626] dark:text-[#F9FAFB] break-all">
-              {problem.slug}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Clock size={16} className="text-blue-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">
-              Time Limit
-            </p>
-            <p className="text-[14px] font-semibold text-[#262626] dark:text-[#F9FAFB]">
-              {problem.timeLimitMs} ms
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Database size={16} className="text-purple-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">
-              Memory Limit
-            </p>
-            <p className="text-[14px] font-semibold text-[#262626] dark:text-[#F9FAFB]">
-              {problem.memoryLimitKb} KB
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Calendar size={16} className="text-amber-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">
-              Created At
-            </p>
-            <p className="text-[14px] font-semibold text-[#262626] dark:text-[#F9FAFB]">
-              {formatDate(problem.createdAt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Calendar size={16} className="text-green-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">
-              Published At
-            </p>
-            <p className="text-[14px] font-semibold text-[#262626] dark:text-[#F9FAFB]">
-              {formatDate(problem.publishedAt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <CheckCircle2 size={16} className="text-emerald-500" />
-          <div>
-            <p className="text-[12px] text-gray-500 dark:text-gray-400">
-              Acceptance
-            </p>
-            <p className="text-[14px] font-semibold text-[#262626] dark:text-[#F9FAFB]">
-              {problem.acceptancePercent?.toFixed(2) ?? "?"}%
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer đơn giản - chỉ giữ acceptance */}
-      <div className="pt-5 border-t dark:border-[#334155] flex items-center gap-6 text-[12px] text-gray-400 dark:text-[#475569]">
-        <span className="flex items-center gap-1.5 font-bold">
-          Acceptance: {problem.acceptancePercent?.toFixed(1) ?? "??"}%
-        </span>
-        <span className="ml-auto flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          Online
-        </span>
-      </div>
-
-      <Discussion problemId={id} currentUserId={currentUserId} />
+      <div className="h-8" />
     </div>
   );
 }

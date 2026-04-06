@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import {
   useGetALLSemestersQuery,
   useUpdateSemesterMutation,
+  useGetSemesterImportTemplateMutation,
+  useImportSemestersMutation,
 } from "@/store/queries/Semester";
 
 import {
@@ -24,9 +26,46 @@ import { UpdateSemesterRequest } from "@/types";
 
 export default function SemesterComponents() {
   const { openModal } = useModal();
-  const { data, isLoading } = useGetALLSemestersQuery();
+  const { data, isLoading, refetch } = useGetALLSemestersQuery();
   const [updateSemester] = useUpdateSemesterMutation();
+  const [getTemplate, { isLoading: isDownloading }] = useGetSemesterImportTemplateMutation();
+  const [importSemesters, { isLoading: isImporting }] = useImportSemestersMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const semesters = data?.data?.items ?? [];
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await getTemplate().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SemesterTemplate.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download template:", error);
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        await importSemesters(formData).unwrap();
+        refetch();
+      } catch (error) {
+        console.error("Import failed:", error);
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const handleToggleActive = async (s: UpdateSemesterRequest,id:string) => {
     try {
@@ -71,37 +110,62 @@ export default function SemesterComponents() {
           </p>
         </div>
 
-        <Button
-          className="font-semibold text-white"
-          style={{
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            boxShadow:
-              "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
-          }}
-          startContent={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          }
-          onPress={() =>
-            openModal({
-              content: <CreateUpdateSemesterModal />,
-            })
-          }
-        >
-          Create Semester
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold"
+            isLoading={isDownloading}
+            onPress={handleDownloadTemplate}
+          >
+            Get Template
+          </Button>
+
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept=".xlsx,.xls,.csv" 
+            onChange={handleFileChange} 
+          />
+          <Button
+            className="bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold"
+            isLoading={isImporting}
+            onPress={() => fileInputRef.current?.click()}
+          >
+            Import
+          </Button>
+
+          <Button
+            className="font-semibold text-white"
+            style={{
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              boxShadow:
+                "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
+            }}
+            startContent={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+            }
+            onPress={() =>
+              openModal({
+                content: <CreateUpdateSemesterModal />,
+              })
+            }
+          >
+            Create Semester
+          </Button>
+        </div>
       </div>
 
       {/* STATS */}

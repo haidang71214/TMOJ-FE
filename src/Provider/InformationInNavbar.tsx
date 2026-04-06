@@ -58,8 +58,10 @@ export default function InformationInNavbar() {
   }
 };
 const checkadminpage = () => {
-  if (!user?.roles?.includes("admin")) return null;
-
+   if (user?.role !== "admin") {
+    return null;
+  } 
+  
   const isAdminPage =
     typeof window !== "undefined" &&
     (window.location.hostname.includes("admin") ||

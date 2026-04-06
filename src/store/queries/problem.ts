@@ -1,6 +1,6 @@
 import { ProblemEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
+import { CreateProblemDraftRequest, CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
 export const prolemApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -13,12 +13,14 @@ export const prolemApi = baseApi.injectEndpoints({
   providesTags: ["Problem"],
 }),
 
-createProblemDraft: builder.mutation<CreateProblemDraftResponse, FormData>({
-  query: (formData) => ({
-    url: `${ProblemEndPoint.CREATE_PROBLEM_DAFT}`,
+createProblemDraft: builder.mutation<
+  CreateProblemDraftResponse,
+  CreateProblemDraftRequest
+>({
+  query: (body) => ({
+    url: ProblemEndPoint.CREATE_PROBLEM_DAFT,
     method: "POST",
-    body: formData,           // Truyền trực tiếp FormData
-    // KHÔNG set Content-Type ở đây (RTK Query + browser sẽ tự xử lý boundary)
+    body,
   }),
   invalidatesTags: ["Problem"],
 }),

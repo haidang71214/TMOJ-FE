@@ -12,7 +12,7 @@ import {
   StudentSlotScoreResponse,
   StudentSubmissionDetailResponse,
 } from "@/types";
-
+// mấy cái này đổi thành class-instance
 export const classSlotApi = baseApi.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({

@@ -461,7 +461,7 @@ export interface ClassResponse {
 }
 export interface CreateClassRequest {
   subjectId: string;
-  semesterId: string;
+  semesterId: string ;
   classCode?: string | null;
   teacherId?: string | null;
 }
@@ -554,14 +554,16 @@ export interface ClassSlotResponse {
   createdAt: string;
   updatedAt: string;
   problems: SlotProblemResponse[];
-}export interface SlotProblemResponse {
+}
+export interface SlotProblemResponse {
   problemId: string;
   problemTitle?: string;
   problemSlug?: string;
   ordinal?: number;
   points?: number;
   isRequired: boolean;
-}export interface StudentSlotScoreResponse {
+}
+export interface StudentSlotScoreResponse {
   userId: string;
   displayName?: string;
   avatarUrl?: string;

@@ -59,7 +59,11 @@ public:
       refetchOnMountOrArgChange: true,   // Đảm bảo luôn fetch dữ liệu mới khi submissionId thay đổi
     }
   )
+  console.log("a",submissionData);
+  console.log("dasdadsa");
+  
   useEffect(() => {
+      console.log("dasdadsa");
     if (!submissionData?.data?.verdictCode || hasShownResultToast) return
 
     const verdict = submissionData.data.verdictCode
@@ -68,7 +72,8 @@ public:
       title: verdict,
       color: verdict === "Accepted" ? "success" : "danger",
     })
-
+    console.log("er",verdict);
+    
     setHasShownResultToast(true)
 
     if (verdict === "Accepted" && onSubmitSuccess) {
@@ -81,10 +86,12 @@ public:
     if (submissionId) {
       setHasShownResultToast(false)
     }
+      console.log("dasdadsa");
   }, [submissionId])
 
   // Polling lấy kết quả mỗi 10 giây
   useEffect(() => {
+      console.log("dasdadsa");
     if (!submissionId) return
 
     const timer = setTimeout(() => {
@@ -96,6 +103,7 @@ public:
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {
+      console.log("dasdadsa");
     if (runtimes.length > 0 && selectedRuntimeId === null) {
       const preferred = runtimes.find(r => 
         r.runtimeName.toLowerCase().includes("c++") || 

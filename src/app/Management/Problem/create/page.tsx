@@ -81,19 +81,18 @@ export default function CreateProblemPage() {
     }
 
     try {
-      const formData = new FormData();
+      const payload: CreateProblemDraftRequest = {
+  slug: form.slug,
+  title: form.title,
+  typeCode: form.typeCode,
+  visibilityCode: form.visibilityCode,
+  scoringCode: form.scoringCode,
+  descriptionMd: form.descriptionMd,
+  timeLimitMs: form.timeLimitMs,
+  memoryLimitKb: form.memoryLimitKb,
+};
 
-      // Thêm tất cả các trường vào FormData
-      formData.append("slug", form.slug);
-      formData.append("title", form.title);
-      // formData.append("difficulty", form.difficulty);
-      formData.append("typeCode", form.typeCode);
-      formData.append("visibilityCode", form.visibilityCode);
-      formData.append("scoringCode", form.scoringCode);
-      formData.append("descriptionMd", form.descriptionMd);
-      formData.append("timeLimitMs", form.timeLimitMs.toString());
-      formData.append("memoryLimitKb", form.memoryLimitKb.toString());
-      const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData
+const problem = await createProblemDraft(payload).unwrap();
       console.log(problem); // ok
       setCreatedProblemId(problem.data.id); // đang lấy set problem id
       setStep(1);

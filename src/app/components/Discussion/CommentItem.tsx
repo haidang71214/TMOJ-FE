@@ -23,7 +23,7 @@ import { useAppSelector } from "@/utils/redux";
 interface Props {
   comment: DiscussionCommentResponse;
   discussionId: string;
-  currentUserId: string;
+  currentUserId: string | undefined;
   onLike: (id: string) => void;
   onDownvote: (id: string) => void;
   onEditSuccess: (id: string, newContent: string) => void;

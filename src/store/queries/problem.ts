@@ -1,6 +1,6 @@
 import { ProblemEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { CreateProblemDraftRequest, CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
+import {  CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
 export const prolemApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -15,7 +15,7 @@ export const prolemApi = baseApi.injectEndpoints({
 
 createProblemDraft: builder.mutation<
   CreateProblemDraftResponse,
-  CreateProblemDraftRequest
+  FormData
 >({
   query: (body) => ({
     url: ProblemEndPoint.CREATE_PROBLEM_DAFT,

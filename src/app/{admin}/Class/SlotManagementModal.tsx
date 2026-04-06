@@ -185,7 +185,7 @@ export default function SlotManagementModal({
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                Slot Management
+                Class Detail Manager
               </h2>
               <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
                 {className

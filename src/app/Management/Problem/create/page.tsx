@@ -41,7 +41,7 @@ export default function CreateProblemPage() {
 
   const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
   const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
-  const [createTestCase] = useCreateTestCaseMutation();
+  const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
 
   // ── STEP 1: Problem form ──────────────────────────────────────────────────  difficulty: "medium",
@@ -81,20 +81,20 @@ export default function CreateProblemPage() {
     }
 
     try {
-      const payload: CreateProblemDraftRequest = {
-  slug: form.slug,
-  title: form.title,
-  typeCode: form.typeCode,
-  visibilityCode: form.visibilityCode,
-  scoringCode: form.scoringCode,
-  descriptionMd: form.descriptionMd,
-  timeLimitMs: form.timeLimitMs,
-  memoryLimitKb: form.memoryLimitKb,
-};
+      const formData = new FormData();
 
-const problem = await createProblemDraft(payload).unwrap();
-      console.log(problem); // ok
-      setCreatedProblemId(problem.data.id); // đang lấy set problem id
+      // Thêm tất cả các trường vào FormData
+      formData.append("slug", form.slug);
+      formData.append("title", form.title);
+      // formData.append("difficulty", form.difficulty);
+      formData.append("typeCode", form.typeCode);
+      formData.append("visibilityCode", form.visibilityCode);
+      formData.append("scoringCode", form.scoringCode);
+      formData.append("descriptionMd", form.descriptionMd);
+      formData.append("timeLimitMs", form.timeLimitMs.toString());
+      formData.append("memoryLimitKb", form.memoryLimitKb.toString());
+      const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData
+      setCreatedProblemId(problem.data.id);
       setStep(1);
     } catch (error) {
       console.error("Create problem failed:", error);
@@ -111,9 +111,9 @@ const problem = await createProblemDraft(payload).unwrap();
         id: createdProblemId,
         body: testset,
       }).unwrap();
-     console.log("aaaaaaaaaaaaa",ts); 
-     
-      setCreatedTestSetId(ts?.data?.id ?? null); // đang lấy testset id
+      console.log(ts.data.id);
+      
+      setCreatedTestSetId(ts?.data.id ?? null);
       setStep(2);
     } catch (error) {
       console.error("Create testset failed:", error);
@@ -122,20 +122,22 @@ const problem = await createProblemDraft(payload).unwrap();
   };
 
   const handleUploadTestCase = async () => {
+    console.log(createdProblemId,createdTestSetId);
+    
     if (!createdProblemId || !createdTestSetId) return;
     if (!zipFile) { alert("Please select a zip file"); return; }
-    
+
     try {
       const formData = new FormData();
       formData.append("file", zipFile);
       formData.append("replaceExisting", "true");
-      formData.append("testsetId", createdTestSetId); // lấy testsetDI rồi
+      formData.append("testsetId", createdTestSetId);
 
       const res = await createTestCase({
-        id: createdProblemId, // problemId
+        id: createdProblemId,
         body: formData,
       }).unwrap();
-      
+
       setUploadedCases((prev) => [
         ...prev,
         { name: zipFile.name, total: res.data?.total ?? 0 },
@@ -149,7 +151,7 @@ const problem = await createProblemDraft(payload).unwrap();
   };
 
   const handleFinish = () => {
-    handleUploadTestCase();
+    handleUploadTestCase()
     router.push(`/Problems/${createdProblemId}`);
   };
 
@@ -438,7 +440,7 @@ const problem = await createProblemDraft(payload).unwrap();
             <div>replaceExisting: <span className="text-green-400">true</span></div>
           </div>
 
-          {/* <Button
+          <Button
             startContent={<Upload size={16} />}
             onPress={handleUploadTestCase}
             isLoading={isCreatingTestCase}
@@ -446,7 +448,7 @@ const problem = await createProblemDraft(payload).unwrap();
             className="bg-[#071739] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em]"
           >
             Upload TestCases
-          </Button> */}
+          </Button>
 
           {/* Uploaded list */}
           {uploadedCases.length > 0 && (

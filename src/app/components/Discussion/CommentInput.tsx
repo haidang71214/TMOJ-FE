@@ -13,7 +13,7 @@ interface CommentInputProps {
   targetUser?: string;
   discussionId: string;
   parentId?: string;
-  userId: string;
+  userId: string | undefined;
   onCancel?: () => void;
   onSuccess?: (newComment?: any) => void;
   onSaveEdit?: (content: string) => Promise<void>;

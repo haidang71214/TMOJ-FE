@@ -29,8 +29,6 @@ export default function ClassDetailPage({
   const classId = resolvedParams.id;
 
   const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
-  console.log("lon lon",classData);
-  
   const classDetail = classData?.data;
   const instances = classDetail?.instances || [];
 
@@ -93,7 +91,7 @@ export default function ClassDetailPage({
             startContent={<Plus size={18} />}
             onPress={openCreateClassSemesterModal}
           >
-            CREATE NEW CLASS SEMESTER
+            ADD NEW SEMESTER FOR CLASS
           </Button>
 
           <Button

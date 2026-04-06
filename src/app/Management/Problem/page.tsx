@@ -357,7 +357,7 @@ export default function GlobalProblemListPage() {
                         <DropdownItem key="dl-solution">Download Solution</DropdownItem>
                         <DropdownItem key="dl-testset">Download Testset</DropdownItem>
                         <DropdownItem key="ul-solution">Upload New Solution</DropdownItem>
-                        <DropdownItem key="set-score" className="text-amber-500">Set Problem's Score</DropdownItem>
+                        <DropdownItem key="set-score" className="text-amber-500">Set Problem Score</DropdownItem>
                       </DropdownMenu>
                     </Dropdown>
 

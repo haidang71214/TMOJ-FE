@@ -8,7 +8,6 @@ import {
   Input,
   Select,
   SelectItem,
-  Textarea,
 } from "@heroui/react";
 
 import { ArrowLeft, Info, Rocket } from "lucide-react";
@@ -48,10 +47,6 @@ const semesters = semesterData?.data?.items ?? [];
     subjectId: "",
     semesterId: "",
     classCode: "",
-    className: "",
-    description: "",
-    startDate: "",
-    endDate: "",
     teacherId: "",
   });
 
@@ -77,10 +72,6 @@ const semesters = semesterData?.data?.items ?? [];
         subjectId: form.subjectId,
         semesterId: form.semesterId,
         classCode: form.classCode || null,
-        className: form.className || null,
-        description: form.description || null,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
         teacherId: form.teacherId || null,
       };
 
@@ -201,11 +192,11 @@ const semesters = semesterData?.data?.items ?? [];
 
                 <Input
                   label={
-    <div className="flex items-center gap-1">
-    Class Code
-      <RequiredStar rules={["Required field","Class Code must be unique"]} />
-    </div>
-  }
+                  <div className="flex items-center gap-1">
+                  Class Code
+                    <RequiredStar rules={["Required field","Class Code must be unique"]} />
+                  </div>
+                }
                   value={form.classCode}
                   onValueChange={(v) =>
                     handleChange("classCode", v)
@@ -218,75 +209,12 @@ const semesters = semesterData?.data?.items ?? [];
                     inputWrapper: "h-12 rounded-xl",
                   }}
                 />
-
-                <Input
-                      label={
-    <div className="flex items-center gap-1">
-    Class Name
-      <RequiredStar rules={["Required field","Class Name must be unique"]} />
-    </div>
-  }
-                  value={form.className}
-                  onValueChange={(v) =>
-                    handleChange("className", v)
-                  }
-                  labelPlacement="outside"
-                  variant="bordered"
-                  classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
-                    inputWrapper: "h-12 rounded-xl",
-                  }}
-                />
-
-                <Input
-                  type="date"
-                      label={
-    <div className="flex items-center gap-1">
-    Start Date
-      <RequiredStar rules={["Required field","Cannot be before today"]} />
-    </div>
-  }
-                  value={form.startDate}
-                  onValueChange={(v) =>
-                    handleChange("startDate", v)
-                  }
-                  labelPlacement="outside"
-                  variant="bordered"
-                  classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
-                    inputWrapper: "h-12 rounded-xl",
-                  }}
-                />
-
-                <Input
-                  type="date"
-                      label={
-    <div className="flex items-center gap-1">
-    End Date
-      <RequiredStar rules={["Required field"]} />
-    </div>
-  }
-                  value={form.endDate}
-                  onValueChange={(v) =>
-                    handleChange("endDate", v)
-                  }
-                  labelPlacement="outside"
-                  variant="bordered"
-                  classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
-                    inputWrapper: "h-12 rounded-xl",
-                  }}
-                />
-
                 <Select
-                   label={
-    <div className="flex items-center gap-1">
-    Teacher
-      <RequiredStar rules={["Required field"]} />
-    </div>}
+                              label={
+                <div className="flex items-center gap-1">
+                Teacher
+                  <RequiredStar rules={["Required field"]} />
+                </div>}
                   placeholder="Select teacher"
                   labelPlacement="outside"
                   variant="bordered"
@@ -310,23 +238,6 @@ const semesters = semesterData?.data?.items ?? [];
                     </SelectItem>
                   ))}
                 </Select>
-
-                <div className="flex flex-col gap-1 md:col-span-2">
-  <label className="font-black uppercase text-[10px] italic text-slate-500 flex items-center gap-1">
-    Description
-    <RequiredStar rules={["Required field"]} />
-  </label>
-
-  <Textarea
-    value={form.description}
-    onValueChange={(v) => handleChange("description", v)}
-    variant="bordered"
-    classNames={{
-      inputWrapper: "rounded-xl",
-    }}
-  />
-</div>
-
                 <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border-2 border-dashed border-divider flex items-center justify-between">
                   <span className="text-[10px] font-black uppercase italic text-slate-400">
                     Class Identifier

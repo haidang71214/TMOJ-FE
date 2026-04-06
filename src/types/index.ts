@@ -16,6 +16,13 @@ export interface LoginResponse {
   tokenType: string;
   user: Users;
 }
+export interface LoginGGResponse {
+  accessToken: string;
+  expiresIn: number;
+  refreshToken: string;
+  tokenType: string;
+  user: Users;
+}
 export interface Logout {
   message:string
 }
@@ -32,7 +39,33 @@ export interface Users {
   displayName: string;
   username: string;
   avatarUrl: string | null;
-  roles: string[];
+  role: string;
+  
+  isLocked?: boolean;
+}
+
+export enum UserRole {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  MANAGER = "manager",
+  ADMIN = "admin",
+}
+
+export const USER_ROLE_LABEL: Record<UserRole, string> = {
+  [UserRole.STUDENT]: "Student",
+  [UserRole.TEACHER]: "Teacher",
+  [UserRole.MANAGER]: "Manager",
+  [UserRole.ADMIN]: "Admin",
+};
+export interface ImportUsersResponse {
+  code: number;
+  message: string;
+  data: {
+    totalProcessed: number;
+    successCount: number;
+    failedCount: number;
+    errors: string[];
+  };
 }
 export interface ClassMemberResponse {
   userId: string;
@@ -93,7 +126,7 @@ export interface ProblemListResponse {
 export interface CreateProblemDraftRequest {
   slug: string;
   title: string;
-  difficulty: "easy" | "medium" | "hard";
+  // difficulty: "easy" | "medium" | "hard";
   typeCode: "algorithm" | "frontend" | "sql" /* thêm nếu có */;
   visibilityCode: "public" | "private";
   scoringCode: "acm" | "partial" | "oi" /* tùy hệ thống */;
@@ -101,7 +134,6 @@ export interface CreateProblemDraftRequest {
   displayIndex?: number;
   timeLimitMs: number;
   memoryLimitKb: number;
-  createdBy: string; // UUID của user
 }
 export interface ProblemDraft {
   id: string;                    // UUID dạng string
@@ -128,6 +160,9 @@ export interface CreateUserDto {
   age: number;
 }
 export interface ProblemTestsetResponse {
+  data:HiHi
+}
+export interface HiHi {
   id: string;
   problemId: string;
   type: string;
@@ -366,6 +401,7 @@ export interface SubmissionResponse {
 }
 export interface Semester {
   semesterId: string;
+  semesterCode: string;
   code: string;
   name: string;
 }
@@ -387,32 +423,32 @@ export interface Teacher {
   email: string;
   avatarUrl: string | null;
 }
+export interface ClassInstance {
+  classSemesterId: string;
+  semesterId: string;
+  semesterCode: string;
+  subjectId: string;
+  subjectCode: string;
+  subjectName: string;
+  subjectDescription: string;
+  startAt: string;           // ví dụ: "2026-03-11"
+  endAt: string;             // ví dụ: "2026-03-29"
+  inviteCode: string | null;
+  inviteCodeExpiresAt: string | null;
+  createdAt: string;
+  teacher: Teacher;
+  memberCount: number;
+}
 export interface ClassItem {
   classId: string;
-
   classCode: string;
-  className: string;
-
-  description: string;
-
-  startDate: string;
-  endDate: string;
-
   isActive: boolean;
-
-  inviteCode: string;
-  inviteCodeExpiresAt: string | null;
-
   createdAt: string;
   updatedAt: string;
+  
+  instances: ClassInstance[];     // ← Quan trọng: một class có thể có nhiều instance (nhiều môn/semester)
 
-  subject: Subject;
-
-  semester: Semester;
-
-  teacher: Teacher;
-
-  memberCount: number;
+  totalMemberCount: number;       // tổng thành viên của tất cả instances
 }
 export interface ClassListData {
   items: ClassItem[];
@@ -425,12 +461,8 @@ export interface ClassResponse {
 }
 export interface CreateClassRequest {
   subjectId: string;
-  semesterId: string;
+  semesterId: string ;
   classCode?: string | null;
-  className?: string | null;
-  description?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
   teacherId?: string | null;
 }
 export interface UpdateClassTeacherPayload {
@@ -522,14 +554,16 @@ export interface ClassSlotResponse {
   createdAt: string;
   updatedAt: string;
   problems: SlotProblemResponse[];
-}export interface SlotProblemResponse {
+}
+export interface SlotProblemResponse {
   problemId: string;
   problemTitle?: string;
   problemSlug?: string;
   ordinal?: number;
   points?: number;
   isRequired: boolean;
-}export interface StudentSlotScoreResponse {
+}
+export interface StudentSlotScoreResponse {
   userId: string;
   displayName?: string;
   avatarUrl?: string;
@@ -543,7 +577,9 @@ export interface ClassSlotResponse {
   score?: number;
   attempts: number;
   lastSubmittedAt?: string;
-}export interface StudentSubmissionDetailResponse {
+
+}
+export interface StudentSubmissionDetailResponse {
   submissionId: string;
   problemId: string;
   problemTitle?: string;
@@ -569,70 +605,27 @@ export interface addClassMemberRequest {
   userId?: string 
   email?: string
 }
+export interface CreateUserRequest {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  roles: string[];
+}
 
-// ── Discussion & Comment Types ───────────────────────
-
-export interface CreateDiscussionRequest {
-  problemId: string;
+export interface CreateUserResponse {
+  message: string;
   userId: string;
-  title?: string | null;
-  content?: string | null;
 }
 
-export interface CreateCommentRequest {
-  discussionId: string;
-  userId: string;
-  content: string | null;
-  parentId: string | null; // null for top-level comment
+export interface SubmitResponseV1 {
+  submissionId: string;      // Guid → string trong TS
+  judgeRunId: string; // Guid? → optional
+  judgeJobId: string;        // Guid → string
+  status: string;
+  verdictCode:string;
 }
-
-export interface UpdateCommentRequest {
-  commentId: string;
-  content: string | null;
-}
-
-export interface VoteCommentRequest {
-  commentId: string;
-  vote: number; // 1 for upvote, -1 for downvote, 0 to remove vote? (Backend implementation usually)
-}
-
-export interface HideCommentRequest {
-  commentId: string;
-}
-
-export interface ProblemDiscussionResponse {
-  id: string;
-  problemId: string;
-  userId: string;
-  title: string;
-  content: string;
-  isPinned: boolean;
-  isLocked: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DiscussionCommentResponse {
-  id: string;
-  discussionId: string;
-  userId: string;
-  content: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  
-  // Custom properties from join/aggregation
-  userFullName?: string;
-  userAvatar?: string;
-  likesCount?: number;
-  isLiked?: boolean;
-  isDisliked?: boolean;
-  repliesCount?: number;
-  replies?: DiscussionCommentResponse[];
-}
-
-export interface DiscussionResponseData {
-  data: DiscussionCommentResponse[];
-  message: string | null;
-  traceId?: string;
+export interface SubmitResponseV2 {
+  data: SubmitResponseV1
 }

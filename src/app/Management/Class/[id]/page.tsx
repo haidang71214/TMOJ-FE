@@ -1,40 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef } from "react";
+import React, { useState } from "react";
 import {
-  Tabs,
-  Tab,
-  Card,
-  CardBody,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   Button,
-  Pagination,
-  Chip,
+  Avatar,
   Spinner,
 } from "@heroui/react";
-
-import {
-  ChevronLeft,
-  Pencil,
-  ChevronDown,
-  Code2,
-  Eye,
-  EyeOff,
-  BadgeCheck,
-  Hourglass,
-  Plus,
-  Download,
-  Upload,
-} from "lucide-react";
-
+import { ChevronLeft, Calendar, Edit, Copy, Download, Trash2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useGetClassDetailQuery, useExportClassMutation } from "@/store/queries/Class";
-import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/queries/ClassSlot";
-import { ClassSlotResponse } from "@/types";
-import UpdateDueDateModal from "./UpdateDuaDateModal";
-import { useModal } from "@/Provider/ModalProvider";
-import ClassMembersPage from "./Member/ClassMembersPage";
-import AddStudentModal from "./Member/AddStudentToCLass";
+import { useGetClassDetailQuery } from "@/store/queries/Class";
+import CreateClassSemester from "../create/CreateClassSemester";
+
 
 export default function ClassDetailPage({
   params,
@@ -42,266 +25,227 @@ export default function ClassDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const resolvedParams = use(params);
+  const resolvedParams = React.use(params);
   const classId = resolvedParams.id;
-  const [publishSlot] = usePublishClassSlotMutation();
-  const [exportClass] = useExportClassMutation();
-  const [mounted, setMounted] = useState(false);
-  const [slotPage, setSlotPage] = useState(1);
-  const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
-  const { openModal } = useModal();
-  const rowsPerPage = 10;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const { data: classData } = useGetClassDetailQuery({ id: classId });
-
-  const { data: slotData, isLoading: slotLoading } =
-    useGetClassSlotsQuery(classId);
-
-  const classDetail = classData?.data;
-
-  const slots = slotData?.data ?? [];
-  console.log(slots);
+  const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
+  console.log("lon lon",classData);
   
+  const classDetail = classData?.data;
+  const instances = classDetail?.instances || [];
 
-  const handleExport = async () => {
-    try {
-      const blob = await exportClass({ id: classId }).unwrap();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Class_${classId}_Export.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export class", error);
+  // State cho Modal Create Class Semester
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Lấy thông tin subject và semester từ instance đầu tiên (hoặc bạn có thể cho chọn)
+  const firstInstance = instances[0];
+
+  const openCreateClassSemesterModal = () => {
+    if (!firstInstance) {
+      alert("Không có thông tin semester/subject để tạo!");
+      return;
     }
+
+    setIsCreateModalOpen(true);
   };
 
+  const handleCreateSuccess = () => {
+    refetch(); // Refresh lại chi tiết class sau khi tạo thành công
+  };
 
-
-  if (!mounted) return null;
-
-  return (
-    <div className="flex flex-col gap-8 pb-20 p-2 text-[#071739] dark:text-white max-w-[1400px] mx-auto">
-      {/* HEADER */}
-      <div className="flex justify-between items-start border-b border-slate-200 dark:border-white/10 pb-8">
-
-  {/* LEFT */}
-  <div className="flex flex-col gap-6">
-
-    <Button
-      variant="light"
-      onPress={() => router.back()}
-      className="font-black text-slate-400 uppercase px-0 text-[10px]"
-      startContent={<ChevronLeft size={16} />}
-    >
-      Back
-    </Button>
-
-    <div className="space-y-2">
-      <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
-        {classDetail?.classCode || classId}
-      </h2>
-
-      <p className="font-bold italic text-slate-500 uppercase text-sm">
-        {classDetail?.className || "Loading..."}
-      </p>
-
-      <div className="bg-[#071739] px-4 py-1.5 rounded-full text-white text-[10px] font-black italic border border-white/10 shadow-xl uppercase flex items-center gap-2 w-fit mt-3">
-        <span className="text-[#FF5C00]">Owner:</span>
-        {classDetail?.teacher?.displayName || "UNASSIGNED"}
-        <Pencil size={12} className="text-slate-400" />
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center">
+        <Spinner size="lg" color="primary" />
+        <p className="mt-4 text-slate-500">Đang tải thông tin lớp học...</p>
       </div>
-    </div>
-
-  </div>
-
-  {/* RIGHT BUTTON */}
-  <div className="flex gap-3 items-center" style={{marginTop:60}}>
-    <Button
-      startContent={<Download size={16} strokeWidth={3} />}
-      size="lg"
-      color="success"
-      variant="flat"
-      onPress={handleExport}
-      className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700 flex-shrink-0"
-    >
-      EXPORT
-    </Button>
-    <Button
-      startContent={<Plus size={20} strokeWidth={3} />}
-      size="lg"
-      color="warning"
-      onPress={() =>
-        openModal({
-          content: <AddStudentModal classId={classId} />,
-        })
-      }
-      className="text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 flex-shrink-0"
-    >
-      ADD STUDENT
-    </Button>
-  </div>
-
-</div>
-
-      {/* TABS */}
-      <Tabs
-        variant="underlined"
-        classNames={{
-          cursor: "bg-[#FF5C00]",
-          tab: "font-black uppercase italic text-sm h-12 mr-12",
-          tabContent: "group-data-[selected=true]:text-[#FF5C00]",
-        }}
-      >
-        <Tab key="slots" title="Class Curriculum">
-          <div className="flex flex-col gap-4 mt-8">
-            {slotLoading && (
-              <div className="flex justify-center py-20">
-                <Spinner />
-              </div>
-            )}
-
-            {slots
-              .slice((slotPage - 1) * rowsPerPage, slotPage * rowsPerPage)
-              .map((slot:ClassSlotResponse) => (
-                <Card
-                  key={slot.id}
-                  className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm overflow-hidden border border-transparent hover:border-[#FF5C00]/30 transition-all"
-                >
-                  <CardBody className="p-0">
-                    <div
-                      className="p-6 flex items-center justify-between group cursor-pointer"
-                      onClick={() =>
-                        setExpandedSlot(
-                          expandedSlot === slot.id ? null : slot.id
-                        )
-                      }
-                    >
-                      <div className="flex items-center gap-5">
-                        <div className="p-3 rounded-2xl bg-slate-100 text-slate-400">
-                          {slot.isPublished ? (
-  <BadgeCheck size={24} className="text-emerald-500" />
-) : (
-  <Hourglass size={24} className="text-slate-400" />
-)}
-                        </div>
-
-                        <div>
-                          <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                         Slot no {slot.slotNo}:  {slot.title}
-                          </h4>
-
-                          <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                            {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                        color="warning"
-  isIconOnly
-  size="sm"
-  variant="flat"
-  onPress={() =>
-    openModal({
-      content: (
-        <UpdateDueDateModal
-          classId={classId}
-          slotId={slot.id}
-          dueAt={slot.dueAt}
-          closeAt={slot.closeAt}
-        />
-      ),
-    })
+    );
   }
->
-  <Pencil size={14} />
-</Button>
-                          <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        onPress={() =>
-                          publishSlot({
-                            classId,
-                            slotId: slot.id,
-                          })
-                        }
-                      >
-                        {slot.isPublished ? (
-                          <Eye className="text-emerald-500" size={18} />
-                        ) : (
-                          <EyeOff className="text-gray-400" size={18} />
-                        )}
-                      </Button>
-                       
 
-                        <ChevronDown
-                          size={20}
-                          className={`text-slate-300 transition-transform ${
-                            expandedSlot === slot.id
-                              ? "rotate-180 text-[#FF5C00]"
-                              : ""
-                          }`}
-                        />
-                      </div>
+  if (!classDetail || instances.length === 0) {
+    return (
+      <div className="text-center py-20 text-red-500">
+        Không tìm thấy thông tin instances cho lớp này.
+      </div>
+    );
+  }
+  const Move =(id:string) =>{
+      router.push(`/Management/ClassSemester/${id}`)
+  }
+  return (
+    <div className="flex flex-col h-full gap-8 p-2">
+      {/* HEADER */}
+      <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
+        <div>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+            CLASS <span className="text-[#FF5C00]">{classDetail.classCode || "DETAIL"}</span>
+          </h1>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
+            Instances Management
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Nút tạo Class Semester mới */}
+          <Button
+            color="primary"
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider"
+            startContent={<Plus size={18} />}
+            onPress={openCreateClassSemesterModal}
+          >
+            CREATE NEW CLASS SEMESTER
+          </Button>
+
+          <Button
+            variant="light"
+            startContent={<ChevronLeft size={20} />}
+            onPress={() => router.back()}
+          >
+            Quay lại
+          </Button>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <Table
+          aria-label="Class Instances Table"
+          removeWrapper
+          classNames={{
+            base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
+            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
+            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
+          }}
+        >
+          <TableHeader>
+            <TableColumn>ID</TableColumn>
+            <TableColumn>SEMESTER CODE</TableColumn>
+            <TableColumn>SUBJECT CODE</TableColumn>
+            <TableColumn>SUBJECT NAME</TableColumn>
+            <TableColumn>START DATE</TableColumn>
+            <TableColumn>END DATE</TableColumn>
+            <TableColumn>TEACHER</TableColumn>
+            <TableColumn className="text-right">OPERATIONS</TableColumn>
+          </TableHeader>
+
+          <TableBody emptyContent="Không có instance nào">
+            {instances.map((instance: any, index: number) => (
+              <TableRow
+                style={{cursor:'pointer'}}
+                onClick={()=>{Move(instance.classSemesterId)}}
+                key={instance.classSemesterId || index}
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+              >
+                {/* ID */}
+                <TableCell>
+                  <span className="font-mono text-xs text-slate-400 break-all">
+                    {instance.classSemesterId}
+                  </span>
+                </TableCell>
+
+                {/* Semester Code */}
+                <TableCell>
+                  <span className="font-black uppercase tracking-wide text-base">
+                    {instance.semesterCode || "—"}
+                  </span>
+                </TableCell>
+
+                {/* Subject Code */}
+                <TableCell>
+                  <span className="font-black uppercase tracking-wide text-base">
+                    {instance.subjectCode || "—"}
+                  </span>
+                </TableCell>
+
+                {/* Subject Name */}
+                <TableCell>
+                  <span className="font-medium">
+                    {instance.subjectName || "—"}
+                  </span>
+                </TableCell>
+
+                {/* Start Date */}
+                <TableCell>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar size={16} className="text-slate-400" />
+                    {instance.startAt || "—"}
+                  </div>
+                </TableCell>
+
+                {/* End Date */}
+                <TableCell>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar size={16} className="text-slate-400" />
+                    {instance.endAt || "—"}
+                  </div>
+                </TableCell>
+
+                {/* Teacher */}
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      src={instance.teacher?.avatarUrl}
+                      alt={instance.teacher?.displayName || ""}
+                      className="w-9 h-9"
+                      fallback={
+                        instance.teacher?.displayName
+                          ? instance.teacher.displayName.slice(0, 2).toUpperCase()
+                          : "??"
+                      }
+                    />
+                    <div>
+                      <p className="font-medium text-sm leading-tight">
+                        {instance.teacher?.displayName || "Chưa có giáo viên"}
+                      </p>
+                      {instance.teacher?.email && (
+                        <p className="text-[10px] text-slate-500">{instance.teacher.email}</p>
+                      )}
                     </div>
+                  </div>
+                </TableCell>
 
-                    {expandedSlot === slot.id && (
-                      <div className="px-10 pb-10 border-t border-divider dark:border-white/5">
-                        <div className="space-y-4 mt-8">
-                          <p className="text-[11px] font-[1000] uppercase italic text-blue-600 flex items-center gap-2">
-                            <Code2 size={14} /> Assigned Problems
-                          </p>
+                {/* Operations */}
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
+                      <Edit size={16} className="text-slate-500" />
+                    </Button>
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
+                      <Copy size={16} className="text-slate-500" />
+                    </Button>
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
+                      <Download size={16} className="text-slate-500" />
+                    </Button>
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9 text-rose-500">
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-                          {slot.problems?.map((p) => (
-                            <div
-                              key={p.problemId}
-                              onClick={() =>
-                                router.push(`/Problems/${p.problemSlug}`)
-                              }
-                              className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border dark:border-white/5 hover:border-blue-500/50 transition-all cursor-pointer"
-                            >
-                              <p className="font-black text-xs uppercase italic">
-                                {p.problemTitle}
-                              </p>
-
-                              <Chip
-                                size="sm"
-                                variant="flat"
-                                className="font-black uppercase text-[8px]"
-                              >
-                                {p.points ?? 0} pts
-                              </Chip>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardBody>
-                </Card>
-              ))}
-
-            <Pagination
-              total={Math.ceil(slots.length / rowsPerPage)}
-              page={slotPage}
-              onChange={setSlotPage}
-              className="self-center mt-6"
-            />
-          </div>
-        </Tab>
-        <Tab key="members" title="Members">
-  <ClassMembersPage params={params} />
-</Tab>
-      </Tabs>
+      {/* ==================== CREATE CLASS SEMESTER MODAL ==================== */}
+      <CreateClassSemester
+  isOpen={isCreateModalOpen}
+  onClose={() => setIsCreateModalOpen(false)}
+  classCode={classDetail?.classCode} 
+  onSuccess={handleCreateSuccess}
+/>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+        }
+      `}</style>
     </div>
   );
 }

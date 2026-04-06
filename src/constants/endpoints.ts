@@ -89,8 +89,17 @@ const NotificationEndpoint = {
   MARK_AS_READ: `${API_PREFIX}/notification/read/{id}`,
   DELETE_NOTIFICATION: `${API_PREFIX}/notification/{id}`,
 };
-// rim đã ở đây 
-// a hihi 
+const DiscussionEndpoint = {
+  GET_PROBLEM_DISCUSSIONS: `${API_PREFIX}/problem-discussion`,
+  CREATE_DISCUSSION: `${API_PREFIX}/problem-discussion`,
+  GET_DISCUSSION: `${API_PREFIX}/problem-discussion/{discussionId}`,
+  DELETE_DISCUSSION: `${API_PREFIX}/problem-discussion/{id}`,
+  CREATE_COMMENT: `${API_PREFIX}/problem-discussion/comment`,
+  UPDATE_COMMENT: `${API_PREFIX}/problem-discussion/comment`,
+  DELETE_COMMENT: `${API_PREFIX}/problem-discussion/comment/{id}`,
+  VOTE_COMMENT: `${API_PREFIX}/problem-discussion/comments/vote`,
+  HIDE_COMMENT: `${API_PREFIX}/problem-discussion/comments/hide`,
+};
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -103,6 +112,6 @@ export {
   ClassEndpoint,
   SubjectEndpoint,
   SemesterEndpoint,
-  NotificationEndpoint
+  NotificationEndpoint,
+  DiscussionEndpoint
 };
-

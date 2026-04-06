@@ -61,7 +61,6 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
     displayIndex: 1,
     timeLimitMs: 1000,
     memoryLimitKb: 262144,
-    createdBy: "",
   });
 
   // ── STEP 2: TestSet form
@@ -82,7 +81,6 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
     try {
       const problem = await createProblemDraft({
         ...form,
-        createdBy: userData.userId,
       }).unwrap();
 
       setCreatedProblemId(problem.data.id);
@@ -102,8 +100,8 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
         id: createdProblemId,
         body: testset,
       }).unwrap();
-
-      setCreatedTestSetId(ts?.id ?? null);
+      
+      setCreatedTestSetId(ts?.data.id ?? null);
       setStep(2);
     } catch (error) {
       console.error("Create testset failed:", error);
@@ -226,7 +224,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
             <Divider />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Select
+              {/* <Select
                 label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field"]} /></div>}
                 selectedKeys={[form.difficulty]}
                 onSelectionChange={(keys) => setForm({ ...form, difficulty: Array.from(keys)[0] as any })}
@@ -237,7 +235,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
                 <SelectItem key="easy">Easy</SelectItem>
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="hard">Hard</SelectItem>
-              </Select>
+              </Select> */}
               
               <Input
                 label={<div className="flex items-center gap-1">Time Limit (ms)<RequiredStar rules={["Required field"]} /></div>}

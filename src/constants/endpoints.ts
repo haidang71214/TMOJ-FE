@@ -67,7 +67,7 @@ const ClassEndpoint = {
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`, // chưa làm
   OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
-  EXPORT_CLASS: `${API_PREFIX}/Class/{id}/report/export`,
+  EXPORT_CLASS: `${API_PREFIX}/Class/{id}/report/export`, // đang sửa
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

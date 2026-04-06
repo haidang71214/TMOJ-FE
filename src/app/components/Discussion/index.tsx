@@ -14,7 +14,7 @@ import {
 
 interface DiscussionProps {
   problemId: string;
-  currentUserId: string; // From auth context or props
+  currentUserId: string | undefined; // From auth context or props
 }
 
 export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
@@ -170,12 +170,13 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
           ({safeComments.length})
         </span>
       </h3>
-
-      <CommentInput 
+    {currentUserId?
+     <CommentInput 
         discussionId={discussionId} 
         userId={currentUserId} 
         onSuccess={(newComment) => handleAddReply(null, newComment)}
       />
+    :<div>Phải đăng nhập mới bình luận được</div>}
 
       <div className="space-y-2 min-h-[400px]">
         {currentTableData.map((comment) => (

@@ -8,6 +8,8 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { Discussion } from "@/app/components/Discussion";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 
 // Types
 interface Problem {
@@ -34,7 +36,8 @@ const getDifficulty = (difficulty?: string) =>
 
 export default function DescriptionTab() {
   const { id } = useParams<{ id: string }>();
-
+     const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
+    console.log("aaaaaaaaaaa",userData);
   const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery(
     { id }, 
     { skip: !id }
@@ -168,6 +171,8 @@ export default function DescriptionTab() {
       </div>
 
       <div className="h-8" />
+       <Discussion problemId={id} currentUserId={userData?.userId} />
+   
     </div>
   );
 }

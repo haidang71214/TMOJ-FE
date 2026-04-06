@@ -59,13 +59,18 @@ getClasses: builder.query<ClassResponse, {
   providesTags: ["Class"],
 }),
 
-    exportClass: builder.mutation<Blob, { id: string }>({
-      query: ({ id }) => ({
-        url: ClassEndpoint.EXPORT_CLASS.replace("{id}", id),
-        method: "GET",
-        responseHandler: (response) => response.blob(),
-      }),
-    }),
+ exportClass: builder.mutation<
+  Blob,
+  { semesterId?: string; subjectId?: string }
+>({
+  query: (params) => ({
+    url: ClassEndpoint.EXPORT_CLASS,
+    method: "GET",
+    params,
+    responseHandler: (response) => response.blob(),
+  }),
+}),
+
 addClassMembers: builder.mutation<
   void,
   { id: string; data: addClassMemberRequest }

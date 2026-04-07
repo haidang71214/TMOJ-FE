@@ -15,6 +15,7 @@ import {
 } from "@heroui/react";
 import { Search, Database, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useModal } from "@/Provider/ModalProvider";
 
 // Định nghĩa interface cho dữ liệu tĩnh
 interface ProblemBankItem {
@@ -47,7 +48,7 @@ export const AddProblemModal = ({
   const [searchBank, setSearchBank] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
+    const { closeModal } = useModal();
   const filteredBank = useMemo(() => {
     return PROBLEM_BANK_DATA.filter((p) => {
       const matchSearch = p.title
@@ -66,12 +67,12 @@ export const AddProblemModal = ({
     setSelectedIds(newSelected);
   };
 
-  const handleConfirm = (onClose: () => void) => {
+  const handleConfirm = () => {
     // Lọc ra danh sách các đối tượng đã chọn thay vì dùng any
     const selected = PROBLEM_BANK_DATA.filter((p) => selectedIds.has(p.id));
     onConfirm(selected);
     setSelectedIds(new Set());
-    onClose();
+    closeModal();
   };
 
   return (
@@ -221,7 +222,7 @@ export const AddProblemModal = ({
               </Button>
               <Button
                 className="bg-blue-600 dark:bg-[#22C55E] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
-                onPress={() => handleConfirm(onClose)}
+                onPress={() => handleConfirm()}
                 isDisabled={selectedIds.size === 0}
               >
                 Confirm & Add

@@ -36,7 +36,7 @@ const getDifficulty = (difficulty?: string) =>
 
 export default function DescriptionTab() {
   const { id } = useParams<{ id: string }>();
-     const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
+     const { data: userData, } = useGetUserInformationQuery();
     console.log("aaaaaaaaaaa",userData);
   const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery(
     { id }, 

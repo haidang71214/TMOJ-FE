@@ -60,7 +60,8 @@ export default function ClassComponents() {
   // State để quản lý việc xem SlotManagement
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedClassName, setSelectedClassName] = useState<string>("");
-
+  console.log(selectedClassId);
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">

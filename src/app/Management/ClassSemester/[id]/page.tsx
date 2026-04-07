@@ -10,6 +10,13 @@ import {
   Pagination,
   Spinner,
   Chip,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  addToast,
 } from "@heroui/react";
 
 import {
@@ -23,12 +30,12 @@ import {
   Hourglass,
   Plus,
   Download,
+  Trash2,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
-
-import { useGetClassDetailQuery } from "@/store/queries/Class";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/queries/ClassSlot";
+import { useDeleteSlotProblemsMutation } from "@/store/queries/Class";
 import { ClassSlotResponse } from "@/types";
 import { useModal } from "@/Provider/ModalProvider";
 
@@ -36,7 +43,8 @@ import AddStudentModal from "../../Class/[id]/Member/AddStudentToCLass";
 import UpdateDueDateModal from "../../Class/[id]/UpdateDuaDateModal";
 import ClassMembersPage from "../../Class/[id]/Member/ClassMembersPage";
 import CreateSlotForma from "../../Class/CreateSlotForClassSession";
-
+import AddProblemToSlotForm from "../../../../Provider/ImportProblemForm";
+import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
 
 export default function ClassDetailPage({
   params,
@@ -47,8 +55,12 @@ export default function ClassDetailPage({
   const resolvedParams = React.use(params);
   const classId = resolvedParams.id;
 
+  const searchParams = useSearchParams();
+  const classCode = searchParams.get("classCode") || "Unknown";
+  const semesterCode = searchParams.get("semesterCode") || "";
+
   const [publishSlot] = usePublishClassSlotMutation();
-  // const [exportClass] = useExportClassMutation();
+  const [deleteProblems] = useDeleteSlotProblemsMutation();
 
   const [mounted, setMounted] = useState(false);
   const [slotPage, setSlotPage] = useState(1);
@@ -61,26 +73,51 @@ export default function ClassDetailPage({
     setMounted(true);
   }, []);
 
-  const { data: classData } = useGetClassDetailQuery({ id: classId });
   const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(classId);
-
-  const classDetail = classData?.data;
   const slots = slotData?.data ?? [];
 
-  // === Mở Modal Create Slot ===
   const openCreateSlotModal = () => {
     openModal({
       content: <CreateSlotForma classId={classId} />,
     });
   };
 
+  const openAddProblemModal = (slotId: string) => {
+    openModal({
+      content: <AddProblemToSlotForm slotId={slotId} instanceId={classId} />,
+    });
+  };
+
+  const handleDeleteProblem = async (slotId: string, problemId: string) => {
+    try {
+      await deleteProblems({
+        instanceId: classId,
+        slotId,
+        problemIds: [problemId],
+      }).unwrap();
+
+      addToast({
+        title:"Problem removed successfully",
+        color:"success"
+      });
+    } catch (err) {
+      console.error(err);
+      addToast({
+        title:"Problem removed fail",
+        color:"danger"
+      });
+    }
+  };
+
   const handleExport = async () => {
     try {
-      // const blob = await exportClass(...).unwrap();   // uncomment khi API sẵn
-      // ... xử lý download
       console.log("Export class", classId);
     } catch (error) {
       console.error("Failed to export class", error);
+       addToast({
+        title:"Export failed",
+        color:"danger"
+      });
     }
   };
 
@@ -90,12 +127,11 @@ export default function ClassDetailPage({
     <div className="flex flex-col gap-8 pb-20 p-2 text-[#071739] dark:text-white max-w-[1400px] mx-auto">
       {/* HEADER */}
       <div className="flex justify-between items-start border-b border-slate-200 dark:border-white/10 pb-8">
-        {/* LEFT */}
         <div className="flex flex-col gap-6">
           <Button
             variant="light"
             onPress={() => router.back()}
-            className="font-black text-slate-400 uppercase px-0 text-[10px]"
+            className="font-black"
             startContent={<ChevronLeft size={16} />}
           >
             Back
@@ -103,12 +139,11 @@ export default function ClassDetailPage({
 
           <div className="space-y-2">
             <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
-              {classDetail?.classCode || classId}
+              {classCode} - {semesterCode}
             </h2>
           </div>
         </div>
 
-        {/* RIGHT BUTTONS */}
         <div className="flex gap-3 items-center" style={{ marginTop: 60 }}>
           <Button
             startContent={<Download size={16} strokeWidth={3} />}
@@ -118,24 +153,28 @@ export default function ClassDetailPage({
             onPress={handleExport}
             className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700"
           >
-            EXPORT
+            EXPORT STUDENT LIST
           </Button>
-
+          <Button
+            startContent={<Download size={16} strokeWidth={3} />}
+            size="lg"
+            color="success"
+            variant="flat"
+            onPress={handleExport}
+            className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700"
+          >
+            IMPORT STUDENT LIST
+          </Button>
           <Button
             startContent={<Plus size={20} strokeWidth={3} />}
             size="lg"
             color="warning"
-            onPress={() =>
-              openModal({
-                content: <AddStudentModal classId={classId} />,
-              })
-            }
+            onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
             className="text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
           >
             ADD STUDENT
           </Button>
 
-          {/* NÚT TẠO SLOT MỚI - Màu cam nổi bật */}
           <Button
             startContent={<Plus size={20} strokeWidth={3} />}
             size="lg"
@@ -172,6 +211,7 @@ export default function ClassDetailPage({
                   className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm overflow-hidden border border-transparent hover:border-[#FF5C00]/30 transition-all"
                 >
                   <CardBody className="p-0">
+                    {/* Slot Header */}
                     <div
                       className="p-6 flex items-center justify-between group cursor-pointer"
                       onClick={() =>
@@ -186,7 +226,6 @@ export default function ClassDetailPage({
                             <Hourglass size={24} className="text-slate-400" />
                           )}
                         </div>
-
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
                             Slot no {slot.slotNo}: {slot.title}
@@ -223,18 +262,23 @@ export default function ClassDetailPage({
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          onPress={() =>
-                            publishSlot({
-                              classId,
-                              slotId: slot.id,
-                            })
-                          }
+                          onPress={() => publishSlot({ classId, slotId: slot.id })}
                         >
                           {slot.isPublished ? (
                             <Eye className="text-emerald-500" size={18} />
                           ) : (
                             <EyeOff className="text-gray-400" size={18} />
                           )}
+                        </Button>
+
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="secondary"
+                          onPress={() => openAddProblemModal(slot.id)}
+                        >
+                          <Code2 size={18} />
                         </Button>
 
                         <ChevronDown
@@ -246,27 +290,126 @@ export default function ClassDetailPage({
                       </div>
                     </div>
 
+                    {/* Expanded Problems Table */}
                     {expandedSlot === slot.id && (
                       <div className="px-10 pb-10 border-t border-divider dark:border-white/5">
-                        <div className="space-y-4 mt-8">
-                          <p className="text-[11px] font-[1000] uppercase italic text-blue-600 flex items-center gap-2">
-                            <Code2 size={14} /> Assigned Problems
-                          </p>
+                        <div className="mt-8">
+                          <div className="flex justify-between items-center mb-6">
+                            <p className="text-[11px] font-[1000] uppercase italic text-blue-600 flex items-center gap-2">
+                              <Code2 size={14} /> ASSIGNED PROBLEMS
+                            </p>
 
-                          {slot.problems?.map((p) => (
-                            <div
-                              key={p.problemId}
-                              onClick={() => router.push(`/Problems/${p.problemSlug}`)}
-                              className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border dark:border-white/5 hover:border-blue-500/50 transition-all cursor-pointer"
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
+                              onPress={() =>
+                                openModal({
+                                  title: "Update Problems in Slot",
+                                  content: (
+                                    <UpdateProblemIntoSlot
+                                      instanceId={classId}
+                                      slotId={slot.id}
+                                      problems={
+                                        slot.problems?.map((p) => ({
+                                          problemId: p.problemId,
+                                          ordinal: p.ordinal ?? 0,
+                                          points: p.points ?? 0,
+                                          isRequired: p.isRequired ?? true,
+                                          title: p.problemTitle,
+                                        })) ?? []
+                                      }
+                                    />
+                                  ),
+                                })
+                              }
                             >
-                              <p className="font-black text-xs uppercase italic">
-                                {p.problemTitle}
-                              </p>
-                              <Chip size="sm" variant="flat" className="font-black uppercase text-[8px]">
-                                {p.points ?? 0} pts
-                              </Chip>
-                            </div>
-                          ))}
+                              EDIT ALL PROBLEMS
+                            </Button>
+                          </div>
+
+                          <Table
+                            aria-label={`Problems in slot ${slot.slotNo}`}
+                            removeWrapper
+                            classNames={{
+                              base: "bg-white dark:bg-[#111c35] rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-white/5",
+                              th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
+                              td: "py-5 font-medium text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
+                            }}
+                          >
+                            <TableHeader>
+                              <TableColumn>ORDINAL</TableColumn>
+                              <TableColumn>PROBLEM TITLE</TableColumn>
+                              <TableColumn>POINTS</TableColumn>
+                              <TableColumn>REQUIRED</TableColumn>
+                              <TableColumn className="text-right">ACTIONS</TableColumn>
+                            </TableHeader>
+                            <TableBody emptyContent="Chưa có bài tập nào được gán vào slot này">
+                              {slot.problems?.map((p, index) => (
+                                <TableRow
+                                  key={p.problemId}
+                                  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                  onClick={() => router.push(`/Problems/${p.problemId}`)}
+                                >
+                                  <TableCell>
+                                    <Chip
+                                      variant="flat"
+                                      size="sm"
+                                      className="font-bold bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400"
+                                    >
+                                      #{p.ordinal ?? index + 1}
+                                    </Chip>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <div className="font-semibold text-base group-hover:text-[#FF5C00] transition-colors">
+                                      {p.problemTitle}
+                                    </div>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Chip
+                                      variant="flat"
+                                      size="sm"
+                                      className="font-black bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400"
+                                    >
+                                      {p.points ?? 0} pts
+                                    </Chip>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <Chip
+                                      variant="flat"
+                                      size="sm"
+                                      className={`font-black uppercase ${
+                                        p.isRequired
+                                          ? "bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400"
+                                          : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                      }`}
+                                    >
+                                      {p.isRequired ? "REQUIRED" : "OPTIONAL"}
+                                    </Chip>
+                                  </TableCell>
+
+                                  <TableCell>
+                                    <div className="flex justify-end">
+                                      <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="flat"
+                                        color="danger"
+                                        onPress={() => {
+                                          handleDeleteProblem(slot.id, p.problemId);
+                                        }}
+                                      >
+                                        <Trash2 size={16} />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     )}

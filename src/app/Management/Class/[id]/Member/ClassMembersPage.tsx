@@ -26,7 +26,8 @@ export default function ClassMembersPage({
 }) {
   const resolvedParams = use(params);
   const classId = resolvedParams.id;
-
+  console.log(classId);
+  
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -37,7 +38,8 @@ export default function ClassMembersPage({
   }, []);
 
   const { data, isLoading } = useGetClassMembersQuery({ id: classId });
-
+  console.log(data);
+  
   const members = data?.data ?? [];
 
   if (!mounted) return null;

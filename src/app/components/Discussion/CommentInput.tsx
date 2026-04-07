@@ -41,6 +41,14 @@ export const CommentInput = ({
   
   const isSubmitting = isCreatingDiscussion || isCreatingComment || isUpdating;
 
+  const generateGuid = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const handleSubmit = async () => {
     if (!content.trim() || !userId) return;
 
@@ -58,15 +66,14 @@ export const CommentInput = ({
       if (isReply) {
         // Post a reply (comment)
         const payload: any = {
-          discussionId,
-          userId,
           content: content.trim(),
         };
         if (parentId) {
           payload.parentId = parentId;
+          payload.id = parentId;
         }
         console.log("🔥 Payload for CREATE_COMMENT:", payload);
-        const res = await createComment(payload).unwrap();
+        const res = await createComment({ discussionId, ...payload }).unwrap();
         console.log("🔥 Response from CREATE_COMMENT:", res);
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
@@ -74,7 +81,7 @@ export const CommentInput = ({
         toast.success("Bình luận đã được gửi");
         if (onSuccess) {
           onSuccess({
-            id: `temp-${Date.now()}`,
+            id: typeof res.data === 'string' ? res.data : (res.data as any)?.commentId || (res.data as any)?.id || generateGuid(),
             content: content.trim(),
             userId,
             discussionId,
@@ -100,10 +107,10 @@ export const CommentInput = ({
         toast.success("Đã đăng bình luận");
         if (onSuccess) {
           onSuccess({
-            id: `temp-${Date.now()}`,
+            id: typeof res.data === 'string' ? res.data : (res.data as any)?.id || (res.data as any)?.commentId || generateGuid(),
             content: content.trim(),
             userId,
-            discussionId: `temp-disc-${Date.now()}`,
+            discussionId: generateGuid(),
             createdAt: new Date().toISOString(),
             repliesCount: 0,
             likesCount: 0

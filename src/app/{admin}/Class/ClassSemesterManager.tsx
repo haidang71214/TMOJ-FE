@@ -12,13 +12,13 @@ import {
   Spinner,
   Avatar,
 } from "@heroui/react";
-import CreateClassSemester from "@/app/Management/Class/create/CreateClassSemester";
-import { useGetClassDetailQuery } from "@/store/queries/Class";
+
 import { Calendar, Copy, Download, Edit, Trash2 } from "lucide-react";
+import CreateClassSemester from "@/Provider/CreateClassSemester";
+import { useGetClassDetailQuery } from "@/store/queries/Class";
 
+import ClassSemesterDetail from "./DetailForClassSemester";   // Component chi tiết bạn đã tạo
 
-
-// ── MAIN COMPONENT ──
 interface ClassSemesterManagementProps {
   classId: string;
   className?: string;
@@ -30,22 +30,47 @@ export default function ClassSemesterManagement({
   className,
   onBack,
 }: ClassSemesterManagementProps) {
-    const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
-    const classDetail = classData?.data;
-   const instances = classDetail?.instances || [];
-   
-  // State cho Create Modal (controlled)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const handleCreateSuccess = () => {
-    refetch();           // Refresh danh sách sau khi tạo thành công
-    setIsCreateModalOpen(false); // Đóng modal
-  };
+  
+  const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
+  const classDetail = classData?.data;
+  const instances = classDetail?.instances || [];
 
+  // State quản lý view
+  const [selectedClassSemesterId, setSelectedClassSemesterId] = useState<string | null>(null);
+
+  // State cho Create Modal
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateSuccess = () => {
+    refetch();
+    setIsCreateModalOpen(false);
+  };
 
   const openCreateClassSemesterModal = () => {
     setIsCreateModalOpen(true);
   };
 
+  // Mở chi tiết Class Semester
+  const handleRowClick = (classSemesterId: string) => {
+    setSelectedClassSemesterId(classSemesterId);
+  };
+
+  // Nút Back - Quay về danh sách Class Semester
+  const handleBack = () => {
+    setSelectedClassSemesterId(null);
+  };
+
+  // Nếu đang xem chi tiết một Class Semester
+  if (selectedClassSemesterId) {
+    return (
+      <ClassSemesterDetail
+        id={selectedClassSemesterId}
+        onBack={handleBack}           // ← Truyền onBack đúng
+      />
+    );
+  }
+
+  // ==================== DANH SÁCH CLASS SEMESTER ====================
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -61,7 +86,7 @@ export default function ClassSemesterManagement({
               Class Semester Management
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400">
-              {className ? `Manage semesters for "${className}"` : "Manage class semesters, schedule and problems"}
+              {className ? `Manage semesters for "${className}"` : "Manage class semesters"}
             </p>
           </div>
         </div>
@@ -93,78 +118,60 @@ export default function ClassSemesterManagement({
         </div>
       ) : (
         <Table
-                  aria-label="Class Instances Table"
-                  removeWrapper
-                  classNames={{
-                    base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
-                    th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
-                    td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
-                  }}
-                >
-                  <TableHeader>
-                    <TableColumn>ID</TableColumn>
-                    <TableColumn>SEMESTER CODE</TableColumn>
-                    <TableColumn>SUBJECT CODE</TableColumn>
-                    <TableColumn>SUBJECT NAME</TableColumn>
-                    <TableColumn>START DATE</TableColumn>
-                    <TableColumn>END DATE</TableColumn>
-                    <TableColumn>TEACHER</TableColumn>
-                    <TableColumn className="text-right">OPERATIONS</TableColumn>
-                  </TableHeader>
+          aria-label="Class Instances Table"
+          removeWrapper
+          classNames={{
+            base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
+            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
+            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
+          }}
+        >
+          <TableHeader>
+            <TableColumn>ID</TableColumn>
+            <TableColumn>SEMESTER CODE</TableColumn>
+            <TableColumn>SUBJECT CODE</TableColumn>
+            <TableColumn>SUBJECT NAME</TableColumn>
+            <TableColumn>START DATE</TableColumn>
+            <TableColumn>END DATE</TableColumn>
+            <TableColumn>TEACHER</TableColumn>
+            <TableColumn className="text-right">OPERATIONS</TableColumn>
+          </TableHeader>
 
           <TableBody emptyContent="Không có instance nào">
             {instances.map((instance: any, index: number) => (
               <TableRow
-                style={{cursor:'pointer'}}
-                // onClick={()=>{Move(instance.classSemesterId)}} tạm thời block nút move này 
-                key={instance.classSemesterId || index}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                key={instance.classSemesterId}
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                onClick={() => handleRowClick(instance.classSemesterId)}
               >
-                {/* ID */}
                 <TableCell>
-                  <span className="font-mono text-xs text-slate-400 break-all">
-                    {instance.classSemesterId}
-                  </span>
+                  <span className="font-mono text-xs text-slate-400">{index + 1}</span>
                 </TableCell>
-
-                {/* Semester Code */}
                 <TableCell>
                   <span className="font-black uppercase tracking-wide text-base">
                     {instance.semesterCode || "—"}
                   </span>
                 </TableCell>
-
-                {/* Subject Code */}
                 <TableCell>
                   <span className="font-black uppercase tracking-wide text-base">
                     {instance.subjectCode || "—"}
                   </span>
                 </TableCell>
-
-                {/* Subject Name */}
                 <TableCell>
-                  <span className="font-medium">
-                    {instance.subjectName || "—"}
-                  </span>
+                  <span className="font-medium">{instance.subjectName || "—"}</span>
                 </TableCell>
-
-                {/* Start Date */}
                 <TableCell>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar size={16} className="text-slate-400" />
                     {instance.startAt || "—"}
                   </div>
                 </TableCell>
-
-                {/* End Date */}
                 <TableCell>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar size={16} className="text-slate-400" />
                     {instance.endAt || "—"}
                   </div>
                 </TableCell>
-
-                {/* Teacher */}
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar
@@ -188,8 +195,8 @@ export default function ClassSemesterManagement({
                   </div>
                 </TableCell>
 
-                {/* Operations */}
-                <TableCell>
+                {/* Operations - Ngăn click lan ra hàng */}
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-1">
                     <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
                       <Edit size={16} className="text-slate-500" />
@@ -211,11 +218,11 @@ export default function ClassSemesterManagement({
         </Table>
       )}
 
-      {/* Create Class Semester Modal - Controlled */}
+      {/* Create Modal */}
       <CreateClassSemester
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        classCode={className} 
+        classCode={className}
         onSuccess={handleCreateSuccess}
       />
     </div>

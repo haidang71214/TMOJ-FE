@@ -1,6 +1,6 @@
 import { ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { addClassMemberRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, UpdateClassTeacherPayload } from "@/types";
+import { addClassMemberRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -82,6 +82,57 @@ addClassMembers: builder.mutation<
   }),
   invalidatesTags: ["Class"],
 }),
+    // Export danh sách lớp (không truyền params)
+    exportClassTemplate: builder.mutation<Blob, void>({
+      query: () => ({
+        url: ClassEndpoint.EXPORT_TEMPLATE_CLASS,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+
+    importProblemToSlot: builder.mutation<
+  void,
+  { instanceId: string; slotId: string; data: ImportProblemClassRequest[] }
+>({
+  query: ({ instanceId, slotId, data }) => ({
+    url: ClassEndpoint.IMPORT_PROBLEM_CLASS
+      .replace("{instanceId}", instanceId)
+      .replace("{slotId}", slotId),
+    method: "POST",
+    body: data,
+  }),
+  invalidatesTags: ["ClassSlot"],
+}),
+  updateSlotProblems: builder.mutation<UpdateSlotProblemResponse,
+  {
+    instanceId: string;
+    slotId: string;
+    data: UpdateSlotProblemRequest[];
+  }
+>({
+  query: ({ instanceId, slotId, data }) => ({
+    url: ClassEndpoint.UPDATE_SLOT_PROBLEMS
+      .replace("{instanceId}", instanceId)
+      .replace("{slotId}", slotId),
+    method: "PUT",
+    body: data,
+  }),
+  invalidatesTags: ["ClassSlot"],
+}),
+// xóa 
+deleteSlotProblems: builder.mutation<
+  void,
+  { instanceId: string; slotId: string; problemIds: string[] }
+>({
+  query: ({ instanceId, slotId, problemIds }) => ({
+    url: `/api/v1/class-instance/${instanceId}/slots/${slotId}/problems`,
+    method: "DELETE", 
+    body: problemIds,
+  }),
+  invalidatesTags: ["ClassSlot"],
+}),
+
   }),
 });
 
@@ -93,5 +144,9 @@ export const {
    useUpdateClassTeacherMutation,
    useGetClassMembersQuery,
    useAddClassMembersMutation,
-   useExportClassMutation
+   useExportClassMutation,
+   useExportClassTemplateMutation,
+   useUpdateSlotProblemsMutation,
+   useImportProblemToSlotMutation,
+   useDeleteSlotProblemsMutation,
 } = classApi;

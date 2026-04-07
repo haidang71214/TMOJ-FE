@@ -75,6 +75,12 @@ export interface ClassMemberResponse {
   joinedAt: string;
   isActive: boolean;
 }
+export interface ImportProblemClassRequest {
+  problemId: string;
+  ordinal: number | null;
+  points: number | null;
+  isRequired: boolean;
+}
 export interface RegisterRequestDto {
     firstName: string ,
   lastName: string,
@@ -691,4 +697,15 @@ export interface ProblemDiscussionResponse {
   isLocked: boolean;
   createdAt: string;
   updatedAt: string;
+}
+export interface UpdateSlotProblemRequest {
+  problemId: string;
+  ordinal: number;
+  points: number;
+  isRequired: boolean;
+}
+
+export interface UpdateSlotProblemResponse {
+  message: string;
+  updated: number;
 }

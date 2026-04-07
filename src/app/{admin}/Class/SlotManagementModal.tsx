@@ -29,7 +29,7 @@ interface SlotManagementModalProps {
   classId: string;
   className?: string;
 }
-
+// quản lí cái slot
 export default function SlotManagementModal({
   classId,
   className,

@@ -24,6 +24,7 @@ import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import SolutionsTab from "./Solutions/page";
+import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -89,7 +90,9 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
-
+    const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery({id : problemId})
+    console.log(response); // mai vào đây check code
+    
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] =

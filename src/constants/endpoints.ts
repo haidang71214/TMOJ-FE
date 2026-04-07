@@ -101,15 +101,19 @@ const NotificationEndpoint = {
   DELETE_NOTIFICATION: `${API_PREFIX}/notification/{id}`,
 };
 const DiscussionEndpoint = {
-  GET_PROBLEM_DISCUSSIONS: `${API_PREFIX}/problem-discussion`,
-  CREATE_DISCUSSION: `${API_PREFIX}/problem-discussion`,
-  GET_DISCUSSION: `${API_PREFIX}/problem-discussion/{discussionId}`,
-  DELETE_DISCUSSION: `${API_PREFIX}/problem-discussion/{id}`,
-  CREATE_COMMENT: `${API_PREFIX}/problem-discussion/comment`,
-  UPDATE_COMMENT: `${API_PREFIX}/problem-discussion/comment`,
-  DELETE_COMMENT: `${API_PREFIX}/problem-discussion/comment/{id}`,
-  VOTE_COMMENT: `${API_PREFIX}/problem-discussion/comments/vote`,
-  HIDE_COMMENT: `${API_PREFIX}/problem-discussion/comments/hide`,
+  GET_PROBLEM_DISCUSSIONS: `${API_PREFIX}/problems/{problemId}/discussions`,
+  CREATE_DISCUSSION: `${API_PREFIX}/problems/{problemId}/discussions`,
+  GET_DISCUSSION: `${API_PREFIX}/discussions/{id}`,
+  DELETE_DISCUSSION: `${API_PREFIX}/discussions/{id}`,
+  VOTE_DISCUSSION: `${API_PREFIX}/discussions/{id}/vote`,
+
+  CREATE_COMMENT: `${API_PREFIX}/discussions/{id}/comments`,
+  GET_DISCUSSION_COMMENTS: `${API_PREFIX}/discussions/{id}/comments`,
+  
+  UPDATE_COMMENT: `${API_PREFIX}/comments/{id}`,
+  DELETE_COMMENT: `${API_PREFIX}/comments/{id}`,
+  VOTE_COMMENT: `${API_PREFIX}/comments/{id}/vote`,
+  HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
 };
 export {
   ClassSlotEndpoint,

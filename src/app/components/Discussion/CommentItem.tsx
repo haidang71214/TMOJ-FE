@@ -21,19 +21,18 @@ import { CommentInput } from "./CommentInput";
 import { useAppSelector } from "@/utils/redux";
 
 interface Props {
-  comment: DiscussionCommentResponse;
+  comment: any;
   discussionId: string;
   currentUserId: string | undefined;
   onLike: (id: string) => void;
   onDownvote: (id: string) => void;
   onEditSuccess: (id: string, newContent: string) => void;
-  onHideSuccess: (id: string) => void;
+  onHideSuccess: (id: string, isHidden: boolean) => void;
   onReplySuccess: (parentId: string | null, newComment: any) => void;
 }
 
-import { useUpdateCommentMutation, useHideCommentMutation } from "@/store/queries/discussion";
+import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery } from "@/store/queries/discussion";
 import { toast } from "sonner";
-import { DiscussionCommentResponse } from "@/types";
 
 export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess }: Props) => {
   const [showReplies, setShowReplies] = useState(false);
@@ -61,13 +60,25 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
   const currentUser = useAppSelector((state) => state.auth.user);
   
   const isMe = currentUserId === comment.userId;
+  const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
+  
   const displayName = isMe 
     ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account") 
-    : (comment.userFullName || `User ${comment.userId.substring(0, 5)}`);
+    : (comment?.userDisplayName || comment?.userFullName || `User ${comment?.userId?.substring(0, 5)}`);
     
   const displayAvatar = isMe 
     ? (currentUser?.avatarUrl || displayName?.[0]) 
-    : (comment.userAvatar || comment.userFullName?.[0] || "?");
+    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.userDisplayName?.[0] || "?");
+
+  const { data: fetchedRepliesData } = useGetDiscussionCommentsQuery(
+    { id: comment.id },
+    { skip: !isTopLevel || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
+  );
+
+  const serverReplies = isTopLevel && fetchedRepliesData?.data 
+    ? (fetchedRepliesData.data as any[]).map((c: any) => ({ ...c, id: c.id || c.commentId }))
+    : null;
+  const childComments = serverReplies || comment?.children || comment?.comments || comment?.replies;
 
   return (
     <div className="flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500">
@@ -109,23 +120,24 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
                     onClick: () => setIsEditing(true),
                     className: "font-bold"
                   },
-                  {
+                  ...(!isTopLevel ? [{
                     key: "hide",
-                    label: "Ẩn",
+                    label: comment.isHidden ? "Hiện (Unhide)" : "Ẩn (Hide)",
                     icon: <EyeOff size={14} />,
                     color: "warning" as const,
                     className: "text-warning font-bold",
                     onClick: async () => {
                       try {
-                        const res = await hideComment({ commentId: comment.id }).unwrap();
+                        const newIsHidden = !comment.isHidden;
+                        const res = await hideComment({ commentId: comment.id, isHidden: newIsHidden }).unwrap();
                         checkResponse(res);
-                        toast.success("Đã ẩn bình luận");
-                        onHideSuccess(comment.id);
+                        toast.success(newIsHidden ? "Đã ẩn bình luận" : "Đã hiện bình luận");
+                        onHideSuccess(comment.id, newIsHidden);
                       } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "Lỗi khi ẩn bình luận");
+                        toast.error(e instanceof Error ? e.message : "Lỗi khi cập nhật trạng thái hiển thị");
                       }
                     }
-                  }
+                  }] : [])
                 ] : []),
                 {
                   key: "report",
@@ -177,47 +189,63 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
 
         {/* Action Buttons: Vote, Reply */}
         <div className="flex items-center gap-6 text-gray-400 dark:text-[#94A3B8]">
-          <div
-            onClick={() => onLike(comment.id)}
-            className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
-              comment.isLiked
-                ? "text-blue-600 dark:text-[#E3C39D] font-black"
-                : "hover:dark:text-white"
-            }`}
-          >
-            <ThumbsUp
-              size={16}
-              strokeWidth={comment.isLiked ? 3 : 2}
-              className="transition-transform active:scale-125"
-            />
-            <span className="text-[11px] font-bold tracking-wider">
-              {(comment.likesCount || 0) > 0 ? `${(comment.likesCount || 0).toLocaleString()} VOTE${(comment.likesCount || 0) > 1 ? 'S' : ''}` : "VOTE"}
-            </span>
-          </div>
+          {!isTopLevel && (
+            <>
+              <div
+                onClick={() => {
+                  if (isMe) {
+                    toast.error("Không thể vote bình luận của chính mình");
+                    return;
+                  }
+                  onLike(comment.id);
+                }}
+                className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  comment.isLiked
+                    ? "text-blue-600 dark:text-[#E3C39D] font-black"
+                    : "hover:dark:text-white"
+                }`}
+              >
+                <ThumbsUp
+                  size={16}
+                  strokeWidth={comment.isLiked ? 3 : 2}
+                  className="transition-transform active:scale-125"
+                />
+                <span className="text-[11px] font-bold tracking-wider">
+                  {(comment.likesCount || 0) > 0 ? `${(comment.likesCount || 0).toLocaleString()} VOTE${(comment.likesCount || 0) > 1 ? 'S' : ''}` : "VOTE"}
+                </span>
+              </div>
 
-          <div
-            onClick={() => onDownvote(comment.id)}
-            className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
-              comment.isDisliked
-                ? "text-red-500 dark:text-red-400 font-black"
-                : "hover:dark:text-white"
-            }`}
-          >
-            <ThumbsDown
-              size={16}
-              strokeWidth={comment.isDisliked ? 3 : 2}
-              className="transition-transform active:scale-125"
-            />
-          </div>
+              <div
+                onClick={() => {
+                  if (isMe) {
+                    toast.error("Không thể vote bình luận của chính mình");
+                    return;
+                  }
+                  onDownvote(comment.id);
+                }}
+                className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  comment.isDisliked
+                    ? "text-red-500 dark:text-red-400 font-black"
+                    : "hover:dark:text-white"
+                }`}
+              >
+                <ThumbsDown
+                  size={16}
+                  strokeWidth={comment.isDisliked ? 3 : 2}
+                  className="transition-transform active:scale-125"
+                />
+              </div>
+            </>
+          )}
 
-          {comment.repliesCount ? (
+          {(comment.repliesCount || childComments?.length) ? (
             <div
               onClick={() => setShowReplies(!showReplies)}
               className="flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] transition-colors"
             >
               <MessageCircle size={14} />
               <span className="text-[11px] font-bold uppercase tracking-tighter">
-                {showReplies ? "Hide" : `Show ${comment.repliesCount}`} Replies
+                {showReplies ? "Hide" : `Show ${comment.repliesCount || childComments?.length || 0}`} Replies
               </span>
             </div>
           ) : null}
@@ -254,9 +282,9 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
         )}
 
         {/* Nested Replies Rendering */}
-        {showReplies && comment.replies && (
+        {showReplies && childComments && (
           <div className="mt-6 ml-2 pl-6 border-l-2 border-gray-100 dark:border-[#1C2737] space-y-6 animate-in slide-in-from-left-2 duration-300">
-            {comment.replies.map((reply) => (
+            {childComments.map((reply: any) => (
               <CommentItem
                 key={reply.id}
                 comment={reply}

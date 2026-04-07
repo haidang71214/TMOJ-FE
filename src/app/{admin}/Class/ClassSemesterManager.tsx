@@ -37,7 +37,8 @@ export default function ClassSemesterManagement({
 
   // State quản lý view
   const [selectedClassSemesterId, setSelectedClassSemesterId] = useState<string | null>(null);
-
+  const [selectedSubjectCode, setSelectedSubjectCode] = useState<string | undefined>(null);
+  
   // State cho Create Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -51,8 +52,9 @@ export default function ClassSemesterManagement({
   };
 
   // Mở chi tiết Class Semester
-  const handleRowClick = (classSemesterId: string) => {
+  const handleRowClick = (classSemesterId: string,subjectCode:string) => {
     setSelectedClassSemesterId(classSemesterId);
+    setSelectedSubjectCode(subjectCode)
   };
 
   // Nút Back - Quay về danh sách Class Semester
@@ -65,6 +67,8 @@ export default function ClassSemesterManagement({
     return (
       <ClassSemesterDetail
         id={selectedClassSemesterId}
+        nameClass={classData?.data.classCode}
+        semesterCode={selectedSubjectCode}
         onBack={handleBack}           // ← Truyền onBack đúng
       />
     );
@@ -142,7 +146,7 @@ export default function ClassSemesterManagement({
               <TableRow
                 key={instance.classSemesterId}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                onClick={() => handleRowClick(instance.classSemesterId)}
+                onClick={() => handleRowClick(instance.classSemesterId,instance.semesterCode)}
               >
                 <TableCell>
                   <span className="font-mono text-xs text-slate-400">{index + 1}</span>

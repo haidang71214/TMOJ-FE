@@ -26,6 +26,7 @@ import {
   Users,
   CalendarPlus,
   UserCog,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { useGetClassesQuery } from "@/store/queries/Class";
@@ -124,7 +125,23 @@ export default function ClassListPage() {
       </div>
     );
   }
-
+const handleExportTemplateClass = async()=>{
+    try {
+    const blob = await exportClassTemplate().unwrap();
+      console.log(blob);
+      
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "class-template.xlsx"; // tên file muốn tải
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed", error);
+  }
+  }
   return (
     <div className="flex flex-col h-full gap-8 p-2">
       {/* HEADER SECTION */}
@@ -144,6 +161,17 @@ export default function ClassListPage() {
           >
             CREATE NEW CLASS
           </Button>
+          
+                    <Button
+                      startContent={<Download size={16} strokeWidth={3} />}
+                      size="lg"
+                      color="success"
+                      variant="flat"
+                      onPress={handleExportTemplateClass}
+                    className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all"
+            >
+                      EXPORT TEMPLATE IMPORT
+                    </Button>
         </Link>
       </div>
 

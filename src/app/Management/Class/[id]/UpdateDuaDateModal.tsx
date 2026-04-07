@@ -31,10 +31,12 @@ export default function UpdateDueDateModal({
 
   const [dueDate, setDueDate] = useState(dueAt ?? "");
   const [closeDate, setCloseDate] = useState(closeAt ?? "");
-
+  console.log(classId);
+  console.log(slotId);
+  
   const handleSubmit = async () => {
     try {
-      await updateDueDate({
+      const res = await updateDueDate({
         classId,
         slotId,
         data: {
@@ -42,7 +44,8 @@ export default function UpdateDueDateModal({
           closeAt: closeDate || undefined,
         },
       }).unwrap();
-
+      console.log(res);
+      
       toast.success("Due date updated");
       closeModal();
     } catch {

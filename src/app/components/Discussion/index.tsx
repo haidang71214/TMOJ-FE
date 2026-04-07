@@ -5,7 +5,6 @@ import { MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
 import { toast } from "sonner";
-import { DiscussionCommentResponse } from "@/types";
 import {
   useGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
@@ -22,7 +21,7 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
   
-  const [comments, setComments] = useState<DiscussionCommentResponse[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,47 +50,52 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
 
   // Centralized optimistic state updater
   const updateCommentState = (
-    data: DiscussionCommentResponse[],
+    data: any[],
     id: string,
-    action: "like" | "dislike" | "edit" | "hide" | "addReply",
+    action: "like" | "dislike" | "edit" | "hideToggle" | "addReply",
     payload?: any
-  ): DiscussionCommentResponse[] => {
+  ): any[] => {
     return data.map((c) => {
-      if (c.id === id) {
+      const currentId = c.commentId || c.id;
+      if (currentId === id) {
         if (action === "like") {
-          const isLiked = !c.isLiked;
-          return {
-            ...c,
-            likesCount: isLiked ? (c.likesCount || 0) + 1 : (c.likesCount || 0) - 1,
-            isLiked,
-            isDisliked: false,
-          };
-        }
-        if (action === "dislike") {
-          return {
-            ...c,
-            isDisliked: true,
-            isLiked: false,
-            // Custom hidden flag to hide downvoted comments
-            isHidden: true,
-          } as any;
-        }
-        if (action === "edit") {
-          return { ...c, content: payload };
-        }
-        if (action === "hide") {
-          return { ...c, isHidden: true } as any;
-        }
-        if (action === "addReply") {
-          return {
-            ...c,
-            repliesCount: (c.repliesCount || 0) + 1,
-            replies: c.replies ? [...c.replies, payload] : [payload],
-          };
-        }
+           const isLiked = !c.isLiked;
+           return {
+             ...c,
+             likesCount: isLiked ? (c.likesCount || 0) + 1 : (c.likesCount || 0) - 1,
+             isLiked,
+             isDisliked: false,
+           };
+         }
+         if (action === "dislike") {
+           return {
+             ...c,
+             isDisliked: true,
+             isLiked: false,
+             isHidden: true,
+           };
+         }
+         if (action === "edit") {
+           return { ...c, content: payload };
+         }
+         if (action === "hideToggle") {
+           return { ...c, isHidden: payload };
+         }
+         if (action === "addReply") {
+           const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+           const childs = c[repliesKey] || [];
+           return {
+             ...c,
+             repliesCount: (c.repliesCount || 0) + 1,
+             [repliesKey]: [...childs, payload],
+           };
+         }
       }
-      if (c.replies) {
-        return { ...c, replies: updateCommentState(c.replies, id, action, payload) };
+      
+      const childArray = c.children || c.comments || c.replies;
+      if (childArray) {
+        const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+        return { ...c, [repliesKey]: updateCommentState(childArray, id, action, payload) };
       }
       return c;
     });
@@ -119,8 +123,8 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
     setComments((prev) => updateCommentState(prev, id, "edit", newContent));
   };
 
-  const handleHide = (id: string) => {
-    setComments((prev) => updateCommentState(prev, id, "hide"));
+  const handleHide = (id: string, isHidden: boolean) => {
+    setComments((prev) => updateCommentState(prev, id, "hideToggle", isHidden));
   };
 
   const handleAddReply = (parentId: string | null, newComment: any) => {
@@ -136,11 +140,19 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const processComments = (list: any[]): any[] => {
     if (!list) return [];
     return list
-      .filter((c) => !c.isHidden && !c.isDisliked)
-      .map((c) => ({
-        ...c,
-        replies: processComments(c.replies),
-      }))
+      .filter((c) => {
+        if (c.isDisliked) return false;
+        if (c.isHidden && c.userId !== currentUserId) return false;
+        return true;
+      })
+      .map((c) => {
+        const childArray = c.children || c.comments || c.replies;
+        const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+        return {
+          ...c,
+          [repliesKey]: processComments(childArray),
+        };
+      })
       .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
   };
 

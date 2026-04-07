@@ -1,74 +1,118 @@
 import { DiscussionEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
-  DiscussionResponseData,
+  ProblemDiscussionsResponse,
   CreateDiscussionRequest,
-  VoteCommentRequest,
+  DiscussionDetailResponse,
+  DiscussionCommentsResponse,
+  CreateCommentResponse,
   CreateCommentRequest,
   UpdateCommentRequest,
+  VoteCommentRequest,
+  VoteDiscussionRequest,
   HideCommentRequest
 } from "@/types";
 
 export const discussionApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getProblemDiscussions: builder.query<DiscussionResponseData, { problemId: string }>({
+    getProblemDiscussions: builder.query<ProblemDiscussionsResponse, { problemId: string }>({
       query: ({ problemId }) => ({
-        url: DiscussionEndpoint.GET_PROBLEM_DISCUSSIONS,
+        url: DiscussionEndpoint.GET_PROBLEM_DISCUSSIONS.replace("{problemId}", problemId),
         method: "GET",
-        params: { problemId, pageSize: 100 },
       }),
       providesTags: ["Discussion"],
     }),
 
     createDiscussion: builder.mutation<any, CreateDiscussionRequest>({
       query: (body) => ({
-        url: DiscussionEndpoint.CREATE_DISCUSSION,
+        url: DiscussionEndpoint.CREATE_DISCUSSION.replace("{problemId}", body.problemId),
         method: "POST",
-        body,
+        body: {
+          title: body.title,
+          content: body.content,
+        },
       }),
       invalidatesTags: ["Discussion"],
     }),
 
-    voteComment: builder.mutation<any, VoteCommentRequest>({
-      query: (body) => ({
-        url: DiscussionEndpoint.VOTE_COMMENT,
-        method: "POST", // Adjust to POST/PUT depending on actual API details
-        body: body,
+    getDiscussion: builder.query<DiscussionDetailResponse, { id: string }>({
+      query: ({ id }) => ({
+        url: DiscussionEndpoint.GET_DISCUSSION.replace("{id}", id),
+        method: "GET",
       }),
-      invalidatesTags: ["Discussion"], // Not invalidating everything to avoid full refetch if optimistic is used
+      providesTags: ["Discussion"],
     }),
-    
-    createComment: builder.mutation<any, CreateCommentRequest>({
+
+    deleteDiscussion: builder.mutation<any, { id: string }>({
+      query: ({ id }) => ({
+        url: DiscussionEndpoint.DELETE_DISCUSSION.replace("{id}", id),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Discussion"],
+    }),
+
+    voteDiscussion: builder.mutation<any, VoteDiscussionRequest>({
       query: (body) => ({
-        url: DiscussionEndpoint.CREATE_COMMENT,
+        url: DiscussionEndpoint.VOTE_DISCUSSION.replace("{id}", body.id),
         method: "POST",
-        body,
+        body: { voteType: body.voteType }
       }),
-      // Không cần invalidate nữa vì ta sẽ dùng Optimistic UI
-      
       invalidatesTags: ["Discussion"],
     }),
-    
-    updateComment: builder.mutation<any, UpdateCommentRequest>({
-      query: (body) => ({
-        url: DiscussionEndpoint.UPDATE_COMMENT,
-        method: "PUT",
-        body: body,
-        responseHandler: (response) => response.text(),
+
+    getDiscussionComments: builder.query<DiscussionCommentsResponse, { id: string }>({
+      query: ({ id }) => ({
+        url: DiscussionEndpoint.GET_DISCUSSION_COMMENTS.replace("{id}", id),
+        method: "GET",
       }),
-     
+      providesTags: ["Discussion"],
+    }),
+
+    createComment: builder.mutation<CreateCommentResponse, any>({
+      query: (payload) => {
+        const { discussionId, userId, ...restBody } = payload;
+        return {
+          url: DiscussionEndpoint.CREATE_COMMENT.replace("{id}", discussionId),
+          method: "POST",
+          body: restBody,
+        };
+      },
       invalidatesTags: ["Discussion"],
     }),
-    
-    hideComment: builder.mutation<any, HideCommentRequest>({
+
+    updateComment: builder.mutation<any, any>({
       query: (body) => ({
-        url: DiscussionEndpoint.HIDE_COMMENT,
+        url: DiscussionEndpoint.UPDATE_COMMENT.replace("{id}", body.commentId),
         method: "PUT",
         body: body,
-        responseHandler: (response) => response.text(),
       }),
-      
+      invalidatesTags: ["Discussion"],
+    }),
+
+    deleteComment: builder.mutation<any, { commentId: string }>({
+      query: ({ commentId }) => ({
+        url: DiscussionEndpoint.DELETE_COMMENT.replace("{id}", commentId),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Discussion"],
+    }),
+
+    voteComment: builder.mutation<any, any>({
+      query: (body) => ({
+        url: DiscussionEndpoint.VOTE_COMMENT.replace("{id}", body.commentId),
+        method: "POST",
+        body: { vote: body.vote },
+      }),
+      invalidatesTags: ["Discussion"],
+    }),
+
+    hideComment: builder.mutation<any, any>({
+      query: (body) => ({
+        url: DiscussionEndpoint.HIDE_COMMENT.replace("{id}", body.commentId),
+        method: "POST",
+        body: { isHidden: body.isHidden },
+      }),
       invalidatesTags: ["Discussion"],
     }),
   }),
@@ -77,8 +121,13 @@ export const discussionApi = baseApi.injectEndpoints({
 export const {
   useGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
-  useVoteCommentMutation,
+  useGetDiscussionQuery,
+  useDeleteDiscussionMutation,
+  useVoteDiscussionMutation,
+  useGetDiscussionCommentsQuery,
   useCreateCommentMutation,
   useUpdateCommentMutation,
+  useDeleteCommentMutation,
+  useVoteCommentMutation,
   useHideCommentMutation,
 } = discussionApi;

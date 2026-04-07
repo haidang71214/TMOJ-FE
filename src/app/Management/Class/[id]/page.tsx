@@ -16,9 +16,10 @@ import { ChevronLeft, Calendar, Edit, Copy, Download, Trash2, Plus } from "lucid
 import { useRouter } from "next/navigation";
 
 import { useGetClassDetailQuery } from "@/store/queries/Class";
-import CreateClassSemester from "../create/CreateClassSemester";
+import CreateClassSemester from "../../../../Provider/CreateClassSemester";
 
 
+// thực ra cái này giống với classSemesterPage hơn
 export default function ClassDetailPage({
   params,
 }: {
@@ -31,7 +32,8 @@ export default function ClassDetailPage({
   const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
   const classDetail = classData?.data;
   const instances = classDetail?.instances || [];
-
+  console.log(instances);
+  
   // State cho Modal Create Class Semester
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -67,8 +69,10 @@ export default function ClassDetailPage({
       </div>
     );
   }
-  const Move =(id:string) =>{
-      router.push(`/Management/ClassSemester/${id}`)
+  const handleViewSemester =(id:string,semesterCode:string) =>{
+    router.push(
+    `/Management/ClassSemester/${id}?classCode=${classDetail.classCode}&semesterCode=${semesterCode}`
+  );
   }
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -128,16 +132,18 @@ export default function ClassDetailPage({
 
           <TableBody emptyContent="Không có instance nào">
             {instances.map((instance: any, index: number) => (
-              <TableRow
-                style={{cursor:'pointer'}}
-                onClick={()=>{Move(instance.classSemesterId)}}
-                key={instance.classSemesterId || index}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
+             <TableRow
+  key={instance.classSemesterId}
+  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+  onClick={() => handleViewSemester(
+    instance.classSemesterId, 
+     instance?.semesterCode
+  )}
+>
                 {/* ID */}
                 <TableCell>
                   <span className="font-mono text-xs text-slate-400 break-all">
-                    {instance.classSemesterId}
+                    {index}
                   </span>
                 </TableCell>
 

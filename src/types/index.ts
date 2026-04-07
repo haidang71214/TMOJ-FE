@@ -635,68 +635,107 @@ export interface SubmitResponseV1 {
 export interface SubmitResponseV2 {
   data: SubmitResponseV1
 }
-export interface DiscussionResponseData {
-  data: DiscussionCommentResponse[];
-  message: string | null;
-  traceId?: string;
-}
-
-export interface DiscussionCommentResponse {
+export interface DiscussionCommentItem {
   id: string;
-  discussionId: string;
   userId: string;
+  userDisplayName: string;
+  userAvatarUrl: string | null;
   content: string;
-  parentId: string | null;
   createdAt: string;
-  updatedAt: string;
-  
-  // Custom properties from join/aggregation
-  userFullName?: string;
-  userAvatar?: string;
-  likesCount?: number;
-  isLiked?: boolean;
-  isDisliked?: boolean;
-  repliesCount?: number;
-  replies?: DiscussionCommentResponse[];
-}
-export interface CreateDiscussionRequest {
-  problemId: string;
-  userId: string;
-  title?: string | null;
-  content?: string | null;
+  children: DiscussionCommentItem[];
 }
 
-export interface CreateCommentRequest {
-  discussionId: string;
-  userId: string;
-  content: string | null;
-  parentId: string | null; // null for top-level comment
-}
-
-export interface UpdateCommentRequest {
-  commentId: string;
-  content: string | null;
-}
-
-export interface VoteCommentRequest {
-  commentId: string;
-  vote: number; // 1 for upvote, -1 for downvote, 0 to remove vote? (Backend implementation usually)
-}
-
-export interface HideCommentRequest {
-  commentId: string;
-}
-
-export interface ProblemDiscussionResponse {
+export interface DiscussionItem {
   id: string;
   problemId: string;
   userId: string;
+  userDisplayName: string;
+  userAvatarUrl: string | null;
   title: string;
   content: string;
   isPinned: boolean;
   isLocked: boolean;
   createdAt: string;
-  updatedAt: string;
+  comments: DiscussionCommentItem[];
+}
+
+export interface ProblemDiscussionsResponse {
+  data: {
+    items: DiscussionItem[];
+    nextCursorCreatedAt: string | null;
+    nextCursorId: string | null;
+    hasMore: boolean;
+  };
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface DiscussionDetailResponse {
+  data: DiscussionItem;
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface CreateDiscussionResponse {
+  data: DiscussionItem;
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface DiscussionCommentDetail {
+  commentId: string;
+  discussionId: string;
+  parentId: string | null;
+  userId: string;
+  userDisplayName: string;
+  userAvatarUrl: string | null;
+  content: string;
+  createdAt: string;
+  replies: DiscussionCommentDetail[];
+}
+
+export interface DiscussionCommentsResponse {
+  data: DiscussionCommentDetail[];
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface CreateCommentResponse {
+  data: {
+    commentId: string;
+  };
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface CreateDiscussionRequest {
+  problemId: string;
+  title?: string | null;
+  content?: string | null;
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  parentId?: string | null;
+}
+
+export interface UpdateCommentRequest {
+  content: string;
+}
+
+export interface VoteCommentRequest {
+  id: string;
+  voteType: number;
+}
+
+export interface HideCommentRequest {
+  id: string;
+  hide: boolean;
+}
+
+export interface VoteDiscussionRequest {
+  id: string;
+  voteType: number;
 }
 export interface UpdateSlotProblemRequest {
   problemId: string;

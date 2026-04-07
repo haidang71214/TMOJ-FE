@@ -69,39 +69,43 @@ export default function CreateSlotForma({ classId }: CreateSlotFormProps) {
   };
 
   const onSubmit = async () => {
-    if (!validateForm()) {
-      toast.error("Please fix the errors in the form!");
-      return;
-    }
+  if (!validateForm()) {
+    toast.error("Please fix the errors in the form!");
+    return;
+  }
 
-    try {
-      const payload: CreateClassSlotRequest = {
-        slotNo,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        rules: rules.trim() || undefined,
-        openAt: openAt ? new Date(openAt).toISOString() : undefined,
-        dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
-        closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
-        mode,
-        problems: selectedProblems.map((p, index) => ({
-          problemId: p.problemId,
-          ordinal: index,
-          points: p.points || 0,
-          isRequired: p.isRequired,
-        })),
-      };
+  try {
+    const payload: CreateClassSlotRequest = {
+      slotNo,
+      title: title.trim(),
+      description: description.trim() || undefined,
+      rules: rules.trim() || undefined,
+      openAt: openAt ? new Date(openAt).toISOString() : undefined,
+      dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
+      closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
+      mode,
+      problems: selectedProblems.map((p, index) => ({
+        problemId: p.problemId,
+        ordinal: index,
+        points: p.points || 0,
+        isRequired: p.isRequired,
+      })),
+    };
 
-      await createSlot({ classId, data: payload }).unwrap();
+    await createSlot({ classId, data: payload }).unwrap();
 
-      toast.success("Class slot created successfully!");
-      closeModal();
-    } catch (err) {
-      const apiError = err as ErrorForm;
-      const errorMessage = apiError?.data?.data?.message || "Failed to create slot. Please try again.";
-      toast.error(errorMessage);
-    }
-  };
+    closeModal();   // đóng modal trước
+    toast.success("Class slot created successfully!");
+
+  } catch (err) {
+    const apiError = err as ErrorForm;
+    const errorMessage =
+      apiError?.data?.data?.message ||
+      "Failed to create slot. Please try again.";
+
+    toast.error(errorMessage);
+  }
+};
 
   const filteredProblems = problems.filter((p: Problem) => {
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase());

@@ -271,15 +271,7 @@ export default function ClassDetailPage({
                           )}
                         </Button>
 
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          color="secondary"
-                          onPress={() => openAddProblemModal(slot.id)}
-                        >
-                          <Code2 size={18} />
-                        </Button>
+                        
 
                         <ChevronDown
                           size={20}
@@ -294,39 +286,57 @@ export default function ClassDetailPage({
                     {expandedSlot === slot.id && (
                       <div className="px-10 pb-10 border-t border-divider dark:border-white/5">
                         <div className="mt-8">
-                          <div className="flex justify-between items-center mb-6">
-                            <p className="text-[11px] font-[1000] uppercase italic text-blue-600 flex items-center gap-2">
-                              <Code2 size={14} /> ASSIGNED PROBLEMS
-                            </p>
+                          <div className="flex items-center justify-between mb-6">
 
-                            <Button
-                              size="sm"
-                              variant="flat"
-                              className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
-                              onPress={() =>
-                                openModal({
-                                  title: "Update Problems in Slot",
-                                  content: (
-                                    <UpdateProblemIntoSlot
-                                      instanceId={classId}
-                                      slotId={slot.id}
-                                      problems={
-                                        slot.problems?.map((p) => ({
-                                          problemId: p.problemId,
-                                          ordinal: p.ordinal ?? 0,
-                                          points: p.points ?? 0,
-                                          isRequired: p.isRequired ?? true,
-                                          title: p.problemTitle,
-                                        })) ?? []
-                                      }
-                                    />
-                                  ),
-                                })
-                              }
-                            >
-                              EDIT ALL PROBLEMS
-                            </Button>
-                          </div>
+  {/* LEFT TITLE */}
+  <div className="flex items-center gap-2 text-[11px] font-[1000] uppercase italic text-blue-600">
+    <Code2 size={14} />
+    ASSIGNED PROBLEMS
+  </div>
+
+  {/* RIGHT ACTIONS */}
+  <div className="flex items-center gap-2">
+
+    <Button
+      size="sm"
+      variant="flat"
+      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
+      onPress={() =>
+        openModal({
+          title: "Update Problems in Slot",
+          content: (
+            <UpdateProblemIntoSlot
+              instanceId={classId}
+              slotId={slot.id}
+              problems={
+                slot.problems?.map((p) => ({
+                  problemId: p.problemId,
+                  ordinal: p.ordinal ?? 0,
+                  points: p.points ?? 0,
+                  isRequired: p.isRequired ?? true,
+                  title: p.problemTitle,
+                })) ?? []
+              }
+            />
+          ),
+        })
+      }
+    >
+      EDIT ALL
+    </Button>
+
+    <Button
+       size="sm"
+      variant="flat"
+      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
+    
+      onPress={() => openAddProblemModal(slot.id)}
+    >
+    ADD MORE PROBLEM
+    </Button>
+
+  </div>
+</div>
 
                           <Table
                             aria-label={`Problems in slot ${slot.slotNo}`}
@@ -344,7 +354,7 @@ export default function ClassDetailPage({
                               <TableColumn>REQUIRED</TableColumn>
                               <TableColumn className="text-right">ACTIONS</TableColumn>
                             </TableHeader>
-                            <TableBody emptyContent="Chưa có bài tập nào được gán vào slot này">
+                            <TableBody emptyContent="No problems exist in this slot">
                               {slot.problems?.map((p, index) => (
                                 <TableRow
                                   key={p.problemId}

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useImportProblemToSlotMutation } from "@/store/queries/Class";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ImportProblemClassRequest } from "@/types";
+import { useModal } from "./ModalProvider";
 
 interface Props {
   instanceId: string;
@@ -38,7 +39,7 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
-
+  const { closeModal } = useModal();
   const [importProblems, { isLoading }] = useImportProblemToSlotMutation();
 
   const { data: apiResponse, isLoading: isLoadingProblems } =
@@ -114,7 +115,7 @@ const handleSubmit = async () => {
       slotId,
       data: payload,
     }).unwrap();
-
+    closeModal();
     toast.success("Add assignment to slot Success!");
   } catch (err) {
     console.error(err);

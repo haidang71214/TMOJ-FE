@@ -29,12 +29,17 @@ interface Props {
   onEditSuccess: (id: string, newContent: string) => void;
   onHideSuccess: (id: string, isHidden: boolean) => void;
   onReplySuccess: (parentId: string | null, newComment: any) => void;
+  depth?: number;
 }
 
 import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery, useUpdateDiscussionMutation } from "@/store/queries/discussion";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
 
-export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess }: Props) => {
+export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess, depth = 0 }: Props) => {
+  const { data: userData } = useGetUserInformationQuery();
+  const currentUserId = userData?.userId || (userData as any)?.id || propUserId;
+
   const [showReplies, setShowReplies] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -88,8 +93,28 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
     : null;
   const childComments = serverReplies || comment?.children || comment?.comments || comment?.replies;
 
+  // Normalize children and apply identical filter/sort logic as index.tsx
+  const processChildComments = (list: any[]): any[] => {
+    if (!list) return [];
+    return list
+      .map((c) => ({ ...c, id: c.id || c.commentId }))
+      .filter((c) => {
+        // Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy
+        const cUserId = String(c.userId || c.creatorId || c.authorId || "");
+        const curId = String(currentUserId || "");
+        const isOwner = curId && (cUserId === curId);
+
+        if (c.isHidden && !isOwner) return false;
+        return true;
+      })
+      .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
+  };
+
+  const processedChildren = processChildComments(childComments);
+  const cid = comment.id || comment.commentId;
+
   return (
-    <div className="flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500">
+    <div className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
       <Avatar
         size="sm"
         name={displayAvatar}
@@ -130,17 +155,17 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
                   },
                   ...(!isTopLevel ? [{
                     key: "hide",
-                    label: comment.isHidden ? "Hiện (Unhide)" : "Ẩn (Hide)",
+                    label: comment.isHidden ? "Hủy ẩn (Unhide)" : "Ẩn (Hide)",
                     icon: <EyeOff size={14} />,
                     color: "warning" as const,
                     className: "text-warning font-bold",
                     onClick: async () => {
                       try {
                         const newIsHidden = !comment.isHidden;
-                        const res = await hideComment({ commentId: comment.id, isHidden: newIsHidden }).unwrap();
+                        const res = await hideComment({ commentId: cid, isHidden: newIsHidden }).unwrap();
                         checkResponse(res);
-                        toast.success(newIsHidden ? "Đã ẩn bình luận" : "Đã hiện bình luận");
-                        onHideSuccess(comment.id, newIsHidden);
+                        toast.success(newIsHidden ? "Đã ẩn bình luận" : "Đã hủy ẩn bình luận");
+                        onHideSuccess(cid, newIsHidden);
                       } catch (e) {
                         toast.error(e instanceof Error ? e.message : "Lỗi khi cập nhật trạng thái hiển thị");
                       }
@@ -177,24 +202,24 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
               discussionId={discussionId}
               userId={currentUserId}
               onCancel={() => setIsEditing(false)}
-              onSaveEdit={async (newContent) => {
+                onSaveEdit={async (newContent) => {
                 try {
                   let res;
                   if (isTopLevel) {
                     res = await updateDiscussion({ 
-                      id: comment.id, 
+                      id: cid, 
                       content: newContent, 
                       title: comment.title || "Discussion" 
                     }).unwrap();
                   } else {
                     res = await updateComment({ 
-                      commentId: comment.id, 
+                      commentId: cid, 
                       content: newContent 
                     }).unwrap();
                   }
                   checkResponse(res);
                   toast.success(isTopLevel ? "Cập nhật thảo luận thành công" : "Cập nhật bình luận thành công");
-                  onEditSuccess(comment.id, newContent);
+                  onEditSuccess(cid, newContent);
                 } catch (e) {
                   toast.error(e instanceof Error ? e.message : "Lỗi cập nhật");
                 }
@@ -216,7 +241,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
                   toast.error("Không thể vote bình luận của chính mình");
                   return;
                 }
-                onLike(comment.id || comment.commentId);
+                onLike(cid);
               }}
               className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer transition-colors border-r border-gray-100 dark:border-[#334155] hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-l-lg ${
                 comment.userVote === 1
@@ -240,7 +265,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
                   toast.error("Không thể vote bình luận của chính mình");
                   return;
                 }
-                onDownvote(comment.id || comment.commentId);
+                onDownvote(cid);
               }}
               className={`px-3 py-1 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-r-lg ${
                 comment.userVote === -1
@@ -256,26 +281,28 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
             </div>
           </div>
 
-          {(comment.repliesCount || childComments?.length) ? (
+          {(comment.repliesCount || processedChildren?.length) ? (
             <div
               onClick={() => setShowReplies(!showReplies)}
               className="flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] transition-colors"
             >
               <MessageCircle size={14} />
               <span className="text-[11px] font-bold uppercase tracking-tighter">
-                {showReplies ? "Hide" : `Show ${comment.repliesCount || childComments?.length || 0}`} Replies
+                {showReplies ? "Hide" : `Show ${comment.repliesCount || processedChildren?.length || 0}`} Replies
               </span>
             </div>
           ) : null}
 
-          <div
-            onClick={() => setIsReplying(!isReplying)}
-            className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${
-              isReplying ? "text-blue-600 dark:text-[#E3C39D]" : ""
-            }`}
-          >
-            <Share2 size={14} className="-scale-x-100" /> Reply
-          </div>
+          {depth < 3 && (
+            <div
+              onClick={() => setIsReplying(!isReplying)}
+              className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${
+                isReplying ? "text-blue-600 dark:text-[#E3C39D]" : ""
+              }`}
+            >
+              <Share2 size={14} className="-scale-x-100" /> Reply
+            </div>
+          )}
         </div>
 
         {/* Input Reply */}
@@ -285,14 +312,14 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
               isReply
               targetUser={displayName}
               discussionId={discussionId}
-              parentId={comment.discussionId ? comment.id : undefined}
+              parentId={comment.problemId ? undefined : cid}
               userId={currentUserId}
               onCancel={() => setIsReplying(false)}
               onSuccess={(newComment) => {
                 setIsReplying(false);
                 setShowReplies(true);
                 if (newComment) {
-                  onReplySuccess(comment.id, newComment);
+                  onReplySuccess(cid, newComment);
                 }
               }}
             />
@@ -300,14 +327,15 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
         )}
 
         {/* Nested Replies Rendering */}
-        {showReplies && childComments && (
+        {showReplies && processedChildren && (
           <div className="mt-6 ml-2 pl-6 border-l-2 border-gray-100 dark:border-[#1C2737] space-y-6 animate-in slide-in-from-left-2 duration-300">
-            {childComments.map((reply: any) => (
+            {processedChildren.map((reply: any) => (
               <CommentItem
                 key={reply.id || reply.commentId}
                 comment={reply}
                 discussionId={discussionId}
                 currentUserId={currentUserId}
+                depth={depth + 1}
                 onLike={onLike}
                 onDownvote={onDownvote}
                 onEditSuccess={onEditSuccess}

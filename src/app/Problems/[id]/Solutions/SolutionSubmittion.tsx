@@ -10,6 +10,7 @@ import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
+import { VerdictCode } from "@/types"
 
 interface SolutionSubmittionProps {
   editorHeight: number;
@@ -51,55 +52,100 @@ public:
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
+  const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
+
   // Query lấy submission với cấu hình quan trọng
-  const { data: submissionData, refetch } = useGetSubmissionQuery(
+  const { data: submissionData, refetch, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
     { 
       skip: !submissionId,
       refetchOnMountOrArgChange: true,   // Đảm bảo luôn fetch dữ liệu mới khi submissionId thay đổi
+      pollingInterval: pollingIntervalTime,
     }
   )
-  console.log("a",submissionData);
-  console.log("dasdadsa");
-  
+
+  // ==================== 1. CẬP NHẬT POLLING ====================
   useEffect(() => {
-      console.log("dasdadsa");
-    if (!submissionData?.data?.verdictCode || hasShownResultToast) return
-
-    const verdict = submissionData.data.verdictCode
-    // chú ý cái này
-    addToast({
-      title: verdict,
-      color: verdict === "Accepted" ? "success" : "danger",
-    })
-    console.log("er",verdict);
-    
-    setHasShownResultToast(true)
-
-    if (verdict === "Accepted" && onSubmitSuccess) {
-      onSubmitSuccess()
+    if (!submissionId) {
+      setPollingIntervalTime(0);
+      return;
     }
-  }, [submissionData?.data?.verdictCode])
+    
+    // Nếu không có verdictCode (null, undefined, rỗng...), tiếp tục polling mỗi 5s
+    if (!submissionData?.data?.verdictCode) {
+      setPollingIntervalTime(5000);
+    } else {
+      // Đã có verdictCode, dừng polling
+      setPollingIntervalTime(0);
+    }
+  }, [submissionId, submissionData?.data?.verdictCode]);
 
-  // Reset toast state khi thay đổi submissionId (nộp lần mới)
+  // ==================== 2. HIỂN THỊ TOAST KHI CÓ VERDICT ====================
+  useEffect(() => {
+    // Tránh in ra toast cũ khi submit lại (isFetching = true)
+    if (isFetching || !submissionData?.data?.verdictCode || hasShownResultToast) return;
+
+    const verdict = submissionData.data.verdictCode.toLowerCase();
+
+    let title = verdict;
+    let color: "success" | "danger" | "warning" | "default" | "primary" | "secondary" = "danger";
+
+    switch (verdict) {
+      case VerdictCode.AC:
+      case "accepted":
+        title = "Congratulations! Your solution has been accepted.";
+        color = "success";
+        break;
+      case VerdictCode.WA:
+        title = "Wrong Answer. Please check your logic!";
+        color = "danger";
+        break;
+      case VerdictCode.RTE:
+        title = "Runtime Error. Your code crashed!";
+        color = "danger";
+        break;
+      case VerdictCode.CE:
+        title = "Compile Error. Your code could not be compiled!";
+        color = "warning";
+        break;
+      case VerdictCode.TLE:
+        title = "Time Limit Exceeded. Your code is too slow!";
+        color = "danger";
+        break;
+      case VerdictCode.MLE:
+        title = "Memory Limit Exceeded. Please optimize your memory usage!";
+        color = "danger";
+        break;
+      case VerdictCode.OLE:
+        title = "Output Limit Exceeded.";
+        color = "danger";
+        break;
+      case VerdictCode.IE:
+      case VerdictCode.IR:
+        title = `System Error (${verdict.toUpperCase()}). Please try again later.`;
+        color = "warning";
+        break;
+      default:
+        title = `Result: ${verdict.toUpperCase()}`;
+        color = "warning";
+        break;
+    }
+
+    addToast({ title, color });
+
+    setHasShownResultToast(true);
+
+    if ((verdict === VerdictCode.AC || verdict === "accepted") && onSubmitSuccess) {
+      onSubmitSuccess();
+    }
+  }, [submissionData?.data?.verdictCode, hasShownResultToast, onSubmitSuccess, isFetching]);
+
+  // ==================== 3. RESET TOAST KHI NỘP BÀI MỚI ====================
   useEffect(() => {
     if (submissionId) {
-      setHasShownResultToast(false)
+      setHasShownResultToast(false);
     }
-      console.log("dasdadsa");
-  }, [submissionId])
-
-  // Polling lấy kết quả mỗi 10 giây
-  useEffect(() => {
-      console.log("dasdadsa");
-    if (!submissionId) return
-
-    const timer = setTimeout(() => {
-      refetch()
-    }, 10000)
-
-    return () => clearTimeout(timer)
-  }, [submissionId, refetch])
+  }, [submissionId]);
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {

@@ -24,8 +24,8 @@ interface Props {
   comment: any;
   discussionId: string;
   currentUserId: string | undefined;
-  onLike: (id: string) => void;
-  onDownvote: (id: string) => void;
+  onLike: (id: string, voteType: number) => void;
+  onDownvote: (id: string, voteType: number) => void;
   onEditSuccess: (id: string, newContent: string) => void;
   onHideSuccess: (id: string, isHidden: boolean) => void;
   onReplySuccess: (parentId: string | null, newComment: any) => void;
@@ -71,39 +71,39 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   };
   
   const currentUser = useAppSelector((state) => state.auth.user);
-  
-  const isMe = currentUserId === comment.userId;
-  const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
-  
-  const displayName = isMe 
-    ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account") 
-    : (comment?.userDisplayName || comment?.userFullName || `User ${comment?.userId?.substring(0, 5)}`);
-    
-  const displayAvatar = isMe 
-    ? (currentUser?.avatarUrl || displayName?.[0]) 
-    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.userDisplayName?.[0] || "?");
+  const cid = comment.id || comment.commentId;
 
   const { data: fetchedRepliesData } = useGetDiscussionCommentsQuery(
-    { id: comment.id },
-    { skip: !isTopLevel || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
+    { id: cid },
+    { skip: !cid || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
   );
 
-  const serverReplies = isTopLevel && fetchedRepliesData?.data 
+  const serverReplies = fetchedRepliesData?.data 
     ? (fetchedRepliesData.data as any[]).map((c: any) => ({ ...c, id: c.id || c.commentId }))
     : null;
   const childComments = serverReplies || comment?.children || comment?.comments || comment?.replies;
 
-  // Normalize children and apply identical filter/sort logic as index.tsx
+  // Robust ID check for children and self
+  const myIds = [
+    String(userData?.userId || ""),
+    String((userData as any)?.id || ""),
+    String(currentUserId || ""),
+  ].filter(v => v && v !== "undefined" && v !== "null");
+
   const processChildComments = (list: any[]): any[] => {
     if (!list) return [];
     return list
       .map((c) => ({ ...c, id: c.id || c.commentId }))
       .filter((c) => {
-        // Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy
-        const cUserId = String(c.userId || c.creatorId || c.authorId || "");
-        const curId = String(currentUserId || "");
-        const isOwner = curId && (cUserId === curId);
+        const cOwnerIds = [
+          String(c.userId || ""),
+          String(c.creatorId || ""),
+          String(c.authorId || ""),
+          String(c.user?.id || ""),
+          String(c.author?.id || ""),
+        ].filter(v => v && v !== "undefined" && v !== "null");
 
+        const isOwner = myIds.some(id => cOwnerIds.includes(id));
         if (c.isHidden && !isOwner) return false;
         return true;
       })
@@ -111,7 +111,26 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   };
 
   const processedChildren = processChildComments(childComments);
-  const cid = comment.id || comment.commentId;
+
+  const commentOwnerIds = [
+    String(comment.userId || ""),
+    String(comment.creatorId || ""),
+    String(comment.authorId || ""),
+    String((comment as any).user?.id || ""),
+    String((comment as any).author?.id || ""),
+  ].filter(v => v && v !== "undefined" && v !== "null");
+
+  const isMe = myIds.length > 0 && myIds.some(id => commentOwnerIds.includes(id));
+
+  const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
+
+  const displayName = isMe 
+    ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account") 
+    : (comment?.userDisplayName || comment?.userFullName || comment?.user?.displayName || `User ${comment?.userId?.substring(0, 5)}`);
+    
+  const displayAvatar = isMe 
+    ? (currentUser?.avatarUrl || displayName?.[0]) 
+    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl || displayName?.[0] || "?");
 
   return (
     <div className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
@@ -241,7 +260,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                   toast.error("Không thể vote bình luận của chính mình");
                   return;
                 }
-                onLike(cid);
+                const newVote = comment.userVote === 1 ? 0 : 1;
+                onLike(cid, newVote);
               }}
               className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer transition-colors border-r border-gray-100 dark:border-[#334155] hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-l-lg ${
                 comment.userVote === 1
@@ -265,7 +285,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                   toast.error("Không thể vote bình luận của chính mình");
                   return;
                 }
-                onDownvote(cid);
+                const newVote = comment.userVote === -1 ? 0 : -1;
+                onDownvote(cid, newVote);
               }}
               className={`px-3 py-1 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-r-lg ${
                 comment.userVote === -1
@@ -313,7 +334,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
               targetUser={displayName}
               discussionId={discussionId}
               parentId={comment.problemId ? undefined : cid}
-              userId={currentUserId}
+              userId={myIds[0] || currentUserId}
               onCancel={() => setIsReplying(false)}
               onSuccess={(newComment) => {
                 setIsReplying(false);

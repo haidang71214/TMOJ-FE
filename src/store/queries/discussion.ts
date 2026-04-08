@@ -123,7 +123,7 @@ export const discussionApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: DiscussionEndpoint.HIDE_COMMENT.replace("{id}", body.commentId),
         method: "POST",
-        body: { isHidden: body.isHidden },
+        body: { hide: body.isHidden },
       }),
       invalidatesTags: ["Discussion"],
     }),

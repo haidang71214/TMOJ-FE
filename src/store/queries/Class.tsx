@@ -1,6 +1,6 @@
 import { ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { addClassMemberRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse } from "@/types";
+import { addClassMemberRequest, DeleteClassStudentRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -51,6 +51,16 @@ getClasses: builder.query<ClassResponse, {
       }),
       invalidatesTags: ["Class"],
     }),
+
+    deleteStudentClassSemester: builder.mutation<void, DeleteClassStudentRequest>({
+      query: ({ classSemesterId, studentId }) => ({
+        url: ClassEndpoint.DELETE_STUDENT_CLASS_SEMESTER
+             .replace("{classSemesterId}", classSemesterId)
+             .replace("{studentId}", studentId),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Class"],
+    }),
    getClassMembers: builder.query<{data : ClassMemberResponse[]}, { id: string }>({
   query: ({ id }) => ({
     url: ClassEndpoint.GET_CLASS_MEMBERS.replace("{id}", id),
@@ -76,7 +86,7 @@ addClassMembers: builder.mutation<
   { id: string; data: addClassMemberRequest }
 >({
   query: ({ id, data }) => ({
-    url: ClassEndpoint.ADD_CLASS_MEMBERS.replace("{id}", id),
+    url: ClassEndpoint.ADD_CLASS_MEMBERS.replace("{classSemesterId}", id),
     method: "POST",
     body: data,
   }),
@@ -133,6 +143,31 @@ deleteSlotProblems: builder.mutation<
   invalidatesTags: ["ClassSlot"],
 }),
 
+exportStudentsImportTemplate: builder.mutation<Blob, { classSemesterId: string }>({
+  query: ({ classSemesterId }) => ({
+    url: ClassEndpoint.GET_STUDENTS_IMPORT_TEMPLATE.replace("{classSemesterId}", classSemesterId),
+    method: "GET",
+    responseHandler: (response) => response.blob(),
+  }),
+}),
+
+importStudents: builder.mutation<any, { classSemesterId: string; data: FormData }>({
+  query: ({ classSemesterId, data }) => ({
+    url: ClassEndpoint.IMPORT_STUDENTS_CLASS_SEMESTER.replace("{classSemesterId}", classSemesterId),
+    method: "POST",
+    body: data,
+  }),
+  invalidatesTags: ["Class"],
+}),
+
+exportStudentsClassSemester: builder.mutation<Blob, { classSemesterId: string }>({
+  query: ({ classSemesterId }) => ({
+    url: ClassEndpoint.EXPORT_STUDENTS_CLASS_SEMESTER.replace("{classSemesterId}", classSemesterId),
+    method: "GET",
+    responseHandler: (response) => response.blob(),
+  }),
+}),
+
   }),
 });
 
@@ -149,4 +184,8 @@ export const {
    useUpdateSlotProblemsMutation,
    useImportProblemToSlotMutation,
    useDeleteSlotProblemsMutation,
+   useExportStudentsImportTemplateMutation,
+   useImportStudentsMutation,
+   useExportStudentsClassSemesterMutation,
+   useDeleteStudentClassSemesterMutation,
 } = classApi;

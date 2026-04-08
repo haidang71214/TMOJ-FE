@@ -178,7 +178,14 @@ export default function ClassComponents() {
               const instance = classItem.instances[0];
 
               return (
-                <TableRow key={classItem.classId}>
+                <TableRow 
+                  key={classItem.classId}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedClassId(classItem.classId);
+                    setSelectedClassName(classItem.classCode);
+                  }}
+                >
                   <TableCell>
                     <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-md text-xs"
                       style={{ background: "rgba(99, 102, 241, 0.1)", border: "1px solid rgba(99, 102, 241, 0.2)" }}>
@@ -261,7 +268,7 @@ export default function ClassComponents() {
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-center gap-1">
                       <Tooltip content="Manage Semester In Class" placement="top">
                         <Button

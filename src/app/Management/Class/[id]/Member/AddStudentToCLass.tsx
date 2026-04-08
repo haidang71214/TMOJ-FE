@@ -36,15 +36,17 @@ export default function AddStudentModal({ classId }: Props) {
       toast.error("Please select a student");
       return;
     }
+    console.log("selectedUser", selectedUser);
 
     try {
-      await addMember({
+      const res = await addMember({
         id: classId,
         data: {
-          email: selectedUser.email,
-          userId: selectedUser.userId,
+          rollNumber: selectedUser.roll_number ?? undefined,
+          memberCode: selectedUser.member_code ?? undefined,
         },
       }).unwrap();
+      console.log("asdasdasd", res);
 
       toast.success("Student added successfully");
       closeModal();

@@ -8,28 +8,40 @@ import {
   Chip,
   Spinner,
   Pagination,
+  Button,
+  addToast,
+  Tooltip,
 } from "@heroui/react";
 
 import {
   Users,
   Mail,
   User,
+  Trash2,
 } from "lucide-react";
 
-import { useGetClassMembersQuery } from "@/store/queries/Class";
+import { useGetClassMembersQuery, useDeleteStudentClassSemesterMutation } from "@/store/queries/Class";
 import { ClassMemberResponse } from "@/types";
 
 export default function ClassMembersPage({
-  params,
+  classId,
 }: {
-  params: Promise<{ id: string }>;
+  classId: string;
 }) {
-  const resolvedParams = use(params);
-  const classId = resolvedParams.id;
   console.log(classId);
   
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
+  const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentClassSemesterMutation();
+
+  const handleDelete = async (studentId: string) => {
+    try {
+      await deleteStudent({ classSemesterId: classId, studentId }).unwrap();
+      addToast({ title: "Student removed", color: "success" });
+    } catch {
+      addToast({ title: "Failed to remove student", color: "danger" });
+    }
+  };
 
   const rowsPerPage = 8;
 
@@ -123,6 +135,18 @@ export default function ClassMembersPage({
                     >
                       Student
                     </Chip>
+                    <Tooltip content="Remove" color="danger">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        className="ml-2"
+                        onPress={() => handleDelete(member.userId)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </Tooltip>
 
                 </div>
               </CardBody>

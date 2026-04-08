@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Tabs,
   Tab,
@@ -30,12 +30,13 @@ import {
   Hourglass,
   Plus,
   Download,
+  Upload,
   Trash2,
 } from "lucide-react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/queries/ClassSlot";
-import { useDeleteSlotProblemsMutation } from "@/store/queries/Class";
+import { useDeleteSlotProblemsMutation, useExportStudentsImportTemplateMutation, useImportStudentsMutation, useExportStudentsClassSemesterMutation } from "@/store/queries/Class";
 import { ClassSlotResponse } from "@/types";
 import { useModal } from "@/Provider/ModalProvider";
 
@@ -61,6 +62,11 @@ export default function ClassDetailPage({
 
   const [publishSlot] = usePublishClassSlotMutation();
   const [deleteProblems] = useDeleteSlotProblemsMutation();
+  const [exportTemplate, { isLoading: isExportingTemplate }] = useExportStudentsImportTemplateMutation();
+  const [importStudents, { isLoading: isImportingStudents }] = useImportStudentsMutation();
+  const [exportStudents, { isLoading: isExportingStudents }] = useExportStudentsClassSemesterMutation();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mounted, setMounted] = useState(false);
   const [slotPage, setSlotPage] = useState(1);
@@ -111,13 +117,77 @@ export default function ClassDetailPage({
 
   const handleExport = async () => {
     try {
-      console.log("Export class", classId);
+      const blob = await exportStudents({ classSemesterId: classId }).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Students_${classCode}_${semesterCode}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      addToast({
+        title: "Exported successfully",
+        color: "success"
+      });
     } catch (error) {
       console.error("Failed to export class", error);
        addToast({
         title:"Export failed",
         color:"danger"
       });
+    }
+  };
+
+  const handleExportTemplate = async () => {
+    try {
+      const blob = await exportTemplate({ classSemesterId: classId }).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Student_Import_Template_${classCode}_${semesterCode}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      
+      addToast({
+        title: "Template exported successfully",
+        color: "success"
+      });
+    } catch (error) {
+      console.error("Failed to export template:", error);
+      addToast({
+        title: "Failed to export template",
+        color: "danger"
+      });
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const res = await importStudents({ classSemesterId: classId, data: formData }).unwrap();
+      
+      addToast({
+        title: "Import Success",
+        description: `Processed: ${res?.totalProcessed || 0}, Success: ${res?.successCount || 0}, Failed: ${res?.failedCount || 0}`,
+        color: "success"
+      });
+    } catch (error) {
+      console.error("Failed to import students", error);
+      addToast({
+        title: "Import Failed",
+        color: "danger"
+      });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -144,44 +214,67 @@ export default function ClassDetailPage({
           </div>
         </div>
 
-        <div className="flex gap-3 items-center" style={{ marginTop: 60 }}>
+        <div className="flex gap-2 items-center flex-wrap" style={{ marginTop: 60 }}>
           <Button
-            startContent={<Download size={16} strokeWidth={3} />}
-            size="lg"
+            startContent={<Download size={14} strokeWidth={2.5} />}
+            size="md"
             color="success"
             variant="flat"
-            onPress={handleExport}
-            className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700"
+            onPress={handleExportTemplate}
+            isLoading={isExportingTemplate}
+            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
           >
-            EXPORT STUDENT LIST
+            TEMPLATE
           </Button>
           <Button
-            startContent={<Download size={16} strokeWidth={3} />}
-            size="lg"
+            startContent={<Download size={14} strokeWidth={2.5} />}
+            size="md"
             color="success"
             variant="flat"
+            isLoading={isExportingStudents}
             onPress={handleExport}
-            className="font-black h-11 px-6 rounded-xl shadow-sm uppercase text-[10px] tracking-wider transition-all text-emerald-700"
+            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
           >
-            IMPORT STUDENT LIST
+            EXPORT LIST
           </Button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept=".xlsx, .xls, .csv" 
+            hidden 
+          />
           <Button
-            startContent={<Plus size={20} strokeWidth={3} />}
-            size="lg"
+            startContent={<Upload size={14} strokeWidth={2.5} />}
+            size="md"
+            color="success"
+            variant="flat"
+            isLoading={isImportingStudents}
+            onPress={() => fileInputRef.current?.click()}
+            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+          >
+            IMPORT LIST
+          </Button>
+          
+          <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2"></div>
+
+          <Button
+            startContent={<Plus size={16} strokeWidth={2.5} />}
+            size="md"
             color="warning"
             onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
-            className="text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+            className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
           >
             ADD STUDENT
           </Button>
 
           <Button
-            startContent={<Plus size={20} strokeWidth={3} />}
-            size="lg"
-            className="bg-[#FF5C00] hover:bg-orange-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+            startContent={<Plus size={16} strokeWidth={2.5} />}
+            size="md"
+            className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
             onPress={openCreateSlotModal}
           >
-            CREATE NEW SLOT
+            NEW SLOT
           </Button>
         </div>
       </div>
@@ -437,7 +530,7 @@ export default function ClassDetailPage({
         </Tab>
 
         <Tab key="members" title="Members">
-          <ClassMembersPage params={params} />
+          <ClassMembersPage classId={classId} />
         </Tab>
       </Tabs>
     </div>

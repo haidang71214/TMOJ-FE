@@ -328,34 +328,10 @@ const handleExportTemplateClass = async()=>{
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center w-full">
-                      <div className="relative z-20 flex flex-1 h-[34px] rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111c35]">
-                        
-                        {/* Nền đỏ bên trái */}
-                        <div 
-                          className="absolute inset-0 bg-gradient-to-br from-[#f43f5e] to-[#e11d48] w-full h-full pointer-events-none" 
-                          style={{ clipPath: 'polygon(0 0, 52% 0, 46% 100%, 0% 100%)' }} 
-                        />
-                        
-                        {/* Nền vàng bên phải */}
-                        <div 
-                          className="absolute inset-0 bg-gradient-to-br from-[#f59e0b] to-[#d97706] w-full h-full pointer-events-none" 
-                          style={{ clipPath: 'polygon(54% 0, 100% 0, 100% 100%, 48% 100%)' }} 
-                        />
-
-                        <Button
-                          variant="light"
-                          className="flex-1 h-full rounded-none relative z-10 text-white bg-transparent hover:!bg-transparent data-[hover=true]:!bg-transparent font-semibold tracking-wide group/btn1 px-1 min-w-0"
-                          startContent={<CalendarPlus size={15} strokeWidth={2.5} className="group-hover/btn1:scale-125 group-active/btn1:scale-95 transition-transform duration-300 drop-shadow-md" />}
-                          onPress={() => openCreateSlotModal(cls.classId)}
-                        >
-                          <span className="text-[11px] group-hover/btn1:opacity-80 transition-opacity drop-shadow-md truncate">Add Slot</span>
-                        </Button>
-
-                        <Button
-                          variant="light"
-                          className="flex-1 h-full rounded-none relative z-10 text-white bg-transparent hover:!bg-transparent data-[hover=true]:!bg-transparent font-semibold tracking-wide group/btn2 px-1 min-w-0"
-                          startContent={<UserCog size={15} strokeWidth={2.5} className="group-hover/btn2:scale-125 group-active/btn2:scale-95 transition-transform duration-300 drop-shadow-md" />}
+                    <div className="flex items-center w-full pt-2 relative z-20">
+                       <Button
+                          className="w-full font-bold text-[11px] uppercase tracking-wider h-9 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all rounded-xl border border-orange-400 dark:border-white/10 group/btn"
+                          startContent={<UserCog size={15} strokeWidth={2.5} className="group-hover/btn:scale-110 transition-transform duration-300" />}
                           onPress={() =>
                             openUpdateTeacherForClass(
                               cls.classId,
@@ -363,9 +339,8 @@ const handleExportTemplateClass = async()=>{
                             )
                           }
                         >
-                          <span className="text-[11px] group-hover/btn2:opacity-80 transition-opacity drop-shadow-md truncate">Update Teacher</span>
+                          Update Teacher
                         </Button>
-                      </div>
                     </div>
                   </CardBody>
                 </Card>

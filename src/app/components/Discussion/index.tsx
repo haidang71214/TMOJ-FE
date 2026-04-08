@@ -67,25 +67,15 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     return data.map((c) => {
       const currentId = c.commentId || c.id;
       if (currentId === id) {
-        if (action === "like") {
+        if (action === "like" || action === "dislike") {
            const oldVote = c.userVote || 0;
-           const newVote = oldVote === 1 ? 0 : 1;
+           const newVote = payload; // voteType from payload
            const voteDiff = newVote - oldVote;
            return {
              ...c,
              voteCount: (c.voteCount || 0) + voteDiff,
              userVote: newVote,
-           };
-         }
-         if (action === "dislike") {
-           const oldVote = c.userVote || 0;
-           const newVote = oldVote === -1 ? 0 : -1;
-           const voteDiff = newVote - oldVote;
-           return {
-             ...c,
-             voteCount: (c.voteCount || 0) + voteDiff,
-             userVote: newVote,
-             isHidden: newVote === -1 ? true : c.isHidden, // Keep hidden if downvoted
+             isHidden: (action === "dislike" && newVote === -1) ? true : c.isHidden,
            };
          }
          if (action === "edit") {
@@ -114,31 +104,37 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     });
   };
 
-  const handleLike = async (id: string) => {
-    setComments((prev) => updateCommentState(prev, id, "like"));
+  const handleLike = async (id: string, voteType: number) => {
     try {
+      const isUnvote = voteType === 0;
+      setComments((prev) => updateCommentState(prev, id, "like", voteType));
+      
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
-        await voteDiscussion({ id, voteType: 1 }).unwrap();
+        await voteDiscussion({ id, voteType }).unwrap();
       } else {
-        await voteComment({ id, voteType: 1 }).unwrap();
+        await voteComment({ id, voteType }).unwrap();
       }
-      toast.success("Đã vote thành công!");
+      
+      toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
   };
 
-  const handleDownvote = async (id: string) => {
-    setComments((prev) => updateCommentState(prev, id, "dislike"));
+  const handleDownvote = async (id: string, voteType: number) => {
     try {
+      const isUnvote = voteType === 0;
+      setComments((prev) => updateCommentState(prev, id, "dislike", voteType));
+      
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
-        await voteDiscussion({ id, voteType: -1 }).unwrap();
+        await voteDiscussion({ id, voteType }).unwrap();
       } else {
-        await voteComment({ id, voteType: -1 }).unwrap();
+        await voteComment({ id, voteType }).unwrap();
       }
-      toast.success("Đã downvote thành công!");
+      
+      toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
@@ -165,12 +161,23 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     if (!list) return [];
     return list
       .filter((c) => {
-        if (c.isDisliked) return false;
-        // Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy
-        const cUserId = String(c.userId || c.creatorId || c.authorId || "");
-        const curId = String(currentUserId || "");
-        const isOwner = curId && (cUserId === curId);
+        // Robust ID check cho chủ sở hữu
+        const myIds = [
+          String(userData?.userId || ""),
+          String((userData as any)?.id || ""),
+          String(currentUserId || ""),
+        ].filter(v => v && v !== "undefined" && v !== "null");
 
+        const cOwnerIds = [
+          String(c.userId || ""),
+          String(c.creatorId || ""),
+          String(c.authorId || ""),
+          String(c.user?.id || ""),
+          String(c.author?.id || ""),
+        ].filter(v => v && v !== "undefined" && v !== "null");
+
+        const isOwner = myIds.length > 0 && myIds.some(id => cOwnerIds.includes(id));
+        
         if (c.isHidden && !isOwner) return false;
         return true;
       })

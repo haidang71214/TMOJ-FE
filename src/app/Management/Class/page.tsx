@@ -29,7 +29,7 @@ import {
   Download,
 } from "lucide-react";
 import Link from "next/link";
-import { useGetClassesQuery } from "@/store/queries/Class";
+import { useGetClassesQuery, useExportClassTemplateMutation } from "@/store/queries/Class";
 import CreateSlotForm from "./CreateClassSlotModal";
 import { useModal } from "@/Provider/ModalProvider";
 import UpdateTeacherModal from "./UpdateTeacherModal";
@@ -41,6 +41,7 @@ import { ClassItem, SemesterItem } from "@/types";
 export default function ClassListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
+  const [exportClassTemplate] = useExportClassTemplateMutation();
     const [selectedSemesterName, setSelectedSemesterName] = useState<string | undefined>(undefined);
  
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);

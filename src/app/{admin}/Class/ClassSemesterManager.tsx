@@ -37,7 +37,7 @@ export default function ClassSemesterManagement({
 
   // State quản lý view
   const [selectedClassSemesterId, setSelectedClassSemesterId] = useState<string | null>(null);
-  const [selectedSubjectCode, setSelectedSubjectCode] = useState<string | undefined>(null);
+  const [selectedSubjectCode, setSelectedSubjectCode] = useState<string | undefined>(undefined);
   
   // State cho Create Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

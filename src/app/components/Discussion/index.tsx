@@ -10,14 +10,21 @@ import {
   useCreateDiscussionMutation,
   useVoteCommentMutation,
   useVoteDiscussionMutation,
+  useHideCommentMutation,
+  useUpdateDiscussionMutation,
 } from "@/store/queries/discussion";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { DiscussionCommentItem, DiscussionItem } from "@/types";
 
 interface DiscussionProps {
   problemId: string;
   currentUserId: string | undefined; // From auth context or props
 }
 
-export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
+export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionProps) => {
+  const { data: userData } = useGetUserInformationQuery();
+  const currentUserId = userData?.userId || (userData as any)?.id || propUserId;
+
   const { data: discussionResponse, isLoading, isError } = useGetProblemDiscussionsQuery({ problemId });
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
@@ -154,13 +161,17 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
     }
   };
 
-  // Helper to filter and sort
   const processComments = (list: any[]): any[] => {
     if (!list) return [];
     return list
       .filter((c) => {
         if (c.isDisliked) return false;
-        if (c.isHidden && c.userId !== currentUserId) return false;
+        // Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy
+        const cUserId = String(c.userId || c.creatorId || c.authorId || "");
+        const curId = String(currentUserId || "");
+        const isOwner = curId && (cUserId === curId);
+
+        if (c.isHidden && !isOwner) return false;
         return true;
       })
       .map((c) => {
@@ -217,6 +228,7 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
             comment={comment}
             discussionId={comment.discussionId || comment.id || comment.commentId}
             currentUserId={currentUserId}
+            depth={0}
             onLike={handleLike}
             onDownvote={handleDownvote}
             onEditSuccess={handleEdit}

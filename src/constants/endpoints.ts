@@ -106,6 +106,7 @@ const DiscussionEndpoint = {
   GET_DISCUSSION: `${API_PREFIX}/discussions/{id}`,
   DELETE_DISCUSSION: `${API_PREFIX}/discussions/{id}`,
   VOTE_DISCUSSION: `${API_PREFIX}/discussions/{id}/vote`,
+  UPDATE_DISCUSSION: `${API_PREFIX}/discussions/{id}`,
 
   CREATE_COMMENT: `${API_PREFIX}/discussions/{id}/comments`,
   GET_DISCUSSION_COMMENTS: `${API_PREFIX}/discussions/{id}/comments`,

@@ -31,7 +31,7 @@ interface Props {
   onReplySuccess: (parentId: string | null, newComment: any) => void;
 }
 
-import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery } from "@/store/queries/discussion";
+import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery, useUpdateDiscussionMutation } from "@/store/queries/discussion";
 import { toast } from "sonner";
 
 export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess }: Props) => {
@@ -40,19 +40,27 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
   const [isEditing, setIsEditing] = useState(false);
 
   const [updateComment] = useUpdateCommentMutation();
+  const [updateDiscussion] = useUpdateDiscussionMutation();
   const [hideComment] = useHideCommentMutation();
 
   const checkResponse = (resData: any) => {
+    // Only throw if data is null AND message doesn't contain "success"
+    const isSuccessMessage = (msg: string) => 
+      msg.toLowerCase().includes("success") || 
+      msg.toLowerCase().includes("thành công");
+
     if (typeof resData === "string") {
       try {
         const parsed = JSON.parse(resData);
-        if (parsed && parsed.data === null && parsed.message) throw new Error(parsed.message);
+        if (parsed && parsed.data === null && parsed.message && !isSuccessMessage(parsed.message)) {
+          throw new Error(parsed.message);
+        }
       } catch (e) {
         if (e instanceof Error && e.message !== "Unexpected end of JSON input" && !e.message.includes("is not valid JSON")) {
-          throw e; // Relaise custom error
+          throw e;
         }
       }
-    } else if (resData && resData.data === null && resData.message) {
+    } else if (resData && resData.data === null && resData.message && !isSuccessMessage(resData.message)) {
       throw new Error(resData.message);
     }
   };
@@ -171,12 +179,24 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
               onCancel={() => setIsEditing(false)}
               onSaveEdit={async (newContent) => {
                 try {
-                  const res = await updateComment({ commentId: comment.id, content: newContent }).unwrap();
+                  let res;
+                  if (isTopLevel) {
+                    res = await updateDiscussion({ 
+                      id: comment.id, 
+                      content: newContent, 
+                      title: comment.title || "Discussion" 
+                    }).unwrap();
+                  } else {
+                    res = await updateComment({ 
+                      commentId: comment.id, 
+                      content: newContent 
+                    }).unwrap();
+                  }
                   checkResponse(res);
-                  toast.success("Cập nhật bình luận thành công");
+                  toast.success(isTopLevel ? "Cập nhật thảo luận thành công" : "Cập nhật bình luận thành công");
                   onEditSuccess(comment.id, newContent);
                 } catch (e) {
-                  toast.error(e instanceof Error ? e.message : "Lỗi cập nhật bình luận");
+                  toast.error(e instanceof Error ? e.message : "Lỗi cập nhật");
                 }
               }}
             />
@@ -189,54 +209,52 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
 
         {/* Action Buttons: Vote, Reply */}
         <div className="flex items-center gap-6 text-gray-400 dark:text-[#94A3B8]">
-          {!isTopLevel && (
-            <>
-              <div
-                onClick={() => {
-                  if (isMe) {
-                    toast.error("Không thể vote bình luận của chính mình");
-                    return;
-                  }
-                  onLike(comment.id);
-                }}
-                className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
-                  comment.isLiked
-                    ? "text-blue-600 dark:text-[#E3C39D] font-black"
-                    : "hover:dark:text-white"
-                }`}
-              >
-                <ThumbsUp
-                  size={16}
-                  strokeWidth={comment.isLiked ? 3 : 2}
-                  className="transition-transform active:scale-125"
-                />
-                <span className="text-[11px] font-bold tracking-wider">
-                  {(comment.likesCount || 0) > 0 ? `${(comment.likesCount || 0).toLocaleString()} VOTE${(comment.likesCount || 0) > 1 ? 'S' : ''}` : "VOTE"}
-                </span>
-              </div>
+          <div className="flex items-center bg-gray-50 dark:bg-[#1C2737]/40 rounded-lg border border-gray-100 dark:border-[#334155]">
+            <div
+              onClick={() => {
+                if (isMe) {
+                  toast.error("Không thể vote bình luận của chính mình");
+                  return;
+                }
+                onLike(comment.id || comment.commentId);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer transition-colors border-r border-gray-100 dark:border-[#334155] hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-l-lg ${
+                comment.userVote === 1
+                  ? "text-blue-600 dark:text-[#E3C39D] font-black"
+                  : "hover:text-blue-500"
+              }`}
+            >
+              <ThumbsUp
+                size={14}
+                strokeWidth={comment.userVote === 1 ? 3 : 2}
+                className="transition-transform active:scale-125"
+              />
+              <span className="text-[12px] font-black min-w-[12px] text-center">
+                {comment.voteCount || 0}
+              </span>
+            </div>
 
-              <div
-                onClick={() => {
-                  if (isMe) {
-                    toast.error("Không thể vote bình luận của chính mình");
-                    return;
-                  }
-                  onDownvote(comment.id);
-                }}
-                className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
-                  comment.isDisliked
-                    ? "text-red-500 dark:text-red-400 font-black"
-                    : "hover:dark:text-white"
-                }`}
-              >
-                <ThumbsDown
-                  size={16}
-                  strokeWidth={comment.isDisliked ? 3 : 2}
-                  className="transition-transform active:scale-125"
-                />
-              </div>
-            </>
-          )}
+            <div
+              onClick={() => {
+                if (isMe) {
+                  toast.error("Không thể vote bình luận của chính mình");
+                  return;
+                }
+                onDownvote(comment.id || comment.commentId);
+              }}
+              className={`px-3 py-1 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-r-lg ${
+                comment.userVote === -1
+                  ? "text-red-500 font-black"
+                  : "hover:text-red-500"
+              }`}
+            >
+              <ThumbsDown
+                size={14}
+                strokeWidth={comment.userVote === -1 ? 3 : 2}
+                className="transition-transform active:scale-125"
+              />
+            </div>
+          </div>
 
           {(comment.repliesCount || childComments?.length) ? (
             <div
@@ -286,7 +304,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId, onLike, onDo
           <div className="mt-6 ml-2 pl-6 border-l-2 border-gray-100 dark:border-[#1C2737] space-y-6 animate-in slide-in-from-left-2 duration-300">
             {childComments.map((reply: any) => (
               <CommentItem
-                key={reply.id}
+                key={reply.id || reply.commentId}
                 comment={reply}
                 discussionId={discussionId}
                 currentUserId={currentUserId}

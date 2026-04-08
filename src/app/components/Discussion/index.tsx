@@ -9,6 +9,7 @@ import {
   useGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
   useVoteCommentMutation,
+  useVoteDiscussionMutation,
 } from "@/store/queries/discussion";
 
 interface DiscussionProps {
@@ -20,6 +21,7 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const { data: discussionResponse, isLoading, isError } = useGetProblemDiscussionsQuery({ problemId });
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
+  const [voteDiscussion] = useVoteDiscussionMutation();
   
   const [comments, setComments] = useState<any[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
@@ -59,20 +61,24 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
       const currentId = c.commentId || c.id;
       if (currentId === id) {
         if (action === "like") {
-           const isLiked = !c.isLiked;
+           const oldVote = c.userVote || 0;
+           const newVote = oldVote === 1 ? 0 : 1;
+           const voteDiff = newVote - oldVote;
            return {
              ...c,
-             likesCount: isLiked ? (c.likesCount || 0) + 1 : (c.likesCount || 0) - 1,
-             isLiked,
-             isDisliked: false,
+             voteCount: (c.voteCount || 0) + voteDiff,
+             userVote: newVote,
            };
          }
          if (action === "dislike") {
+           const oldVote = c.userVote || 0;
+           const newVote = oldVote === -1 ? 0 : -1;
+           const voteDiff = newVote - oldVote;
            return {
              ...c,
-             isDisliked: true,
-             isLiked: false,
-             isHidden: true,
+             voteCount: (c.voteCount || 0) + voteDiff,
+             userVote: newVote,
+             isHidden: newVote === -1 ? true : c.isHidden, // Keep hidden if downvoted
            };
          }
          if (action === "edit") {
@@ -104,7 +110,13 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const handleLike = async (id: string) => {
     setComments((prev) => updateCommentState(prev, id, "like"));
     try {
-      await voteComment({ commentId: id, vote: 1 }).unwrap();
+      const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
+      if (isTopLevel) {
+        await voteDiscussion({ id, voteType: 1 }).unwrap();
+      } else {
+        await voteComment({ id, voteType: 1 }).unwrap();
+      }
+      toast.success("Đã vote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
@@ -113,7 +125,13 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
   const handleDownvote = async (id: string) => {
     setComments((prev) => updateCommentState(prev, id, "dislike"));
     try {
-      await voteComment({ commentId: id, vote: -1 }).unwrap();
+      const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
+      if (isTopLevel) {
+        await voteDiscussion({ id, voteType: -1 }).unwrap();
+      } else {
+        await voteComment({ id, voteType: -1 }).unwrap();
+      }
+      toast.success("Đã downvote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
@@ -146,14 +164,16 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
         return true;
       })
       .map((c) => {
+        const id = c.id || c.commentId;
         const childArray = c.children || c.comments || c.replies;
         const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
         return {
           ...c,
+          id,
           [repliesKey]: processComments(childArray),
         };
       })
-      .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
+      .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
   };
 
   const safeComments = useMemo(() => {
@@ -193,9 +213,9 @@ export const Discussion = ({ problemId, currentUserId }: DiscussionProps) => {
       <div className="space-y-2 min-h-[400px]">
         {currentTableData.map((comment) => (
           <CommentItem
-            key={comment.id}
+            key={comment.id || comment.commentId}
             comment={comment}
-            discussionId={comment.discussionId || comment.id}
+            discussionId={comment.discussionId || comment.id || comment.commentId}
             currentUserId={currentUserId}
             onLike={handleLike}
             onDownvote={handleDownvote}

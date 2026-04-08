@@ -40,7 +40,8 @@ export interface Users {
   username: string;
   avatarUrl: string | null;
   role: string;
-  
+  roll_number:string | null,
+  member_code:string | null,
   isLocked?: boolean;
 }
 
@@ -608,9 +609,15 @@ export interface StudentSubmissionDetailResponse {
 }
 
 export interface addClassMemberRequest {
-  userId?: string 
-  email?: string
+  rollNumber?: string 
+  memberCode?: string
 }
+
+export interface DeleteClassStudentRequest {
+  classSemesterId: string;
+  studentId: string;
+}
+
 export interface CreateUserRequest {
   email: string;
   password?: string;

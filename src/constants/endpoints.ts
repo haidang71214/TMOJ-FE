@@ -62,17 +62,26 @@ const ClassEndpoint = {
    CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`, // chưa làm
    DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`, // chưa làm
    GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/students`, // đang làm
-   ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members`, // add student vào 
+
+   ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{classSemesterId}/students/manual​`, // add student vào 
    POST_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
+   DELETE_STUDENT_CLASS_SEMESTER:`${API_PREFIX}/Class/{classSemesterId}/students/{studentId}`,
    JOIN_CLASS_BY_INVITECODE:`${API_PREFIX}/Class/join`, // chưa làm
   OUTOF_CLASS:`${API_PREFIX}/Class/{id}/members/me`,
   EXPORT_CLASS: `${API_PREFIX}/Class/{id}/report/export`, // đang sửa
   EXPORT_TEMPLATE_CLASS:`${API_PREFIX}/Class/export/template`,
   IMPORT_PROBLEM_CLASS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
 
-  UPDATE_SLOT_PROBLEMS:`/api/v1/class-instance/{instanceId}/slots/{slotId}/problems`,
-  DELETE_SLOT_PROBLEMS:`/api/v1/class-instance/{instanceId}/slots/{slotId}/problems`,
+
+  GET_STUDENTS_IMPORT_TEMPLATE: `${API_PREFIX}/Class/{classSemesterId}/students/import/template`,
+  
+  
+  IMPORT_STUDENTS: `${API_PREFIX}/students/import`,
+  IMPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/import`,
+  EXPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/export`,
+  UPDATE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
+  DELETE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

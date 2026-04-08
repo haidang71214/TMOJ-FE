@@ -10,7 +10,8 @@ import {
   UpdateCommentRequest,
   VoteCommentRequest,
   VoteDiscussionRequest,
-  HideCommentRequest
+  HideCommentRequest,
+  UpdateDiscussionRequest
 } from "@/types";
 
 export const discussionApi = baseApi.injectEndpoints({
@@ -60,6 +61,17 @@ export const discussionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Discussion"],
     }),
+    updateDiscussion: builder.mutation<any, UpdateDiscussionRequest>({
+      query: (body) => ({
+        url: DiscussionEndpoint.UPDATE_DISCUSSION.replace("{id}", body.id),
+        method: "PUT",
+        body: {
+          title: body.title,
+          content: body.content,
+        },
+      }),
+      invalidatesTags: ["Discussion"],
+    }),
 
     getDiscussionComments: builder.query<DiscussionCommentsResponse, { id: string }>({
       query: ({ id }) => ({
@@ -98,11 +110,11 @@ export const discussionApi = baseApi.injectEndpoints({
       invalidatesTags: ["Discussion"],
     }),
 
-    voteComment: builder.mutation<any, any>({
+    voteComment: builder.mutation<any, VoteCommentRequest>({
       query: (body) => ({
-        url: DiscussionEndpoint.VOTE_COMMENT.replace("{id}", body.commentId),
+        url: DiscussionEndpoint.VOTE_COMMENT.replace("{id}", body.id),
         method: "POST",
-        body: { vote: body.vote },
+        body: { voteType: body.voteType },
       }),
       invalidatesTags: ["Discussion"],
     }),
@@ -122,6 +134,7 @@ export const {
   useGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
   useGetDiscussionQuery,
+  useUpdateDiscussionMutation,
   useDeleteDiscussionMutation,
   useVoteDiscussionMutation,
   useGetDiscussionCommentsQuery,

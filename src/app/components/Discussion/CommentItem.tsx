@@ -342,7 +342,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             </div>
           ) : null}
 
-          {depth < 5 && (
+          {depth < 3 && (
             <div
               onClick={() => setIsReplying(!isReplying)}
               className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${

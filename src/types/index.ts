@@ -649,6 +649,7 @@ export interface DiscussionCommentItem {
   userAvatarUrl: string | null;
   content: string;
   createdAt: string;
+  updatedAt?: string;
   children: DiscussionCommentItem[];
 }
 
@@ -663,6 +664,7 @@ export interface DiscussionItem {
   isPinned: boolean;
   isLocked: boolean;
   createdAt: string;
+  updatedAt?: string;
   voteCount: number;
   userVote: number;
   comments: DiscussionCommentItem[];
@@ -700,6 +702,7 @@ export interface DiscussionCommentDetail {
   userAvatarUrl: string | null;
   content: string;
   createdAt: string;
+  updatedAt?: string;
   voteCount: number;
   userVote: number;
   replies: DiscussionCommentDetail[];

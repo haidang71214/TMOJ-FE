@@ -70,7 +70,6 @@ export const CommentInput = ({
         };
         if (parentId) {
           payload.parentId = parentId;
-          payload.id = parentId;
         }
         console.log("🔥 Payload for CREATE_COMMENT:", payload);
         const res = await createComment({ discussionId, ...payload }).unwrap();

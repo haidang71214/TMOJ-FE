@@ -12,6 +12,8 @@ import {
   useVoteDiscussionMutation,
   useHideCommentMutation,
   useUpdateDiscussionMutation,
+  useDeleteDiscussionMutation,
+  useDeleteCommentMutation,
 } from "@/store/queries/discussion";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { DiscussionCommentItem, DiscussionItem } from "@/types";
@@ -29,6 +31,8 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
   const [voteDiscussion] = useVoteDiscussionMutation();
+  const [deleteDiscussion] = useDeleteDiscussionMutation();
+  const [deleteComment] = useDeleteCommentMutation();
   
   const [comments, setComments] = useState<any[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
@@ -79,7 +83,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
            };
          }
          if (action === "edit") {
-           return { ...c, content: payload };
+           return { ...c, content: payload, updatedAt: new Date().toISOString() };
          }
          if (action === "hideToggle") {
            return { ...c, isHidden: payload };
@@ -142,6 +146,37 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
 
   const handleEdit = (id: string, newContent: string) => {
     setComments((prev) => updateCommentState(prev, id, "edit", newContent));
+  };
+
+  const filterDeletedComment = (data: any[], filterId: string): any[] => {
+    return data
+      .filter((c) => {
+        const currentId = c.commentId || c.id;
+        return currentId !== filterId;
+      })
+      .map((c) => {
+        const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+        const childs = c[repliesKey];
+        if (childs) {
+          return { ...c, [repliesKey]: filterDeletedComment(childs, filterId) };
+        }
+        return c;
+      });
+  };
+
+  const handleDelete = async (id: string) => {
+    const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
+    try {
+      if (isTopLevel) {
+        await deleteDiscussion({ id }).unwrap();
+      } else {
+        await deleteComment({ commentId: id }).unwrap();
+      }
+      setComments((prev) => filterDeletedComment(prev, id));
+      toast.success("Đã xóa thành công!");
+    } catch (error: any) {
+      toast.error("Lỗi xóa: " + JSON.stringify(error?.data || error?.message || error));
+    }
   };
 
   const handleHide = (id: string, isHidden: boolean) => {
@@ -241,6 +276,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
             onEditSuccess={handleEdit}
             onHideSuccess={handleHide}
             onReplySuccess={handleAddReply}
+            onDeleteSuccess={handleDelete}
           />
         ))}
         {safeComments.length === 0 && (

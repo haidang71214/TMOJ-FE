@@ -1,0 +1,645 @@
+[
+  {
+    "file": "app\\Class\\page.tsx",
+    "samples": [
+      "// Interface để kiểm soát dữ liệu chặt chẽ",
+      "name: \"Web Development Project - Dự án phát triển Web\","
+    ]
+  },
+  {
+    "file": "app\\Coin\\page.tsx",
+    "samples": [
+      "import React, { useState, useEffect, useMemo, Suspense } from \"react\"; // Thêm Suspense",
+      "/* ===== MOCK DATA GIỮ NGUYÊN ===== */"
+    ]
+  },
+  {
+    "file": "app\\Coin\\Product\\[id]\\page.tsx",
+    "samples": [
+      "/* Mock data - Tương ứng với ID sản phẩm */",
+      "{/* SALES & STOCK - Đã bỏ ngôi sao */}"
+    ]
+  },
+  {
+    "file": "app\\components\\AddContestModal.tsx",
+    "samples": [
+      "// Định nghĩa interface cho dữ liệu Contest",
+      "{/* HÀNG 1: TIÊU ĐỀ */}"
+    ]
+  },
+  {
+    "file": "app\\components\\AddProblemModal.tsx",
+    "samples": [
+      "// Định nghĩa interface cho dữ liệu tĩnh",
+      "// Lọc ra danh sách các đối tượng đã chọn thay vì dùng any"
+    ]
+  },
+  {
+    "file": "app\\components\\DeleteModal.tsx",
+    "samples": [
+      "userName?: string; // Đổi từ studentName thành userName",
+      "type?: \"student\" | \"teacher\" | \"bookmark\"; // Thêm type để phân biệt đối tượng"
+    ]
+  },
+  {
+    "file": "app\\components\\DeposiModal.tsx",
+    "samples": [
+      "{/* MEMBERSHIP SECTION (Dẫn đến /Premium) */}",
+      "{/* IMPORTANT NOTES (Dài ngang ra) */}"
+    ]
+  },
+  {
+    "file": "app\\components\\Discussion\\CommentInput.tsx",
+    "samples": [
+      "toast.success(\"Bình luận đã được gửi\");",
+      "toast.success(\"Đã đăng bình luận\");"
+    ]
+  },
+  {
+    "file": "app\\components\\Discussion\\CommentItem.tsx",
+    "samples": [
+      "msg.toLowerCase().includes(\"thành công\");",
+      "// Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy"
+    ]
+  },
+  {
+    "file": "app\\components\\Discussion\\index.tsx",
+    "samples": [
+      "toast.success(\"Đã vote thành công!\");",
+      "toast.error(\"Lỗi Vote: \" + JSON.stringify(error?.data || error?.message || error));"
+    ]
+  },
+  {
+    "file": "app\\components\\ExtendTimeModal.tsx",
+    "samples": [
+      "// Bổ sung currentEndTime vào interface nếu dữ liệu có sẵn,",
+      "// ở đây tôi tạm lấy thời gian hiện tại làm mốc cũ nếu không có."
+    ]
+  },
+  {
+    "file": "app\\components\\Footer.tsx",
+    "samples": [
+      "{/* Giảm gap và padding để footer ngắn lại */}"
+    ]
+  },
+  {
+    "file": "app\\components\\FooterWrapper.tsx",
+    "samples": [
+      "// Kiểm tra URL để quyết định ẩn/hiện Footer"
+    ]
+  },
+  {
+    "file": "app\\components\\LeaveClassModal.tsx",
+    "samples": [
+      "// Định nghĩa Interface để dọn sạch lỗi 'any'",
+      "// Giả lập xử lý API"
+    ]
+  },
+  {
+    "file": "app\\components\\NotifyModal.tsx",
+    "samples": [
+      "studentEmail?: string; // Nếu không có cái này, mặc định là Notify All",
+      "// Xác định chế độ: Gửi cá nhân hay Gửi tất cả"
+    ]
+  },
+  {
+    "file": "app\\components\\ProfileModal.tsx",
+    "samples": [
+      "// 1. Kiểm tra xem user có phải giáo viên không (dựa trên sự tồn tại của trường dept)",
+      "// 2. Logic lấy ID hiển thị thông minh"
+    ]
+  },
+  {
+    "file": "app\\Contest\\page.tsx",
+    "samples": [
+      "{/* Hero Section - Đồng bộ phong cách Landing Page */}",
+      "{/* Section Heading - Đồng bộ với style tiêu đề mục của Landing */}"
+    ]
+  },
+  {
+    "file": "app\\Contest\\register\\page.tsx",
+    "samples": [
+      "// Sử dụng Sonner Toast đồng bộ",
+      "// Chuyển hướng sang trang Contest/[id]/page.tsx"
+    ]
+  },
+  {
+    "file": "app\\Contest\\UpcomingContests.tsx",
+    "samples": [
+      "/* ---------------- MOCK DATA (Đã thêm mới) ---------------- */",
+      "{/* MY CONTESTS LIST - Sử dụng ảnh thay cho icon */}"
+    ]
+  },
+  {
+    "file": "app\\Contest\\[id]\\layout.tsx",
+    "samples": [
+      "// Layout giờ phải là async function",
+      "params: Promise<{ id: string }>;  // ← type đúng là Promise"
+    ]
+  },
+  {
+    "file": "app\\Contest\\[id]\\Problems\\[ProblemInContest]\\page.tsx",
+    "samples": [
+      "Xem dạng PDF",
+      "{/* Nguồn bài */}"
+    ]
+  },
+  {
+    "file": "app\\Contest\\[id]\\Scoboard\\dto.ts",
+    "samples": [
+      "problemId: string;       // Bảng chữ cái hoặc ID bài (VD: \"A\", \"B\")",
+      "isSolved: boolean;       // Đã giải được chưa?"
+    ]
+  },
+  {
+    "file": "app\\Contest\\[id]\\Scoboard\\page.tsx",
+    "samples": [
+      "contestName: \"ICPC 2023 vòng Regional\",",
+      "rank: 1, userId: \"u1\", username: \"FPTU_Win\", fullname: \"Đội FPTU 1\","
+    ]
+  },
+  {
+    "file": "app\\logout\\page.tsx",
+    "samples": [
+      "window.location.href = PAGE_URL; // về domain chính"
+    ]
+  },
+  {
+    "file": "app\\Management\\Class\\create\\page.tsx",
+    "samples": [
+      "// get những cái public"
+    ]
+  },
+  {
+    "file": "app\\Management\\Class\\CreateClassSlotModal.tsx",
+    "samples": [
+      "// này đổi thành class semester id",
+      "// Tạo danh sách mới, giữ thông tin cũ nếu có, cập nhật ordinal theo thứ tự mới"
+    ]
+  },
+  {
+    "file": "app\\Management\\Class\\CreateSlotForClassSession.tsx",
+    "samples": [
+      "closeModal();   // đóng modal trước",
+      "{/* Header - Màu cam */}"
+    ]
+  },
+  {
+    "file": "app\\Management\\Class\\page.tsx",
+    "samples": [
+      "// search: searchTerm,   // sau này thêm nếu có",
+      "a.download = \"class-template.xlsx\"; // tên file muốn tải"
+    ]
+  },
+  {
+    "file": "app\\Management\\Class\\[id]\\page.tsx",
+    "samples": [
+      "// thực ra cái này giống với classSemesterPage hơn",
+      "// Lấy thông tin subject và semester từ instance đầu tiên (hoặc bạn có thể cho chọn)"
+    ]
+  },
+  {
+    "file": "app\\Management\\Contest\\[id]\\problems\\page.tsx",
+    "samples": [
+      "// State danh sách bài tập hiện tại trong Contest",
+      "// Hàm điều hướng sang trang chỉnh sửa bài tập"
+    ]
+  },
+  {
+    "file": "app\\Management\\Contest\\[id]\\problems\\[problemId]\\edit\\page.tsx",
+    "samples": [
+      "{/* INPUT & OUTPUT FORMAT (CÙNG MỘT DÒNG) */}",
+      "{/* SAMPLES MANAGEMENT (KHÔI PHỤC) */}"
+    ]
+  },
+  {
+    "file": "app\\Management\\layout.tsx",
+    "samples": [
+      "// Đảm bảo chỉ render sau khi đã mount để tránh lỗi Hydration ID của Listbox"
+    ]
+  },
+  {
+    "file": "app\\Management\\Problem\\create\\page.tsx",
+    "samples": [
+      "// Thêm tất cả các trường vào FormData",
+      "const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData"
+    ]
+  },
+  {
+    "file": "app\\Management\\Problem\\page.tsx",
+    "samples": [
+      "submissions?: number;           // API chưa có → để tạm optional hoặc fake",
+      "access: boolean;                 // giả sử public nếu published"
+    ]
+  },
+  {
+    "file": "app\\Management\\Problem\\[id]\\remix\\page.tsx",
+    "samples": [
+      "// Logic mở Modal",
+      "wrapper: \"gap-4\", // Sử dụng wrapper để chỉnh khoảng cách"
+    ]
+  },
+  {
+    "file": "app\\Management\\Semester\\page.tsx",
+    "samples": [
+      "// refetch(); // nếu cần reload list"
+    ]
+  },
+  {
+    "file": "app\\Management\\Teacher\\page.tsx",
+    "samples": [
+      "// Đổi màu nút Notify All ở Darkmode sang trắng/xám sáng để dễ nhìn",
+      "{/* TABLE SECTION - Đã đổi nền dark sang #111c35 */}"
+    ]
+  },
+  {
+    "file": "app\\Modal\\ForgotPasswordModal.tsx",
+    "samples": [
+      "const data = await forgotpass({ email }).unwrap(); // 👈 truyền payload"
+    ]
+  },
+  {
+    "file": "app\\Modal\\LoginModal.tsx",
+    "samples": [
+      "// reload sau khi login thành công"
+    ]
+  },
+  {
+    "file": "app\\Notifications\\page.tsx",
+    "samples": [
+      "// Professional English Mock Data với nhiều Category hơn",
+      "// Logic lọc kết hợp giữa Tabs và Category Dropdown"
+    ]
+  },
+  {
+    "file": "app\\page.tsx",
+    "samples": [
+      "{/* CONTAINER DÙNG ĐỂ CHỨA NÚT HAI BÊN */}",
+      "{/* HAI NÚT ĐIỀU HƯỚNG NẰM HAI BÊN Ở GIỮA */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Library\\CalendarSidebar.tsx",
+    "samples": [
+      "// Dữ liệu mẫu",
+      "{/* Header: Chữ trắng sáng */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Library\\CategoryTags.tsx",
+    "samples": [
+      "{/* Tên danh mục */}",
+      "{/* Số lượng - bo tròn badge nhẹ cho dark mode */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Library\\page.tsx",
+    "samples": [
+      "// State cho Like (trái tim)",
+      "{/* SIDEBAR TRÁI */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Library\\ProblemsTable.tsx",
+    "samples": [
+      "likedProblems: Set<string>; // Truyền từ parent",
+      "toggleLike: (id: string) => void; // Hàm toggle từ parent"
+    ]
+  },
+  {
+    "file": "app\\Problems\\MyLists\\CreateListModal.tsx",
+    "samples": [
+      "import { toast } from \"sonner\"; // Đảm bảo đã cài đặt sonner",
+      "// Hàm xử lý khi nhấn Lưu hoặc Tạo"
+    ]
+  },
+  {
+    "file": "app\\Problems\\MyLists\\page.tsx",
+    "samples": [
+      "// CẬP NHẬT LOGIC SORT 4 CHIỀU",
+      "// 2. Sort 4 chiều"
+    ]
+  },
+  {
+    "file": "app\\Problems\\MyLists\\[id]\\page.tsx",
+    "samples": [
+      "// Disclosure quản lý Modal",
+      "const resetProgressModal = useDisclosure(); // Modal mới"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Quest\\page.tsx",
+    "samples": [
+      "// Trả lại màu Blue rực rỡ",
+      "// Trả lại màu Emerald (Xanh lá) rực rỡ"
+    ]
+  },
+  {
+    "file": "app\\Problems\\Quest\\QuestCard.tsx",
+    "samples": [
+      "{/* Title: Trắng sứ trong Dark Mode */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\StudyPlan\\ListCard.tsx",
+    "samples": [
+      "import Image from \"next/image\"; // Import component Image của Next.js",
+      "// URL mặc định nếu không có ảnh hoặc ảnh lỗi"
+    ]
+  },
+  {
+    "file": "app\\Problems\\StudyPlan\\page.tsx",
+    "samples": [
+      "// Thẻ main bao quát toàn bộ chiều cao tối thiểu của trình duyệt",
+      "{/* 1. SIDEBAR: Giữ sticky top-0 h-screen để luôn bám theo khi cuộn Main Content */}"
+    ]
+  },
+  {
+    "file": "app\\Problems\\StudyPlan\\PlanCard.tsx",
+    "samples": [
+      "className?: string; // Đã thêm prop className"
+    ]
+  },
+  {
+    "file": "app\\Problems\\[id]\\Description\\page.tsx",
+    "samples": [
+      "<p className=\"animate-pulse\">Đang tải mô tả bài toán...</p>",
+      "<p>Không tìm thấy bài toán hoặc đã có lỗi xảy ra.</p>"
+    ]
+  },
+  {
+    "file": "app\\Problems\\[id]\\page.tsx",
+    "samples": [
+      "console.log(response); // mai vào đây check code",
+      "onSubmitSuccess={() => setActiveLeftTab(\"submissions\")}  // ← thêm dòng này"
+    ]
+  },
+  {
+    "file": "app\\Problems\\[id]\\Solutions\\SolutionSubmittion.tsx",
+    "samples": [
+      "// Query lấy submission với cấu hình quan trọng",
+      "refetchOnMountOrArgChange: true,   // Đảm bảo luôn fetch dữ liệu mới khi submissionId thay đổi"
+    ]
+  },
+  {
+    "file": "app\\Problems\\[id]\\Submissions\\index.tsx",
+    "samples": [
+      "// 1. Sửa lỗi 'any': Định nghĩa kiểu dữ liệu rõ ràng cho Props",
+      "// Sử dụng onRowAction để bắt sự kiện click chuẩn của HeroUI"
+    ]
+  },
+  {
+    "file": "app\\Profile\\page.tsx",
+    "samples": [
+      "name: \"Đăng Hải\",",
+      "Đăng <span className=\"text-[#FF5C00]\">Hải</span>"
+    ]
+  },
+  {
+    "file": "app\\providers.tsx",
+    "samples": [
+      "import { HeroUIProvider } from \"@heroui/react\"; // Sửa từ @heroui/system"
+    ]
+  },
+  {
+    "file": "app\\Ranking\\page.tsx",
+    "samples": [
+      "// Styles cho viền nhất, nhì, ba"
+    ]
+  },
+  {
+    "file": "app\\Settings\\Account\\page.tsx",
+    "samples": [
+      "// TODO: gọi API upload avatar"
+    ]
+  },
+  {
+    "file": "app\\Settings\\layout.tsx",
+    "samples": [
+      "{/* Dải trang trí màu cam đặc trưng của hệ thống */}",
+      "{/* Chấm tròn trạng thái - Đã đổi sang màu Xanh Lá cho \"Pro\" */}"
+    ]
+  },
+  {
+    "file": "app\\Settings\\page.tsx",
+    "samples": [
+      "[\"Name\", \"Đăng Hải\"],"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Class\\ClassComponents.tsx",
+    "samples": [
+      "// ── Interfaces (đặt ở đây hoặc import từ file types) ──",
+      "// State để quản lý việc xem SlotManagement"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Class\\ClassSemesterManager.tsx",
+    "samples": [
+      "import ClassSemesterDetail from \"./DetailForClassSemester\";   // Component chi tiết bạn đã tạo",
+      "// State quản lý view"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Class\\SlotManagementModal.tsx",
+    "samples": [
+      "// quản lí cái slot"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Coin\\CoinPackageCard.tsx",
+    "samples": [
+      "// Xác định trạng thái Active/Inactive dựa trên startAt/endAt",
+      "{/* Coins nhận được & Giá mua (coins) */}"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Coin\\CoinPackageModal.tsx",
+    "samples": [
+      "active: initialData?.active ?? true, // Mặc định active",
+      "// Tự động gợi ý active dựa trên ngày khi edit"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Coin\\page.tsx",
+    "samples": [
+      "{/* Active Status - Switch + Nút chủ động */}",
+      "{/* Nút chủ động Enable/Disable */}"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Gamification\\page.tsx",
+    "samples": [
+      "// Mock data dựa trên schema",
+      "{ id: \"1\", name: \"First Blood\", badge_code: \"first_blood\", badge_category: \"contest\", badge_level: 1, is_repeatable: false, description: \"Giải quyết problem đầu tiên trong contest\", awarded_count: 342 },"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Moderation\\page.tsx",
+    "samples": [
+      "// Types dựa trên schema",
+      "content_preview: string; // snippet của nội dung bị report"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Notification\\page.tsx",
+    "samples": [
+      "// Mock data giống hệt bảng bạn paste",
+      "// Render body cho tab Sent Notifications (tránh lỗi type Element[])"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Package\\page.tsx",
+    "samples": [
+      "// Thêm price vào mock (giá trị mặc định)"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Package\\PracticePackageModal.tsx",
+    "samples": [
+      "// // Mock problems để chọn",
+      "//     if (!form.name.trim()) return alert(\"Tên package không được để trống\");"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Problem\\page.tsx",
+    "samples": [
+      "import { useRouter } from \"next/navigation\"; // Thêm để chuyển trang",
+      "BookOpen, // Icon cho nút Editorial (có thể thay bằng FileText hoặc Edit3 nếu thích)"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Problem\\[id]\\Editorial\\page.tsx",
+    "samples": [
+      "video_url?: string;           // ← THÊM FIELD NÀY",
+      "const [videoFile, setVideoFile] = useState<File | null>(null); // ← File tạm để preview"
+    ]
+  },
+  {
+    "file": "app\\{admin}\\Users\\page.tsx",
+    "samples": [
+      "setEditEmail(user.email || \"\"); // giả sử type có email",
+      "// Phân trang client-side"
+    ]
+  },
+  {
+    "file": "constants\\endpoints.ts",
+    "samples": [
+      "// ví dụ về những cái endpoint",
+      "GET_LIST_USER : `${API_PREFIX}/User/list-all`, // bệt đuôi api vô"
+    ]
+  },
+  {
+    "file": "Provider\\CreateClassSemester.tsx",
+    "samples": [
+      "classCode?: string;   // Class Code mặc định (nếu có)",
+      "// Fetch dữ liệu như trang create gốc"
+    ]
+  },
+  {
+    "file": "Provider\\ImportExportSemesterButton.tsx",
+    "samples": [
+      "// Tải Template Import",
+      "title: \"Thành công\","
+    ]
+  },
+  {
+    "file": "Provider\\ImportProblemForm.tsx",
+    "samples": [
+      "toast.error(\"Vui lòng chọn ít nhất một bài tập\");",
+      "Chọn và cấu hình bài tập cho slot này"
+    ]
+  },
+  {
+    "file": "Provider\\InformationInNavbar.tsx",
+    "samples": [
+      "// 🔥 Lấy user trực tiếp từ RTK Query",
+      "// nếu đang ở admin subdomain → chuyển về domain chính"
+    ]
+  },
+  {
+    "file": "Provider\\ModalProvider.tsx",
+    "samples": [
+      "throw new Error(\"useModal phải được sử dụng trong ModalProvider\");"
+    ]
+  },
+  {
+    "file": "Provider\\NavbarProvider.tsx",
+    "samples": [
+      "import { useRouter, usePathname } from \"next/navigation\"; // Thêm usePathname để active link",
+      "<stop stopColor=\"#FF6200\" /> {/* cam đậm, neon code vibe */}"
+    ]
+  },
+  {
+    "file": "Provider\\Notification.tsx",
+    "samples": [
+      "// ÉP BORDER: Light mode dùng Blue (#2563eb), Dark mode dùng Green (#22c55e)"
+    ]
+  },
+  {
+    "file": "Provider\\NotificationProvider.tsx",
+    "samples": [
+      "// load notification ban đầu"
+    ]
+  },
+  {
+    "file": "Provider\\ThemeToggle.tsx",
+    "samples": [
+      "if (!mounted) return null; // chỉ render sau khi client mount"
+    ]
+  },
+  {
+    "file": "Provider\\UpdateProblemIntoSlot.tsx",
+    "samples": [
+      "import { Save, Trash2 } from \"lucide-react\";   // ← thêm Trash2",
+      "// Các hàm update giữ nguyên"
+    ]
+  },
+  {
+    "file": "store\\queries\\Class.tsx",
+    "samples": [
+      "// đã test",
+      "// Trong endpoints của createApi"
+    ]
+  },
+  {
+    "file": "store\\queries\\ClassSlot.ts",
+    "samples": [
+      "// file: src/services/api/classSlotApi.ts  (hoặc đặt tên tùy ý)",
+      "import { baseApi } from \"../base\"; // giả sử baseApi của mày nằm đây"
+    ]
+  },
+  {
+    "file": "store\\queries\\problem.ts",
+    "samples": [
+      "// này để cấp phát bộ nhớ",
+      "// này để lưu"
+    ]
+  },
+  {
+    "file": "store\\queries\\Submittion.ts",
+    "samples": [
+      "url: SubmittionEndPoint.GET_SUBMITTION.replace(\"{submissionId}\",submissionId),     // ← thay url này bằng endpoint thật mà backend của bạn vừa làm",
+      "// get toàn bộ phần runtime, và get chi tiết phần runtime"
+    ]
+  },
+  {
+    "file": "store\\slices\\auth.ts",
+    "samples": [
+      "webStorageClient.setToken(token); // đây"
+    ]
+  },
+  {
+    "file": "types\\index.ts",
+    "samples": [
+      "// đã nhét user vào đây",
+      "// ép kiểu đầu ra"
+    ]
+  },
+  {
+    "file": "utils\\baseQueryWithReauth.ts",
+    "samples": [
+      "// ❗ Không attach token cho login & refresh"
+    ]
+  }
+]

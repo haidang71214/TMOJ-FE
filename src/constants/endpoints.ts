@@ -125,6 +125,10 @@ const DiscussionEndpoint = {
   VOTE_COMMENT: `${API_PREFIX}/comments/{id}/vote`,
   HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
 };
+const TagEndpoint = {
+  GET_TAGS: `${API_LON}/Problems/tags`,
+  CREATE_TAG: `${API_LON}/Problems/tags`,
+};
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -138,5 +142,6 @@ export {
   SubjectEndpoint,
   SemesterEndpoint,
   NotificationEndpoint,
-  DiscussionEndpoint
+  DiscussionEndpoint,
+  TagEndpoint
 };

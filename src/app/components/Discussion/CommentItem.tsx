@@ -16,6 +16,7 @@ import {
   Share2,
   Pencil,
   EyeOff,
+  Trash2,
 } from "lucide-react";
 import { CommentInput } from "./CommentInput";
 import { useAppSelector } from "@/utils/redux";
@@ -29,6 +30,7 @@ interface Props {
   onEditSuccess: (id: string, newContent: string) => void;
   onHideSuccess: (id: string, isHidden: boolean) => void;
   onReplySuccess: (parentId: string | null, newComment: any) => void;
+  onDeleteSuccess: (id: string) => void;
   depth?: number;
 }
 
@@ -36,13 +38,18 @@ import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionComme
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
 
-export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess, depth = 0 }: Props) => {
+export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess, onDeleteSuccess, depth = 0 }: Props) => {
   const { data: userData } = useGetUserInformationQuery();
   const currentUserId = userData?.userId || (userData as any)?.id || propUserId;
 
   const [showReplies, setShowReplies] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [localReplies, setLocalReplies] = useState<any[]>([]);
+  const [localReplies, setLocalReplies] = useState<any[]>([]);
+  const [localEditContent, setLocalEditContent] = useState<string | null>(null);
+  const [localIsEdited, setLocalIsEdited] = useState<boolean>(false);
+  const [localIsDeleted, setLocalIsDeleted] = useState<boolean>(false);
 
   const [updateComment] = useUpdateCommentMutation();
   const [updateDiscussion] = useUpdateDiscussionMutation();
@@ -72,16 +79,20 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   
   const currentUser = useAppSelector((state) => state.auth.user);
   const cid = comment.id || comment.commentId;
+  const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
 
   const { data: fetchedRepliesData } = useGetDiscussionCommentsQuery(
     { id: cid },
-    { skip: !cid || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
+    { skip: !isTopLevel || !cid || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
   );
 
   const serverReplies = fetchedRepliesData?.data 
     ? (fetchedRepliesData.data as any[]).map((c: any) => ({ ...c, id: c.id || c.commentId }))
     : null;
-  const childComments = serverReplies || comment?.children || comment?.comments || comment?.replies;
+  const rawChilds = serverReplies || comment?.children || comment?.comments || comment?.replies || [];
+  const rawChildsIds = rawChilds.map((c: any) => c.id || c.commentId);
+  const uniqueLocalReplies = localReplies.filter((c: any) => !rawChildsIds.includes(c.id || c.commentId));
+  const childComments = [...rawChilds, ...uniqueLocalReplies];
 
   // Robust ID check for children and self
   const myIds = [
@@ -122,8 +133,6 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
 
   const isMe = myIds.length > 0 && myIds.some(id => commentOwnerIds.includes(id));
 
-  const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
-
   const displayName = isMe 
     ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account") 
     : (comment?.userDisplayName || comment?.userFullName || comment?.user?.displayName || `User ${comment?.userId?.substring(0, 5)}`);
@@ -131,6 +140,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   const displayAvatar = isMe 
     ? (currentUser?.avatarUrl || displayName?.[0]) 
     : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl || displayName?.[0] || "?");
+
+  if (localIsDeleted) return null;
 
   return (
     <div className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
@@ -147,6 +158,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             </span>
             <span className="text-[11px] text-gray-400 dark:text-[#667085] font-bold">
               | {new Date(comment.createdAt).toLocaleDateString()}
+              {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) && " (Đã chỉnh sửa)"}
             </span>
           </div>
 
@@ -190,6 +202,21 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                       }
                     }
                   }] : [])
+                ] : []),
+                ...(isMe || currentUser?.role === "admin" || currentUser?.role === "Admin" ? [
+                  {
+                    key: "delete",
+                    label: "Xóa",
+                    icon: <Trash2 size={14} />,
+                    color: "danger" as const,
+                    className: "text-danger font-bold",
+                    onClick: () => {
+                      if (window.confirm("Bạn có chắc chắn muốn xóa không?")) {
+                        onDeleteSuccess(cid);
+                        setLocalIsDeleted(true);
+                      }
+                    }
+                  }
                 ] : []),
                 {
                   key: "report",
@@ -239,6 +266,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                   checkResponse(res);
                   toast.success(isTopLevel ? "Cập nhật thảo luận thành công" : "Cập nhật bình luận thành công");
                   onEditSuccess(cid, newContent);
+                  setLocalEditContent(newContent);
+                  setLocalIsEdited(true);
                 } catch (e) {
                   toast.error(e instanceof Error ? e.message : "Lỗi cập nhật");
                 }
@@ -247,7 +276,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
           </div>
         ) : (
           <p className="text-[14px] text-gray-600 dark:text-[#CDD5DB] mb-3 leading-relaxed">
-            {comment.content}
+            {localEditContent || comment.content}
           </p>
         )}
 
@@ -314,7 +343,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             </div>
           ) : null}
 
-          {depth < 3 && (
+          {depth < 5 && (
             <div
               onClick={() => setIsReplying(!isReplying)}
               className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${
@@ -341,6 +370,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                 setShowReplies(true);
                 if (newComment) {
                   onReplySuccess(cid, newComment);
+                  setLocalReplies((prev) => [newComment, ...prev]);
                 }
               }}
             />
@@ -362,6 +392,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                 onEditSuccess={onEditSuccess}
                 onHideSuccess={onHideSuccess}
                 onReplySuccess={onReplySuccess}
+                onDeleteSuccess={onDeleteSuccess}
               />
             ))}
           </div>

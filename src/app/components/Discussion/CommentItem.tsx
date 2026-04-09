@@ -46,7 +46,6 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [localReplies, setLocalReplies] = useState<any[]>([]);
-  const [localReplies, setLocalReplies] = useState<any[]>([]);
   const [localEditContent, setLocalEditContent] = useState<string | null>(null);
   const [localIsEdited, setLocalIsEdited] = useState<boolean>(false);
   const [localIsDeleted, setLocalIsDeleted] = useState<boolean>(false);

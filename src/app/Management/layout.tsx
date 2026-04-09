@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
+  Tag,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -42,7 +43,8 @@ export default function ManagementLayout({
     { key: "Teacher", label: "Teacher", icon: <GraduationCap size={20} /> },
     { key: "Subject", label: "Subject", icon: <BookOpenCheck size={20} /> },
     { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
-    {key: "Semester", label: "Semester", icon: <Calendar size={20} />}
+    {key: "Semester", label: "Semester", icon: <Calendar size={20} />},
+    { key: "Tags", label: "Tags", icon: <Tag size={20} /> }
   ];
 
   if (!mounted) return null;

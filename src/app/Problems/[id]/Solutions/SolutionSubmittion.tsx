@@ -55,7 +55,7 @@ public:
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
 
   // Query lấy submission với cấu hình quan trọng
-  const { data: submissionData, refetch, isFetching } = useGetSubmissionQuery(
+  const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
     { 
       skip: !submissionId,

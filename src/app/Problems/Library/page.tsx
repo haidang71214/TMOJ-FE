@@ -34,7 +34,7 @@ export default function LibraryPage() {
     });
   };
 
-  const { data: problemResponse, isLoading } = useGetProblemListQuery();
+  const { data: problemResponse, isLoading } = useGetProblemListQuery({page : 1, limit : 10});
   const problems = problemResponse?.data || [];
   console.log("aaaa" , problemResponse);
   

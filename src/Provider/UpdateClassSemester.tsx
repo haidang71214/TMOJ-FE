@@ -11,32 +11,40 @@ import {
   SelectItem,
 } from "@heroui/react";
 
-import { Rocket } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useCreateClassMutation } from "@/store/queries/Class";
+import { useUpdateClassSemesterMutation } from "@/store/queries/Class";
 import { useGetAllSubjectQueryQuery } from "@/store/queries/Subject";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { useGetSemestersQuery } from "@/store/queries/Semester";
-import { CreateClassRequest, ErrorForm } from "@/types";
+import { ErrorForm } from "@/types";
 import { RequiredStar } from "@/Common/RequiredStar";
 
-interface CreateClassSemesterProps {
+export interface UpdateClassSemesterInitialData {
+  classId: string;
+  classSemesterId: string;
+  subjectId: string;
+  semesterId: string;
+  teacherId?: string;
+  classCode: string;
+}
+
+interface UpdateClassSemesterProps {
   isOpen: boolean;
   onClose: () => void;
-  classCode?: string;   // Class Code mặc định (nếu có)
+  initialData: UpdateClassSemesterInitialData | null;
   onSuccess?: () => void;
 }
 
-export default function CreateClassSemester({
+export default function UpdateClassSemester({
   isOpen,
   onClose,
-  classCode = "",
+  initialData,
   onSuccess,
-}: CreateClassSemesterProps) {
-  const [create_class, { isLoading: isLaunching }] = useCreateClassMutation();
+}: UpdateClassSemesterProps) {
+  const [update_class_semester, { isLoading: isUpdating }] = useUpdateClassSemesterMutation();
 
-  // Fetch dữ liệu như trang create gốc
   const { data: subjectData, isLoading: subjectLoading } = useGetAllSubjectQueryQuery();
   const { data: semesterData, isLoading: semesterLoading } = useGetSemestersQuery();
   const { data: teacherData, isLoading: teacherLoading } = useGetUserRoleQuery({
@@ -50,21 +58,18 @@ export default function CreateClassSemester({
   const [form, setForm] = useState({
     subjectId: "",
     semesterId: "",
-    classCode: "",
     teacherId: "",
   });
 
-  // Reset form và set classCode mặc định khi mở modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && initialData) {
       setForm({
-        subjectId: "",
-        semesterId: "",
-        classCode: classCode || "",
-        teacherId: "",
+        subjectId: initialData.subjectId || "",
+        semesterId: initialData.semesterId || "",
+        teacherId: initialData.teacherId || "",
       });
     }
-  }, [isOpen, classCode]);
+  }, [isOpen, initialData]);
 
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({
@@ -75,37 +80,38 @@ export default function CreateClassSemester({
 
   const selectedSubject = subjects.find((s) => s.subjectId === form.subjectId);
 
-  const handleCreate = async () => {
+  const handleUpdate = async () => {
+    if (!initialData) return;
+    
     if (!form.subjectId || !form.semesterId) {
       toast.error("Subject and Semester are required");
       return;
     }
 
-    if (!form.classCode.trim()) {
-      toast.error("Class Code is required");
-      return;
-    }
-
     try {
-      const payload: CreateClassRequest = {
-        subjectId: form.subjectId,
+      const payload = {
+        classId: initialData.classId,
         semesterId: form.semesterId,
-        classCode: classCode,
+        subjectId: form.subjectId,
         teacherId: form.teacherId || null,
       };
 
-      await create_class(payload).unwrap();
+      await update_class_semester({
+        id: initialData.classId,
+        classSemesterId: initialData.classSemesterId,
+        data: payload
+      }).unwrap();
 
-      toast.success("Class created successfully!");
+      toast.success("Class semester updated successfully!");
       onSuccess?.();
       onClose();
     } catch (error) {
       console.log(error);
-      toast.error((error as ErrorForm)?.data?.data?.message|| "Failed to create class");
+      toast.error((error as ErrorForm)?.data?.data?.message || "Failed to update class semester");
     }
   };
 
-  const displayIdentifier = `${selectedSubject?.code || "???"}-${form.classCode || "???"}`;
+  const displayIdentifier = `${selectedSubject?.code || "???"}-${initialData?.classCode || "???"}`;
 
   return (
     <Modal
@@ -121,15 +127,14 @@ export default function CreateClassSemester({
       <ModalContent>
         {(onCloseModal) => (
           <>
-
-
             <ModalBody className="px-8 py-6 gap-8">
-
-              <div className="p-5 bg-[#071739] text-white rounded-3xl flex items-center gap-4">
-                <Rocket className="text-[#FF5C00]" size={28} />
+              <div className="p-5 bg-slate-100 dark:bg-white/5 rounded-3xl flex items-center gap-4">
+                <Edit3 className="text-[#FF5C00]" size={28} />
                 <div>
-                  <p className="font-medium">ADD NEW SEMESTER FOR CLASS</p>
-                  {classCode && <p className="text-[#FF5C00] font-bold">Base Class: {classCode}</p>}
+                  <p className="font-medium text-[#071739] dark:text-white">UPDATE CLASS SEMESTER</p>
+                  {initialData?.classCode && (
+                    <p className="text-[#FF5C00] font-bold">Base Class: {initialData.classCode}</p>
+                  )}
                 </div>
               </div>
 
@@ -238,11 +243,11 @@ export default function CreateClassSemester({
                 Cancel
               </Button>
               <Button
-                onPress={handleCreate}
-                isLoading={isLaunching}
-                className="h-12 bg-[#FF5C00] text-[#071739] font-[1000] rounded-2xl shadow-xl uppercase tracking-wider px-10"
+                onPress={handleUpdate}
+                isLoading={isUpdating}
+                className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-[1000] rounded-2xl shadow-xl uppercase tracking-wider px-10"
               >
-                Create Class
+                Save Changes
               </Button>
             </ModalFooter>
           </>

@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 import { useGetClassDetailQuery } from "@/store/queries/Class";
 import CreateClassSemester from "../../../../Provider/CreateClassSemester";
-
+import UpdateClassSemester, { UpdateClassSemesterInitialData } from "../../../../Provider/UpdateClassSemester";
 
 // thực ra cái này giống với classSemesterPage hơn
 export default function ClassDetailPage({
@@ -36,9 +36,23 @@ export default function ClassDetailPage({
   
   // State cho Modal Create Class Semester
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [updateInitialData, setUpdateInitialData] = useState<UpdateClassSemesterInitialData | null>(null);
 
   // Lấy thông tin subject và semester từ instance đầu tiên (hoặc bạn có thể cho chọn)
   const firstInstance = instances[0];
+
+  const openUpdateModal = (instance: any) => {
+    setUpdateInitialData({
+      classId: classId,
+      classSemesterId: instance.classSemesterId,
+      subjectId: instance.subjectId,
+      semesterId: instance.semesterId,
+      teacherId: instance.teacher?.userId,
+      classCode: classDetail?.classCode || "",
+    });
+    setIsUpdateModalOpen(true);
+  };
 
   const openCreateClassSemesterModal = () => {
     if (!firstInstance) {
@@ -211,7 +225,7 @@ export default function ClassDetailPage({
                 {/* Operations */}
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9" onPress={() => openUpdateModal(instance)}>
                       <Edit size={16} className="text-slate-500" />
                     </Button>
                     <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
@@ -238,6 +252,13 @@ export default function ClassDetailPage({
   classCode={classDetail?.classCode} 
   onSuccess={handleCreateSuccess}
 />
+
+      <UpdateClassSemester
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        initialData={updateInitialData}
+        onSuccess={handleCreateSuccess}
+      />
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;

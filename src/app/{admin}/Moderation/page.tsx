@@ -38,7 +38,8 @@ import {
 import { 
   useGetAllReportsQuery, 
   useApproveReportMutation, 
-  useRejectReportMutation 
+  useRejectReportMutation,
+  useGetReportByIdQuery
 } from "@/store/queries/reports";
 import { ReportItem } from "@/types";
 import { toast } from "sonner";
@@ -87,18 +88,30 @@ export default function ModerationManagementPage() {
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedReportForDetails, setSelectedReportForDetails] = useState<ReportItem | null>(null);
+  const [moderatorNote, setModeratorNote] = useState("");
+
+  const { data: reportDetailRes, isLoading: isLoadingDetail } = useGetReportByIdQuery(
+    { id: selectedReportForDetails?.id as string },
+    { skip: !selectedReportForDetails?.id }
+  );
+  
+  const reportDetail = reportDetailRes?.data || selectedReportForDetails;
+
   const handleTakeAction = async (action: "approve" | "reject") => {
     if (!selectedReport) return;
     try {
       if (action === "approve") {
-        await approveReport({ id: selectedReport.id }).unwrap();
+        await approveReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
         toast.success("Báo cáo đã được phê duyệt hợp lệ (Nội dung đã bị ẩn).");
       } else if (action === "reject") {
-        await rejectReport({ id: selectedReport.id }).unwrap();
+        await rejectReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
         toast.success("Báo cáo đã bị từ chối.");
       }
       setActionModalOpen(false);
       setSelectedReport(null);
+      setModeratorNote("");
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi duyệt");
@@ -276,12 +289,20 @@ export default function ModerationManagementPage() {
                       color="primary"
                       onPress={() => {
                         setSelectedReport(r);
+                        setModeratorNote("");
                         setActionModalOpen(true);
                       }}
                     >
                       <ShieldAlert size={16} />
                     </Button>
-                    <Button isIconOnly size="sm">
+                    <Button 
+                      isIconOnly 
+                      size="sm"
+                      onPress={() => {
+                        setSelectedReportForDetails(r);
+                        setDetailsModalOpen(true);
+                      }}
+                    >
                       <Eye size={16} />
                     </Button>
                   </div>
@@ -291,6 +312,76 @@ export default function ModerationManagementPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* MODAL VIEW DETAILS */}
+      <Modal isOpen={detailsModalOpen} onOpenChange={setDetailsModalOpen} size="lg">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-xl font-black uppercase">
+                Report Details <span className="text-slate-500 ml-2">#{selectedReportForDetails?.id?.substring(0, 8)}...</span>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                {isLoadingDetail ? (
+                  <div className="flex justify-center p-6"><Spinner /></div>
+                ) : (
+                  <>
+                    <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl space-y-4">
+                      <div>
+                        <div className="font-bold text-sm text-slate-500">Reported Reason</div>
+                        <p className="text-base font-medium">{reportDetail?.reason}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Target Type</div>
+                          <p className="font-medium text-sm">{reportDetail?.targetType}</p>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Target ID</div>
+                          <p className="font-medium text-sm truncate" title={reportDetail?.targetId}>{reportDetail?.targetId}</p>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Status</div>
+                          <Chip size="sm" color={reportDetail?.status === "pending" ? "warning" : reportDetail?.status === "approved" ? "danger" : "default"}>
+                            {reportDetail?.status?.toUpperCase()}
+                          </Chip>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Reported At</div>
+                          <p className="font-medium text-sm">{new Date(reportDetail?.createdAt || "").toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {((reportDetail as any)?.adminNote || (reportDetail as any)?.moderatorNote) && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <div className="font-bold text-sm text-blue-800 dark:text-blue-300 mb-2">Lý do xử lý của admin</div>
+                        <p className="text-sm text-blue-900 dark:text-blue-200">
+                          {(reportDetail as any).adminNote || (reportDetail as any).moderatorNote}
+                        </p>
+                        {(reportDetail as any).resolvedAt && (
+                          <div className="text-xs text-blue-500 mt-2">
+                            Resolved at: {new Date((reportDetail as any).resolvedAt).toLocaleString()}
+                          </div>
+                        )}
+                        {(reportDetail as any).resolvedBy && (
+                          <div className="text-xs text-blue-500 mt-1">
+                            Resolved by: {(reportDetail as any).resolvedBy}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>Close</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* MODAL TAKE ACTION */}
       <Modal isOpen={actionModalOpen} onOpenChange={setActionModalOpen} size="lg">
@@ -347,11 +438,15 @@ export default function ModerationManagementPage() {
                   )}
                 </div>
 
-                <Textarea
-                  label="Moderator Note (internal)"
-                  placeholder="Ghi chú lý do xử lý (chỉ admin thấy)..."
-                  minRows={3}
-                />
+                {selectedReport?.status === "pending" && (
+                  <Textarea
+                    label="Moderator Note (internal)"
+                    placeholder="Ghi chú lý do xử lý (chỉ admin thấy)..."
+                    value={moderatorNote}
+                    onValueChange={setModeratorNote}
+                    minRows={3}
+                  />
+                )}
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose} isDisabled={isApproving || isRejecting}>Cancel</Button>

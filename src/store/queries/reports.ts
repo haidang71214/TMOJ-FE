@@ -78,18 +78,20 @@ export const reportsApi = baseApi.injectEndpoints({
       providesTags: ["Reports"],
     }),
 
-    approveReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string }>({
-      query: ({ id }) => ({
+    approveReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string, moderatorNote?: string }>({
+      query: ({ id, moderatorNote }) => ({
         url: ReportEndpoint.APPROVE_REPORT.replace("{id}", id),
         method: "POST",
+        body: moderatorNote ? { moderatorNote } : undefined,
       }),
       invalidatesTags: ["Reports", "Discussion"],
     }),
 
-    rejectReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string }>({
-      query: ({ id }) => ({
+    rejectReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string, moderatorNote?: string }>({
+      query: ({ id, moderatorNote }) => ({
         url: ReportEndpoint.REJECT_REPORT.replace("{id}", id),
         method: "POST",
+        body: moderatorNote ? { moderatorNote } : undefined,
       }),
       invalidatesTags: ["Reports", "Discussion"],
     }),

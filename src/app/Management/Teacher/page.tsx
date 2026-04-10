@@ -33,28 +33,33 @@ import {
 import DeleteTeacherModal from "../../components/DeleteModal";
 import ProfileTeacherModal from "../../components/ProfileModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
-import { Teacher, Student } from "@/types";
+import { Teacher, Student, Users } from "@/types";
+import { useGetUserRoleQuery } from "@/store/queries/user";
+import { log } from "console";
 
-const MOCK_TEACHERS: Teacher[] = []
 export default function TeacherListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 5;
 
+  const { data: teacherResponse, isLoading } = useGetUserRoleQuery({ roleName: "teacher" });
+  const fetchedTeachers = teacherResponse?.data || [];
+  console.log("fetchedTeachers", fetchedTeachers);
+  
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<Users | null>(null);
 
-  const pages = Math.ceil(MOCK_TEACHERS.length / rowsPerPage);
+  const pages = Math.ceil(fetchedTeachers.length / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return MOCK_TEACHERS.slice(start, end);
-  }, [page]);
+    return fetchedTeachers.slice(start, end);
+  }, [page, fetchedTeachers]);
 
   const openAction = (
-    teacher: Teacher,
+    teacher: Users,
     actionSetter: (val: boolean) => void
   ) => {
     setSelectedTeacher(teacher);
@@ -151,45 +156,45 @@ export default function TeacherListPage() {
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
           <TableBody>
-            {items.map((t) => (
+            {items.map((t: Users) => (
               <TableRow
-                key={t.id}
+                key={t.userId}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
                 <TableCell>
                   <div className="flex items-center gap-4">
                     <Avatar
-                      src={t.avatar}
+                      src={t.avatarUrl || ""}
                       className="w-10 h-10 rounded-xl border-2 border-divider shadow-sm"
                     />
                     <div className="flex flex-col">
                       <span className="text-base font-[1000] uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#FF5C00] transition-colors leading-none">
-                        {t.name}
+                        {t.displayName || t.firstName + " " + t.lastName}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
-                        ID: {t.teacherId}
+                        ID: {t.member_code || t.userId.substring(0, 8)}
                       </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 italic">
-                    {t.dept}
+                    N/A
                   </span>
                 </TableCell>
                 <TableCell>
                   <span className="text-[11px] font-black uppercase text-slate-400">
-                    {t.joinDate}
+                    N/A
                   </span>
                 </TableCell>
                 <TableCell>
                   <Chip
                     size="sm"
                     variant="dot"
-                    color={t.status === "Active" ? "success" : "warning"}
+                    color={!t.isLocked ? "success" : "warning"}
                     className="font-black uppercase text-[9px] border-none"
                   >
-                    {t.status}
+                    {!t.isLocked ? "Active" : "Locked"}
                   </Chip>
                 </TableCell>
                 <TableCell>
@@ -265,7 +270,7 @@ export default function TeacherListPage() {
       <DeleteTeacherModal
         isOpen={isDeleteOpen}
         onOpenChange={() => setIsDeleteOpen(false)}
-        userName={selectedTeacher?.name}
+        userName={selectedTeacher?.displayName || selectedTeacher?.firstName}
       />
     </div>
   );

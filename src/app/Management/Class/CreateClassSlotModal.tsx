@@ -12,6 +12,7 @@ import {
   Spinner,
   Switch,
   Chip,
+  Pagination,
 } from "@heroui/react";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -36,10 +37,15 @@ interface SelectedProblem {
 export default function CreateSlotForm({ classId }: CreateSlotFormProps) {
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
-
-  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListQuery();
+  console.log("classId", classId);
+  
+  const [page, setPage] = useState(1);
+  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListQuery({ page, limit: 20 });
+  console.log("problemResponse", problemResponse);
+  
   const problems = problemResponse?.data || [];
-
+  console.log("problems", problems);
+  
   const [slotNo, setSlotNo] = useState<number>(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -317,7 +323,7 @@ const handleSelectionChange = (keys : Selection) => {
               No problems available yet.
             </div>
           ) : (
-            
+            <>
             <div className="h-64 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/30">
   <Listbox
     selectionMode="multiple"
@@ -344,6 +350,17 @@ const handleSelectionChange = (keys : Selection) => {
     ))}
   </Listbox>
 </div>
+<div className="flex justify-center mt-2">
+  <Pagination
+    isCompact
+    showControls
+    color="primary"
+    page={page}
+    total={10}
+    onChange={setPage}
+  />
+</div>
+</>
           )}
 
           {/* Selected Problems List with Order & Required Toggle */}

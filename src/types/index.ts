@@ -649,6 +649,7 @@ export interface DiscussionCommentItem {
   userAvatarUrl: string | null;
   content: string;
   createdAt: string;
+  updatedAt?: string;
   children: DiscussionCommentItem[];
 }
 
@@ -663,6 +664,7 @@ export interface DiscussionItem {
   isPinned: boolean;
   isLocked: boolean;
   createdAt: string;
+  updatedAt?: string;
   voteCount: number;
   userVote: number;
   comments: DiscussionCommentItem[];
@@ -700,6 +702,7 @@ export interface DiscussionCommentDetail {
   userAvatarUrl: string | null;
   content: string;
   createdAt: string;
+  updatedAt?: string;
   voteCount: number;
   userVote: number;
   replies: DiscussionCommentDetail[];
@@ -764,4 +767,64 @@ export interface UpdateSlotProblemRequest {
 export interface UpdateSlotProblemResponse {
   message: string;
   updated: number;
+}
+
+// ── Report API Definitions ───────────────────────
+
+export interface CreateReportRequest {
+  targetId: string;
+  targetType: "Comment" | "Discussion" | string;
+  reason: string;
+}
+
+export interface ReportItem {
+  id: string;
+  targetId: string;
+  targetType: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected" | string;
+  createdAt: string;
+}
+
+export interface PendingReportsResponse {
+  data: {
+    items: ReportItem[];
+    nextCursorCreatedAt: string | null;
+    nextCursorId: string | null;
+    hasMore: boolean;
+  };
+  message: string;
+  traceId: string | null;
+}
+
+export interface ReportGroupsResponse {
+  data: {
+    targetId: string;
+    targetType: string;
+    totalReports: number;
+    pendingCount: number;
+    approvedCount: number;
+    latestCreatedAt: string;
+    reasons: string[];
+  }[];
+  message: string;
+  traceId: string | null;
+}
+
+export interface MyReportsResponse {
+  data: ReportItem[];
+  message: string;
+  traceId: string | null;
+}
+
+export interface AllReportsResponse {
+  data: ReportItem[];
+  message: string;
+  traceId: string | null;
+}
+
+export interface ReportDetailResponse {
+  data: ReportItem;
+  message: string;
+  traceId: string | null;
 }

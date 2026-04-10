@@ -12,6 +12,8 @@ import {
   useVoteDiscussionMutation,
   useHideCommentMutation,
   useUpdateDiscussionMutation,
+  useDeleteDiscussionMutation,
+  useDeleteCommentMutation,
 } from "@/store/queries/discussion";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { DiscussionCommentItem, DiscussionItem } from "@/types";
@@ -29,6 +31,8 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
   const [createDiscussion] = useCreateDiscussionMutation();
   const [voteComment] = useVoteCommentMutation();
   const [voteDiscussion] = useVoteDiscussionMutation();
+  const [deleteDiscussion] = useDeleteDiscussionMutation();
+  const [deleteComment] = useDeleteCommentMutation();
   
   const [comments, setComments] = useState<any[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
@@ -67,29 +71,19 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     return data.map((c) => {
       const currentId = c.commentId || c.id;
       if (currentId === id) {
-        if (action === "like") {
+        if (action === "like" || action === "dislike") {
            const oldVote = c.userVote || 0;
-           const newVote = oldVote === 1 ? 0 : 1;
+           const newVote = payload; // voteType from payload
            const voteDiff = newVote - oldVote;
            return {
              ...c,
              voteCount: (c.voteCount || 0) + voteDiff,
              userVote: newVote,
-           };
-         }
-         if (action === "dislike") {
-           const oldVote = c.userVote || 0;
-           const newVote = oldVote === -1 ? 0 : -1;
-           const voteDiff = newVote - oldVote;
-           return {
-             ...c,
-             voteCount: (c.voteCount || 0) + voteDiff,
-             userVote: newVote,
-             isHidden: newVote === -1 ? true : c.isHidden, // Keep hidden if downvoted
+             isHidden: (action === "dislike" && newVote === -1) ? true : c.isHidden,
            };
          }
          if (action === "edit") {
-           return { ...c, content: payload };
+           return { ...c, content: payload, updatedAt: new Date().toISOString() };
          }
          if (action === "hideToggle") {
            return { ...c, isHidden: payload };
@@ -114,31 +108,37 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     });
   };
 
-  const handleLike = async (id: string) => {
-    setComments((prev) => updateCommentState(prev, id, "like"));
+  const handleLike = async (id: string, voteType: number) => {
     try {
+      const isUnvote = voteType === 0;
+      setComments((prev) => updateCommentState(prev, id, "like", voteType));
+      
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
-        await voteDiscussion({ id, voteType: 1 }).unwrap();
+        await voteDiscussion({ id, voteType }).unwrap();
       } else {
-        await voteComment({ id, voteType: 1 }).unwrap();
+        await voteComment({ id, voteType }).unwrap();
       }
-      toast.success("Đã vote thành công!");
+      
+      toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
   };
 
-  const handleDownvote = async (id: string) => {
-    setComments((prev) => updateCommentState(prev, id, "dislike"));
+  const handleDownvote = async (id: string, voteType: number) => {
     try {
+      const isUnvote = voteType === 0;
+      setComments((prev) => updateCommentState(prev, id, "dislike", voteType));
+      
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
-        await voteDiscussion({ id, voteType: -1 }).unwrap();
+        await voteDiscussion({ id, voteType }).unwrap();
       } else {
-        await voteComment({ id, voteType: -1 }).unwrap();
+        await voteComment({ id, voteType }).unwrap();
       }
-      toast.success("Đã downvote thành công!");
+      
+      toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error: any) {
       toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
     }
@@ -146,6 +146,37 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
 
   const handleEdit = (id: string, newContent: string) => {
     setComments((prev) => updateCommentState(prev, id, "edit", newContent));
+  };
+
+  const filterDeletedComment = (data: any[], filterId: string): any[] => {
+    return data
+      .filter((c) => {
+        const currentId = c.commentId || c.id;
+        return currentId !== filterId;
+      })
+      .map((c) => {
+        const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+        const childs = c[repliesKey];
+        if (childs) {
+          return { ...c, [repliesKey]: filterDeletedComment(childs, filterId) };
+        }
+        return c;
+      });
+  };
+
+  const handleDelete = async (id: string) => {
+    const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
+    try {
+      if (isTopLevel) {
+        await deleteDiscussion({ id }).unwrap();
+      } else {
+        await deleteComment({ commentId: id }).unwrap();
+      }
+      setComments((prev) => filterDeletedComment(prev, id));
+      toast.success("Đã xóa thành công!");
+    } catch (error: any) {
+      toast.error("Lỗi xóa: " + JSON.stringify(error?.data || error?.message || error));
+    }
   };
 
   const handleHide = (id: string, isHidden: boolean) => {
@@ -165,12 +196,23 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     if (!list) return [];
     return list
       .filter((c) => {
-        if (c.isDisliked) return false;
-        // Logic ẩn: Nếu bị ẩn (isHidden) thì chỉ chủ sở hữu mới thấy
-        const cUserId = String(c.userId || c.creatorId || c.authorId || "");
-        const curId = String(currentUserId || "");
-        const isOwner = curId && (cUserId === curId);
+        // Robust ID check cho chủ sở hữu
+        const myIds = [
+          String(userData?.userId || ""),
+          String((userData as any)?.id || ""),
+          String(currentUserId || ""),
+        ].filter(v => v && v !== "undefined" && v !== "null");
 
+        const cOwnerIds = [
+          String(c.userId || ""),
+          String(c.creatorId || ""),
+          String(c.authorId || ""),
+          String(c.user?.id || ""),
+          String(c.author?.id || ""),
+        ].filter(v => v && v !== "undefined" && v !== "null");
+
+        const isOwner = myIds.length > 0 && myIds.some(id => cOwnerIds.includes(id));
+        
         if (c.isHidden && !isOwner) return false;
         return true;
       })
@@ -234,6 +276,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
             onEditSuccess={handleEdit}
             onHideSuccess={handleHide}
             onReplySuccess={handleAddReply}
+            onDeleteSuccess={handleDelete}
           />
         ))}
         {safeComments.length === 0 && (

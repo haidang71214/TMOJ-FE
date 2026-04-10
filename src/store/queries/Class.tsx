@@ -26,6 +26,42 @@ getClasses: builder.query<ClassResponse, {
   }),
   providesTags: ["Class"],
 }),
+getMyClassesStudent: builder.query<ClassResponse, {
+  semesterId?: string;
+  subjectId?: string;
+  page?: number;
+  pageSize?: number;
+}>({
+  query: (params = {}) => ({
+    url: ClassEndpoint.GET_MY_CLASSES_STUDENT,
+    method: "GET",
+    params: {
+      semesterId: params.semesterId ,
+      subjectId: params.subjectId,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 20,
+    },
+  }),
+  providesTags: ["MyClass"],
+}),
+getMyClassesTeacher: builder.query<ClassResponse, {
+  semesterId?: string;
+  subjectId?: string;
+  page?: number;
+  pageSize?: number;
+}>({
+  query: (params = {}) => ({
+    url: ClassEndpoint.GET_MY_CLASSES_TEACHER,
+    method: "GET",
+    params: {
+      semesterId: params.semesterId ,
+      subjectId: params.subjectId,
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 20,
+    },
+  }),
+  providesTags: ["MyClass"],
+}),
  getClassDetail: builder.query<{ data: ClassItem }, { id: string }>({
   query: ({ id }) => ({
     url: ClassEndpoint.GET_DETAIL_CLASS.replace("{id}", id),
@@ -168,12 +204,37 @@ exportStudentsClassSemester: builder.mutation<Blob, { classSemesterId: string }>
   }),
 }),
 
+updateClassSemester: builder.mutation<
+  void,
+  {
+    id: string;
+    classSemesterId: string;
+    data: {
+      classId: string | null;
+      semesterId: string | null;
+      subjectId: string | null;
+      teacherId: string | null;
+    }
+  }
+>({
+  query: ({ id, classSemesterId, data }) => ({
+    url: ClassEndpoint.UPDATE_CLASS_SEMESTER
+      .replace("{id}", id)
+      .replace("{classSemesterId}", classSemesterId),
+    method: "PUT",
+    body: data,
+  }),
+  invalidatesTags: ["Class"],
+}),
+
   }),
 });
 
 
 export const {
    useGetClassesQuery,
+   useGetMyClassesStudentQuery,
+   useGetMyClassesTeacherQuery,
    useGetClassDetailQuery,
    useCreateClassMutation,
    useUpdateClassTeacherMutation,
@@ -188,4 +249,5 @@ export const {
    useImportStudentsMutation,
    useExportStudentsClassSemesterMutation,
    useDeleteStudentClassSemesterMutation,
+   useUpdateClassSemesterMutation,
 } = classApi;

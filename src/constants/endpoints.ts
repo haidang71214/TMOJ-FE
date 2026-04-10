@@ -129,6 +129,18 @@ const TagEndpoint = {
   GET_TAGS: `${API_LON}/Problems/tags`,
   CREATE_TAG: `${API_LON}/Problems/tags`,
 };
+
+const ReportEndpoint = {
+  CREATE_REPORT: `${API_PREFIX}/reports`,
+  APPROVE_REPORT: `${API_PREFIX}/reports/{id}/approve`,
+  REJECT_REPORT: `${API_PREFIX}/reports/{id}/reject`,
+  GET_PENDING_REPORTS: `${API_PREFIX}/reports/pending`,
+  GET_MY_REPORTS: `${API_PREFIX}/reports/my`,
+  GET_ALL_REPORTS: `${API_PREFIX}/reports`,
+  GET_REPORT_BY_ID: `${API_PREFIX}/reports/{id}`,
+  GET_REPORT_GROUPS: `${API_PREFIX}/reports/groups`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -143,5 +155,6 @@ export {
   SemesterEndpoint,
   NotificationEndpoint,
   DiscussionEndpoint,
-  TagEndpoint
+  TagEndpoint,
+  ReportEndpoint
 };

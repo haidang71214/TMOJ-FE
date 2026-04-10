@@ -78,20 +78,18 @@ export const reportsApi = baseApi.injectEndpoints({
       providesTags: ["Reports"],
     }),
 
-    approveReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string, moderatorNote?: string }>({
-      query: ({ id, moderatorNote }) => ({
+    approveReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string }>({
+      query: ({ id }) => ({
         url: ReportEndpoint.APPROVE_REPORT.replace("{id}", id),
         method: "POST",
-        body: moderatorNote ? { moderatorNote } : undefined,
       }),
       invalidatesTags: ["Reports", "Discussion"],
     }),
 
-    rejectReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string, moderatorNote?: string }>({
-      query: ({ id, moderatorNote }) => ({
+    rejectReport: builder.mutation<{ data: boolean; message: string; traceId: string | null }, { id: string }>({
+      query: ({ id }) => ({
         url: ReportEndpoint.REJECT_REPORT.replace("{id}", id),
         method: "POST",
-        body: moderatorNote ? { moderatorNote } : undefined,
       }),
       invalidatesTags: ["Reports", "Discussion"],
     }),
@@ -103,8 +101,10 @@ export const {
   useGetPendingReportsQuery,
   useGetMyReportsQuery,
   useGetAllReportsQuery,
+  useLazyGetAllReportsQuery,
   useGetReportByIdQuery,
   useGetReportGroupsQuery,
   useApproveReportMutation,
   useRejectReportMutation,
 } = reportsApi;
+

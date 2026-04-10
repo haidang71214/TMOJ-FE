@@ -46,6 +46,7 @@ import { useLockUserMutation } from "@/store/queries/user";
 import { useHideCommentMutation, useDeleteDiscussionMutation } from "@/store/queries/discussion";
 import { ReportItem } from "@/types";
 import { toast } from "sonner";
+import { BannedUsersModal } from "./BannedUsersModal";
 
 export default function ModerationManagementPage() {
   const [typeFilter, setTypeFilter] = useState("all");
@@ -95,6 +96,7 @@ export default function ModerationManagementPage() {
 
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [bannedUsersModalOpen, setBannedUsersModalOpen] = useState(false);
 
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedReportForDetails, setSelectedReportForDetails] = useState<ReportItem | null>(null);
@@ -239,7 +241,11 @@ export default function ModerationManagementPage() {
         </div>
 
         <div className="flex gap-3">
-          <Button variant="bordered" startContent={<Users size={16} />}>
+          <Button 
+            variant="bordered" 
+            startContent={<Users size={16} />}
+            onPress={() => setBannedUsersModalOpen(true)}
+          >
             Banned Users
           </Button>
           <Button className="bg-[#0B1C3D] text-white font-black" startContent={<Flag size={16} />}>
@@ -547,6 +553,11 @@ export default function ModerationManagementPage() {
           )}
         </ModalContent>
       </Modal>
+
+      <BannedUsersModal 
+        isOpen={bannedUsersModalOpen}
+        onOpenChange={setBannedUsersModalOpen}
+      />
     </div>
   );
 }

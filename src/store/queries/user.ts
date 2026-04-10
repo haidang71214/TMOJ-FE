@@ -60,6 +60,20 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    getLockedUsers: builder.query<{ data: Users[] }, void>({
+      query: () => ({
+        url: AdminUserEndPoint.GET_USER_LOCK,
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+    getUnlockedUsers: builder.query<{ data: Users[] }, void>({
+      query: () => ({
+        url: AdminUserEndPoint.GET_USER_UNLOCK,
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
   }),
   
 });
@@ -73,4 +87,6 @@ export const {
   useImportUsersMutation,
   useLockUserMutation,
   useUnlockUserMutation,
+  useGetLockedUsersQuery,
+  useGetUnlockedUsersQuery,
 } = userApi;

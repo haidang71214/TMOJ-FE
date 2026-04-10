@@ -48,6 +48,7 @@ export const userApi = baseApi.injectEndpoints({
       query: (id) => ({
         url: AdminUserEndPoint.LOCK_USER_PUT.replace("{id}", id),
         method: "PUT",
+        body: {},
       }),
       invalidatesTags: ["User"],
     }),
@@ -55,6 +56,7 @@ export const userApi = baseApi.injectEndpoints({
       query: (id) => ({
         url: AdminUserEndPoint.UNLOCK_USER_PUT.replace("{id}", id),
         method: "PUT",
+        body: {},
       }),
       invalidatesTags: ["User"],
     }),

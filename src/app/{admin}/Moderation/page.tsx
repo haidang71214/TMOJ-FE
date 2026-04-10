@@ -37,10 +37,13 @@ import {
 
 import { 
   useGetAllReportsQuery, 
+  useLazyGetAllReportsQuery,
   useApproveReportMutation, 
   useRejectReportMutation,
   useGetReportByIdQuery
 } from "@/store/queries/reports";
+import { useLockUserMutation } from "@/store/queries/user";
+import { useHideCommentMutation, useDeleteDiscussionMutation } from "@/store/queries/discussion";
 import { ReportItem } from "@/types";
 import { toast } from "sonner";
 
@@ -85,12 +88,16 @@ export default function ModerationManagementPage() {
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
 
+  const [triggerGetAllReports] = useLazyGetAllReportsQuery();
+  const [lockUser] = useLockUserMutation();
+  const [hideComment] = useHideCommentMutation();
+  const [deleteDiscussion] = useDeleteDiscussionMutation();
+
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedReportForDetails, setSelectedReportForDetails] = useState<ReportItem | null>(null);
-  const [moderatorNote, setModeratorNote] = useState("");
 
   const { data: reportDetailRes, isLoading: isLoadingDetail } = useGetReportByIdQuery(
     { id: selectedReportForDetails?.id as string },
@@ -103,15 +110,111 @@ export default function ModerationManagementPage() {
     if (!selectedReport) return;
     try {
       if (action === "approve") {
-        await approveReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
-        toast.success("Báo cáo đã được phê duyệt hợp lệ (Nội dung đã bị ẩn).");
+        await approveReport({ id: selectedReport.id }).unwrap();
+        toast.success("Báo cáo đã được phê duyệt hợp lệ.");
+
+        try {
+          // Lấy TẤT CẢ report để tránh các lỗi filter từ backend và case sensitivity
+          const allRes = await triggerGetAllReports(undefined, false).unwrap();
+          const allData = allRes.data || [];
+
+          // Tìm các report cùng một đối tượng (bỏ qua case sensitivity của targetType)
+          const targetReports = allData.filter((r: any) => r.targetId === selectedReport.targetId);
+          
+          // Đếm số lượng report đã bị duyệt (bao gồm cái hiện tại nếu nó chưa đc update phản hồi kịp trong API)
+          let approvedCount = targetReports.filter((r: any) => r.status?.toLowerCase() === "approved").length;
+          const isCurrentInApproved = targetReports.some((r: any) => r.id === selectedReport.id && r.status?.toLowerCase() === "approved");
+          if (!isCurrentInApproved) {
+            approvedCount += 1;
+          }
+
+          let thresholdReached = false;
+          const rawType = selectedReport.targetType || "";
+          const type = rawType.toLowerCase();
+
+          // DETERMINE IF THRESHOLD IS REACHED
+          if (type === "comment") {
+            if (approvedCount >= 3) thresholdReached = true;
+          } else if (type === "discussion") {
+            if (approvedCount >= 3) thresholdReached = true;
+          } else {
+            // User target
+            if (approvedCount >= 5) thresholdReached = true;
+          }
+
+          // 1) AUTO APPROVE REST OF PENDING REPORTS (Run FIRST to avoid 400 error on locked/hidden targets)
+          if (thresholdReached) {
+            try {
+              const pendingForTarget = targetReports.filter((r: any) => 
+                r.id !== selectedReport.id && r.status?.toLowerCase() === "pending"
+              );
+              
+              if (pendingForTarget.length > 0) {
+                let successCount = 0;
+                for (const pr of pendingForTarget) {
+                  try {
+                    // Cố tình không gửi moderatorNote vì có thể DTO của backend sẽ block và quăng lỗi 400 
+                    // nếu gửi chuỗi có dấu hoặc body field không đúng.
+                    await approveReport({ id: pr.id }).unwrap();
+                    successCount++;
+                  } catch (subErr) {
+                    console.error("Lỗi khi auto duyệt:", pr.id, subErr);
+                  }
+                }
+                if (successCount > 0) {
+                  toast.success(`Đã tự động duyệt ${successCount} báo cáo tương tự còn lại.`);
+                }
+              }
+            } catch (e) {
+              console.error("Error auto-approving remaining pending reports", e);
+            }
+          }
+
+          // 2) EXECUTE AUTO ACTION ON TARGET (Lock/Hide/Delete)
+          if (type === "comment") {
+            if (thresholdReached) {
+              try {
+                await hideComment({ commentId: selectedReport.targetId, isHidden: true }).unwrap();
+                toast.success(`Bình luận đã bị ẩn tự động do vi phạm ${approvedCount} lần!`);
+              } catch (e: any) {
+                toast.error(`Auto-hide comment failed: ${e?.data?.message || e?.message}`);
+                console.error("Hide comment error", e);
+              }
+            }
+          } else if (type === "discussion") {
+            if (thresholdReached) {
+              try {
+                await deleteDiscussion({ id: selectedReport.targetId }).unwrap();
+                toast.success(`Bài đăng thảo luận đã bị xóa tự động do vi phạm ${approvedCount} lần!`);
+              } catch (e: any) {
+                toast.error(`Auto-delete discussion failed: ${e?.data?.message || e?.message}`);
+                console.error("Delete discussion error", e);
+              }
+            }
+          } else {
+            // Xem như mọi type khác (User, Account, Profile...) đều là User
+            if (thresholdReached) {
+              try {
+                // Thử thay string thành uppercase nếu backend bắt validation url path, bằng không thì nó sẽ là targetId bt
+                await lockUser(selectedReport.targetId).unwrap();
+                toast.success(`Tài khoản ${selectedReport.targetId} đã bị khóa tự động do vi phạm ${approvedCount} lần!`);
+              } catch (e: any) {
+                toast.error(`Auto-lock user failed: ${e?.data?.message || e?.message}`);
+                console.error("Lock error", e);
+              }
+            }
+          }
+        } catch(err: any) {
+          console.error("Lỗi khi đếm số report và auto-action:", err);
+          toast.error("Process error: " + err?.message);
+        }
+
       } else if (action === "reject") {
-        await rejectReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
+        await rejectReport({ id: selectedReport.id }).unwrap();
         toast.success("Báo cáo đã bị từ chối.");
       }
       setActionModalOpen(false);
       setSelectedReport(null);
-      setModeratorNote("");
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi duyệt");
@@ -289,7 +392,6 @@ export default function ModerationManagementPage() {
                       color="primary"
                       onPress={() => {
                         setSelectedReport(r);
-                        setModeratorNote("");
                         setActionModalOpen(true);
                       }}
                     >
@@ -354,11 +456,11 @@ export default function ModerationManagementPage() {
                       </div>
                     </div>
 
-                    {((reportDetail as any)?.adminNote || (reportDetail as any)?.moderatorNote) && (
+                    {((reportDetail as any)?.adminNote) && (
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                         <div className="font-bold text-sm text-blue-800 dark:text-blue-300 mb-2">Lý do xử lý của admin</div>
                         <p className="text-sm text-blue-900 dark:text-blue-200">
-                          {(reportDetail as any).adminNote || (reportDetail as any).moderatorNote}
+                          {(reportDetail as any).adminNote}
                         </p>
                         {(reportDetail as any).resolvedAt && (
                           <div className="text-xs text-blue-500 mt-2">
@@ -437,16 +539,6 @@ export default function ModerationManagementPage() {
                    </p>
                   )}
                 </div>
-
-                {selectedReport?.status === "pending" && (
-                  <Textarea
-                    label="Moderator Note (internal)"
-                    placeholder="Ghi chú lý do xử lý (chỉ admin thấy)..."
-                    value={moderatorNote}
-                    onValueChange={setModeratorNote}
-                    minRows={3}
-                  />
-                )}
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose} isDisabled={isApproving || isRejecting}>Cancel</Button>

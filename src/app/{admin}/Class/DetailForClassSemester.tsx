@@ -52,6 +52,7 @@ import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
 import AddProblemToSlotForm from "@/Provider/ImportProblemForm";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
+import SlotScoresTable from "@/app/Management/ClassSemester/[id]/SlotScoresTable";
 
 type Props = {
   id: string;
@@ -364,7 +365,16 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                     {/* Expanded Problems Table */}
                     {expandedSlot === slot.id && (
                       <div className="px-10 pb-10 border-t border-divider dark:border-white/5">
-                        <div className="mt-8">
+                        <Tabs 
+                          variant="underlined" 
+                          classNames={{ 
+                            tabList: "mt-4 gap-6",
+                            tab: "font-bold uppercase tracking-widest text-[11px]",
+                            cursor: "bg-blue-600 dark:bg-blue-400"
+                          }}
+                        >
+                          <Tab key="problems" title="Assigned Problems">
+                            <div className="mt-6">
                           <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2 text-[11px] font-[1000] uppercase italic text-blue-600">
                               <Code2 size={14} />
@@ -492,6 +502,11 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                             </TableBody>
                           </Table>
                         </div>
+                          </Tab>
+                          <Tab key="scores" title="Student Scores & Results">
+                            <SlotScoresTable classId={classId} slot={slot} />
+                          </Tab>
+                        </Tabs>
                       </div>
                     )}
                   </CardBody>

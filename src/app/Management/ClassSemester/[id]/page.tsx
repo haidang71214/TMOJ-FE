@@ -46,6 +46,7 @@ import ClassMembersPage from "../../Class/[id]/Member/ClassMembersPage";
 import CreateSlotForma from "../../Class/CreateSlotForClassSession";
 import AddProblemToSlotForm from "../../../../Provider/ImportProblemForm";
 import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
+import SlotScoresTable from "./SlotScoresTable";
 
 export default function ClassDetailPage({
   params,
@@ -378,7 +379,16 @@ export default function ClassDetailPage({
                     {/* Expanded Problems Table */}
                     {expandedSlot === slot.id && (
                       <div className="px-10 pb-10 border-t border-divider dark:border-white/5">
-                        <div className="mt-8">
+                        <Tabs 
+                          variant="underlined" 
+                          classNames={{ 
+                            tabList: "mt-4 gap-6",
+                            tab: "font-bold uppercase tracking-widest text-[11px]",
+                            cursor: "bg-blue-600 dark:bg-blue-400"
+                          }}
+                        >
+                          <Tab key="problems" title="Assigned Problems">
+                            <div className="mt-6">
                           <div className="flex items-center justify-between mb-6">
 
   {/* LEFT TITLE */}
@@ -514,6 +524,11 @@ export default function ClassDetailPage({
                             </TableBody>
                           </Table>
                         </div>
+                          </Tab>
+                          <Tab key="scores" title="Student Scores & Results">
+                            <SlotScoresTable classId={classId} slot={slot} />
+                          </Tab>
+                        </Tabs>
                       </div>
                     )}
                   </CardBody>

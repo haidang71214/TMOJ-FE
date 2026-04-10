@@ -32,6 +32,7 @@ import {
   Download,
   Upload,
   Trash2,
+  Rocket,
 } from "lucide-react";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -46,6 +47,7 @@ import ClassMembersPage from "../../Class/[id]/Member/ClassMembersPage";
 import CreateSlotForma from "../../Class/CreateSlotForClassSession";
 import AddProblemToSlotForm from "../../../../Provider/ImportProblemForm";
 import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
+import InviteCodeCard from "./InviteCodeCard";
 
 export default function ClassDetailPage({
   params,
@@ -196,86 +198,99 @@ export default function ClassDetailPage({
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 text-[#071739] dark:text-white max-w-[1400px] mx-auto">
       {/* HEADER */}
-      <div className="flex justify-between items-start border-b border-slate-200 dark:border-white/10 pb-8">
-        <div className="flex flex-col gap-6">
-          <Button
-            variant="light"
-            onPress={() => router.back()}
-            className="font-black"
-            startContent={<ChevronLeft size={16} />}
-          >
-            Back
-          </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-b border-slate-200 dark:border-white/10 pb-8">
+        <div className="lg:col-span-2 flex flex-col justify-between">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-start">
+              <Button
+                variant="light"
+                onPress={() => router.back()}
+                className="font-black"
+                startContent={<ChevronLeft size={16} />}
+              >
+                Back
+              </Button>
+            </div>
 
-          <div className="space-y-2">
-            <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
-              {classCode} - {semesterCode}
-            </h2>
+            <div className="space-y-2">
+              <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
+                {classCode} - {semesterCode}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-center flex-wrap mt-10">
+            <Button
+              startContent={<Download size={14} strokeWidth={2.5} />}
+              size="md"
+              color="success"
+              variant="flat"
+              onPress={handleExportTemplate}
+              isLoading={isExportingTemplate}
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+            >
+              TEMPLATE
+            </Button>
+            <Button
+              startContent={<Download size={14} strokeWidth={2.5} />}
+              size="md"
+              color="success"
+              variant="flat"
+              isLoading={isExportingStudents}
+              onPress={handleExport}
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+            >
+              EXPORT LIST
+            </Button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept=".xlsx, .xls, .csv" 
+              hidden 
+            />
+            <Button
+              startContent={<Upload size={14} strokeWidth={2.5} />}
+              size="md"
+              color="success"
+              variant="flat"
+              isLoading={isImportingStudents}
+              onPress={() => fileInputRef.current?.click()}
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+            >
+              IMPORT LIST
+            </Button>
+            
+            <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2"></div>
+
+            <Button
+              startContent={<Plus size={16} strokeWidth={2.5} />}
+              size="md"
+              color="warning"
+              onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
+              className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
+            >
+              ADD STUDENT
+            </Button>
+
+            <Button
+              startContent={<Plus size={16} strokeWidth={2.5} />}
+              size="md"
+              className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
+              onPress={openCreateSlotModal}
+            >
+              NEW SLOT
+            </Button>
           </div>
         </div>
 
-        <div className="flex gap-2 items-center flex-wrap" style={{ marginTop: 60 }}>
-          <Button
-            startContent={<Download size={14} strokeWidth={2.5} />}
-            size="md"
-            color="success"
-            variant="flat"
-            onPress={handleExportTemplate}
-            isLoading={isExportingTemplate}
-            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
-          >
-            TEMPLATE
-          </Button>
-          <Button
-            startContent={<Download size={14} strokeWidth={2.5} />}
-            size="md"
-            color="success"
-            variant="flat"
-            isLoading={isExportingStudents}
-            onPress={handleExport}
-            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
-          >
-            EXPORT LIST
-          </Button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            accept=".xlsx, .xls, .csv" 
-            hidden 
+        {/* RIGHT: INVITE CODE CARD */}
+        <div className="flex lg:justify-end">
+          <InviteCodeCard 
+            classSemesterId={classId} 
+            classCode={classCode} 
+            semesterCode={semesterCode} 
           />
-          <Button
-            startContent={<Upload size={14} strokeWidth={2.5} />}
-            size="md"
-            color="success"
-            variant="flat"
-            isLoading={isImportingStudents}
-            onPress={() => fileInputRef.current?.click()}
-            className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
-          >
-            IMPORT LIST
-          </Button>
-          
-          <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2"></div>
-
-          <Button
-            startContent={<Plus size={16} strokeWidth={2.5} />}
-            size="md"
-            color="warning"
-            onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
-            className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
-          >
-            ADD STUDENT
-          </Button>
-
-          <Button
-            startContent={<Plus size={16} strokeWidth={2.5} />}
-            size="md"
-            className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
-            onPress={openCreateSlotModal}
-          >
-            NEW SLOT
-          </Button>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import CreateClassSemester from "@/Provider/CreateClassSemester";
 import { useGetClassDetailQuery } from "@/store/queries/Class";
 
 import ClassSemesterDetail from "./DetailForClassSemester";   // Component chi tiết bạn đã tạo
+import UpdateClassSemester, { UpdateClassSemesterInitialData } from "@/Provider/UpdateClassSemester";
 
 interface ClassSemesterManagementProps {
   classId: string;
@@ -41,6 +42,10 @@ export default function ClassSemesterManagement({
   
   // State cho Create Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // State cho Update Modal
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [updateInitialData, setUpdateInitialData] = useState<UpdateClassSemesterInitialData | null>(null);
 
   const handleCreateSuccess = () => {
     refetch();
@@ -49,6 +54,18 @@ export default function ClassSemesterManagement({
 
   const openCreateClassSemesterModal = () => {
     setIsCreateModalOpen(true);
+  };
+
+  const openUpdateModal = (instance: any) => {
+    setUpdateInitialData({
+      classId: classId,
+      classSemesterId: instance.classSemesterId,
+      subjectId: instance.subjectId,
+      semesterId: instance.semesterId,
+      teacherId: instance.teacher?.userId,
+      classCode: classDetail?.classCode || "",
+    });
+    setIsUpdateModalOpen(true);
   };
 
   // Mở chi tiết Class Semester
@@ -202,7 +219,7 @@ export default function ClassSemesterManagement({
                 {/* Operations - Ngăn click lan ra hàng */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-1">
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
+                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9" onPress={() => openUpdateModal(instance)}>
                       <Edit size={16} className="text-slate-500" />
                     </Button>
                     <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
@@ -227,6 +244,14 @@ export default function ClassSemesterManagement({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         classCode={className}
+        onSuccess={handleCreateSuccess}
+      />
+      
+      {/* Update Modal */}
+      <UpdateClassSemester
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        initialData={updateInitialData}
         onSuccess={handleCreateSuccess}
       />
     </div>

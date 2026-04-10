@@ -44,7 +44,7 @@ const SubmittionEndPoint = {
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
-  GET_DETAIL_RUNTIME : `${API_PREFIX}/Runtimes/{id}​`
+  GET_DETAIL_RUNTIME : `${API_PREFIX}/Runtimes/{id}`
 }
 const SubjectEndpoint = {
   GET_ALL_SUBJECT: `${API_PREFIX}/Subject`,
@@ -57,8 +57,9 @@ const SubjectEndpoint = {
 const ClassEndpoint = {
   GET_ALL_CLASS:`${API_PREFIX}/Class`,
   CREATE_CLASS:`${API_PREFIX}/Class`,
-  GET_DETAIL_CLASS:`${API_PREFIX}/Class/{id}`,
+   GET_DETAIL_CLASS:`${API_PREFIX}/Class/{id}`,
    PUT_CLASS_TEACHER:`${API_PREFIX}/Class/{id}/teacher`,
+   UPDATE_CLASS_SEMESTER: `${API_PREFIX}/Class/{id}/semesters/{classSemesterId}`,
    GET_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
    CREATE_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
    DELETE_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
@@ -83,6 +84,8 @@ const ClassEndpoint = {
   EXPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/export`,
   UPDATE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
   DELETE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
+  GET_MY_CLASSES_STUDENT: `${API_PREFIX}/Class/my-classes/student`,
+  GET_MY_CLASSES_TEACHER: `${API_PREFIX}/Class/my-classes/teacher`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

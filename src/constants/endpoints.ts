@@ -59,8 +59,9 @@ const ClassEndpoint = {
   CREATE_CLASS:`${API_PREFIX}/Class`,
   GET_DETAIL_CLASS:`${API_PREFIX}/Class/{id}`,
    PUT_CLASS_TEACHER:`${API_PREFIX}/Class/{id}/teacher`,
-   CREATE_INVITE_CODE:`${API_PREFIX}/Class/{id}/invite-code`, // chưa làm
-   DELETE_INVITE_CODE:`${API_PREFIX}/Class/{id}/members`, // chưa làm
+   GET_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
+   CREATE_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
+   DELETE_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
    GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/students`, // đang làm
 
    ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{classSemesterId}/students/manual​`, // add student vào 

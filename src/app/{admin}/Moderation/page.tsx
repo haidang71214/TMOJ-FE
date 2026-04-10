@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Button,
   Input,
@@ -18,113 +18,109 @@ import {
   ModalFooter,
   Select,
   SelectItem,
-  Avatar,
-  Tooltip,
   Card,
   CardBody,
   Textarea,
+  Spinner,
+  Pagination,
 } from "@heroui/react";
 import {
   Flag,
   ShieldAlert,
-  Trash2,
   Ban,
-  EyeOff,
   AlertTriangle,
   Users,
   Eye,
-  Edit2,
   CheckCircle,
   XCircle,
-  Clock,
 } from "lucide-react";
 
-// Types dựa trên schema
-interface Report {
-  id: string;
-  content_type: "comment" | "editorial" | "problem";
-  content_id: string;
-  content_preview: string; // snippet của nội dung bị report
-  reporter_username: string;
-  violation_type: "spam" | "plagiarism" | "abuse" | "other";
-  description?: string;
-  status: "pending" | "in_review" | "resolved";
-  created_at: string;
-  reporter_avatar?: string;
-  target_username?: string; // người bị report (tác giả nội dung)
-}
-
-
-const MOCK_REPORTS: Report[] = [
-  {
-    id: "r1",
-    content_type: "comment",
-    content_id: "cmt-456",
-    content_preview: "This problem is trash, admin delete it pls",
-    reporter_username: "student123",
-    violation_type: "abuse",
-    description: "Ngôn từ xúc phạm, thiếu tôn trọng",
-    status: "pending",
-    created_at: "2026-01-27 15:42",
-    target_username: "hainguyen",
-  },
-  {
-    id: "r2",
-    content_type: "editorial",
-    content_id: "edt-789",
-    content_preview: "[code copy từ GeeksforGeeks without credit]",
-    reporter_username: "teacher_pro",
-    violation_type: "plagiarism",
-    status: "in_review",
-    created_at: "2026-01-27 14:10",
-    target_username: "user_fake",
-  },
-  {
-    id: "r3",
-    content_type: "comment",
-    content_id: "cmt-101",
-    content_preview: "Spam link: http://bit.ly/free-money",
-    reporter_username: "admin_mod",
-    violation_type: "spam",
-    status: "resolved",
-    created_at: "2026-01-26 09:30",
-    target_username: "spam_bot_01",
-  },
-  {
-    id: "r4",
-    content_type: "problem",
-    content_id: "p-445",
-    content_preview: "Testcase #4 is mathematically impossible.",
-    reporter_username: "top_coder",
-    violation_type: "other",
-    status: "pending",
-    created_at: "2026-01-26 11:20",
-    target_username: "problem_setter_01",
-  },
-  {
-    id: "r5",
-    content_type: "comment",
-    content_id: "cmt-202",
-    content_preview: "Giving out answers in comments: 1-A, 2-C...",
-    reporter_username: "honest_user",
-    violation_type: "other",
-    status: "pending",
-    created_at: "2026-01-25 18:45",
-    target_username: "cheater_07",
-  },
-];
+import { 
+  useGetAllReportsQuery, 
+  useApproveReportMutation, 
+  useRejectReportMutation,
+  useGetReportByIdQuery
+} from "@/store/queries/reports";
+import { ReportItem } from "@/types";
+import { toast } from "sonner";
 
 export default function ModerationManagementPage() {
-  const [reports] = useState<Report[]>(MOCK_REPORTS);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+
+  const { data: allReportsRes, isLoading, refetch } = useGetAllReportsQuery({
+    targetType: typeFilter,
+    status: statusFilter,
+  });
+
+  let reports: ReportItem[] = allReportsRes?.data || [];
+
+  if (typeFilter !== "all") {
+    reports = reports.filter((r) => r.targetType?.toLowerCase() === typeFilter.toLowerCase());
+  }
+  if (statusFilter !== "all") {
+    reports = reports.filter((r) => r.status?.toLowerCase() === statusFilter.toLowerCase());
+  }
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    reports = reports.filter(
+      (r) =>
+        r.reason?.toLowerCase().includes(q) ||
+        r.targetId?.toLowerCase().includes(q)
+    );
+  }
+
+  const rowsPerPage = 20;
+  const pages = Math.ceil(reports.length / rowsPerPage) || 1;
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return reports.slice(start, end);
+  }, [page, reports]);
+
+  const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
+  const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
+
+  const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
-  const handleTakeAction = (action: "warn" | "delete" | "block" | "hide" | "edit" | "approve" | "reject" | "suspend") => {
-    // Logic gọi API thực tế ở đây
-    alert(`Thực hiện hành động: ${action.toUpperCase()} cho report #${selectedReport?.id}`);
-    setActionModalOpen(false);
-    setSelectedReport(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedReportForDetails, setSelectedReportForDetails] = useState<ReportItem | null>(null);
+  const [moderatorNote, setModeratorNote] = useState("");
+
+  const { data: reportDetailRes, isLoading: isLoadingDetail } = useGetReportByIdQuery(
+    { id: selectedReportForDetails?.id as string },
+    { skip: !selectedReportForDetails?.id }
+  );
+  
+  const reportDetail = reportDetailRes?.data || selectedReportForDetails;
+
+  const handleTakeAction = async (action: "approve" | "reject") => {
+    if (!selectedReport) return;
+    try {
+      if (action === "approve") {
+        await approveReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
+        toast.success("Báo cáo đã được phê duyệt hợp lệ (Nội dung đã bị ẩn).");
+      } else if (action === "reject") {
+        await rejectReport({ id: selectedReport.id, moderatorNote: moderatorNote.trim() || undefined }).unwrap();
+        toast.success("Báo cáo đã bị từ chối.");
+      }
+      setActionModalOpen(false);
+      setSelectedReport(null);
+      setModeratorNote("");
+      refetch();
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi duyệt");
+    }
   };
+
+  const pendingCount = reports.filter(r => r.status === "pending").length;
+  const inReviewCount = reports.filter(r => r.status === "in_review").length;
+  const resolvedCount = reports.filter(r => r.status === "approved" || r.status === "rejected").length;
 
   return (
     <div className="space-y-8 pb-20">
@@ -153,7 +149,7 @@ export default function ModerationManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-linear-to-br from-amber-500/10 to-red-500/10">
           <CardBody className="text-center">
-            <div className="text-4xl font-black text-amber-600 dark:text-amber-400">47</div>
+            <div className="text-4xl font-black text-amber-600 dark:text-amber-400">{pendingCount}</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
               <AlertTriangle size={14} /> Pending Reports
             </div>
@@ -161,19 +157,19 @@ export default function ModerationManagementPage() {
         </Card>
         <Card>
           <CardBody className="text-center">
-            <div className="text-4xl font-black text-red-600">12</div>
+            <div className="text-4xl font-black text-red-600">{inReviewCount}</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">In Review</div>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="text-center">
-            <div className="text-4xl font-black text-emerald-600">189</div>
+            <div className="text-4xl font-black text-emerald-600">{resolvedCount}</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">Resolved This Week</div>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="text-center">
-            <div className="text-4xl font-black text-purple-600">8</div>
+            <div className="text-4xl font-black text-purple-600">--</div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
               <Ban size={14} /> Active Bans
             </div>
@@ -183,91 +179,108 @@ export default function ModerationManagementPage() {
 
       {/* FILTER BAR */}
       <div className="flex flex-wrap gap-3 items-center">
-        <Input placeholder="Search reporter or content..." className="max-w-xs" />
-        <Select placeholder="Type" className="w-36">
+        <Input 
+          placeholder="Search reason or id..." 
+          className="max-w-xs" 
+          value={searchQuery}
+          onValueChange={(val) => {
+            setSearchQuery(val);
+            setPage(1);
+          }}
+        />
+        <Select 
+          placeholder="Type" 
+          className="w-36"
+          selectedKeys={new Set([typeFilter])}
+          onChange={(e) => {
+            setTypeFilter(e.target.value || "all");
+            setPage(1);
+          }}
+        >
           <SelectItem key="all">All Types</SelectItem>
           <SelectItem key="comment">Comment</SelectItem>
-          <SelectItem key="editorial">Editorial</SelectItem>
-          <SelectItem key="problem">Problem</SelectItem>
+          <SelectItem key="discussion">Discussion</SelectItem>
         </Select>
-        <Select placeholder="Status" className="w-36">
+        <Select 
+          placeholder="Status" 
+          className="w-36"
+          selectedKeys={new Set([statusFilter])}
+          onChange={(e) => {
+            setStatusFilter(e.target.value || "all");
+            setPage(1);
+          }}
+        >
           <SelectItem key="all">All</SelectItem>
           <SelectItem key="pending">Pending</SelectItem>
-          <SelectItem key="in_review">In Review</SelectItem>
-          <SelectItem key="resolved">Resolved</SelectItem>
-        </Select>
-        <Select placeholder="Violation" className="w-40">
-          <SelectItem key="all">All</SelectItem>
-          <SelectItem key="spam">Spam</SelectItem>
-          <SelectItem key="plagiarism">Plagiarism</SelectItem>
-          <SelectItem key="abuse">Abuse</SelectItem>
-          <SelectItem key="other">Other</SelectItem>
+          <SelectItem key="approved">Approved</SelectItem>
+          <SelectItem key="rejected">Rejected</SelectItem>
         </Select>
       </div>
 
       {/* REPORTS TABLE */}
       <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
-        <Table aria-label="Reports" removeWrapper>
+        <Table 
+          aria-label="Reports" 
+          removeWrapper
+          bottomContent={
+            pages > 1 ? (
+              <div className="flex w-full justify-center pb-4">
+                <Pagination
+                  isCompact
+                  showControls
+                  showShadow
+                  color="secondary"
+                  page={page}
+                  total={pages}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+            ) : null
+          }
+        >
           <TableHeader>
-            <TableColumn>TYPE / CONTENT</TableColumn>
-            <TableColumn>REPORTER</TableColumn>
-            <TableColumn>VIOLATION</TableColumn>
+            <TableColumn>TYPE</TableColumn>
+            <TableColumn>REASON (VIOLATION)</TableColumn>
             <TableColumn>STATUS</TableColumn>
-            <TableColumn>TARGET USER</TableColumn>
+            <TableColumn>TARGET ID</TableColumn>
             <TableColumn>TIME</TableColumn>
             <TableColumn>ACTIONS</TableColumn>
           </TableHeader>
-          <TableBody>
-            {reports.map((r) => (
+          <TableBody 
+            emptyContent={isLoading ? <Spinner size="lg" color="primary"/> : "Không có báo cáo nào."}
+          >
+            {items.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Chip variant="flat" color="secondary" size="sm">
-                      {r.content_type.toUpperCase()}
-                    </Chip>
-                    <div className="max-w-xs truncate text-sm text-slate-600 dark:text-slate-300">
-                      {r.content_preview}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Avatar size="sm" name={r.reporter_username} />
-                    <span className="font-medium">{r.reporter_username}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    size="sm"
-                    color={
-                      r.violation_type === "spam" ? "warning" :
-                      r.violation_type === "plagiarism" ? "danger" :
-                      r.violation_type === "abuse" ? "danger" : "default"
-                    }
-                  >
-                    {r.violation_type.toUpperCase()}
+                  <Chip variant="flat" color="secondary" size="sm">
+                    {r.targetType?.toUpperCase()}
                   </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="max-w-xs truncate font-medium">
+                    {r.reason}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <Chip
                     size="sm"
                     color={
                       r.status === "pending" ? "warning" :
-                      r.status === "in_review" ? "primary" :
-                      "success"
+                      r.status === "approved" ? "danger" :
+                      "default"
                     }
                   >
-                    {r.status.toUpperCase().replace("_", " ")}
+                    {r.status.toUpperCase()}
                   </Chip>
                 </TableCell>
                 <TableCell>
-                  <Tooltip content="View profile">
-                    <span className="font-medium text-red-600 dark:text-red-400">
-                      {r.target_username}
-                    </span>
-                  </Tooltip>
+                  <span className="text-slate-500 text-xs truncate max-w-[150px] inline-block" title={r.targetId}>
+                    {r.targetId}
+                  </span>
                 </TableCell>
-                <TableCell className="text-slate-500 text-sm">{r.created_at}</TableCell>
+                <TableCell className="text-slate-500 text-sm">
+                  {new Date(r.createdAt).toLocaleString()}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -276,12 +289,20 @@ export default function ModerationManagementPage() {
                       color="primary"
                       onPress={() => {
                         setSelectedReport(r);
+                        setModeratorNote("");
                         setActionModalOpen(true);
                       }}
                     >
                       <ShieldAlert size={16} />
                     </Button>
-                    <Button isIconOnly size="sm">
+                    <Button 
+                      isIconOnly 
+                      size="sm"
+                      onPress={() => {
+                        setSelectedReportForDetails(r);
+                        setDetailsModalOpen(true);
+                      }}
+                    >
                       <Eye size={16} />
                     </Button>
                   </div>
@@ -292,19 +313,93 @@ export default function ModerationManagementPage() {
         </Table>
       </div>
 
+      {/* MODAL VIEW DETAILS */}
+      <Modal isOpen={detailsModalOpen} onOpenChange={setDetailsModalOpen} size="lg">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-xl font-black uppercase">
+                Report Details <span className="text-slate-500 ml-2">#{selectedReportForDetails?.id?.substring(0, 8)}...</span>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                {isLoadingDetail ? (
+                  <div className="flex justify-center p-6"><Spinner /></div>
+                ) : (
+                  <>
+                    <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl space-y-4">
+                      <div>
+                        <div className="font-bold text-sm text-slate-500">Reported Reason</div>
+                        <p className="text-base font-medium">{reportDetail?.reason}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Target Type</div>
+                          <p className="font-medium text-sm">{reportDetail?.targetType}</p>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Target ID</div>
+                          <p className="font-medium text-sm truncate" title={reportDetail?.targetId}>{reportDetail?.targetId}</p>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Status</div>
+                          <Chip size="sm" color={reportDetail?.status === "pending" ? "warning" : reportDetail?.status === "approved" ? "danger" : "default"}>
+                            {reportDetail?.status?.toUpperCase()}
+                          </Chip>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Reported At</div>
+                          <p className="font-medium text-sm">{new Date(reportDetail?.createdAt || "").toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {((reportDetail as any)?.adminNote || (reportDetail as any)?.moderatorNote) && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <div className="font-bold text-sm text-blue-800 dark:text-blue-300 mb-2">Lý do xử lý của admin</div>
+                        <p className="text-sm text-blue-900 dark:text-blue-200">
+                          {(reportDetail as any).adminNote || (reportDetail as any).moderatorNote}
+                        </p>
+                        {(reportDetail as any).resolvedAt && (
+                          <div className="text-xs text-blue-500 mt-2">
+                            Resolved at: {new Date((reportDetail as any).resolvedAt).toLocaleString()}
+                          </div>
+                        )}
+                        {(reportDetail as any).resolvedBy && (
+                          <div className="text-xs text-blue-500 mt-1">
+                            Resolved by: {(reportDetail as any).resolvedBy}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>Close</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
       {/* MODAL TAKE ACTION */}
       <Modal isOpen={actionModalOpen} onOpenChange={setActionModalOpen} size="lg">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="text-xl font-black uppercase">
-                Moderate Report <span className="text-[#FF5C00]">#{selectedReport?.id}</span>
+                Moderate Report <span className="text-[#FF5C00] ml-2">#{selectedReport?.id?.substring(0, 8)}...</span>
               </ModalHeader>
               <ModalBody className="space-y-6">
                 <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl">
-                  <div className="font-medium mb-2">Reported Content:</div>
+                  <div className="font-medium mb-2">Reported Reason:</div>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    {selectedReport?.content_preview}
+                    {selectedReport?.reason}
+                  </p>
+                  <div className="font-medium mt-4 mb-2">Target Type & ID:</div>
+                  <p className="text-xs text-slate-500">
+                    {selectedReport?.targetType} - {selectedReport?.targetId}
                   </p>
                 </div>
 
@@ -312,104 +407,49 @@ export default function ModerationManagementPage() {
                   <div className="font-black uppercase text-sm tracking-widest mb-3">
                     Moderation Actions
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {/* Content Actions */}
-                    {selectedReport?.content_type === "comment" && (
+                  
+                  {selectedReport?.status === "pending" ? (
+                    <div className="grid grid-cols-2 gap-3">
                       <Button
                         size="sm"
                         variant="flat"
-                        startContent={<Edit2 size={16} />}
-                        className="justify-start text-blue-600 dark:text-blue-400"
-                        onPress={() => handleTakeAction("edit")}
+                        startContent={<CheckCircle size={16} />}
+                        className="justify-start text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
+                        onPress={() => handleTakeAction("approve")}
+                        isLoading={isApproving || isRejecting}
                       >
-                        Edit Comment
+                        Approve (Hide Content)
                       </Button>
-                    )}
-                    
-                    {(selectedReport?.content_type === "editorial" || selectedReport?.content_type === "problem") && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="flat"
-                          startContent={<CheckCircle size={16} />}
-                          className="justify-start text-emerald-600 dark:text-emerald-400"
-                          onPress={() => handleTakeAction("approve")}
-                        >
-                          Approve Content
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="flat"
-                          startContent={<XCircle size={16} />}
-                          className="justify-start text-red-600 dark:text-red-400"
-                          onPress={() => handleTakeAction("reject")}
-                        >
-                          Reject Content
-                        </Button>
-                      </>
-                    )}
-
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      startContent={<Trash2 size={16} />}
-                      className="justify-start text-red-600 dark:text-red-400"
-                      onPress={() => handleTakeAction("delete")}
-                    >
-                      Delete Content
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      startContent={<EyeOff size={16} />}
-                      className="justify-start text-slate-600 dark:text-slate-400"
-                      onPress={() => handleTakeAction("hide")}
-                    >
-                      Hide Content
-                    </Button>
-
-                    {/* User Actions */}
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      startContent={<AlertTriangle size={16} />}
-                      className="justify-start text-amber-600 dark:text-amber-400 border-t border-slate-200 dark:border-white/10 mt-2"
-                      onPress={() => handleTakeAction("warn")}
-                    >
-                      Warn User
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      startContent={<Clock size={16} />}
-                      className="justify-start text-orange-600 dark:text-orange-400 border-t border-slate-200 dark:border-white/10 mt-2"
-                      onPress={() => handleTakeAction("suspend")}
-                    >
-                      Suspend User
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      startContent={<Ban size={16} />}
-                      className="justify-start text-purple-600 dark:text-purple-400 border-t border-slate-200 dark:border-white/10 mt-2"
-                      onPress={() => handleTakeAction("block")}
-                    >
-                      Block User
-                    </Button>
-                  </div>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        startContent={<XCircle size={16} />}
+                        className="justify-start text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10"
+                        onPress={() => handleTakeAction("reject")}
+                        isLoading={isApproving || isRejecting}
+                      >
+                        Reject (Ignore)
+                      </Button>
+                    </div>
+                  ) : (
+                   <p className="text-sm text-slate-500 font-bold italic">
+                     Báo cáo này đã được duyệt (Status: {selectedReport?.status.toUpperCase()}).
+                   </p>
+                  )}
                 </div>
 
-                <Textarea
-                  label="Moderator Note (internal)"
-                  placeholder="Ghi chú lý do xử lý (chỉ admin thấy)..."
-                  minRows={3}
-                />
+                {selectedReport?.status === "pending" && (
+                  <Textarea
+                    label="Moderator Note (internal)"
+                    placeholder="Ghi chú lý do xử lý (chỉ admin thấy)..."
+                    value={moderatorNote}
+                    onValueChange={setModeratorNote}
+                    minRows={3}
+                  />
+                )}
               </ModalBody>
               <ModalFooter>
-                <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="danger" onPress={onClose}>
-                  Confirm Action
-                </Button>
+                <Button variant="flat" onPress={onClose} isDisabled={isApproving || isRejecting}>Cancel</Button>
               </ModalFooter>
             </>
           )}

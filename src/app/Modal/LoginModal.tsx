@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { useLoginMutation, useGoogleLoginMutation } from "@/store/queries/auth";
 import { addToast, Button, Checkbox, Divider, Input } from "@heroui/react";
 // import { GoogleLogin } from "@react-oauth/google";
@@ -16,6 +17,7 @@ export default function LoginModal() {
   const [login, { isLoading }] = useLoginMutation();
   const [googleLogin] = useGoogleLoginMutation();
   const { closeModal, openModal } = useModal();
+  const { t, language } = useTranslation();
 
   const handleOpenForgotPass = ()=>{
       openModal({ content: <ForgotPasswordModal /> })
@@ -30,7 +32,7 @@ export default function LoginModal() {
     if (res) {
       console.log(res);
 
-      addToast({ title: "Welcome back!", color: "success" });
+      addToast({ title: t('login.success') || (language === 'vi' ? "Chào mừng trở lại!" : "Welcome back!"), color: "success" });
 
       closeModal();
 
@@ -41,14 +43,14 @@ export default function LoginModal() {
     const error = err as ErrorForm;
 
     addToast({
-      title: error?.data?.data?.message ?? "Login failed!",
+      title: error?.data?.data?.message ?? (t('login.error') || (language === 'vi' ? "Đăng nhập thất bại!" : "Login failed!")),
       color: "danger",
     });
   }
 };
 
   return (
-    <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none">
+    <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none opacity-0 animate-fade-in-up">
       {/* Close Button */}
       <button
         onClick={closeModal}
@@ -58,12 +60,15 @@ export default function LoginModal() {
       </button>
 
       {/* Header */}
-      <div className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8">
+      <div 
+        className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "100ms", animationFillMode: "both" }}
+      >
         <h2 className="text-4xl font-black text-[#3F4755] dark:text-white tracking-tighter uppercase leading-none">
-          Sign in<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
+          {t('login.title') || (language === 'vi' ? "Đăng Nhập" : "Sign in")}<span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
         </h2>
         <p className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
-          Welcome to TMOJ
+          {t('login.welcome') || (language === 'vi' ? "CHÀO MỪNG ĐẾN VỚI TMOJ" : "Welcome to TMOJ")}
         </p>
       </div>
 
@@ -71,10 +76,12 @@ export default function LoginModal() {
         <div className="flex flex-col gap-4">
           <Input
             type="email"
-            placeholder="Email address"
+            placeholder={language === 'vi' ? "Địa chỉ Email" : "Email address"}
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "200ms", animationFillMode: "both" }}
             startContent={
               <Mail
                 size={18}
@@ -89,7 +96,10 @@ export default function LoginModal() {
             }}
             autoFocus
           />
-          <div className="flex flex-col gap-2">
+          <div 
+            className="flex flex-col gap-2 opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "300ms", animationFillMode: "both" }}
+          >
             <PasswordInput
   value={password}
   onChange={setPassword}
@@ -104,10 +114,10 @@ export default function LoginModal() {
                   label: "text-[12px] font-bold text-gray-500",
                 }}
               >
-                Remember me
+                {t('login.remember') || (language === 'vi' ? "Ghi nhớ tôi" : "Remember me")}
               </Checkbox>
-              <span onClick={()=>{handleOpenForgotPass()}} className="text-[12px] font-bold text-[#3F4755] dark:text-[#E3C39D] cursor-pointer hover:underline">
-                Forgot password?
+              <span onClick={()=>{handleOpenForgotPass()}} className="text-[12px] font-bold text-[#3F4755] dark:text-[#E3C39D] cursor-pointer hover:underline transition-colors active:scale-95">
+                {t('login.forgot') || (language === 'vi' ? "Quên mật khẩu?" : "Forgot password?")}
               </span>
             </div>
           </div>
@@ -117,12 +127,16 @@ export default function LoginModal() {
           type="submit"
           isLoading={isLoading}
           endContent={!isLoading && <ArrowRight size={18} />}
-          className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black rounded-2xl h-14 mt-4 shadow-lg dark:shadow-[0_8px_20px_rgba(255,184,0,0.3)] uppercase tracking-widest text-sm transition-transform active:scale-95"
+          className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black rounded-2xl h-14 mt-4 shadow-lg dark:shadow-[0_8px_20px_rgba(255,184,0,0.3)] uppercase tracking-widest text-sm transition-transform active-bump opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "400ms", animationFillMode: "both" }}
         >
-          Sign in
+          {t('login.submit') || (language === 'vi' ? "Đăng Nhập" : "Sign In")}
         </Button>
       </form>
-      <div className="flex flex-col gap-4 mt-2">
+      <div 
+        className="flex flex-col gap-4 mt-2 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "500ms", animationFillMode: "both" }}
+      >
         <Divider className="dark:bg-[#474F5D] opacity-50" />
         <div className="flex flex-col items-center justify-center gap-3">
            <div className="w-full relative">
@@ -137,7 +151,7 @@ export default function LoginModal() {
                         console.log("resaaaaaaaaaaa",res);
                       
                         if (res?.data?.accessToken) {
-                          addToast({ title: "Welcome back!", color: "success" });
+                          addToast({ title: t('login.success') || (language === 'vi' ? "Chào mừng trở lại!" : "Welcome back!"), color: "success" });
                           closeModal();
                         window.location.reload();
                         }
@@ -180,7 +194,7 @@ export default function LoginModal() {
                   </svg>
                 }
               >
-                Continue with Google
+                {language === 'vi' ? "Tiếp tục với Google" : "Continue with Google"}
               </Button>
             </div> 
             
@@ -194,17 +208,17 @@ export default function LoginModal() {
                   </svg>
                 }
               >
-                Continue with GitHub
+                {language === 'vi' ? "Tiếp tục với GitHub" : "Continue with GitHub"}
               </Button>
             </div>
         </div>
         <p className="text-center text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-2">
-          New to TMOJ?{" "}
+          {language === 'vi' ? "Chưa có tài khoản?" : "New to TMOJ?"}{" "}
           <span
-            className="text-[#3F4755] dark:text-[#FFB800] cursor-pointer hover:underline font-black"
+            className="text-[#3F4755] dark:text-[#FFB800] cursor-pointer hover:underline font-black transition-colors"
             onClick={() => openModal({ content: <RegisterModal /> })}
           >
-            Sign Up
+            {language === 'vi' ? "Đăng ký" : "Sign Up"}
           </span>
         </p>
       </div>

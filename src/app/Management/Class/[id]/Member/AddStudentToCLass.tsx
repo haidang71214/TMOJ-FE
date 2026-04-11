@@ -23,6 +23,7 @@ export default function AddStudentModal({ classId }: Props) {
   const { closeModal } = useModal();
 
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
+  console.log("selectedUser", selectedUser);
 
   const [addMember, { isLoading }] = useAddClassMembersMutation();
 
@@ -30,6 +31,7 @@ export default function AddStudentModal({ classId }: Props) {
     useGetUserRoleQuery({
       roleName: "student",
     });
+  console.log("studentData", studentData);
 
   const handleSubmit = async () => {
     if (!selectedUser) {
@@ -50,7 +52,8 @@ export default function AddStudentModal({ classId }: Props) {
 
       toast.success("Student added successfully");
       closeModal();
-    } catch {
+    } catch (error) {
+      console.log("error", error);
       toast.error("Failed to add student");
     }
   };

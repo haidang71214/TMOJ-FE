@@ -12,6 +12,11 @@ export interface CreateTagPayload {
   slug: string | null;
 }
 
+export interface AttachTagsPayload {
+  problemId: string;
+  tagIds: string[];
+}
+
 export const tagApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -36,7 +41,28 @@ export const tagApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Tag"] as any,
     }),
+    attachTagsToProblem: builder.mutation<any, AttachTagsPayload>({
+      query: ({ problemId, tagIds }) => ({
+        url: TagEndpoint.ATTACH_TAGS.replace("{problemId}", problemId),
+        method: "POST",
+        body: tagIds, // Using string array of Tag IDs as body based on typical OData action
+      }),
+      invalidatesTags: ["Problem", "Tag"] as any,
+    }),
+    updateProblemTags: builder.mutation<any, AttachTagsPayload>({
+      query: ({ problemId, tagIds }) => ({
+        url: TagEndpoint.UPDATE_PROBLEM_TAGS.replace("{problemId}", problemId),
+        method: "PUT",
+        body: tagIds,
+      }),
+      invalidatesTags: ["Problem", "Tag"] as any,
+    }),
   }),
 });
 
-export const { useGetTagsQuery, useCreateTagMutation } = tagApi;
+export const { 
+  useGetTagsQuery, 
+  useCreateTagMutation,
+  useAttachTagsToProblemMutation,
+  useUpdateProblemTagsMutation
+} = tagApi;

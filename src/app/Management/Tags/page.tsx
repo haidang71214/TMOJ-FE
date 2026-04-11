@@ -25,6 +25,7 @@ export default function TagsManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: apiResponse, isLoading, isError, error, refetch } = useGetTagsQuery();
+  console.log(apiResponse);
   const createModal = useDisclosure();
 
   const allTags = useMemo(() => {

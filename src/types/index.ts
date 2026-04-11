@@ -784,6 +784,12 @@ export interface ReportItem {
   reason: string;
   status: "pending" | "approved" | "rejected" | string;
   createdAt: string;
+  authorId?: string;
+  authorName?: string;
+  problemId?: string;
+  moderatorNote?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
 }
 
 export interface PendingReportsResponse {

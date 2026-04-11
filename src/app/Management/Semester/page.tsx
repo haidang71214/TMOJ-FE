@@ -33,8 +33,10 @@ import {
 import CreateUpdateSemester from "./CreateUpdateSemester";
 import { CreateSemesterRequest, ErrorForm } from "@/types";
 import SemesterImportExport from "@/Provider/ImportExportSemesterButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function SemesterPage() {
+  const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
@@ -42,16 +44,28 @@ export default function SemesterPage() {
   console.log(data);
   const [updateSemester] = useUpdateSemesterMutation();
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   const semesters = data?.data?.items ?? [];
 
-  const totalItems = semesters.length;
-  const pages = Math.ceil(totalItems / rowsPerPage);
+  const filteredSemesters = useMemo(() => {
+    if (!searchTerm) return semesters;
+    const lowerQ = searchTerm.toLowerCase();
+    return semesters.filter(
+      (sem: any) =>
+        sem.name.toLowerCase().includes(lowerQ) ||
+        sem.code.toLowerCase().includes(lowerQ)
+    );
+  }, [semesters, searchTerm]);
+
+  const totalItems = filteredSemesters.length;
+  const pages = Math.ceil(totalItems / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return semesters.slice(start, end);
-  }, [page, semesters]);
+    return filteredSemesters.slice(start, end);
+  }, [page, filteredSemesters, rowsPerPage]);
 
   const createModal = useDisclosure();
   const [editingSemester, setEditingSemester] = useState<CreateSemesterRequest|null>(null);
@@ -75,7 +89,8 @@ export default function SemesterPage() {
   startAt : string, 
   endAt:string
 ) => {
-  const actionText = currentActive ? "hide" : "show";
+  const actionTextVi = currentActive ? "ẩn" : "hiển thị";
+  const actionTextEn = currentActive ? "hidden" : "shown";
   const newActive = !currentActive;
 
   setTogglingId(semesterId);
@@ -93,8 +108,10 @@ await updateSemester({
 }).unwrap();
 
     addToast({
-      title: "Success",
-      description: `Semester "${name}" has been ${actionText}n`,
+      title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'),
+      description: language === 'vi' 
+        ? `Học kỳ "${name}" đã được ${actionTextVi}`
+        : `Semester "${name}" has been ${actionTextEn}`,
       color: "success",
       timeout: 4000,
     });
@@ -106,8 +123,8 @@ await updateSemester({
   const error = err as ErrorForm;
 
   addToast({
-    title: "Error",
-    description: error?.data?.data?.message || `Failed to ${actionText} semester`,
+    title: t('common.error') || (language === 'vi' ? 'Có lỗi xảy ra' : 'Error'),
+    description: error?.data?.data?.message || (language === 'vi' ? `Không thể ${actionTextVi} học kỳ` : `Failed to ${actionTextEn} semester`),
     color: "danger",
     timeout: 6000,
   });
@@ -144,11 +161,14 @@ await updateSemester({
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
         <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            SEMESTER <span className="text-[#FF5C00]">MANAGEMENT</span>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-tight">
+             {language === 'vi' ? 'QUẢN LÝ ' : 'SEMESTER '}
+            <span className="text-[#FF5C00]">
+              {language === 'vi' ? 'HỌC KỲ' : 'MANAGEMENT'}
+            </span>
           </h1>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
-            Manage and monitor all academic semesters
+            {t('semester_management.subtitle') || (language === 'vi' ? 'Quản lý và theo dõi tất cả học kỳ' : 'Manage and monitor all academic semesters')}
           </p>
         </div>
        <div className="flex gap-3">
@@ -157,9 +177,9 @@ await updateSemester({
   <Button
     startContent={<Plus size={20} strokeWidth={3} />}
     onPress={handleOpenCreate}
-    className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+    className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 animate-fade-in-right"
   >
-    CREATE NEW SEMESTER
+    {t('semester_management.create') || (language === 'vi' ? 'TẠO HỌC KỲ' : 'CREATE NEW SEMESTER')}
   </Button>
 </div>
       </div>
@@ -167,8 +187,13 @@ await updateSemester({
       {/* FILTER BAR */}
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
-          placeholder="Search by name or code..."
+          placeholder={t('semester_management.search') || (language === 'vi' ? 'Tìm theo tên hoặc mã...' : 'Search by name or code...')}
           startContent={<Search size={18} className="text-slate-400" />}
+          value={searchTerm}
+          onValueChange={(val) => {
+            setSearchTerm(val);
+            setPage(1);
+          }}
           classNames={{
             inputWrapper:
               "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
@@ -197,18 +222,19 @@ await updateSemester({
           }}
         >
           <TableHeader>
-            <TableColumn>CODE</TableColumn>
-            <TableColumn>SEMESTER NAME</TableColumn>
-            <TableColumn>PERIOD</TableColumn>
-            <TableColumn>STATUS</TableColumn>
-            <TableColumn>IS ACTIVE</TableColumn>
-            <TableColumn className="text-right">OPERATIONS</TableColumn>
+            <TableColumn>{t('common.code') || (language === 'vi' ? 'MÃ' : 'CODE')}</TableColumn>
+            <TableColumn>{t('common.name') || (language === 'vi' ? 'TÊN HỌC KỲ' : 'SEMESTER NAME')}</TableColumn>
+            <TableColumn>{t('common.period') || (language === 'vi' ? 'THỜI GIAN' : 'PERIOD')}</TableColumn>
+            <TableColumn>{t('common.status') || (language === 'vi' ? 'TRẠNG THÁI' : 'STATUS')}</TableColumn>
+            <TableColumn>{t('common.is_active') || (language === 'vi' ? 'HOẠT ĐỘNG' : 'IS ACTIVE')}</TableColumn>
+            <TableColumn className="text-right">{t('common.operations') || (language === 'vi' ? 'THAO TÁC' : 'OPERATIONS')}</TableColumn>
           </TableHeader>
-          <TableBody emptyContent="No semesters found">
-            {items.map((sem) => (
+          <TableBody emptyContent={t('semester_management.empty') || (language === 'vi' ? 'Không có học kỳ nào' : 'No semesters found')}>
+            {items.map((sem, index) => (
               <TableRow
                 key={sem.semesterId}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors animate-fade-in-right"
+                style={{ animationFillMode: "both", animationDelay: `${index * 50}ms` }}
               >
                 <TableCell>
                  <Chip size="sm" className="text-[10px] text-blue-600 bg-blue-500/10 px-2">
@@ -241,10 +267,10 @@ await updateSemester({
                     }`}
                   >
                     {new Date(sem.endAt) < new Date()
-                      ? "ENDED"
+                      ? (t('common.ended') || (language === 'vi' ? 'ĐÃ KẾT THÚC' : 'ENDED'))
                       : new Date(sem.startAt) > new Date()
-                      ? "UPCOMING"
-                      : "ACTIVE"}
+                      ? (t('common.upcoming') || (language === 'vi' ? 'SẮP DIỄN RA' : 'UPCOMING'))
+                      : (t('common.active') || (language === 'vi' ? 'ĐANG DIỄN RA' : 'ACTIVE'))}
                   </Chip>
                 </TableCell>
                 <TableCell>
@@ -257,18 +283,21 @@ await updateSemester({
                         : "bg-red-500/10 text-red-600"
                     }`}
                   >
-                    {sem.isActive ? "ACTIVE" : "INACTIVE"}
+                    {sem.isActive 
+                      ? (t('common.active') || (language === 'vi' ? 'HOẠT ĐỘNG' : 'ACTIVE')) 
+                      : (t('common.inactive') || (language === 'vi' ? 'VÔ HIỆU HÓA' : 'INACTIVE'))}
                   </Chip>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-3">
-                    <Tooltip content="Edit Semester" className="font-bold text-[10px]">
+                    <Tooltip content={t('common.edit') || (language === 'vi' ? 'Sửa' : 'Edit')} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
                         onClick={() => handleOpenEdit(sem)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 animate-fade-in-up"
+                        style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}
                       >
                         <Edit size={16} />
                       </Button>
@@ -276,7 +305,7 @@ await updateSemester({
 
                     {/* Toggle active button (eye icon) */}
                     <Tooltip
-                      content={sem.isActive ? "Hide Semester" : "Show Semester"}
+                      content={sem.isActive ? (t('common.hide') || (language === 'vi' ? 'Ẩn' : 'Hide')) : (t('common.show') || (language === 'vi' ? 'Hiện' : 'Show'))}
                       className="font-bold text-[10px]"
                     >
                       <Button
@@ -285,11 +314,12 @@ await updateSemester({
                         variant="flat"
                         isLoading={togglingId === sem.semesterId}
                         onPress={() => handleToggleActive(sem.semesterId,sem.code ,sem.name, sem.isActive,sem.startAt, sem.endAt)}
-                        className={`transition-all rounded-lg h-9 w-9 ${
+                        className={`transition-all rounded-lg h-9 w-9 animate-fade-in-up ${
                           sem.isActive
                             ? "text-emerald-500 hover:text-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30"
                             : "text-gray-500 hover:text-emerald-500 bg-gray-100 dark:bg-gray-800/50"
                         }`}
+                        style={{ animationFillMode: "both", animationDelay: `${index * 50 + 150}ms` }}
                         disabled={togglingId === sem.semesterId}
                       >
                         {sem.isActive ? <EyeOff size={16} /> : <Eye size={16} />}

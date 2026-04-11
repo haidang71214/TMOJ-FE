@@ -17,6 +17,7 @@ import {
 } from "@/store/queries/discussion";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { DiscussionCommentItem, DiscussionItem } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DiscussionProps {
   problemId: string;
@@ -24,6 +25,7 @@ interface DiscussionProps {
 }
 
 export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionProps) => {
+  const { t, language } = useTranslation();
   const { data: userData } = useGetUserInformationQuery();
   const currentUserId = userData?.userId || (userData as any)?.id || propUserId;
 
@@ -250,7 +252,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
           size={20}
           className="text-[#A68868] dark:text-[#E3C39D]"
         />
-        Discussion{" "}
+        {t("discussion.title") || (language === "vi" ? "Thảo luận" : "Discussion")}{" "}
         <span className="text-gray-400 dark:text-[#667085] font-bold">
           ({safeComments.length})
         </span>
@@ -261,7 +263,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
         userId={currentUserId} 
         onSuccess={(newComment) => handleAddReply(null, newComment)}
       />
-    :<div>Phải đăng nhập mới bình luận được</div>}
+    :<div className="opacity-70 text-sm">{t("discussion.login_required") || (language === "vi" ? "Phải đăng nhập mới bình luận được" : "Login required to comment")}</div>}
 
       <div className="space-y-2 min-h-[400px]">
         {currentTableData.map((comment) => (
@@ -280,7 +282,9 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
           />
         ))}
         {safeComments.length === 0 && (
-          <p className="text-center text-gray-500 mt-10">No discussion yet. Be the first to comment!</p>
+          <p className="text-center text-gray-500 mt-10">
+            {t("discussion.empty") || (language === "vi" ? "Trở thành người đầu tiên thảo luận!" : "No discussion yet. Be the first to comment!")}
+          </p>
         )}
       </div>
 

@@ -10,8 +10,10 @@ import {
   useImportSemestersMutation 
 } from '@/store/queries/Semester';
 import { ErrorForm } from '@/types';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function SemesterImportExport() {
+  const { t, language } = useTranslation();
   const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
 
   const [getTemplate] = useGetSemesterImportTemplateMutation();
@@ -32,8 +34,8 @@ export default function SemesterImportExport() {
       window.URL.revokeObjectURL(url);
 
       addToast({
-        title: "Thành công",
-        description: "Tải template thành công!",
+        title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'),
+        description: t('semester_management.download_success') || (language === 'vi' ? 'Tải template thành công!' : 'Template downloaded successfully!'),
         color: "success",
       });
     } catch (error: unknown) {
@@ -47,8 +49,10 @@ export default function SemesterImportExport() {
       }
 
       addToast({
-        title: "Lỗi",
-        description: errorMessage,
+        title: t('common.error') || (language === 'vi' ? 'Lỗi' : 'Error'),
+        description: errorMessage === 'Tải template thất bại!' 
+          ? (t('semester_management.download_error') || (language === 'vi' ? 'Tải template thất bại!' : 'Failed to download template!')) 
+          : errorMessage,
         color: "danger",
       });
     } finally {
@@ -63,8 +67,8 @@ export default function SemesterImportExport() {
 
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       addToast({
-        title: "Lỗi định dạng",
-        description: "Chỉ hỗ trợ file Excel (.xlsx, .xls)",
+        title: t('common.invalid_format') || (language === 'vi' ? 'Lỗi định dạng' : 'Invalid format'),
+        description: t('common.excel_only') || (language === 'vi' ? 'Chỉ hỗ trợ file Excel (.xlsx, .xls)' : 'Only Excel files are supported (.xlsx, .xls)'),
         color: "warning",
       });
       e.target.value = '';
@@ -78,8 +82,8 @@ export default function SemesterImportExport() {
       await importSemesters(formData).unwrap();
 
       addToast({
-        title: "Thành công",
-        description: "Import danh sách học kỳ thành công!",
+        title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'),
+        description: t('semester_management.import_success') || (language === 'vi' ? 'Import danh sách học kỳ thành công!' : 'Semester list imported successfully!'),
         color: "success",
       });
 
@@ -95,8 +99,10 @@ export default function SemesterImportExport() {
       }
 
       addToast({
-        title: "Lỗi",
-        description: errorMessage,
+        title: t('common.error') || (language === 'vi' ? 'Lỗi' : 'Error'),
+        description: errorMessage === 'Import thất bại. Vui lòng kiểm tra file!' 
+          ? (t('semester_management.import_error') || (language === 'vi' ? 'Import thất bại. Vui lòng kiểm tra file!' : 'Import failed. Please check the file!'))
+          : errorMessage,
         color: "danger",
       });
     }
@@ -111,7 +117,7 @@ export default function SemesterImportExport() {
         isLoading={isDownloadingTemplate}
         className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
       >
-        TẢI TEMPLATE
+        {t('common.download_template') || (language === 'vi' ? 'TẢI TEMPLATE' : 'DOWNLOAD TEMPLATE')}
       </Button>
 
       {/* Nút Import */}
@@ -126,7 +132,7 @@ export default function SemesterImportExport() {
           startContent={<Upload size={20} strokeWidth={3} />}
           className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
         >
-          IMPORT SEMESTERS
+          {t('common.import') || (language === 'vi' ? 'NHẬP DỮ LIỆU' : 'IMPORT SEMESTERS')}
         </Button>
       </label>
     </div>

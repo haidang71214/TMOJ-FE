@@ -35,50 +35,74 @@ import { useModal } from "@/Provider/ModalProvider";
 import UpdateTeacherModal from "./UpdateTeacherModal";
 import { useGetALLSemestersQuery } from "@/store/queries/Semester";
 import { ClassItem, SemesterItem } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 
 
 export default function ClassListPage() {
+  const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
   const [exportClassTemplate] = useExportClassTemplateMutation();
-    const [selectedSemesterName, setSelectedSemesterName] = useState<string | undefined>(undefined);
- 
+  const [selectedSemesterName, setSelectedSemesterName] = useState<string | undefined>(undefined);
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+
   const { openModal } = useModal();
   const { data: semestersData } = useGetALLSemestersQuery();
   const semesters = semestersData?.data?.items || [];
-  console.log("aaaaaaaa",semesters);
   
- const { data, isLoading, refetch } = useGetClassesQuery({
-  semesterId: selectedSemesterId,
-  // search: searchTerm,   // sau này thêm nếu có
-  page: page,
-  pageSize: rowsPerPage,
-});
-  const classes: ClassItem[] = data?.data?.items ?? [];
+  const { data, isLoading, refetch } = useGetClassesQuery({
+    semesterId: selectedSemesterId,
+    page: 1,
+    pageSize: 1000,
+  });
+  
+  const allFetchedClasses: ClassItem[] = data?.data?.items ?? [];
 
-  console.log("Classes data:", data);
+  const filteredClasses = useMemo(() => {
+    let filtered = [...allFetchedClasses];
+    
+    // Search
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      filtered = filtered.filter(c => c.classCode.toLowerCase().includes(q));
+    }
+    
+    // Sort
+    if (sortBy === "name") {
+      filtered.sort((a,b) => a.classCode.localeCompare(b.classCode));
+    } else if (sortBy === "students") {
+      filtered.sort((a,b) => (b.totalMemberCount || 0) - (a.totalMemberCount || 0));
+    }
+    
+    return filtered;
+  }, [allFetchedClasses, searchTerm, sortBy]);
 
-  const pages = Math.ceil(classes.length / rowsPerPage) || 1;
+  const pages = Math.ceil(filteredClasses.length / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return classes.slice(start, end);
-  }, [page, classes]);
+    return filteredClasses.slice(start, end);
+  }, [page, filteredClasses, rowsPerPage]);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchTerm, selectedSemesterId, sortBy]);
 
   // Stats
   const statsData = [
-    { label: "Total Classes", value: classes.length.toString(), color: "text-blue-500" },
+    { label: t('class_management.total_classes') || "Total Classes", value: filteredClasses.length.toString(), color: "text-blue-500" },
     { 
-      label: "Total Students", 
-      value: classes.reduce((sum, c) => sum + (c.totalMemberCount || 0), 0).toString(), 
+      label: t('class_management.total_students') || "Total Students", 
+      value: filteredClasses.reduce((sum, c) => sum + (c.totalMemberCount || 0), 0).toString(), 
       color: "text-[#FF5C00]" 
     },
     { 
-      label: "Active Classes", 
-      value: classes.filter(c => c.isActive).length.toString(), 
+      label: t('class_management.active_classes') || "Active Classes", 
+      value: filteredClasses.filter(c => c.isActive).length.toString(), 
       color: "text-emerald-500" 
     },
   ];
@@ -121,7 +145,7 @@ export default function ClassListPage() {
       <div className="flex flex-col h-full items-center justify-center min-h-[400px]">
         <Spinner size="lg" color="secondary" />
         <p className="text-sm text-slate-500 animate-pulse mt-3 font-semibold tracking-wide">
-          Loading classes...
+          {t('class_management.loading') || "Loading classes..."}
         </p>
       </div>
     );
@@ -148,32 +172,36 @@ const handleExportTemplateClass = async()=>{
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
         <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            CLASS <span className="text-[#FF5C00]">MANAGEMENT</span>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-tight">
+            {language === 'vi' ? 'QUẢN LÝ ' : `${t('class_management.title1') || 'CLASS'} `} 
+            <span className="text-[#FF5C00]">
+              {language === 'vi' ? 'LỚP HỌC' : (t('class_management.title2') || 'MANAGEMENT')}
+            </span>
           </h1>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
-            Organize and monitor your courses
+            {t('class_management.subtitle') || "Organize and monitor your courses"}
           </p>
         </div>
-        <Link href="/Management/Class/create">
-          <Button
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all"
-            startContent={<Plus size={16} />}
-          >
-            CREATE NEW CLASS
-          </Button>
-          
-                    <Button
-                      startContent={<Download size={16} strokeWidth={3} />}
-                      size="lg"
-                      color="success"
-                      variant="flat"
-                      onPress={handleExportTemplateClass}
-                    className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all"
+        <div className="flex gap-3">
+          <Link href="/Management/Class/create">
+            <Button
+              className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
+              startContent={<Plus size={16} />}
             >
-                      EXPORT TEMPLATE IMPORT
-                    </Button>
-        </Link>
+              {t('class_management.create_button') || "CREATE NEW CLASS"}
+            </Button>
+          </Link>
+          <Button
+            startContent={<Download size={16} strokeWidth={3} />}
+            size="lg"
+            color="success"
+            variant="flat"
+            onPress={handleExportTemplateClass}
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right delay-100"
+          >
+            {t('class_management.export_button') || "EXPORT TEMPLATE IMPORT"}
+          </Button>
+        </div>
       </div>
 
       {/* MINIMAL STATS */}
@@ -181,7 +209,8 @@ const handleExportTemplateClass = async()=>{
         {statsData.map((stat, i) => (
           <Card
             key={i}
-            className="bg-white dark:bg-[#111c35] border-none rounded-2xl shadow-sm"
+            className={`bg-white dark:bg-[#111c35] border-none rounded-2xl shadow-sm animate-zoom-in active-bump`}
+            style={{ animationFillMode: "both", animationDelay: `${i * 100}ms` }}
           >
             <CardBody className="p-4 flex flex-col justify-center">
               <p className="text-[9px] font-black text-[#A4B5C4] uppercase tracking-widest mb-1 italic">
@@ -198,7 +227,9 @@ const handleExportTemplateClass = async()=>{
       {/* FILTER & SEARCH SECTION */}
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
-          placeholder="Search class..."
+          placeholder={t('class_management.search_placeholder') || "Search class by code..."}
+          value={searchTerm}
+          onValueChange={setSearchTerm}
           startContent={<Search size={18} className="text-[#A4B5C4]" />}
           classNames={{
             inputWrapper:
@@ -215,7 +246,7 @@ const handleExportTemplateClass = async()=>{
               startContent={<Filter size={16} />}
               endContent={<ChevronDown size={14} />}
             >
-              {selectedSemesterName || "All Semester"}
+              {selectedSemesterName || t('class_management.all_semesters') || "All Semester"}
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Select Semester" variant="flat">
@@ -225,10 +256,10 @@ const handleExportTemplateClass = async()=>{
       className="uppercase font-medium text-blue-600"
       onClick={() => {
         setSelectedSemesterId("");
-        setSelectedSemesterName("All semesters");
+        setSelectedSemesterName(t('class_management.all_semesters') || "All semesters");
       }}
     >
-      All semesters
+      {t('class_management.all_semesters') || "All semesters"}
     </DropdownItem>
   </DropdownSection>
   <DropdownSection>
@@ -246,7 +277,7 @@ const handleExportTemplateClass = async()=>{
               ))
             ) : (
               <DropdownItem key="no-data" isReadOnly className="opacity-60">
-                No semesters available
+                {t('class_management.no_semesters') || "No semesters available"}
               </DropdownItem>
             )}
             </DropdownSection>
@@ -261,19 +292,24 @@ const handleExportTemplateClass = async()=>{
               startContent={<SortAsc size={16} />}
               endContent={<ChevronDown size={14} />}
             >
-              Sort By
+              {t('class_management.sort_by') || "Sort By"}
             </Button>
           </DropdownTrigger>
-          <DropdownMenu aria-label="Sort">
-            <DropdownItem key="students">Student Count</DropdownItem>
-            <DropdownItem key="name">Class Code</DropdownItem>
+          <DropdownMenu 
+            aria-label="Sort options"
+            selectionMode="single"
+            selectedKeys={new Set([sortBy])}
+            onSelectionChange={(keys) => setSortBy((Array.from(keys)[0] as string) || "name")}
+          >
+            <DropdownItem key="students">{t('class_management.sort_students') || "Student Count"}</DropdownItem>
+            <DropdownItem key="name">{t('class_management.sort_name') || "Class Code A-Z"}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
 
         <Button
           isIconOnly
           onPress={() => refetch()}
-          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
+          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors active-bump animate-fade-in-left"
         >
           <RefreshCw size={18} />
         </Button>
@@ -282,81 +318,83 @@ const handleExportTemplateClass = async()=>{
       {/* GRID SECTION */}
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-6">
-          {items.map((cls: ClassItem) => {
+          {items.map((cls: ClassItem, index: number) => {
             // Lấy instance đầu tiên để hiển thị (có thể có nhiều instance)
             const instance = cls.instances[0];
 
             return (
-              <div
+              <Link
                 key={cls.classId}
-                className="h-full relative group cursor-pointer"
+                href={`/Management/Class/${cls.classId}`}
+                className="block h-full relative group cursor-pointer animate-fade-in-up hover:-translate-y-1 transition-transform duration-300"
+                style={{ animationFillMode: "both", animationDelay: `${index * 40}ms` }}
               >
-                <Link 
-                  href={`/Management/Class/${cls.classId}`} 
-                  className="absolute inset-0 z-10 rounded-2xl"
-                />
 
-                <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all p-3 shadow-sm h-full border-b-4 border-transparent group-hover:border-blue-600 dark:group-hover:border-[#22C55E]">
-                  <CardBody className="p-2 flex flex-col justify-between h-full gap-5">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start gap-2">
-                       
-                      {filter()}
-                       
-                        <div className="flex items-center gap-0.5">
-                          <span className="text-[10px] font-black text-[#071739] dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors uppercase italic break-all text-right">
+                <Card className="bg-white dark:bg-[#111c35] border-none rounded-2xl transition-all shadow-sm h-[200px] border-b-4 border-transparent hover:shadow-lg group-hover:border-blue-600 dark:group-hover:border-[#22C55E]">
+                  <CardBody className="p-5 flex flex-col justify-between h-full relative overflow-hidden">
+                    {/* Background decoration */}
+                    <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500 pointer-events-none" />
+                    
+                    <div className="space-y-4 relative z-10 w-full">
+                      {/* Header row: Class Code & Semester */}
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <span className="text-xl font-black text-[#071739] dark:text-white uppercase drop-shadow-sm group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
                             {cls.classCode}
                           </span>
-                          <ArrowRight size={14} className="text-[#A4B5C4] dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-transform group-hover:translate-x-0.5 duration-300" />
+                          {filter() || <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{instance?.semesterCode || "N/A Semester"}</span>}
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 pt-1">
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                          <Users size={12} className="text-blue-500" />
-                          <p className="text-[10px] font-bold italic tracking-tight">
-                            {cls.totalMemberCount || 0}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                          <BookOpen size={12} className={cls.isActive ? "text-emerald-500" : "text-red-500"} />
-                          <p className="text-[10px] font-bold italic tracking-tight">
-                            {cls.isActive ? "Active" : "Inactive"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center w-full pt-2 relative z-20">
-                       <Button
-                          className="w-full font-bold text-[11px] uppercase tracking-wider h-9 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all rounded-xl border border-orange-400 dark:border-white/10 group/btn"
-                          startContent={<UserCog size={15} strokeWidth={2.5} className="group-hover/btn:scale-110 transition-transform duration-300" />}
-                          onPress={() =>
-                            openUpdateTeacherForClass(
-                              cls.classId,
-                              instance?.teacher?.userId
-                            )
-                          }
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={cls.isActive ? "success" : "default"}
+                          className="font-bold border-none h-6 px-2 text-[10px]"
                         >
-                          Update Teacher
-                        </Button>
+                          {cls.isActive ? t('class_management.active') || "ACTIVE" : t('class_management.inactive') || "INACTIVE"}
+                        </Chip>
+                      </div>
+
+                      {/* Details row */}
+                      <div className="flex flex-col justify-center h-full pt-2">
+                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center shrink-0 shadow-sm">
+                            <CalendarPlus size={16} className="text-indigo-600 dark:text-indigo-400" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-[#071739] dark:text-white">
+                              {cls.instances?.length || 0}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              {t('class_management.semesters') || "Semesters"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Bottom Info Row */}
+                    <div className="flex items-center justify-end pt-3 mt-2 border-t border-slate-100 dark:border-white/5 relative z-10">
+                      
+                      <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-[#1a2542] flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                        <ArrowRight size={12} className="text-slate-400 group-hover:text-white" />
+                      </div>
+                    </div>
+                    
                   </CardBody>
                 </Card>
-              </div>
+              </Link>
             );
           })}
         </div>
 
-        {classes.length === 0 && !isLoading && (
-          <div className="p-10 text-center text-slate-500 font-medium">
-            No classes found. Create one to get started!
+        {filteredClasses.length === 0 && !isLoading && (
+          <div className="p-10 text-center text-slate-500 font-medium italic">
+            {t('class_management.no_classes') || "No classes found."}
           </div>
         )}
 
         {/* PAGINATION */}
-        {classes.length > 0 && (
+        {filteredClasses.length > 0 && (
           <div className="flex w-full justify-center py-4">
             <Pagination
               isCompact

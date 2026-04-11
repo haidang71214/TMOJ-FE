@@ -5,6 +5,7 @@ import { Avatar, Spinner } from "@heroui/react";
 import { useCreateDiscussionMutation, useCreateCommentMutation } from "@/store/queries/discussion";
 import { useAppSelector } from "@/utils/redux";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface CommentInputProps {
   isReply?: boolean;
@@ -31,6 +32,7 @@ export const CommentInput = ({
   onSuccess,
   onSaveEdit,
 }: CommentInputProps) => {
+  const { t, language } = useTranslation();
   const [content, setContent] = useState(initialContent);
 
   const user = useAppSelector((state) => state.auth.user);
@@ -77,7 +79,7 @@ export const CommentInput = ({
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }
-        toast.success("Bình luận đã được gửi");
+        toast.success(t("discussion.reply_success") || (language === "vi" ? "Bình luận đã được gửi" : "Reply posted"));
         if (onSuccess) {
           onSuccess({
             id: typeof res.data === 'string' ? res.data : (res.data as any)?.commentId || (res.data as any)?.id || generateGuid(),
@@ -103,7 +105,7 @@ export const CommentInput = ({
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }
-        toast.success("Đã đăng bình luận");
+        toast.success(t("discussion.post_success") || (language === "vi" ? "Đã đăng bình luận" : "Comment posted"));
         if (onSuccess) {
           onSuccess({
             id: typeof res.data === 'string' ? res.data : (res.data as any)?.id || (res.data as any)?.commentId || generateGuid(),
@@ -129,7 +131,7 @@ export const CommentInput = ({
     <div className="flex flex-col gap-2 mt-2 w-full">
       {isReply && targetUser && (
         <span className="text-sm text-gray-500">
-          Đang trả lời: <span className="font-bold text-blue-500">@{targetUser}</span>
+          {t("discussion.replying_to") || (language === "vi" ? "Đang trả lời:" : "Replying to:")} <span className="font-bold text-blue-500">@{targetUser}</span>
         </span>
       )}
       
@@ -141,7 +143,7 @@ export const CommentInput = ({
         />
         <textarea
           className="flex-1 w-full p-2 text-sm border rounded-md dark:bg-[#1C2737] dark:border-[#334155] dark:text-white outline-none focus:border-blue-500 min-h-[80px]"
-          placeholder="Viết bình luận của bạn..."
+          placeholder={t("discussion.placeholder") || (language === "vi" ? "Viết bình luận của bạn..." : "Write your comment...")}
           rows={3}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -155,7 +157,7 @@ export const CommentInput = ({
             onClick={onCancel}
             className="px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
-            Hủy
+            {t("common.cancel") || (language === "vi" ? "Hủy" : "Cancel")}
           </button>
         )}
         <button 
@@ -164,7 +166,11 @@ export const CommentInput = ({
           className="px-4 py-1.5 flex items-center gap-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting && <Spinner size="sm" color="white" />}
-          {isEdit ? "Lưu chỉnh sửa" : isReply ? "Trả lời" : "Gửi bình luận"}
+          {isEdit 
+            ? (t("discussion.save_edit") || (language === "vi" ? "Lưu chỉnh sửa" : "Save changes"))
+            : isReply 
+              ? (t("discussion.reply_btn") || (language === "vi" ? "Trả lời" : "Reply"))
+              : (t("discussion.submit") || (language === "vi" ? "Gửi bình luận" : "Comment"))}
         </button>
       </div>
     </div>

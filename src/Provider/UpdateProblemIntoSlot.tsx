@@ -8,10 +8,11 @@ import {
   Chip,
   addToast,
 } from "@heroui/react";
-import { Save, Trash2 } from "lucide-react";   // ← thêm Trash2
+import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { UpdateSlotProblemRequest } from "@/types";
 import { useDeleteSlotProblemsMutation, useUpdateSlotProblemsMutation } from "@/store/queries/Class";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Props {
   instanceId: string;
@@ -28,12 +29,11 @@ export default function UpdateProblemIntoSlot({
   slotId,
   problems,
 }: Props) {
-
+  const { t, language } = useTranslation();
   const [items, setItems] = useState<ProblemItem[]>(problems);
   const [deleteProblems] = useDeleteSlotProblemsMutation();
   const [updateProblems, { isLoading }] = useUpdateSlotProblemsMutation();
 
-  // Các hàm update giữ nguyên
   const updatePoints = (problemId: string, value: number) => {
     setItems((prev) =>
       prev.map((p) =>
@@ -64,41 +64,37 @@ export default function UpdateProblemIntoSlot({
     );
   };
 
-  // === Hàm xóa problem ===
   const removeProblem = async (problemId: string) => {
-  const previous = items;
+    const previous = items;
 
-  // optimistic update
-  setItems((prev) => prev.filter((p) => p.problemId !== problemId));
+    setItems((prev) => prev.filter((p) => p.problemId !== problemId));
 
-  try {
-    await deleteProblems({
-      instanceId,
-      slotId,
-      problemIds: [problemId],
-    }).unwrap();
+    try {
+      await deleteProblems({
+        instanceId,
+        slotId,
+        problemIds: [problemId],
+      }).unwrap();
 
-    addToast({
-      title: "Problem removed",
-      color: "success",
-    });
+      addToast({
+        title: t('class_semester.problem_removed') || (language === 'vi' ? 'Đã xóa bài tập' : 'Problem removed'),
+        color: "success",
+      });
 
-  } catch (err) {
-    console.error(err);
+    } catch (err) {
+      console.error(err);
+      setItems(previous);
 
-    // rollback nếu fail
-    setItems(previous);
-
-    addToast({
-      title: "Delete failed",
-      color: "danger",
-    });
-  }
-};
+      addToast({
+        title: t('class_semester.delete_failed') || (language === 'vi' ? 'Xóa thất bại' : 'Delete failed'),
+        color: "danger",
+      });
+    }
+  };
 
   const handleSubmit = async () => {
     if (items.length === 0) {
-      toast.error("Không có bài tập để update");
+      toast.error(t('class_semester.no_problems_to_update') || (language === 'vi' ? 'Không có bài tập để cập nhật' : 'No problems to update'));
       return;
     }
     console.log( items.map(({ title, ...rest }) => rest),);
@@ -110,10 +106,10 @@ export default function UpdateProblemIntoSlot({
         data: items.map(({ title, ...rest }) => rest),
       }).unwrap();
 
-      toast.success("Update slot problems success!");
+      toast.success(t('class_semester.update_slot_success') || (language === 'vi' ? 'Cập nhật thành công!' : 'Update slot problems success!'));
     } catch (err) {
       console.error(err);
-      toast.error("Update failed");
+      toast.error(t('class_semester.update_failed') || (language === 'vi' ? 'Cập nhật thất bại' : 'Update failed'));
     }
   };
 
@@ -122,7 +118,7 @@ export default function UpdateProblemIntoSlot({
 
       {/* Header */}
       <div className="px-6 pt-5 pb-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-600/10 dark:to-amber-600/10 border-b border-orange-200 dark:border-orange-500/20">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 animate-fade-in-down" style={{ animationFillMode: "both" }}>
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
             style={{
@@ -134,11 +130,11 @@ export default function UpdateProblemIntoSlot({
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Update Problems In Slot
+            <h2 className="text-2xl font-[900] text-gray-900 dark:text-white">
+              {t('class_semester.update_problems_slot') || (language === 'vi' ? 'Cập nhật bài tập trong Slot' : 'Update Problems In Slot')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400">
-              Chỉnh sửa ordinal, points, required và xóa bài tập
+              {t('class_semester.update_problems_slot_desc') || (language === 'vi' ? 'Chỉnh sửa thứ tự, điểm, yêu cầu và xóa bài tập' : 'Edit ordinal, points, required and remove problems')}
             </p>
           </div>
         </div>
@@ -148,31 +144,30 @@ export default function UpdateProblemIntoSlot({
       <div className="flex-1 px-6 py-6 overflow-y-auto space-y-3">
         {items.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-            Không còn bài tập nào trong slot này.
+            {t('class_semester.no_problems_in_slot') || (language === 'vi' ? 'Không còn bài tập nào trong slot này.' : 'No more problems in this slot.')}
           </div>
         ) : (
           items.map((p, index) => (
             <div
               key={p.problemId}
-              className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-2xl border border-orange-200 dark:border-orange-700 group"
+              className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-2xl border border-orange-200 dark:border-orange-700 group animate-fade-in-right"
+              style={{ animationFillMode: "both", animationDelay: `${index * 50}ms` }}
             >
-              <Chip
-                variant="flat"
-                size="sm"
-                className="min-w-[32px] h-8 bg-gradient-to-br from-orange-500 to-amber-500 text-white font-bold font-mono"
+              <div
+                className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white font-bold font-mono flex items-center justify-center shadow-sm text-sm"
               >
                 {index + 1}
-              </Chip>
+              </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">
+                <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate" title={p.title}>
                   {p.title}
                 </p>
               </div>
 
               <Input
                 type="number"
-                label="Ordinal"
+                label={t('class_semester.ordinal') || (language === 'vi' ? 'Thứ tự' : 'Ordinal')}
                 size="sm"
                 className="w-24"
                 value={p.ordinal.toString()}
@@ -181,7 +176,7 @@ export default function UpdateProblemIntoSlot({
 
               <Input
                 type="number"
-                label="Points"
+                label={t('class_semester.points') || (language === 'vi' ? 'Điểm' : 'Points')}
                 size="sm"
                 className="w-28"
                 value={p.points.toString()}
@@ -193,10 +188,11 @@ export default function UpdateProblemIntoSlot({
                 onValueChange={(v) => toggleRequired(p.problemId, v)}
                 classNames={{
                   wrapper: "group-data-[selected=true]:bg-orange-500",
+                  label: "text-xs font-bold"
                 }}
                 size="sm"
               >
-                Required
+                {t('class_semester.required') || (language === 'vi' ? 'Bắt buộc' : 'Required')}
               </Switch>
 
               {/* Nút Xóa */}
@@ -204,8 +200,9 @@ export default function UpdateProblemIntoSlot({
                 color="danger"
                 variant="light"
                 size="sm"
+                isIconOnly
                 onPress={() => removeProblem(p.problemId)}
-                title="Delete this asginment"
+                title={t('common.delete') || (language === 'vi' ? 'Xóa' : 'Delete')}
               >
                 <Trash2 size={18} />
               </Button>
@@ -219,10 +216,11 @@ export default function UpdateProblemIntoSlot({
         <Button
           isLoading={isLoading}
           onPress={handleSubmit}
-          className="px-8 font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg"
+          className="px-8 font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg animate-fade-in-up"
+          style={{ animationFillMode: "both", animationDelay: "150ms" }}
           startContent={<Save size={16} />}
         >
-          {isLoading ? "Updating..." : "Update Problems"}
+          {isLoading ? (t('common.updating') || (language === 'vi' ? 'Đang cập nhật...' : 'Updating...')) : (t('class_semester.update_problems') || (language === 'vi' ? 'Lưu thay đổi' : 'Update Problems'))}
         </Button>
       </div>
     </div>

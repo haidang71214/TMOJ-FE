@@ -17,6 +17,7 @@ import {
   DropdownItem,
   Pagination,
   Avatar,
+  Spinner,
 } from "@heroui/react";
 import {
   Search,
@@ -35,28 +36,39 @@ import ProfileTeacherModal from "../../components/ProfileModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
 import { Teacher, Student, Users } from "@/types";
 import { useGetUserRoleQuery } from "@/store/queries/user";
-import { log } from "console";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TeacherListPage() {
+  const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 5;
 
   const { data: teacherResponse, isLoading } = useGetUserRoleQuery({ roleName: "teacher" });
   const fetchedTeachers = teacherResponse?.data || [];
-  console.log("fetchedTeachers", fetchedTeachers);
   
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Users | null>(null);
 
-  const pages = Math.ceil(fetchedTeachers.length / rowsPerPage) || 1;
+  const filteredTeachers = useMemo(() => {
+    if (!searchQuery.trim()) return fetchedTeachers;
+    const q = searchQuery.toLowerCase();
+    return fetchedTeachers.filter((user: Users) => {
+      const name = (user.displayName || (user.firstName + " " + user.lastName) || "").toLowerCase();
+      const code = (user.member_code || user.userId || "").toLowerCase();
+      return name.includes(q) || code.includes(q);
+    });
+  }, [fetchedTeachers, searchQuery]);
+
+  const pages = Math.ceil(filteredTeachers.length / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return fetchedTeachers.slice(start, end);
-  }, [page, fetchedTeachers]);
+    return filteredTeachers.slice(start, end);
+  }, [page, filteredTeachers]);
 
   const openAction = (
     teacher: Users,
@@ -66,16 +78,27 @@ export default function TeacherListPage() {
     actionSetter(true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full gap-8 p-2">
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
         <div>
-          <h1 className="text-4xl font-[1000] italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            TEACHER <span className="text-[#FF5C00]">MANAGEMENT</span>
+          <h1 className="text-4xl font-[1000] italic uppercase tracking-tighter text-[#071739] dark:text-white leading-tight">
+            {language === 'vi' ? 'QUẢN LÝ ' : `${t('teacher_management.teacher') || 'TEACHER'} `} 
+            <span className="text-[#FF5C00]">
+              {language === 'vi' ? 'GIẢNG VIÊN' : (t('teacher_management.management') || 'MANAGEMENT')}
+            </span>
           </h1>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
-            Management of Instructors & Staff
+            {t('teacher_management.desc') || (language === 'vi' ? 'Quản lý nhân sự và giảng viên' : 'Management of Instructors & Staff')}
           </p>
         </div>
         <div className="flex gap-3">
@@ -85,24 +108,27 @@ export default function TeacherListPage() {
               setSelectedTeacher(null);
               setIsNotifyOpen(true);
             }}
-            // Đổi màu nút Notify All ở Darkmode sang trắng/xám sáng để dễ nhìn
-            className="bg-white dark:bg-[#F4F4F5] border border-slate-200 dark:border-transparent text-[#071739] dark:text-[#071739] font-black h-11 px-6 rounded-xl uppercase text-[10px] tracking-wider shadow-sm transition-all hover:opacity-90"
+            className="bg-white dark:bg-[#F4F4F5] border border-slate-200 dark:border-transparent text-[#071739] dark:text-[#071739] font-black h-11 px-6 rounded-xl uppercase text-[10px] tracking-wider shadow-sm transition-all hover:opacity-90 animate-fade-in-up active-bump"
+            style={{ animationFillMode: "both", animationDelay: "100ms" }}
           >
-            Notify All
+            {t('common.notify_all') || (language === 'vi' ? 'Thông báo tất cả' : 'Notify All')}
           </Button>
           <Button
             startContent={<Plus size={20} strokeWidth={3} />}
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 animate-fade-in-up active-bump"
+            style={{ animationFillMode: "both", animationDelay: "150ms" }}
           >
-            ADD NEW TEACHER
+            {t('teacher_management.add_new') || (language === 'vi' ? 'Thêm giảng viên' : 'ADD NEW TEACHER')}
           </Button>
         </div>
       </div>
 
       {/* FILTER & SEARCH */}
-      <div className="flex flex-wrap items-center gap-3 shrink-0">
+      <div className="flex flex-wrap items-center gap-3 shrink-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: "200ms" }}>
         <Input
-          placeholder="Search instructor..."
+          placeholder={t('teacher_management.search_placeholder') || (language === 'vi' ? 'Tìm kiếm giảng viên...' : 'Search instructor...')}
+          value={searchQuery}
+          onValueChange={setSearchQuery}
           startContent={<Search size={18} className="text-[#A4B5C4]" />}
           classNames={{
             inputWrapper:
@@ -119,7 +145,7 @@ export default function TeacherListPage() {
               startContent={<Filter size={16} />}
               endContent={<ChevronDown size={14} />}
             >
-              Department
+              {t('teacher_management.department') || (language === 'vi' ? 'Bộ môn' : 'Department')}
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Department Filter">
@@ -130,49 +156,49 @@ export default function TeacherListPage() {
 
         <Button
           isIconOnly
-          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md transition-transform hover:scale-105"
+          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md transition-transform hover:scale-105 active-bump"
         >
           <RefreshCw size={18} />
         </Button>
       </div>
 
-      {/* TABLE SECTION - Đã đổi nền dark sang #111c35 */}
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      {/* TABLE SECTION */}
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: "250ms" }}>
         <Table
           aria-label="Teacher Table"
           removeWrapper
           classNames={{
-            // Màu nền base giống Card của Class Page
             base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
             th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4",
             td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none",
           }}
         >
           <TableHeader>
-            <TableColumn>INSTRUCTOR</TableColumn>
-            <TableColumn>DEPARTMENT</TableColumn>
-            <TableColumn>JOIN DATE</TableColumn>
-            <TableColumn>STATUS</TableColumn>
-            <TableColumn className="text-right">OPERATIONS</TableColumn>
+            <TableColumn>{t('teacher_management.instructor') || (language === 'vi' ? 'GIẢNG VIÊN' : 'INSTRUCTOR')}</TableColumn>
+            <TableColumn>{t('teacher_management.department_col') || (language === 'vi' ? 'BỘ MÔN' : 'DEPARTMENT')}</TableColumn>
+            <TableColumn>{t('teacher_management.join_date') || (language === 'vi' ? 'NGÀY GIA NHẬP' : 'JOIN DATE')}</TableColumn>
+            <TableColumn>{t('common.status') || (language === 'vi' ? 'TRẠNG THÁI' : 'STATUS')}</TableColumn>
+            <TableColumn className="text-right">{t('common.operations') || (language === 'vi' ? 'THAO TÁC' : 'OPERATIONS')}</TableColumn>
           </TableHeader>
-          <TableBody>
-            {items.map((t: Users) => (
+          <TableBody emptyContent={t('common.no_data') || (language === 'vi' ? 'Không có dữ liệu' : 'No data available')}>
+            {items.map((tUser: Users, index: number) => (
               <TableRow
-                key={t.userId}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                key={tUser.userId}
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors animate-fade-in-right"
+                style={{ animationFillMode: "both", animationDelay: `${300 + index * 50}ms` }}
               >
                 <TableCell>
                   <div className="flex items-center gap-4">
                     <Avatar
-                      src={t.avatarUrl || ""}
+                      src={tUser.avatarUrl || ""}
                       className="w-10 h-10 rounded-xl border-2 border-divider shadow-sm"
                     />
                     <div className="flex flex-col">
                       <span className="text-base font-[1000] uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#FF5C00] transition-colors leading-none">
-                        {t.displayName || t.firstName + " " + t.lastName}
+                        {tUser.displayName || tUser.firstName + " " + tUser.lastName}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
-                        ID: {t.member_code || t.userId.substring(0, 8)}
+                        ID: {tUser.member_code || tUser.userId.substring(0, 8)}
                       </span>
                     </div>
                   </div>
@@ -191,43 +217,46 @@ export default function TeacherListPage() {
                   <Chip
                     size="sm"
                     variant="dot"
-                    color={!t.isLocked ? "success" : "warning"}
+                    color={!tUser.isLocked ? "success" : "warning"}
                     className="font-black uppercase text-[9px] border-none"
                   >
-                    {!t.isLocked ? "Active" : "Locked"}
+                    {!tUser.isLocked ? (t('common.active') || (language === 'vi' ? 'Hoạt động' : 'Active')) : (t('common.locked') || (language === 'vi' ? 'Đã khóa' : 'Locked'))}
                   </Chip>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    <Tooltip content="Profile">
+                    <Tooltip content={t('common.profile') || (language === 'vi' ? 'Hồ sơ' : 'Profile')} placement="top" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="light"
-                        onPress={() => openAction(t, setIsProfileOpen)}
-                        className="transition-all rounded-lg h-9 w-9"
+                        onPress={() => openAction(tUser, setIsProfileOpen)}
+                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                        style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 100}ms` }}
                       >
                         <Eye size={18} className="text-blue-500" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Notify">
+                    <Tooltip content={t('common.notify') || (language === 'vi' ? 'Thông báo' : 'Notify')} placement="top" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="light"
-                        onPress={() => openAction(t, setIsNotifyOpen)}
-                        className="transition-all rounded-lg h-9 w-9"
+                        onPress={() => openAction(tUser, setIsNotifyOpen)}
+                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-amber-100 dark:hover:bg-amber-500/20"
+                        style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 150}ms` }}
                       >
                         <Bell size={18} className="text-amber-500" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Delete" color="danger">
+                    <Tooltip content={t('common.delete') || (language === 'vi' ? 'Xóa' : 'Delete')} color="danger" placement="top" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="light"
-                        onPress={() => openAction(t, setIsDeleteOpen)}
-                        className="transition-all rounded-lg h-9 w-9"
+                        onPress={() => openAction(tUser, setIsDeleteOpen)}
+                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-rose-100 dark:hover:bg-rose-500/20"
+                        style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 200}ms` }}
                       >
                         <Trash2 size={18} className="text-danger" />
                       </Button>
@@ -265,7 +294,7 @@ export default function TeacherListPage() {
       <NotifyTeacherModal
         isOpen={isNotifyOpen}
         onOpenChange={() => setIsNotifyOpen(false)}
-        studentEmail={selectedTeacher?.email}
+        studentEmail={selectedTeacher?.email} // Make sure it passes valid prop if needed
       />
       <DeleteTeacherModal
         isOpen={isDeleteOpen}

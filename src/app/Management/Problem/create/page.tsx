@@ -12,6 +12,7 @@ import {
   Radio,
   Divider,
   Chip,
+  addToast,
 } from "@heroui/react";
 
 import { Save, X, ChevronLeft, ChevronRight, CheckCircle, Upload } from "lucide-react";
@@ -25,15 +26,11 @@ import {
 } from "@/store/queries/problem";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { RequiredStar } from "@/Common/RequiredStar";
-
-const STEPS = [
-  { label: "Problem Info", description: "Basic info & limits" },
-  { label: "TestSet", description: "Configure test data set" },
-  { label: "TestCases", description: "Upload zip file with test cases" },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CreateProblemPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
 
   const [step, setStep] = React.useState(0);
   const [createdProblemId, setCreatedProblemId] = React.useState<string | null>(null);
@@ -44,8 +41,8 @@ export default function CreateProblemPage() {
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
 
-  // ── STEP 1: Problem form ──────────────────────────────────────────────────  difficulty: "medium",
-  const [form, setForm] = React.useState<CreateProblemDraftRequest>({
+  // ── STEP 1: Problem form ──────────────────────────────────────────────────
+  const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({
     slug: "",
     title: "",
     typeCode: "algorithm",
@@ -55,6 +52,7 @@ export default function CreateProblemPage() {
     displayIndex: 1,
     timeLimitMs: 1000,
     memoryLimitKb: 262144,
+    difficulty: "medium",
   });
 
   // ── STEP 2: TestSet form ──────────────────────────────────────────────────
@@ -72,11 +70,17 @@ export default function CreateProblemPage() {
 
   const handleStep1 = async () => {
     if (!userData?.userId) {
-      alert("User not loaded yet");
+      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.user_not_loaded') || (language === 'vi' ? "Chưa tải xong dữ liệu người dùng" : "User not loaded yet"), color: "danger" });
       return;
     }
     if (!form.slug || !form.title) {
-      alert("Slug and Title are required");
+      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.slug_title_required') || (language === 'vi' ? "Yêu cầu cung cấp Slug và Tiêu đề" : "Slug and Title are required"), color: "danger" });
+      return;
+    }
+
+    // Nếu đã tạo draft rồi thì cho phép pass sang step 2, hiện tại chưa có API update
+    if (createdProblemId) {
+      setStep(1);
       return;
     }
 
@@ -86,7 +90,7 @@ export default function CreateProblemPage() {
       // Thêm tất cả các trường vào FormData
       formData.append("slug", form.slug);
       formData.append("title", form.title);
-      // formData.append("difficulty", form.difficulty);
+      formData.append("difficulty", form.difficulty);
       formData.append("typeCode", form.typeCode);
       formData.append("visibilityCode", form.visibilityCode);
       formData.append("scoringCode", form.scoringCode);
@@ -96,15 +100,20 @@ export default function CreateProblemPage() {
       const problem = await createProblemDraft(formData).unwrap();   // ← Truyền FormData
       setCreatedProblemId(problem.data.id);
       setStep(1);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Create problem failed:", error);
-      alert("Create problem failed");
+      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Create Failed"), description: error?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể tạo bản nháp bài tập" : "Failed to create problem draft"), color: "danger" });
     }
   };
 
   const handleStep2 = async () => {
     if (!createdProblemId) return;
-    if (!testset.type) { alert("TestSet type is required"); return; }
+    if (!testset.type) { addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.testset_type_required') || (language === 'vi' ? "Cần chọn loại TestSet" : "TestSet type is required"), color: "danger" }); return; }
+
+    if (createdTestSetId) {
+      setStep(2);
+      return;
+    }
 
     try {
       const ts = await createTestSet({
@@ -115,17 +124,20 @@ export default function CreateProblemPage() {
       
       setCreatedTestSetId(ts?.data.id ?? null);
       setStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Create testset failed:", error);
-      alert("Create testset failed");
+      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Create Failed"), description: error?.data?.message || t('problem_create.failed_testset') || (language === 'vi' ? "Không thể tạo bộ test" : "Failed to create testset"), color: "danger" });
     }
   };
 
-  const handleUploadTestCase = async () => {
+  const handleUploadTestCase = async (): Promise<boolean> => {
     console.log(createdProblemId,createdTestSetId);
     
-    if (!createdProblemId || !createdTestSetId) return;
-    if (!zipFile) { alert("Please select a zip file"); return; }
+    if (!createdProblemId || !createdTestSetId) return false;
+    if (!zipFile) { 
+      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.select_zip') || (language === 'vi' ? "Vui lòng chọn file zip" : "Please select a zip file"), color: "danger" }); 
+      return false; 
+    }
 
     try {
       const formData = new FormData();
@@ -144,20 +156,42 @@ export default function CreateProblemPage() {
       ]);
       setZipFile(null);
       if (zipRef.current) zipRef.current.value = "";
-    } catch (error) {
+      addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.upload_success') || (language === 'vi' ? "Tải testcase thành công!" : "Testcases uploaded successfully!"), color: "success" });
+      return true;
+    } catch (error: any) {
       console.error("Upload testcase failed:", error);
-      alert("Upload testcase failed");
+      addToast({ title: t('problem_create.upload_failed') || (language === 'vi' ? "Tải lên thất bại" : "Upload Failed"), description: error?.data?.message || t('problem_create.check_zip_format') || (language === 'vi' ? "Kiểm tra lại định dạng file zip." : "Check your zip file format."), color: "danger" });
+      return false;
     }
   };
 
-  const handleFinish = () => {
-    handleUploadTestCase()
+  const handleFinish = async () => {
+    // Nếu có file đang chọn mà chưa upload, tiến hành upload nó
+    if (zipFile) {
+       const success = await handleUploadTestCase();
+       if (!success) return; // if it failed, block finishing
+    } else {
+       // Nếu không có file đang chờ, kiểm tra xem đã từng upload thành công case nào chưa
+       if (uploadedCases.length === 0) {
+          addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.must_upload_testcase') || (language === 'vi' ? "Bạn phải tải lên ít nhất một file TestCase zip trước khi hoàn tất." : "You must upload at least one TestCase zip file before finishing."), color: "danger" });
+          return;
+       }
+    }
+    
+    addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.problem_created_success') || (language === 'vi' ? "Tạo bài tập thành công!" : "Problem created successfully!"), color: "success" });
     router.push(`/Problems/${createdProblemId}`);
   };
 
   // ── UI helpers ────────────────────────────────────────────────────────────
 
-  const StepIndicator = () => (
+  const StepIndicator = () => {
+    const { t } = useTranslation();
+    const STEPS = [
+      { label: t('problem_create.step_info') || "Problem Info", description: t('problem_create.step_info_desc') || "Basic info & limits" },
+      { label: t('problem_create.step_testset') || "TestSet", description: t('problem_create.step_testset_desc') || "Configure test data set" },
+      { label: t('problem_create.step_testcases') || "TestCases", description: t('problem_create.step_testcases_desc') || "Upload zip file with test cases" },
+    ];
+    return (
     <div className="flex items-center gap-0 mb-2">
       {STEPS.map((s, i) => (
         <React.Fragment key={i}>
@@ -182,6 +216,7 @@ export default function CreateProblemPage() {
       ))}
     </div>
   );
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -196,15 +231,15 @@ export default function CreateProblemPage() {
           startContent={<ChevronLeft size={16} />}
           className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 text-[10px]"
         >
-          Back to Repository
+          {t('problem_create.back_to_repo') || "Back to Repository"}
         </Button>
 
         <div className="space-y-2">
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white">
-            CREATE <span className="text-[#FF5C00]">PROBLEM</span>
+            {t('problem_create.title1') || "CREATE"} <span className="text-[#FF5C00]">{t('problem_create.title2') || "PROBLEM"}</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">
-            Define algorithm challenge, testset and testcases
+            {t('problem_create.subtitle') || "Define algorithm challenge, testset and testcases"}
           </p>
         </div>
 
@@ -218,48 +253,54 @@ export default function CreateProblemPage() {
           <Input
               label={
     <div className="flex items-center gap-1">
-      Title
-      <RequiredStar rules={["Required field"]} />
+      {t('problem_create.problem_title') || "Title"}
+      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
     </div>
   } 
-  placeholder="Ex: Two Sum"
+  placeholder={t('problem_create.slug_placeholder') || "Ex: Two Sum"}
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '100ms' }}
           />
 
           <Input
              label={
     <div className="flex items-center gap-1">
-      slug
-      <RequiredStar rules={["Required field"]} />
+      {t('problem_create.slug') || "slug"}
+      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
     </div>
   } 
-    placeholder="Ex: two-sum-problem"
+    placeholder={t('problem_create.slug_placeholder') || "Ex: two-sum-problem"}
             value={form.slug}
             onChange={(e) => setForm({ ...form, slug: e.target.value })}
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '200ms' }}
           />
 
-          <Divider />
+          <Divider className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '250ms' }} />
 
           <Textarea
                       
- label={
+  label={
     <div className="flex items-center gap-1">
-      Description (Markdown)
-      <RequiredStar rules={["Required field"]} />
+      {t('problem_create.description') || "Description (Markdown)"}
+      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
     </div>
   }
             value={form.descriptionMd}
             onChange={(e) => setForm({ ...form, descriptionMd: e.target.value })}
             minRows={4}
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '300ms' }}
           />
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-6 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '400ms' }}>
             <Input
              label={
     <div className="flex items-center gap-1">
-      Time Limit (ms)
-      <RequiredStar rules={["Required field"]} />
+      {t('problem_create.time_limit') || "Time Limit (ms)"}
+      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
     </div>
   }
               type="number"
@@ -270,8 +311,8 @@ export default function CreateProblemPage() {
             <Input
               label={
     <div className="flex items-center gap-1">
-      Memory Limit (MB)
-      <RequiredStar rules={["Required field"]} />
+      {t('problem_create.memory_limit') || "Memory Limit (MB)"}
+      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
     </div>
   }
               type="number"
@@ -279,36 +320,31 @@ export default function CreateProblemPage() {
               onChange={(e) => setForm({ ...form, memoryLimitKb: Number(e.target.value) * 1024 })}
             />
 
-            {/* <Select
-  label={
-    <div className="flex items-center gap-1">
-      Difficulty
-      <RequiredStar rules={["Required field"]} />
-    </div>
-  }
-  placeholder="Example: Easy"
-   selectedKeys={[form.difficulty]}
+            <Select
+              label={
+                <div className="flex items-center gap-1">
+                  {t('problem_create.difficulty') || "Difficulty"}
+                  <RequiredStar rules={[t('common.required_field') || "Required field"]} />
+                </div>
+              }
+              selectedKeys={[form.difficulty]}
               onSelectionChange={(keys) => {
                 const value = Array.from(keys)[0] as "easy" | "medium" | "hard";
                 setForm({ ...form, difficulty: value });
               }}
-  labelPlacement="outside"
-  variant="bordered"
-  classNames={{
-    label: "font-black uppercase text-[10px] italic text-slate-500",
-    trigger: "rounded-xl",
-  }}
->
-  <SelectItem key="easy">Easy</SelectItem>
-  <SelectItem key="medium">Medium</SelectItem>
-  <SelectItem key="hard">Hard</SelectItem>
-</Select> */}
+            >
+              <SelectItem key="easy">{t('problem_management.easy') || "Easy"}</SelectItem>
+              <SelectItem key="medium">{t('problem_management.medium') || "Medium"}</SelectItem>
+              <SelectItem key="hard">{t('problem_management.hard') || "Hard"}</SelectItem>
+            </Select>
           </div>
 
           <RadioGroup
-            label="Scoring Mode"
+            label={t('problem_create.scoring_method') || "Scoring Mode"}
             value={form.scoringCode}
             onValueChange={(value) => setForm({ ...form, scoringCode: value as "acm" | "oi" })}
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '500ms' }}
           >
             <Radio value="acm">ACM</Radio>
             <Radio value="oi">OI</Radio>
@@ -319,17 +355,19 @@ export default function CreateProblemPage() {
             onValueChange={(checked) =>
               setForm({ ...form, visibilityCode: checked ? "public" : "private" })
             }
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '600ms' }}
           >
-            Public Visible
+            {t('problem_create.visibility') || "Public Visible"}
           </Switch>
 
-          <div className="flex justify-between pt-8">
+          <div className="flex justify-between pt-8 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '700ms' }}>
             <Button
               variant="flat"
               startContent={<X size={18} />}
               onPress={() => router.back()}
             >
-              Cancel
+              {t('common.cancel') || "Cancel"}
             </Button>
 
             <Button
@@ -339,7 +377,7 @@ export default function CreateProblemPage() {
               isDisabled={isUserLoading || isCreatingProblem}
               className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em]"
             >
-              Next — TestSet
+              {t('problem_create.proceed_testset') || "Next — TestSet"}
             </Button>
           </div>
         </div>
@@ -347,42 +385,46 @@ export default function CreateProblemPage() {
 
       {/* ── STEP 2: TestSet ────────────────────────────────────────────────── */}
       {step === 1 && (
-        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
+        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30 animate-fade-in-up">
 
-          <div className="text-sm text-slate-400 font-bold">
-            Problem ID: <span className="text-black dark:text-white">{createdProblemId}</span>
+          <div className="text-sm text-slate-400 font-bold animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
+            {t('problem_create.problem_id') || "Problem ID:"} <span className="text-black dark:text-white">{createdProblemId}</span>
           </div>
 
           <Select
-            label="TestSet Type"
-            placeholder="Select type"
+            label={t('problem_create.testset_type') || "TestSet Type"}
+            placeholder={t('problem_create.select_type') || "Select type"}
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '200ms' }}
             selectedKeys={testset.type ? [testset.type] : []}
             onSelectionChange={(keys) => {
               const value = Array.from(keys)[0] as string;
               setTestset({ ...testset, type: value });
             }}
           >
-            <SelectItem key="public">Public</SelectItem>
-            <SelectItem key="private">Private</SelectItem>
-            <SelectItem key="sample">Sample</SelectItem>
+            <SelectItem key="public">{t('problem_create.ts_public') || "Public"}</SelectItem>
+            <SelectItem key="private">{t('problem_create.ts_private') || "Private"}</SelectItem>
+            <SelectItem key="sample">{t('problem_create.ts_sample') || "Sample"}</SelectItem>
           </Select>
 
-          <Divider className="my-4 dark:bg-white/10" />
+          <Divider className="my-4 dark:bg-white/10 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '300ms' }} />
 
           <Textarea
-            label="Note (optional)"
-            placeholder="Optional note about this testset..."
+            className="animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '400ms' }}
+            label={t('problem_create.testset_note') || "Note (optional)"}
+            placeholder={t('problem_create.note_placeholder') || "Optional note about this testset..."}
             value={testset.note}
             onChange={(e) => setTestset({ ...testset, note: e.target.value })}
           />
 
-          <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
+          <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '500ms' }}>
             <Button
               variant="flat"
               startContent={<ChevronLeft size={18} />}
               onPress={() => setStep(0)}
             >
-              Back
+              {t('common.cancel') || "Back"}
             </Button>
 
             <Button
@@ -392,7 +434,7 @@ export default function CreateProblemPage() {
               isDisabled={isCreatingTestSet}
               className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl"
             >
-              Next — TestCases
+              {t('problem_create.proceed_testcases') || "Next — TestCases"}
             </Button>
           </div>
         </div>
@@ -402,17 +444,17 @@ export default function CreateProblemPage() {
       {step === 2 && (
         <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
 
-          <div className="flex gap-6 text-sm text-slate-400 font-bold">
-            <span>Problem ID: <span className="text-black dark:text-white">{createdProblemId}</span></span>
+          <div className="flex gap-6 text-sm text-slate-400 font-bold animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
+            <span>{t('problem_create.problem_id') || "Problem ID:"} <span className="text-black dark:text-white">{createdProblemId}</span></span>
             {createdTestSetId && (
-              <span>TestSet ID: <span className="text-black dark:text-white">{createdTestSetId}</span></span>
+              <span>{t('problem_create.testset_id') || "TestSet ID:"} <span className="text-black dark:text-white">{createdTestSetId}</span></span>
             )}
           </div>
 
           {/* Upload area */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '200ms' }}>
             <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-              TestCase File (.zip)
+              {t('problem_create.upload_zip') || "TestCase File (.zip)"}
             </label>
             <div
               className="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-400 transition-colors"
@@ -420,7 +462,7 @@ export default function CreateProblemPage() {
             >
               <Upload size={28} className="text-slate-400" />
               <span className="text-[11px] font-bold text-slate-400">
-                {zipFile ? zipFile.name : "Click to select zip file"}
+                {zipFile ? zipFile.name : (t('problem_create.upload_instruction') || "Click to select zip file")}
               </span>
               {zipFile && (
                 <span className="text-[10px] text-slate-300">{(zipFile.size / 1024).toFixed(1)} KB</span>
@@ -435,8 +477,8 @@ export default function CreateProblemPage() {
             />
           </div>
 
-          <div className="text-[10px] text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl px-4 py-3 font-mono space-y-1">
-            <div>testsetId: <span className="text-blue-400">{createdTestSetId}</span></div>
+          <div className="text-[10px] text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl px-4 py-3 font-mono space-y-1 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '300ms' }}>
+            <div>{t('problem_create.testset_id') || "testsetId:"} <span className="text-blue-400">{createdTestSetId}</span></div>
             <div>replaceExisting: <span className="text-green-400">true</span></div>
           </div>
 
@@ -445,16 +487,17 @@ export default function CreateProblemPage() {
             onPress={handleUploadTestCase}
             isLoading={isCreatingTestCase}
             isDisabled={!zipFile || isCreatingTestCase}
-            className="bg-[#071739] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em]"
+            className="bg-[#071739] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em] animate-fade-in-up"
+            style={{ animationFillMode: 'both', animationDelay: '400ms' }}
           >
-            Upload TestCases
+            {t('problem_create.upload_btn') || "Upload TestCases"}
           </Button>
 
           {/* Uploaded list */}
           {uploadedCases.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-3 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '500ms' }}>
               <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-                Upload History ({uploadedCases.length})
+                {t('problem_create.upload_history') || "Upload History"} ({uploadedCases.length})
               </h3>
               <div className="flex flex-col gap-2">
                 {uploadedCases.map((tc, i) => (
@@ -468,22 +511,22 @@ export default function CreateProblemPage() {
                         {tc.name}
                       </span>
                     </div>
-                    <Chip size="sm" variant="flat" color="success">{tc.total} cases</Chip>
+                    <Chip size="sm" variant="flat" color="success">{tc.total} {t('problem_create.cases') || "cases"}</Chip>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <Divider />
+          <Divider className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '600ms' }} />
 
-          <div className="flex justify-between items-center pt-4">
+          <div className="flex justify-between items-center pt-4 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '700ms' }}>
             <Button
               variant="flat"
               startContent={<ChevronLeft size={18} />}
               onPress={() => setStep(1)}
             >
-              Back
+              {t('common.cancel') || "Back"}
             </Button>
 
             <Button
@@ -491,7 +534,7 @@ export default function CreateProblemPage() {
               onPress={handleFinish}
               className="bg-[#22C55E] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl hover:shadow-green-500/30 transition-all"
             >
-              Finish & View Problem
+              {t('problem_create.finish') || "Finish & View Problem"}
             </Button>
           </div>
         </div>

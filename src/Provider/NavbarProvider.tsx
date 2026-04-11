@@ -10,7 +10,8 @@ import {
   Input,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
-import {  Search as SearchIcon } from "lucide-react";
+import {  Search as SearchIcon, Globe } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import InformationInNavbar from "./InformationInNavbar";
 import RegisterModal from "@/app/Modal/RegisterModal";
 import LoginModal from "@/app/Modal/LoginModal";
@@ -21,7 +22,8 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 export default function NavbarProvider() {
   const router = useRouter();
   const pathname = usePathname();
- const { data: user } = useGetUserInformationQuery();
+  const { data: user } = useGetUserInformationQuery();
+  const { t, language, setLanguage } = useTranslation();
   console.log(user);
   
   const { openModal } = useModal();
@@ -105,11 +107,14 @@ export default function NavbarProvider() {
             "Ranking",
             "Management",
             "Coin",
-          ].map((item) => {
+          ].map((item, index) => {
             // Logic điều hướng đặc biệt cho các tab
             let link = `/${item}`;
          if (item === "Problems") link = "/Problems/Library";
-            if (item === "Class") link = "/Class";
+            if (item === "Class") {
+              if (!user || user?.role?.includes("manager") || user?.role?.includes("admin")) return null;
+              link = "/Class";
+            }
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") { 
             if (user?.role?.includes("teacher")) {
@@ -131,17 +136,21 @@ export default function NavbarProvider() {
             const isActive = pathname.startsWith(`/${item}`);
 
             return (
-              <NavbarItem key={item}>
+              <NavbarItem 
+                key={item}
+                className="animate-fade-in-up"
+                style={{ animationFillMode: "both", animationDelay: `${index * 100}ms` }}
+              >
                 <Link
                   onClick={() => handleLink(link)}
                   style={{marginRight:20}}
-                  className={`font-black text-[16px]  cursor-pointer transition-colors ${
+                  className={`font-black text-[16px] cursor-pointer transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-[#ff8904] after:left-1/2 after:-translate-x-1/2 after:-bottom-[20px] hover:after:w-full after:transition-all after:duration-300 ${
                     isActive
-                      ? "text-[#ff8904]"
+                      ? "text-[#ff8904] after:w-full"
                       : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
                   }`}
                 >
-                  {item}
+                  {t(item.toLowerCase()) || item}
                 </Link>
               </NavbarItem>
             );
@@ -149,28 +158,18 @@ export default function NavbarProvider() {
         </div>
       </NavbarContent>
 
-      {/* 2. SEARCH & USER */}
+      {/* 2. USER & LANGUAGE */}
       <NavbarContent justify="end" className="gap-4">
-        <NavbarItem className="hidden md:flex">
-          <Input
-            classNames={{
-              base: "max-w-full sm:max-w-[200px] lg:max-w-[280px] h-9",
-              mainWrapper: "h-full",
-              input:
-                "text-[12px] font-bold placeholder:text-[#A4B5C4] dark:text-white",
-              inputWrapper:
-                "h-full bg-[#CDD5DB]/25 dark:bg-[#333A45] border border-[#CDD5DB] dark:border-[#3F4755] hover:border-[#A4B5C4] focus-within:!border-[#ff8904] rounded-full transition-all px-4 shadow-inner",
-            }}
-            placeholder="Search problems..."
+        <NavbarItem>
+          <Button
             size="sm"
-            startContent={
-              <SearchIcon
-                size={15}
-                className="text-[#A4B5C4] dark:text-[#667085] mr-1"
-              />
-            }
-            type="search"
-          />
+            variant="light"
+            className="text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#ff8904] font-black min-w-unit-0 px-2"
+            onPress={() => setLanguage(language === "en" ? "vi" : "en")}
+            startContent={<Globe size={16} />}
+          >
+            {language.toUpperCase()}
+          </Button>
         </NavbarItem>
 
         {user ? (

@@ -18,6 +18,7 @@ import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // State cho Like (trái tim)
   const [likedProblems, setLikedProblems] = useState<Set<string>>(new Set());
@@ -35,9 +36,14 @@ export default function LibraryPage() {
   };
 
   const { data: problemResponse, isLoading } = useGetProblemListQuery({page : 1, limit : 10});
-  const problems = problemResponse?.data || [];
-  console.log("aaaa" , problemResponse);
+  const rawProblems = problemResponse?.data || [];
   
+  const problems = React.useMemo(() => {
+    if (!searchQuery.trim()) return rawProblems;
+    return rawProblems.filter((p) => 
+      p.title.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    );
+  }, [rawProblems, searchQuery]);
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
       {/* SIDEBAR TRÁI */}
@@ -103,6 +109,8 @@ export default function LibraryPage() {
                       input: "dark:text-white font-medium",
                     }}
                     variant="flat"
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
                   />
                   <Button
                     isIconOnly
@@ -144,6 +152,7 @@ export default function LibraryPage() {
                   </div>
                 ) : problems.length > 0 ? (
                   <ProblemsTable
+                    key={searchQuery}
                     problems={problems}
                     likedProblems={likedProblems}
                     toggleLike={toggleLike}

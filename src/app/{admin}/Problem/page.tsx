@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Thêm để chuyển trang
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Button,
   Chip,
@@ -46,10 +47,10 @@ import {
 import CreateProblem from "./CreateProblem";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
-import { useEffect } from "react";
 
 export default function ProblemManagementPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
   
   // Use the API query
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
@@ -139,19 +140,19 @@ export default function ProblemManagementPage() {
       return (
         <TableRow>
           <TableCell colSpan={7} className="text-center py-20">
-            <div className="flex flex-col items-center gap-6 text-slate-500">
+            <div className="flex flex-col items-center gap-6 text-slate-500 opacity-0 animate-fade-in-up"  style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
               <AlertTriangle size={64} className="text-amber-500 opacity-70" />
               <div className="text-center">
-                <p className="text-xl font-bold">No problems pending approval</p>
-                <p className="text-sm mt-2">All submitted problems have been reviewed or none are waiting.</p>
+                <p className="text-xl font-bold">{language === 'vi' ? "Không có câu hỏi chờ duyệt" : "No problems pending approval"}</p>
+                <p className="text-sm mt-2">{language === 'vi' ? "Tất cả các câu hỏi đã được duyệt hoặc chưa có bài tập nào." : "All submitted problems have been reviewed or none are waiting."}</p>
               </div>
               <Button
                 color="primary"
                 startContent={<Plus size={18} />}
                 onPress={() => setIsCreatingProblem(true)}
-                className="font-black uppercase tracking-wider mt-4"
+                className="font-black uppercase tracking-wider mt-4 active-bump"
               >
-                Create New Problem 
+                {t('admin_problem.create') || (language === 'vi' ? "Tạo bài tập mới" : "Create New Problem")}
               </Button>
             </div>
           </TableCell>
@@ -159,8 +160,8 @@ export default function ProblemManagementPage() {
       );
     }
 
-    return pendingProblems.map((prob) => (
-      <TableRow key={prob.id}>
+    return pendingProblems.map((prob, index) => (
+      <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
         <TableCell>
           <div className="font-bold">{prob.title}</div>
           <div className="text-xs text-slate-500">{prob.slug}</div>
@@ -191,6 +192,7 @@ export default function ProblemManagementPage() {
               isIconOnly
               size="sm"
               color="success"
+              className="active-bump"
               onPress={() => handleApprove(prob)}
             >
               <CheckCircle2 size={16} />
@@ -199,14 +201,15 @@ export default function ProblemManagementPage() {
               isIconOnly
               size="sm"
               color="danger"
+              className="active-bump"
               onPress={() => handleReject(prob)}
             >
               <XCircle size={16} />
             </Button>
-            <Button isIconOnly size="sm">
+            <Button isIconOnly size="sm" className="active-bump">
               <Eye size={16} />
             </Button>
-            <Button isIconOnly size="sm">
+            <Button isIconOnly size="sm" className="active-bump">
               <Pencil size={16} />
             </Button>
             {/* Nút mới: Chuyển đến trang edit Editorial */}
@@ -214,6 +217,7 @@ export default function ProblemManagementPage() {
               isIconOnly
               size="sm"
               color="default" // hoặc primary/warning tùy thích
+              className="active-bump"
               onPress={() => router.push(`Problem/${prob.id}/Editorial`)}
               title="Chỉnh sửa Editorial"
             >
@@ -274,8 +278,8 @@ export default function ProblemManagementPage() {
       );
     }
 
-    return approvedProblems.map((prob) => (
-      <TableRow key={prob.id}>
+    return approvedProblems.map((prob, index) => (
+      <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
         <TableCell>
           <div className="font-bold">{prob.title}</div>
           <div className="text-xs text-slate-500">{prob.slug}</div>
@@ -318,13 +322,13 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <div className="flex gap-2">
-            <Button isIconOnly size="sm">
+            <Button isIconOnly size="sm" className="active-bump">
               <Pencil size={16} />
             </Button>
-            <Button isIconOnly size="sm">
+            <Button isIconOnly size="sm" className="active-bump">
               <Eye size={16} />
             </Button>
-            <Button isIconOnly size="sm" color="danger">
+            <Button isIconOnly size="sm" color="danger" className="active-bump">
               <Trash2 size={16} />
             </Button>
             {/* Nút mới: Chuyển đến trang edit Editorial */}
@@ -332,6 +336,7 @@ export default function ProblemManagementPage() {
               isIconOnly
               size="sm"
               color="default"
+              className="active-bump"
               onPress={() => router.push(`/problems/${prob.id}/editorial`)}
               title="Chỉnh sửa Editorial"
             >
@@ -397,13 +402,13 @@ export default function ProblemManagementPage() {
   return (
     <div className="space-y-8 pb-20">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
         <div>
           <h1 className="text-4xl font-black uppercase tracking-tighter">
-            PROBLEM <span className="text-[#FF5C00]">MANAGEMENT</span>
+            {t('sidebar.problem') || (language === 'vi' ? "BÀI TẬP" : "PROBLEM")} <span className="text-[#FF5C00]">MANAGEMENT</span>
           </h1>
           <p className="text-xs uppercase tracking-widest text-slate-500 mt-1">
-            REVIEW, APPROVE/REJECT & MONITOR PROGRAMMING & THEORY PROBLEMS
+            {language === 'vi' ? "XÉT DUYỆT, QUẢN LÝ DANH SÁCH BÀI TẬP VÀ LÝ THUYẾT" : "REVIEW, APPROVE/REJECT & MONITOR PROGRAMMING & THEORY PROBLEMS"}
           </p>
         </div>
 
@@ -413,15 +418,16 @@ export default function ProblemManagementPage() {
             startContent={<RefreshCw size={16} />}
             onPress={refreshData}
             isLoading={isLoading || isQueryLoading}
+            className="active-bump"
           >
-            Refresh
+            {language === 'vi' ? "Làm Mới" : "Refresh"}
           </Button>
           <Button
-            className="bg-[#0B1C3D] text-white font-black"
+            className="bg-[#0B1C3D] text-white font-black active-bump"
             startContent={<Plus size={16} />}
             onPress={() => setIsCreatingProblem(true)}
           >
-            Create New Problem
+            {language === 'vi' ? "Tạo Bài Mới" : "Create New Problem"}
           </Button>
         </div>
       </div>
@@ -437,36 +443,36 @@ export default function ProblemManagementPage() {
           cursor: "bg-[#FF5C00] h-1",
         }}
       >
-        <Tab title={`Pending Approval (${pendingProblems.length})`}>
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
+        <Tab title={language === 'vi' ? `Chờ duyệt (${pendingProblems.length})` : `Pending Approval (${pendingProblems.length})`}>
+          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
             <Table aria-label="Pending Approval Problems" removeWrapper>
               <TableHeader>
-                <TableColumn>TITLE / SLUG</TableColumn>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>DIFFICULTY</TableColumn>
-                <TableColumn>POINTS</TableColumn>
-                <TableColumn>SUBMITTED BY</TableColumn>
-                <TableColumn>SUBMITTED AT</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
+                <TableColumn>{language === 'vi' ? "TIÊU ĐỀ / SLUG" : "TITLE / SLUG"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "THỂ LOẠI" : "TYPE"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "ĐỘ KHÓ" : "DIFFICULTY"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "ĐIỂM" : "POINTS"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "TÁC GIẢ" : "SUBMITTED BY"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "TẠO LÚC" : "SUBMITTED AT"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "THAO TÁC" : "ACTIONS"}</TableColumn>
               </TableHeader>
               <TableBody>{renderPendingBody()}</TableBody>
             </Table>
           </div>
         </Tab>
 
-        <Tab title={`Approved / Public (${approvedProblems.length})`}>
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
+        <Tab title={language === 'vi' ? `Công khai (${approvedProblems.length})` : `Approved / Public (${approvedProblems.length})`}>
+          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
             <Table aria-label="Approved Problems" removeWrapper>
               <TableHeader>
-                <TableColumn>TITLE / SLUG</TableColumn>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>DIFFICULTY</TableColumn>
-                <TableColumn>POINTS</TableColumn>
-                <TableColumn>TIME / MEM</TableColumn>
-                <TableColumn>SUBMISSIONS</TableColumn>
-                <TableColumn>ACCEPT %</TableColumn>
-                <TableColumn>PUBLIC</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
+                <TableColumn>{language === 'vi' ? "TIÊU ĐỀ / SLUG" : "TITLE / SLUG"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "THỂ LOẠI" : "TYPE"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "ĐỘ KHÓ" : "DIFFICULTY"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "ĐIỂM" : "POINTS"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "T/G / BN" : "TIME / MEM"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "LƯỢT NỘP" : "SUBMISSIONS"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "TỈ LỆ ĐÚNG" : "ACCEPT %"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "C.KHAI" : "PUBLIC"}</TableColumn>
+                <TableColumn>{language === 'vi' ? "THAO TÁC" : "ACTIONS"}</TableColumn>
               </TableHeader>
               <TableBody>{renderApprovedBody()}</TableBody>
             </Table>

@@ -39,8 +39,10 @@ import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionComme
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useGetMyReportsQuery } from "@/store/queries/reports";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, onLike, onDownvote, onEditSuccess, onHideSuccess, onReplySuccess, onDeleteSuccess, depth = 0 }: Props) => {
+  const { t, language } = useTranslation();
   const { data: userData } = useGetUserInformationQuery();
   const { data: myReportsData } = useGetMyReportsQuery();
   const currentUserId = userData?.userId || (userData as any)?.id || propUserId;
@@ -149,14 +151,16 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     ...(isMe ? [
       {
         key: "edit",
-        label: "Chỉnh sửa",
+        label: t("discussion.edit") || (language === "vi" ? "Chỉnh sửa" : "Edit"),
         icon: <Pencil size={14} />,
         onClick: () => setIsEditing(true),
         className: "font-bold"
       },
       ...(!isTopLevel ? [{
         key: "hide",
-        label: comment.isHidden ? "Hủy ẩn (Unhide)" : "Ẩn (Hide)",
+        label: comment.isHidden 
+          ? (t("discussion.unhide") || (language === "vi" ? "Hủy ẩn (Unhide)" : "Unhide")) 
+          : (t("discussion.hide") || (language === "vi" ? "Ẩn (Hide)" : "Hide")),
         icon: <EyeOff size={14} />,
         color: "warning" as const,
         className: "text-warning font-bold",
@@ -176,12 +180,12 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     ...(isMe || currentUser?.role === "admin" || currentUser?.role === "Admin" ? [
       {
         key: "delete",
-        label: "Xóa",
+        label: t("discussion.delete") || (language === "vi" ? "Xóa" : "Delete"),
         icon: <Trash2 size={14} />,
         color: "danger" as const,
         className: "text-danger font-bold",
         onClick: () => {
-          if (window.confirm("Bạn có chắc chắn muốn xóa không?")) {
+          if (window.confirm(t("discussion.delete_confirm") || (language === "vi" ? "Bạn có chắc chắn muốn xóa không?" : "Are you sure you want to delete?"))) {
             onDeleteSuccess(cid);
             setLocalIsDeleted(true);
           }
@@ -191,7 +195,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     ...(!isMe && !isReported ? [
       {
         key: "report",
-        label: "Báo cáo",
+        label: t("discussion.report") || (language === "vi" ? "Báo cáo" : "Report"),
         icon: <Flag size={14} />,
         color: "danger" as const,
         className: "text-danger font-bold",
@@ -217,7 +221,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             </span>
             <span className="text-[11px] text-gray-400 dark:text-[#667085] font-bold">
               | {new Date(comment.createdAt).toLocaleDateString()}
-              {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) && " (Đã chỉnh sửa)"}
+              {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) && 
+                (t("discussion.edited") || (language === "vi" ? " (Đã chỉnh sửa)" : " (Edited)"))}
             </span>
           </div>
 
@@ -349,7 +354,9 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             >
               <MessageCircle size={14} />
               <span className="text-[11px] font-bold uppercase tracking-tighter">
-                {showReplies ? "Hide" : `Show ${comment.repliesCount || processedChildren?.length || 0}`} Replies
+                {showReplies 
+                  ? (t("discussion.hide_replies") || (language === "vi" ? "Ẩn câu trả lời" : "Hide Replies"))
+                  : `${t("discussion.show") || (language === "vi" ? "Xem" : "Show")} ${comment.repliesCount || processedChildren?.length || 0} ${t("discussion.replies") || (language === "vi" ? "câu trả lời" : "Replies")}`}
               </span>
             </div>
           ) : null}
@@ -361,7 +368,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                 isReplying ? "text-blue-600 dark:text-[#E3C39D]" : ""
               }`}
             >
-              <Share2 size={14} className="-scale-x-100" /> Reply
+              <Share2 size={14} className="-scale-x-100" /> {t("discussion.reply_btn") || (language === "vi" ? "Trả lời" : "Reply")}
             </div>
           )}
         </div>

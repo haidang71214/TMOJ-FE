@@ -11,6 +11,8 @@ import {
 import { useLockUserMutation } from "@/store/queries/user";
 import { useHideCommentMutation, useDeleteDiscussionMutation } from "@/store/queries/discussion";
 import { ReportItem } from "@/types";
+import { useRouter } from "next/navigation";
+import { PAGE_URL } from "@/constants";
 
 interface ModerateReportActionModalProps {
   selectedReport: ReportItem;
@@ -19,6 +21,7 @@ interface ModerateReportActionModalProps {
 
 export default function ModerateReportActionModal({ selectedReport, onSuccess }: ModerateReportActionModalProps) {
   const { closeModal } = useModal();
+  const router = useRouter();
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
 
@@ -190,7 +193,15 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
             {selectedReport?.problemId && (
               <div className="col-span-2">
                 <div className="font-bold text-[#FF5C00] uppercase">Problem ID</div>
-                <div className="text-slate-500 truncate">{selectedReport.problemId}</div>
+                <div 
+                  className="text-blue-500 cursor-pointer hover:underline truncate"
+                  onClick={() => {
+                    closeModal(); // Đảm bảo đóng modal trước
+                    window.location.href = `${PAGE_URL}/Problems/${selectedReport.problemId}`;
+                  }}
+                >
+                  {selectedReport.problemId}
+                </div>
               </div>
             )}
           </div>

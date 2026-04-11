@@ -17,6 +17,7 @@ import {
   TableRow,
   TableCell,
   addToast,
+  Tooltip,
 } from "@heroui/react";
 
 import {
@@ -40,6 +41,7 @@ import { useGetClassSlotsQuery, usePublishClassSlotMutation } from "@/store/quer
 import { useDeleteSlotProblemsMutation, useExportStudentsImportTemplateMutation, useImportStudentsMutation, useExportStudentsClassSemesterMutation } from "@/store/queries/Class";
 import { ClassSlotResponse } from "@/types";
 import { useModal } from "@/Provider/ModalProvider";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import AddStudentModal from "../../Class/[id]/Member/AddStudentToCLass";
 import UpdateDueDateModal from "../../Class/[id]/UpdateDuaDateModal";
@@ -55,6 +57,7 @@ export default function ClassDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const resolvedParams = React.use(params);
   const classId = resolvedParams.id;
@@ -106,13 +109,13 @@ export default function ClassDetailPage({
       }).unwrap();
 
       addToast({
-        title:"Problem removed successfully",
+        title:(t('class_semester.problem_removed_success') || "Problem removed successfully"),
         color:"success"
       });
     } catch (err) {
       console.error(err);
       addToast({
-        title:"Problem removed fail",
+        title:(t('class_semester.problem_removed_fail') || "Problem removed fail"),
         color:"danger"
       });
     }
@@ -131,13 +134,13 @@ export default function ClassDetailPage({
       window.URL.revokeObjectURL(url);
 
       addToast({
-        title: "Exported successfully",
+        title: (t('class_semester.exported_success') || "Exported successfully"),
         color: "success"
       });
     } catch (error) {
       console.error("Failed to export class", error);
        addToast({
-        title:"Export failed",
+        title:(t('class_semester.export_fail') || "Export failed"),
         color:"danger"
       });
     }
@@ -156,13 +159,13 @@ export default function ClassDetailPage({
       window.URL.revokeObjectURL(url);
       
       addToast({
-        title: "Template exported successfully",
+        title: (t('class_semester.template_exported_success') || "Template exported successfully"),
         color: "success"
       });
     } catch (error) {
       console.error("Failed to export template:", error);
       addToast({
-        title: "Failed to export template",
+        title: (t('class_semester.export_template_fail') || "Failed to export template"),
         color: "danger"
       });
     }
@@ -179,18 +182,36 @@ export default function ClassDetailPage({
       const res = await importStudents({ classSemesterId: classId, data: formData }).unwrap();
       
       addToast({
-        title: "Import Success",
-        description: `Processed: ${res?.totalProcessed || 0}, Success: ${res?.successCount || 0}, Failed: ${res?.failedCount || 0}`,
+        title: (t('class_semester.import_success') || "Import Success"),
+        description: `${t('class_semester.processed') || "Processed"}: ${res?.totalProcessed || 0}, ${t('class_semester.success') || "Success"}: ${res?.successCount || 0}, ${t('class_semester.failed') || "Failed"}: ${res?.failedCount || 0}`,
         color: "success"
       });
     } catch (error) {
       console.error("Failed to import students", error);
       addToast({
-        title: "Import Failed",
+        title: (t('class_semester.import_failed') || "Import Failed"),
         color: "danger"
       });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePublishToggle = async (slotId: string, isCurrentlyPublished: boolean) => {
+    try {
+      await publishSlot({ classId, slotId }).unwrap();
+      addToast({
+        title: isCurrentlyPublished 
+          ? (t('class_semester.slot_hidden') || (language === 'vi' ? 'Đã ẩn slot' : 'Slot hidden successfully'))
+          : (t('class_semester.slot_published') || (language === 'vi' ? 'Đã công bố slot' : 'Slot published successfully')),
+        color: "success"
+      });
+    } catch (err) {
+      console.error(err);
+      addToast({
+        title: t('common.error') || (language === 'vi' ? 'Có lỗi xảy ra' : 'An error occurred'),
+        color: "danger"
+      });
     }
   };
 
@@ -201,20 +222,17 @@ export default function ClassDetailPage({
       {/* HEADER */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-b border-slate-200 dark:border-white/10 pb-8">
         <div className="lg:col-span-2 flex flex-col justify-between">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-start">
-              <Button
-                variant="light"
-                onPress={() => router.back()}
-                className="font-black"
-                startContent={<ChevronLeft size={16} />}
-              >
-                Back
-              </Button>
-            </div>
-
+          <div className="flex items-center gap-4 animate-fade-in-right">
+            <Button
+              isIconOnly
+              variant="light"
+              className="active-bump h-12 w-12 rounded-2xl shrink-0 mt-1"
+              onPress={() => router.back()}
+            >
+              <ChevronLeft size={28} className="text-slate-600 dark:text-slate-400" />
+            </Button>
             <div className="space-y-2">
-              <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none">
+              <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter leading-none shrink-0">
                 {classCode} - {semesterCode}
               </h2>
             </div>
@@ -228,9 +246,10 @@ export default function ClassDetailPage({
               variant="flat"
               onPress={handleExportTemplate}
               isLoading={isExportingTemplate}
-              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100 animate-fade-in-up active-bump"
+              style={{ animationFillMode: 'both', animationDelay: '100ms' }}
             >
-              TEMPLATE
+              {t('class_management.export_button') || "TEMPLATE"}
             </Button>
             <Button
               startContent={<Download size={14} strokeWidth={2.5} />}
@@ -239,9 +258,10 @@ export default function ClassDetailPage({
               variant="flat"
               isLoading={isExportingStudents}
               onPress={handleExport}
-              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100 animate-fade-in-up active-bump"
+              style={{ animationFillMode: 'both', animationDelay: '150ms' }}
             >
-              EXPORT LIST
+              {t('class_semester.col_actions') || "EXPORT LIST"}
             </Button>
             <input 
               type="file" 
@@ -257,36 +277,39 @@ export default function ClassDetailPage({
               variant="flat"
               isLoading={isImportingStudents}
               onPress={() => fileInputRef.current?.click()}
-              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100"
+              className="font-bold h-9 px-4 rounded-lg shadow-sm text-[11px] uppercase tracking-wide transition-all text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100 animate-fade-in-up active-bump"
+              style={{ animationFillMode: 'both', animationDelay: '200ms' }}
             >
-              IMPORT LIST
+              {t('class_semester.import_list') || "IMPORT LIST"}
             </Button>
             
-            <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2"></div>
+            <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '250ms' }}></div>
 
             <Button
               startContent={<Plus size={16} strokeWidth={2.5} />}
               size="md"
               color="warning"
               onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
-              className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
+              className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active-bump animate-fade-in-up"
+              style={{ animationFillMode: 'both', animationDelay: '300ms' }}
             >
-              ADD STUDENT
+              {t('class_semester.add_student') || "ADD STUDENT"}
             </Button>
 
             <Button
               startContent={<Plus size={16} strokeWidth={2.5} />}
               size="md"
-              className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
+              className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active-bump animate-fade-in-up"
               onPress={openCreateSlotModal}
+              style={{ animationFillMode: 'both', animationDelay: '350ms' }}
             >
-              NEW SLOT
+              {t('class_semester.new_slot') || "NEW SLOT"}
             </Button>
           </div>
         </div>
 
         {/* RIGHT: INVITE CODE CARD */}
-        <div className="flex lg:justify-end">
+        <div className="flex lg:justify-end animate-fade-in-right" style={{ animationFillMode: "both", animationDelay: "150ms" }}>
           <InviteCodeCard 
             classSemesterId={classId} 
             classCode={classCode} 
@@ -304,7 +327,7 @@ export default function ClassDetailPage({
           tabContent: "group-data-[selected=true]:text-[#FF5C00]",
         }}
       >
-        <Tab key="slots" title="Class Curriculum">
+        <Tab key="slots" title={t('class_semester.class_curriculum') || "Class Curriculum"}>
           <div className="flex flex-col gap-4 mt-8">
             {slotLoading && (
               <div className="flex justify-center py-20">
@@ -314,10 +337,11 @@ export default function ClassDetailPage({
 
             {slots
               .slice((slotPage - 1) * rowsPerPage, slotPage * rowsPerPage)
-              .map((slot: ClassSlotResponse) => (
+              .map((slot: ClassSlotResponse, idx: number) => (
                 <Card
                   key={slot.id}
-                  className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm overflow-hidden border border-transparent hover:border-[#FF5C00]/30 transition-all"
+                  className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm overflow-hidden border border-transparent hover:border-[#FF5C00]/30 transition-all animate-fade-in-up"
+                  style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
                 >
                   <CardBody className="p-0">
                     {/* Slot Header */}
@@ -337,7 +361,7 @@ export default function ClassDetailPage({
                         </div>
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                            Slot no {slot.slotNo}: {slot.title}
+                            {t('class_semester.slot_no') || "Slot no"} {slot.slotNo}: {slot.title}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 uppercase italic">
                             {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
@@ -346,39 +370,43 @@ export default function ClassDetailPage({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          color="warning"
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          onPress={() =>
-                            openModal({
-                              content: (
-                                <UpdateDueDateModal
-                                  classId={classId}
-                                  slotId={slot.id}
-                                  dueAt={slot.dueAt}
-                                  closeAt={slot.closeAt}
-                                />
-                              ),
-                            })
-                          }
-                        >
-                          <Pencil size={14} />
-                        </Button>
+                        <Tooltip content={t('class_semester.edit_due_date') || (language === 'vi' ? 'Sửa thời hạn (Due date)' : 'Edit Due Date')} className="text-[10px] font-bold" placement="top">
+                          <Button
+                            color="warning"
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            onPress={() =>
+                              openModal({
+                                content: (
+                                  <UpdateDueDateModal
+                                    classId={classId}
+                                    slotId={slot.id}
+                                    dueAt={slot.dueAt}
+                                    closeAt={slot.closeAt}
+                                  />
+                                ),
+                              })
+                            }
+                          >
+                            <Pencil size={14} />
+                          </Button>
+                        </Tooltip>
 
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          onPress={() => publishSlot({ classId, slotId: slot.id })}
-                        >
-                          {slot.isPublished ? (
-                            <Eye className="text-emerald-500" size={18} />
-                          ) : (
-                            <EyeOff className="text-gray-400" size={18} />
-                          )}
-                        </Button>
+                        <Tooltip content={slot.isPublished ? (t('class_semester.hide_slot') || (language === 'vi' ? 'Ẩn slot này' : 'Hide Slot')) : (t('class_semester.publish_slot') || (language === 'vi' ? 'Công bố slot' : 'Publish Slot'))} className="text-[10px] font-bold" placement="top">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            onPress={() => handlePublishToggle(slot.id, !!slot.isPublished)}
+                          >
+                            {slot.isPublished ? (
+                              <Eye className="text-emerald-500" size={18} />
+                            ) : (
+                              <EyeOff className="text-gray-400" size={18} />
+                            )}
+                          </Button>
+                        </Tooltip>
 
                         
 
@@ -402,14 +430,14 @@ export default function ClassDetailPage({
                             cursor: "bg-blue-600 dark:bg-blue-400"
                           }}
                         >
-                          <Tab key="problems" title="Assigned Problems">
+                          <Tab key="problems" title={t('class_semester.assigned_problems') || "Assigned Problems"}>
                             <div className="mt-6">
                           <div className="flex items-center justify-between mb-6">
 
   {/* LEFT TITLE */}
   <div className="flex items-center gap-2 text-[11px] font-[1000] uppercase italic text-blue-600">
     <Code2 size={14} />
-    ASSIGNED PROBLEMS
+    {t('class_semester.assigned_problems') || "ASSIGNED PROBLEMS"}
   </div>
 
   {/* RIGHT ACTIONS */}
@@ -421,7 +449,7 @@ export default function ClassDetailPage({
       className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
       onPress={() =>
         openModal({
-          title: "Update Problems in Slot",
+          title: t('class_semester.update_problems_slot') || "Update Problems in Slot",
           content: (
             <UpdateProblemIntoSlot
               instanceId={classId}
@@ -440,7 +468,7 @@ export default function ClassDetailPage({
         })
       }
     >
-      EDIT ALL
+      {t('class_semester.edit_all') || "EDIT ALL"}
     </Button>
 
     <Button
@@ -450,7 +478,7 @@ export default function ClassDetailPage({
     
       onPress={() => openAddProblemModal(slot.id)}
     >
-    ADD MORE PROBLEM
+    {t('class_semester.add_more_problem') || "ADD MORE PROBLEM"}
     </Button>
 
   </div>
@@ -466,17 +494,18 @@ export default function ClassDetailPage({
                             }}
                           >
                             <TableHeader>
-                              <TableColumn>ORDINAL</TableColumn>
-                              <TableColumn>PROBLEM TITLE</TableColumn>
-                              <TableColumn>POINTS</TableColumn>
-                              <TableColumn>REQUIRED</TableColumn>
-                              <TableColumn className="text-right">ACTIONS</TableColumn>
+                              <TableColumn>{t('class_semester.header_ordinal') || "ORDINAL"}</TableColumn>
+                              <TableColumn>{t('class_semester.header_problem_title') || "PROBLEM TITLE"}</TableColumn>
+                              <TableColumn>{t('class_semester.header_points') || "POINTS"}</TableColumn>
+                              <TableColumn>{t('class_semester.header_required') || "REQUIRED"}</TableColumn>
+                              <TableColumn className="text-right">{t('class_semester.header_actions') || "ACTIONS"}</TableColumn>
                             </TableHeader>
-                            <TableBody emptyContent="No problems exist in this slot">
+                            <TableBody emptyContent={t('class_semester.empty_problems') || "No problems exist in this slot"}>
                               {slot.problems?.map((p, index) => (
                                 <TableRow
                                   key={p.problemId}
-                                  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer animate-fade-in-right"
+                                  style={{ animationFillMode: "both", animationDelay: `${200 + index * 40}ms` }}
                                   onClick={() => router.push(`/Problems/${p.problemId}`)}
                                 >
                                   <TableCell>
@@ -515,7 +544,7 @@ export default function ClassDetailPage({
                                           : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                                       }`}
                                     >
-                                      {p.isRequired ? "REQUIRED" : "OPTIONAL"}
+                                      {p.isRequired ? (t('class_semester.required') || "REQUIRED") : (t('class_semester.optional') || "OPTIONAL")}
                                     </Chip>
                                   </TableCell>
 
@@ -526,6 +555,8 @@ export default function ClassDetailPage({
                                         size="sm"
                                         variant="flat"
                                         color="danger"
+                                        className="animate-fade-in-up active-bump"
+                                        style={{ animationFillMode: "both", animationDelay: `${200 + index * 40 + 100}ms` }}
                                         onPress={() => {
                                           handleDeleteProblem(slot.id, p.problemId);
                                         }}
@@ -540,7 +571,7 @@ export default function ClassDetailPage({
                           </Table>
                         </div>
                           </Tab>
-                          <Tab key="scores" title="Student Scores & Results">
+                          <Tab key="scores" title={t('class_semester.student_scores') || "Student Scores & Results"}>
                             <SlotScoresTable classId={classId} slot={slot} />
                           </Tab>
                         </Tabs>
@@ -559,7 +590,7 @@ export default function ClassDetailPage({
           </div>
         </Tab>
 
-        <Tab key="members" title="Members">
+        <Tab key="members" title={t('class_semester.members') || "Members"}>
           <ClassMembersPage classId={classId} />
         </Tab>
       </Tabs>

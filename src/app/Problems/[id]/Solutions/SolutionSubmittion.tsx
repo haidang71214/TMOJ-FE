@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
 import { VerdictCode } from "@/types"
+import { useTranslation } from "@/hooks/useTranslation"
 
 interface SolutionSubmittionProps {
   editorHeight: number;
@@ -23,6 +24,7 @@ export default function SolutionSubmittion({
   problemId,
   onSubmitSuccess,
 }: SolutionSubmittionProps) {
+  const { t, language } = useTranslation();
   
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
@@ -176,7 +178,7 @@ public:
     return "cpp"
   }
 
-  const language = getLanguage(selectedRuntime?.runtimeName)
+  const editorLanguage = getLanguage(selectedRuntime?.runtimeName)
 
   // ==================== HANDLE SUBMIT ====================
 
@@ -241,12 +243,12 @@ public:
             value={selectedRuntimeId || ""}
             onChange={(e) => setSelectedRuntimeId(e.target.value || null)}
             disabled={isRuntimeLoading || runtimes.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#101828] text-[12px] font-black appearance-none pr-8 cursor-pointer hover:bg-gray-200 dark:hover:bg-[#0f1e3a] focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#101828] text-[12px] font-black appearance-none pr-8 cursor-pointer hover:bg-gray-200 dark:hover:bg-[#0f1e3a] focus:outline-none transition-colors min-w-[160px]"
           >
             {isRuntimeLoading ? (
-              <option>Đang tải...</option>
+              <option>{t("common.loading") || (language === "vi" ? "Đang tải..." : "Loading...")}</option>
             ) : runtimes.length === 0 ? (
-              <option>Không có runtime</option>
+              <option>{t("solution.no_runtime") || (language === "vi" ? "Không có dữ liệu" : "No runtime")}</option>
             ) : (
               runtimes.map((runtime) => (
                 <option key={runtime.id} value={runtime.id}>
@@ -267,10 +269,10 @@ public:
         </button>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828]">
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
             <RotateCcw size={14} />
           </button>
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828]">
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
             <Settings2 size={14} />
           </button>
         </div>
@@ -280,7 +282,7 @@ public:
       <div className="flex-1 relative overflow-hidden bg-[#0D1B2A]">
         <Editor
           height="100%"
-          language={language}
+          language={editorLanguage}
           value={code}
           onChange={(value) => setCode(value || "")}
           theme="vs-dark"
@@ -293,57 +295,53 @@ public:
             tabSize: 4,
             insertSpaces: true,
             wordWrap: "on",
-            padding: { top: 16, bottom: 40 },
+            padding: { top: 16, bottom: 16 },
           }}
         />
-        <div className="absolute bottom-0 left-0 right-0 h-7 bg-gray-50 dark:bg-[#162130] border-t dark:border-[#334155] flex items-center px-4 justify-between pointer-events-none z-10">
-          <span className="text-[10px] font-bold text-emerald-500">✓ Saved</span>
-          <span className="text-[10px] font-mono text-gray-400">Ln 1, Col 1</span>
-        </div>
       </div>
 
       {/* Bottom */}
       <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-t dark:border-[#334155] flex items-center px-3 gap-2">
         {!isLoggedIn && !isUserLoading && (
           <span className="text-[12px] text-gray-400 mr-auto">
-            You need to <span className="text-blue-500 font-bold cursor-pointer hover:underline">log in / sign up</span> to run or submit
+            {t("solution.login_required") || (language === "vi" ? "Bạn cần đăng nhập để nộp bài" : "You need to log in to run or submit")}
           </span>
         )}
 
         {isLoggedIn && (
           <span className="text-[12px] text-gray-400 mr-auto">
             {isRuntimeLoading || isDetailLoading
-              ? "Đang tải runtime..."
+              ? (t("common.loading") || (language === "vi" ? "Đang tải..." : "Loading..."))
               : selectedRuntime
-                ? `Ready to run with ${selectedRuntime.runtimeName}`
-                : "Chọn runtime để chạy code"}
+                ? `${t("solution.ready_to_run") || (language === "vi" ? "Sẵn sàng chạy với" : "Ready to run with")} ${selectedRuntime.runtimeName}`
+                : (language === "vi" ? "Chọn ngôn ngữ để chạy code" : "Select language to run")}
           </span>
         )}
 
         <button
           disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleRun}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-colors ${
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
             isLoggedIn && selectedRuntimeId && !isSubmitting
-              ? "bg-gray-100 hover:bg-gray-200 dark:bg-[#1C2737] dark:hover:bg-[#2a3b55]"
+              ? "bg-gray-200/50 hover:bg-gray-200 dark:bg-[#202E42] dark:hover:bg-[#2a3b55] text-slate-700 dark:text-slate-200"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >
           <Play size={12} className="fill-current" />
-          Run
+          {t("solution.run") || (language === "vi" ? "Chạy thử" : "Run")}
         </button>
 
         <button
           disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleSubmit}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-colors ${
+          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
             isLoggedIn && selectedRuntimeId && !isSubmitting
-              ? "bg-emerald-500 hover:bg-emerald-400 text-white"
+              ? "bg-[#FF5C00] hover:bg-[#FF7222] text-white shadow-md shadow-[#FF5C00]/20"
               : "bg-gray-300 text-gray-400 cursor-not-allowed"
           }`}
         >
           <Upload size={12} />
-          Submit
+          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Submit")}
         </button>
       </div>
     </div>

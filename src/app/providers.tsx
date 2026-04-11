@@ -13,6 +13,7 @@ import AutoOpenResetPassModal from "@/Provider/OpenModalResetPass";
 import { store } from "@/store";
 import { ModalProvider } from "../Provider/ModalProvider";
 import RedirectProvider from "@/Provider/RedirectProvider";
+import LanguageProvider from "@/Provider/LanguageProvider";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -33,17 +34,19 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
           <GoogleOAuthProvider
             clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
           >
-            <ModalProvider>
-              <Suspense fallback={null}>
-                <AutoOpenResetPassModal />
+            <LanguageProvider>
+              <ModalProvider>
+                <Suspense fallback={null}>
+                  <AutoOpenResetPassModal />
 
-                <RedirectProvider>
-                  <AuthProvider>
-                    {children}
-                  </AuthProvider>
-                </RedirectProvider>
-              </Suspense>
-            </ModalProvider>
+                  <RedirectProvider>
+                    <AuthProvider>
+                      {children}
+                    </AuthProvider>
+                  </RedirectProvider>
+                </Suspense>
+              </ModalProvider>
+            </LanguageProvider>
 
             <ToastProvider placement="bottom-right" />
           </GoogleOAuthProvider>

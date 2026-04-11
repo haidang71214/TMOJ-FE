@@ -1,4 +1,5 @@
-import { Button } from "@heroui/react";
+import { useState } from "react";
+import { Button, Textarea } from "@heroui/react";
 import { CheckCircle, XCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { useModal } from "@/Provider/ModalProvider";
@@ -21,6 +22,8 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
 
+  const [adminReason, setAdminReason] = useState("");
+
   const [triggerGetAllReports] = useLazyGetAllReportsQuery();
   const [lockUser] = useLockUserMutation();
   const [hideComment] = useHideCommentMutation();
@@ -28,119 +31,105 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
 
   const handleTakeAction = async (action: "approve" | "reject") => {
     if (!selectedReport) return;
-    try {
-      if (action === "approve") {
-          await approveReport({ id: selectedReport.id }).unwrap();
-        toast.success("Báo cáo đã được phê duyệt hợp lệ.");
-
-        try {
-          // Lấy TẤT CẢ report để tránh các lỗi filter từ backend và case sensitivity
-          const allRes = await triggerGetAllReports(undefined, false).unwrap();
-          const allData = allRes.data || [];
-
-          // Tìm các report cùng một đối tượng (bỏ qua case sensitivity của targetType)
-          const targetReports = allData.filter((r: any) => r.targetId === selectedReport.targetId);
-          
-          // Đếm số lượng report đã bị duyệt (bao gồm cái hiện tại nếu nó chưa đc update phản hồi kịp trong API)
-          let approvedCount = targetReports.filter((r: any) => r.status?.toLowerCase() === "approved").length;
-          const isCurrentInApproved = targetReports.some((r: any) => r.id === selectedReport.id && r.status?.toLowerCase() === "approved");
-          if (!isCurrentInApproved) {
-            approvedCount += 1;
-          }
-
-          let thresholdReached = false;
-          const rawType = selectedReport.targetType || "";
-          const type = rawType.toLowerCase();
-
-          // DETERMINE IF THRESHOLD IS REACHED
-          if (type === "comment") {
-            if (approvedCount >= 3) thresholdReached = true;
-          } else if (type === "discussion") {
-            if (approvedCount >= 3) thresholdReached = true;
-          } else {
-            // User target
-            if (approvedCount >= 5) thresholdReached = true;
-          }
-
-          // 1) AUTO APPROVE REST OF PENDING REPORTS (Run FIRST to avoid 400 error on locked/hidden targets)
-          if (thresholdReached) {
-            try {
-              const pendingForTarget = targetReports.filter((r: any) => 
-                r.id !== selectedReport.id && r.status?.toLowerCase() === "pending"
-              );
-              
-              if (pendingForTarget.length > 0) {
-                let successCount = 0;
-                for (const pr of pendingForTarget) {
-                  try {
-                    // Cố tình không gửi moderatorNote vì có thể DTO của backend sẽ block và quăng lỗi 400 
-                    // nếu gửi chuỗi có dấu hoặc body field không đúng.
-                 const res =    await approveReport({ id: pr.id }).unwrap();
-                    console.log(res);
-                    successCount++;
-                  } catch (subErr) {
-                    console.error("Lỗi khi auto duyệt:", pr.id, subErr);
-                  }
-                }
-                if (successCount > 0) {
-                  toast.success(`Đã tự động duyệt ${successCount} báo cáo tương tự còn lại.`);
-                }
-              }
-            } catch (e) {
-              console.error("Error auto-approving remaining pending reports", e);
-            }
-          }
-
-          // 2) EXECUTE AUTO ACTION ON TARGET (Lock/Hide/Delete)
-          if (type === "comment") {
-            if (thresholdReached) {
-              try {
-                await hideComment({ commentId: selectedReport.targetId, isHidden: true }).unwrap();
-                toast.success(`Bình luận đã bị ẩn tự động do vi phạm ${approvedCount} lần!`);
-              } catch (e: any) {
-                toast.error(`Auto-hide comment failed: ${e?.data?.message || e?.message}`);
-                console.error("Hide comment error", e);
-              }
-            }
-          } else if (type === "discussion") {
-            if (thresholdReached) {
-              try {
-                await deleteDiscussion({ id: selectedReport.targetId }).unwrap();
-                toast.success(`Bài đăng thảo luận đã bị xóa tự động do vi phạm ${approvedCount} lần!`);
-              } catch (e: any) {
-                toast.error(`Auto-delete discussion failed: ${e?.data?.message || e?.message}`);
-                console.error("Delete discussion error", e);
-              }
-            }
-          } else {
-            // Xem như mọi type khác (User, Account, Profile...) đều là User
-            if (thresholdReached) {
-              try {
-                // Thử thay string thành uppercase nếu backend bắt validation url path, bằng không thì nó sẽ là targetId bt
-                await lockUser(selectedReport.targetId).unwrap();
-                toast.success(`Tài khoản ${selectedReport.targetId} đã bị khóa tự động do vi phạm ${approvedCount} lần!`);
-              } catch (e: any) {
-                toast.error(`Auto-lock user failed: ${e?.data?.message || e?.message}`);
-                console.error("Lock error", e);
-              }
-            }
-          }
-        } catch(err: any) {
-          console.error("Lỗi khi đếm số report và auto-action:", err);
-          toast.error("Process error: " + err?.message);
-        }
-
-      } else if (action === "reject") {
-        await rejectReport({ id: selectedReport.id }).unwrap();
-        toast.success("Báo cáo đã bị từ chối.");
-      }
-      
-      onSuccess();
-      closeModal();
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi duyệt");
+    
+    // Yêu cầu nhập lý do nếu là Approve hoặc Reject
+    if (action === "reject" && !adminReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối báo cáo.");
+      return;
     }
+
+      try {
+        if (action === "approve") {
+          await approveReport({ id: selectedReport.id, reason: adminReason }).unwrap();
+          toast.success("Báo cáo đã được phê duyệt hợp lệ.");
+          
+          // Đóng modal ngay lập tức để không bắt user chờ
+          onSuccess();
+          closeModal();
+
+          // Phần auto-action chạy ngầm
+          (async () => {
+            try {
+              const allRes = await triggerGetAllReports(undefined, false).unwrap();
+              const allData = allRes?.data || [];
+              const authorId = selectedReport.authorId;
+              const targetId = selectedReport.targetId;
+              const targetType = (selectedReport.targetType || "").toLowerCase();
+
+              // 1. Tính toán số vi phạm cho Target
+              const targetReports = allData.filter((r: any) => r.targetId === targetId);
+              const targetApprovedCount = targetReports.filter((r: any) => r.status?.toLowerCase() === "approved").length;
+              const isTargetCurrentCounted = targetReports.some(r => r.id === selectedReport.id && r.status?.toLowerCase() === "approved");
+              const effectiveTargetCount = isTargetCurrentCounted ? targetApprovedCount : targetApprovedCount + 1;
+
+              let targetThresholdReached = false;
+              if (targetType === "comment" || targetType === "discussion") {
+                if (effectiveTargetCount >= 3) targetThresholdReached = true;
+              } else {
+                if (effectiveTargetCount >= 5) targetThresholdReached = true;
+              }
+
+              // 2. Tính toán số vi phạm cho Author
+              let authorThresholdReached = false;
+              let effectiveAuthorCount = 0;
+              if (authorId) {
+                const authorApprovedReports = allData.filter((r: any) => 
+                  r.authorId === authorId && r.status?.toLowerCase() === "approved"
+                );
+                const authorApprovedCount = authorApprovedReports.length;
+                const isAuthorCurrentCounted = authorApprovedReports.some(r => r.id === selectedReport.id && r.status?.toLowerCase() === "approved");
+                effectiveAuthorCount = isAuthorCurrentCounted ? authorApprovedCount : authorApprovedCount + 1;
+                
+                if (effectiveAuthorCount >= 5) authorThresholdReached = true;
+              }
+
+              // 3. Thực hiện auto-approve các report pending khác liên quan
+              if (targetThresholdReached || authorThresholdReached) {
+                const pendingToAutoApprove = allData.filter((r: any) => 
+                  r.id !== selectedReport.id && 
+                  r.status?.toLowerCase() === "pending" &&
+                  (targetThresholdReached ? r.targetId === targetId : r.authorId === authorId)
+                );
+                
+                for (const pr of pendingToAutoApprove) {
+                  try {
+                    await approveReport({ id: pr.id, reason: "Hệ thống tự động duyệt do đạt ngưỡng vi phạm." }).unwrap();
+                  } catch (subErr) { console.error(subErr); }
+                }
+              }
+
+              // 4. Thực hiện các hành động ẩn nội dung / khóa user
+              if (targetThresholdReached) {
+                if (targetType === "comment" && targetId) {
+                  await hideComment({ commentId: targetId, isHidden: true }).unwrap();
+                  toast.success(`Bình luận đã bị ẩn tự động do vi phạm ${effectiveTargetCount} lần!`);
+                } else if (targetType === "discussion" && targetId) {
+                  await deleteDiscussion({ id: targetId }).unwrap();
+                  toast.success(`Thảo luận đã bị xóa tự động do vi phạm ${effectiveTargetCount} lần!`);
+                }
+              }
+
+              if (authorThresholdReached && authorId) {
+                await lockUser(authorId).unwrap();
+                toast.success(`Tài khoản ${selectedReport.authorName || authorId} đã bị khóa tự động do vi phạm ${effectiveAuthorCount} lần!`);
+              }
+
+            } catch (autoErr) {
+              console.error("Lỗi auto-action (background):", autoErr);
+            }
+          })();
+
+        } else if (action === "reject") {
+          await rejectReport({ id: selectedReport.id, reason: adminReason }).unwrap();
+          toast.success("Báo cáo đã bị từ chối.");
+          onSuccess();
+          closeModal();
+        }
+        
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi xử lý");
+      }
   };
 
   return (
@@ -163,13 +152,43 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
       <div className="space-y-6">
         <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl">
           <div className="font-medium mb-2 text-[#3F4755] dark:text-gray-200">Reported Reason:</div>
-          <p className="text-sm text-slate-700 dark:text-slate-300">
+          <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">
             {selectedReport?.reason}
           </p>
-          <div className="font-medium mt-4 mb-2 text-[#3F4755] dark:text-gray-200">Target Type & ID:</div>
-          <p className="text-xs text-slate-500">
-            <span className="uppercase font-bold text-[#FF5C00]">{selectedReport?.targetType}</span> - {selectedReport?.targetId}
-          </p>
+          
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <div className="font-bold text-[#FF5C00] uppercase">Target</div>
+              <div className="text-slate-500 truncate">{selectedReport?.targetType} - {selectedReport?.targetId}</div>
+            </div>
+            {selectedReport?.authorName && (
+              <div>
+                <div className="font-bold text-[#FF5C00] uppercase">Author</div>
+                <div className="text-slate-500 truncate">{selectedReport.authorName}</div>
+              </div>
+            )}
+            {selectedReport?.problemId && (
+              <div className="col-span-2">
+                <div className="font-bold text-[#FF5C00] uppercase">Problem ID</div>
+                <div className="text-slate-500 truncate">{selectedReport.problemId}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="font-black uppercase text-sm tracking-widest text-[#3F4755] dark:text-gray-400">
+            Lý do xử lý (Admin Note)
+          </div>
+          <Textarea
+            placeholder="Nhập lý do phê duyệt hoặc từ chối báo cáo này..."
+            variant="bordered"
+            value={adminReason}
+            onValueChange={setAdminReason}
+            classNames={{
+              input: "text-sm",
+            }}
+          />
         </div>
 
         <div>

@@ -43,6 +43,9 @@ import { ReportItem } from "@/types";
 import { BannedUsersModal } from "./BannedUsersModal";
 import ModerateReportActionModal from "./ModerateReportActionModal";
 import { useModal } from "@/Provider/ModalProvider";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { PAGE_URL } from "@/constants";
 
 export default function ModerationManagementPage() {
   const [typeFilter, setTypeFilter] = useState("all");
@@ -84,6 +87,7 @@ export default function ModerationManagementPage() {
   }, [page, reports]);
 
   const { openModal } = useModal();
+  const router = useRouter();
   const [bannedUsersModalOpen, setBannedUsersModalOpen] = useState(false);
 
 
@@ -249,7 +253,17 @@ export default function ModerationManagementPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-xs font-mono text-slate-500">{r.problemId || "N/A"}</span>
+                  {r.problemId ? (
+                    <div 
+                      onClick={() => window.location.href = `${PAGE_URL}/Problems/${r.problemId}`}
+                      className="flex items-center gap-1.5 text-blue-500 hover:text-blue-700 transition-colors group cursor-pointer"
+                    >
+                      <span className="text-xs font-mono font-bold">{r.problemId}</span>
+                      <Eye size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  ) : (
+                    <span className="text-xs font-mono text-slate-400">N/A</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="max-w-xs truncate font-medium">
@@ -341,10 +355,19 @@ export default function ModerationManagementPage() {
                           <p className="font-medium text-sm">{(reportDetail as any)?.authorName || "N/A"}</p>
                           <p className="text-[10px] text-slate-400">{(reportDetail as any)?.authorId}</p>
                         </div>
-                        <div>
                           <div className="font-bold text-xs text-slate-500">Problem ID</div>
-                          <p className="font-medium text-sm">{(reportDetail as any)?.problemId || "N/A"}</p>
-                        </div>
+                          <p 
+                            className={`font-medium text-sm ${((reportDetail as any)?.problemId) ? "text-blue-500 cursor-pointer hover:underline" : ""}`}
+                            onClick={() => {
+                              const pid = (reportDetail as any)?.problemId;
+                              if (pid) {
+                                setDetailsModalOpen(false);
+                                window.location.href = `${PAGE_URL}/Problems/${pid}`;
+                              }
+                            }}
+                          >
+                            {(reportDetail as any)?.problemId || "N/A"}
+                          </p>
                         <div>
                           <div className="font-bold text-xs text-slate-500">Status</div>
                           <Chip size="sm" color={reportDetail?.status === "pending" ? "warning" : reportDetail?.status === "approved" ? "danger" : "default"}>

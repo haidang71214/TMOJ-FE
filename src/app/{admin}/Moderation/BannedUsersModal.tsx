@@ -213,45 +213,48 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
               </div>
 
               <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-black/40">
-                <Table 
-                  aria-label="User List Table"
-                  removeWrapper
-                  bottomContent={
-                    pages > 1 ? (
-                      <div className="flex w-full justify-center pb-4">
-                        <Pagination
-                          isCompact
-                          showControls
-                          showShadow
-                          color="danger"
-                          page={page}
-                          total={pages}
-                          onChange={(p) => setPage(p)}
-                        />
-                      </div>
-                    ) : null
-                  }
-                >
-                  <TableHeader>
-                    <TableColumn key="user">USER</TableColumn>
-                    <TableColumn key="role">ROLE</TableColumn>
-                    <TableColumn key="actions" align="end">ACTION</TableColumn>
-                  </TableHeader>
-                  <TableBody 
-                    items={items}
-                    emptyContent={
-                      (selectedTab === "locked" && isLoadingLocked) || (selectedTab === "unlocked" && isLoadingUnlocked)
-                        ? <Spinner size="lg" color="danger" />
-                        : "Không có người dùng nào khớp với bộ lọc."
+                <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                  <Table 
+                    aria-label="User List Table"
+                    removeWrapper
+                    isHeaderSticky
+                    bottomContent={
+                      pages > 1 ? (
+                        <div className="flex w-full justify-center pb-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <Pagination
+                            isCompact
+                            showControls
+                            showShadow
+                            color="danger"
+                            page={page}
+                            total={pages}
+                            onChange={(p) => setPage(p)}
+                          />
+                        </div>
+                      ) : null
                     }
                   >
-                    {(item) => (
-                      <TableRow key={item.userId}>
-                        {(columnKey) => <TableCell>{renderCell(item, columnKey as string)}</TableCell>}
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    <TableHeader>
+                      <TableColumn key="user">USER</TableColumn>
+                      <TableColumn key="role">ROLE</TableColumn>
+                      <TableColumn key="actions" align="end">ACTION</TableColumn>
+                    </TableHeader>
+                    <TableBody 
+                      items={items}
+                      emptyContent={
+                        (selectedTab === "locked" && isLoadingLocked) || (selectedTab === "unlocked" && isLoadingUnlocked)
+                          ? <Spinner size="lg" color="danger" />
+                          : "Không có người dùng nào khớp với bộ lọc."
+                      }
+                    >
+                      {(item) => (
+                        <TableRow key={item.userId}>
+                          {(columnKey) => <TableCell>{renderCell(item, columnKey as string)}</TableCell>}
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </ModalBody>
             <ModalFooter>

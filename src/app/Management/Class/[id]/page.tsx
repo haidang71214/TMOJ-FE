@@ -11,6 +11,7 @@ import {
   Button,
   Avatar,
   Spinner,
+  Tooltip,
 } from "@heroui/react";
 import { ChevronLeft, Calendar, Edit, Copy, Download, Trash2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useGetClassDetailQuery } from "@/store/queries/Class";
 import CreateClassSemester from "../../../../Provider/CreateClassSemester";
 import UpdateClassSemester, { UpdateClassSemesterInitialData } from "../../../../Provider/UpdateClassSemester";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // thực ra cái này giống với classSemesterPage hơn
 export default function ClassDetailPage({
@@ -25,6 +27,7 @@ export default function ClassDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const resolvedParams = React.use(params);
   const classId = resolvedParams.id;
@@ -55,11 +58,6 @@ export default function ClassDetailPage({
   };
 
   const openCreateClassSemesterModal = () => {
-    if (!firstInstance) {
-      alert("Không có thông tin semester/subject để tạo!");
-      return;
-    }
-
     setIsCreateModalOpen(true);
   };
 
@@ -71,15 +69,15 @@ export default function ClassDetailPage({
     return (
       <div className="flex flex-col h-full items-center justify-center">
         <Spinner size="lg" color="primary" />
-        <p className="mt-4 text-slate-500">Đang tải thông tin lớp học...</p>
+        <p className="mt-4 text-slate-500">{t('class_detail_page.loading') || "Loading class details..."}</p>
       </div>
     );
   }
 
-  if (!classDetail || instances.length === 0) {
+  if (!classDetail) {
     return (
-      <div className="text-center py-20 text-red-500">
-        Không tìm thấy thông tin instances cho lớp này.
+      <div className="text-center py-20 text-red-500 font-bold uppercase">
+        {t('common.error') || "Class not found."}
       </div>
     );
   }
@@ -91,33 +89,36 @@ export default function ClassDetailPage({
   return (
     <div className="flex flex-col h-full gap-8 p-2">
       {/* HEADER */}
-      <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
-        <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            CLASS <span className="text-[#FF5C00]">{classDetail.classCode || "DETAIL"}</span>
-          </h1>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
-            Instances Management
-          </p>
+      <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8 overflow-hidden">
+        <div className="animate-fade-in-right flex items-center gap-4">
+          <Button
+            isIconOnly
+            variant="light"
+            className="active-bump h-12 w-12 rounded-2xl"
+            onPress={() => router.back()}
+          >
+            <ChevronLeft size={24} className="text-slate-500" />
+          </Button>
+          <div>
+            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
+              {t('class_detail_page.title1') || "CLASS"} <span className="text-[#FF5C00]">{classDetail?.classCode || "DETAIL"}</span>
+            </h1>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
+              {t('class_detail_page.subtitle') || "Instances Management"}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Nút tạo Class Semester mới */}
           <Button
             color="primary"
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider"
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider animate-fade-in-up active-bump"
+            style={{ animationFillMode: "both", animationDelay: "100ms" }}
             startContent={<Plus size={18} />}
             onPress={openCreateClassSemesterModal}
           >
-            ADD NEW SEMESTER FOR CLASS
-          </Button>
-
-          <Button
-            variant="light"
-            startContent={<ChevronLeft size={20} />}
-            onPress={() => router.back()}
-          >
-            Quay lại
+            {t('class_detail_page.add_semester') || "ADD NEW SEMESTER FOR CLASS"}
           </Button>
         </div>
       </div>
@@ -134,21 +135,30 @@ export default function ClassDetailPage({
           }}
         >
           <TableHeader>
-            <TableColumn>ID</TableColumn>
-            <TableColumn>SEMESTER CODE</TableColumn>
-            <TableColumn>SUBJECT CODE</TableColumn>
-            <TableColumn>SUBJECT NAME</TableColumn>
-            <TableColumn>START DATE</TableColumn>
-            <TableColumn>END DATE</TableColumn>
-            <TableColumn>TEACHER</TableColumn>
-            <TableColumn className="text-right">OPERATIONS</TableColumn>
+            <TableColumn>{t('class_detail_page.table_id') || "ID"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_semester_code') || "SEMESTER CODE"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_subject_code') || "SUBJECT CODE"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_subject_name') || "SUBJECT NAME"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_start_date') || "START DATE"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_end_date') || "END DATE"}</TableColumn>
+            <TableColumn>{t('class_detail_page.table_teacher') || "TEACHER"}</TableColumn>
+            <TableColumn className="text-right">{t('class_detail_page.table_operations') || "OPERATIONS"}</TableColumn>
           </TableHeader>
 
-          <TableBody emptyContent="Không có instance nào">
+          <TableBody
+            emptyContent={
+              <div className="flex flex-col items-center justify-center p-8 opacity-60">
+                <p className="text-sm font-black italic tracking-widest uppercase">
+                  {t('class_detail.no_semester') || "Haven't got any semester yet -> Create one"}
+                </p>
+              </div>
+            }
+          >
             {instances.map((instance: any, index: number) => (
              <TableRow
   key={instance.classSemesterId}
-  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+  className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer animate-fade-in-right"
+  style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}
   onClick={() => handleViewSemester(
     instance.classSemesterId, 
      instance?.semesterCode
@@ -213,7 +223,7 @@ export default function ClassDetailPage({
                     />
                     <div>
                       <p className="font-medium text-sm leading-tight">
-                        {instance.teacher?.displayName || "Chưa có giáo viên"}
+                        {instance.teacher?.displayName || t('common.no_teacher') || "Chưa có giáo viên"}
                       </p>
                       {instance.teacher?.email && (
                         <p className="text-[10px] text-slate-500">{instance.teacher.email}</p>
@@ -225,18 +235,46 @@ export default function ClassDetailPage({
                 {/* Operations */}
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9" onPress={() => openUpdateModal(instance)}>
-                      <Edit size={16} className="text-slate-500" />
-                    </Button>
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
-                      <Copy size={16} className="text-slate-500" />
-                    </Button>
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9">
-                      <Download size={16} className="text-slate-500" />
-                    </Button>
-                    <Button isIconOnly size="sm" variant="flat" className="h-9 w-9 text-rose-500">
-                      <Trash2 size={16} />
-                    </Button>
+                    <Tooltip content={t('common.edit') || (language === 'vi' ? 'Chỉnh sửa' : 'Edit')} placement="top" className="font-bold text-[10px]">
+                      <Button 
+                        isIconOnly size="sm" variant="flat" 
+                        className="h-9 w-9 animate-fade-in-up hover:bg-slate-200 dark:hover:bg-white/10" 
+                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 100}ms` }}
+                        onPress={() => openUpdateModal(instance)}
+                      >
+                        <Edit size={16} className="text-slate-500" />
+                      </Button>
+                    </Tooltip>
+                    
+                    <Tooltip content={t('common.duplicate') || (language === 'vi' ? 'Nhân bản' : 'Duplicate')} placement="top" className="font-bold text-[10px]">
+                      <Button 
+                        isIconOnly size="sm" variant="flat" 
+                        className="h-9 w-9 animate-fade-in-up hover:bg-slate-200 dark:hover:bg-white/10" 
+                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 150}ms` }}
+                      >
+                        <Copy size={16} className="text-slate-500" />
+                      </Button>
+                    </Tooltip>
+
+                    <Tooltip content={t('common.download') || (language === 'vi' ? 'Tải xuống' : 'Download')} placement="top" className="font-bold text-[10px]">
+                      <Button 
+                        isIconOnly size="sm" variant="flat" 
+                        className="h-9 w-9 animate-fade-in-up hover:bg-slate-200 dark:hover:bg-white/10"
+                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 200}ms` }}
+                      >
+                        <Download size={16} className="text-slate-500" />
+                      </Button>
+                    </Tooltip>
+
+                    <Tooltip content={t('common.delete') || (language === 'vi' ? 'Xóa' : 'Delete')} placement="top" color="danger" className="font-bold text-[10px]">
+                      <Button 
+                        isIconOnly size="sm" variant="flat" 
+                        className="h-9 w-9 animate-fade-in-up hover:bg-red-100 dark:hover:bg-red-500/20 text-rose-500"
+                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 250}ms` }}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </Tooltip>
                   </div>
                 </TableCell>
               </TableRow>

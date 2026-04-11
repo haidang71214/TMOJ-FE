@@ -15,6 +15,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ManagementLayout({
   children,
@@ -26,26 +27,34 @@ export default function ManagementLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
 
+  const [activeKey, setActiveKey] = useState<string>("");
+
+  const { t, language } = useTranslation();
+
+  const menu = [
+    { key: "Dashboard", label: t('sidebar.dashboard') || (language === 'vi' ? "Bảng Điều Khiển" : "Dashboard"), icon: <LayoutDashboard size={20} /> },
+    { key: "Problem", label: t('sidebar.problem') || (language === 'vi' ? "Bài Tập" : "Problem"), icon: <FileCode size={20} /> },
+    { key: "Contest", label: t('sidebar.contest') || (language === 'vi' ? "Kỳ Thi" : "Contest"), icon: <Trophy size={20} /> },
+    { key: "Class", label: t('sidebar.class') || (language === 'vi' ? "Lớp Học" : "Class"), icon: <Users size={20} /> },
+    { key: "Teacher", label: t('sidebar.teacher') || (language === 'vi' ? "Giáo Viên" : "Teacher"), icon: <GraduationCap size={20} /> },
+    { key: "Subject", label: t('sidebar.subject') || (language === 'vi' ? "Môn Học" : "Subject"), icon: <BookOpenCheck size={20} /> },
+    { key: "Settings", label: t('sidebar.settings') || (language === 'vi' ? "Cài Đặt" : "Settings"), icon: <Settings size={20} /> },
+    { key: "Semester", label: t('sidebar.semester') || (language === 'vi' ? "Học Kỳ" : "Semester"), icon: <Calendar size={20} /> },
+    { key: "Tags", label: t('sidebar.tags') || (language === 'vi' ? "Nhãn" : "Tags"), icon: <Tag size={20} /> }
+  ];
+
   // Đảm bảo chỉ render sau khi đã mount để tránh lỗi Hydration ID của Listbox
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const menu = [
-    {
-      key: "Dashboard",
-      label: "Dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    { key: "Problem", label: "Problem", icon: <FileCode size={20} /> },
-    { key: "Contest", label: "Contest", icon: <Trophy size={20} /> },
-    { key: "Class", label: "Class", icon: <Users size={20} /> },
-    { key: "Teacher", label: "Teacher", icon: <GraduationCap size={20} /> },
-    { key: "Subject", label: "Subject", icon: <BookOpenCheck size={20} /> },
-    { key: "Settings", label: "Settings", icon: <Settings size={20} /> },
-    {key: "Semester", label: "Semester", icon: <Calendar size={20} />},
-    { key: "Tags", label: "Tags", icon: <Tag size={20} /> }
-  ];
+  // Thay đổi màu ngay khi được click (hoặc đồng bộ nếu thay đổi via URL)
+  useEffect(() => {
+    const matchingItem = menu.find(item => pathname.startsWith(`/Management/${item.key}`));
+    if (matchingItem) {
+      setActiveKey(matchingItem.key);
+    }
+  }, [pathname]);
 
   if (!mounted) return null;
 
@@ -71,18 +80,23 @@ export default function ManagementLayout({
           </h1>
           <Listbox
             aria-label="Admin Menu"
-            onAction={(key) => router.push(`/Management/${key}`)}
+            onAction={(key) => {
+              setActiveKey(key as string);
+              router.push(`/Management/${key}`);
+            }}
             className="p-0 gap-2"
           >
-            {menu.map((item) => (
+            {menu.map((item, index) => (
               <ListboxItem
                 key={item.key}
                 startContent={item.icon}
-                className={`h-12 rounded-2xl px-4 transition-all ${
-                  pathname.includes(item.key)
-                    ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-white font-black shadow-lg shadow-orange-500/20"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-white"
-                }`}
+                className={`relative h-12 rounded-2xl px-4 transition-all opacity-0 animate-fade-in-right overflow-hidden
+                  ${
+                  activeKey === item.key
+                    ? "bg-[#071739] data-[hover=true]:bg-[#071739] dark:bg-[#FF5C00] dark:data-[hover=true]:bg-[#FF5C00] text-white data-[hover=true]:text-white font-black shadow-lg shadow-orange-500/20 opacity-100 data-[hover=true]:opacity-100"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 data-[hover=true]:bg-slate-100 dark:hover:bg-[#FF5C00] dark:data-[hover=true]:bg-[#FF5C00] dark:hover:text-white dark:data-[hover=true]:text-white"
+                } after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[3px] after:w-0 hover:after:w-3/4 after:bg-[#FF5C00] after:transition-all after:duration-300`}
+                style={{ animationFillMode: 'both', animationDelay: `${index * 60 + 100}ms` }}
               >
                 <span className="text-sm font-bold uppercase tracking-wider">
                   {item.label}

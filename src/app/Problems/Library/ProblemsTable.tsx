@@ -11,6 +11,7 @@ import {
 } from "@heroui/react";
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { Problem } from "@/types";
 
@@ -20,21 +21,24 @@ interface ProblemsTableProps {
   toggleLike: (id: string) => void; // Hàm toggle từ parent
 }
 
-export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsTableProps) => (
+export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsTableProps) => {
+  const { t, language } = useTranslation();
+
+  return (
   <Table aria-label="Problems table" removeWrapper className="mt-2">
     <TableHeader>
       {/* Cột Like mới */}
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-center text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4 w-12">
-        Like
+        {t('common.like') || (language === 'vi' ? 'Thích' : 'Like')}
       </TableColumn>
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
-        Title
+        {t('common.title') || (language === 'vi' ? 'Tên bài tập' : 'Title')}
       </TableColumn>
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-center text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
-        Difficulty
+        {t('common.difficulty') || (language === 'vi' ? 'Độ khó' : 'Difficulty')}
       </TableColumn>
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-right text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
-        Status
+        {t('common.status') || (language === 'vi' ? 'Trạng thái' : 'Status')}
       </TableColumn>
     </TableHeader>
     <TableBody>
@@ -45,9 +49,10 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
         return (
           <TableRow
             key={p.id}
-            className={`cursor-pointer border-b border-gray-50 dark:border-[#1e293b] transition-all duration-200 
+            className={`cursor-pointer border-b border-gray-50 dark:border-[#1e293b] transition-all duration-200 animate-fade-in-right
               ${index % 2 !== 0 ? "bg-gray-50/50 dark:bg-[#1e293b]/40" : "bg-transparent"} 
               hover:bg-blue-50/50 dark:hover:bg-[#334155]/60`}
+            style={{ animationFillMode: 'both', animationDelay: `${index * 50}ms` }}
           >
             {/* Cột Like */}
             <TableCell className="py-5 text-center">
@@ -56,7 +61,8 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
                   e.stopPropagation(); // Ngăn click row chuyển trang
                   toggleLike(p.id);
                 }}
-                className="focus:outline-none transition-all duration-200 hover:scale-110 active:scale-95"
+                className="focus:outline-none transition-all duration-200 hover:scale-110 active:scale-95 animate-fade-in-up"
+                style={{ animationFillMode: 'both', animationDelay: `${index * 50 + 100}ms` }}
               >
                 <Heart
                   size={18}
@@ -82,7 +88,7 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
             {/* Difficulty */}
             <TableCell className="text-center py-5">
               <span
-                className={`text-[12px] font-black px-2 py-1 rounded-md ${
+                className={`inline-block text-[12px] font-black px-2 py-1 rounded-md ${
                   p.difficulty?.toLowerCase() === "easy"
                     ? "text-teal-500 bg-teal-500/10"
                     : p.difficulty?.toLowerCase() === "medium"
@@ -90,7 +96,10 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
                     : "text-red-500 bg-red-500/10"
                 }`}
               >
-                {p.difficulty ? p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1) : ""}
+                {p.difficulty?.toLowerCase() === "easy" ? (t('problem_management.easy') || (language === 'vi' ? 'Dễ' : 'Easy')) :
+                 p.difficulty?.toLowerCase() === "medium" ? (t('problem_management.medium') || (language === 'vi' ? 'Vừa' : 'Medium')) :
+                 p.difficulty?.toLowerCase() === "hard" ? (t('problem_management.hard') || (language === 'vi' ? 'Khó' : 'Hard')) :
+                 p.difficulty}
               </span>
             </TableCell>
 
@@ -106,4 +115,5 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
       })}
     </TableBody>
   </Table>
-);
+  );
+};

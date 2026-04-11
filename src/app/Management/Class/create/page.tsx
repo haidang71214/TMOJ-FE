@@ -21,8 +21,10 @@ import { useGetUserRoleQuery } from "@/store/queries/user";
 import { CreateClassRequest } from "@/types";
 import { useGetSemestersQuery } from "@/store/queries/Semester";
 import { RequiredStar } from "@/Common/RequiredStar";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CreateClassPage() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [create_class, { isLoading: isLaunching }] = useCreateClassMutation();
@@ -89,7 +91,7 @@ const semesters = semesterData?.data?.items ?? [];
     <div className="flex flex-col h-full gap-8 p-2 max-w-5xl mx-auto w-full">
 
       {/* HEADER */}
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-4 shrink-0 animate-fade-in-up" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
         <Link href="/Management/Class">
           <Button
             isIconOnly
@@ -101,7 +103,7 @@ const semesters = semesterData?.data?.items ?? [];
         </Link>
 
         <h1 className="text-4xl font-[1000] italic uppercase tracking-tighter text-[#071739] dark:text-white">
-          CREATE NEW <span className="text-[#FF5C00]">CLASS</span>
+          {t('class_create.title1') || "CREATE NEW"} <span className="text-[#FF5C00]">{t('class_create.title2') || "CLASS"}</span>
         </h1>
       </div>
 
@@ -110,7 +112,7 @@ const semesters = semesterData?.data?.items ?? [];
         {/* LEFT */}
         <div className="lg:col-span-2 space-y-6">
 
-          <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] p-4 shadow-sm">
+          <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] p-4 shadow-sm animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
             <CardBody className="gap-8">
 
               <div className="flex items-center gap-3">
@@ -119,37 +121,33 @@ const semesters = semesterData?.data?.items ?? [];
                 </div>
 
                 <h2 className="text-xl font-black italic uppercase tracking-tight text-[#071739] dark:text-white">
-                  General Information
+                  {t('class_create.general_info') || "General Information"}
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <Select
-
-                label={
-    <div className="flex items-center gap-1">
-      Subject
-      <RequiredStar rules={["Required field"]} />
-    </div>
-  }
-                  placeholder="Select subject"
+                  label={
+                    <div className="flex items-center gap-1">
+                      {t('class_create.subject') || "Subject"}
+                      <RequiredStar rules={["Required field"]} />
+                    </div>
+                  }
+                  placeholder={t('class_create.select_subject') || "Select subject"}
                   labelPlacement="outside"
                   variant="bordered"
                   isLoading={subjectLoading}
                   selectedKeys={form.subjectId ? [form.subjectId] : []}
                   onSelectionChange={(keys) =>
-                    handleChange(
-                      "subjectId",
-                      Array.from(keys)[0] as string
-                    )
+                    handleChange("subjectId", Array.from(keys)[0] as string)
                   }
                   classNames={{
+                    base: "animate-fade-in-up",
                     trigger: "h-12 rounded-xl",
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
+                    label: "font-black uppercase text-[10px] italic text-slate-500",
                   }}
-                  
+                  style={{ animationDelay: '150ms', animationFillMode: 'both' }}
                 >
                   {subjects.map((s) => (
                     <SelectItem key={s.subjectId}>
@@ -159,78 +157,74 @@ const semesters = semesterData?.data?.items ?? [];
                 </Select>
 
                 <Select
-   label={
-    <div className="flex items-center gap-1">
-      Semester
-      <RequiredStar rules={["Required field"]} />
-    </div>
-  }
-  placeholder="Select semester"
-  labelPlacement="outside"
-  variant="bordered"
-  isLoading={semesterLoading}
-  selectedKeys={form.semesterId ? [form.semesterId] : []}
-  onSelectionChange={(keys) =>
-    handleChange("semesterId", Array.from(keys)[0] as string)
-  }
-  classNames={{
-    trigger: "h-12 rounded-xl",
-    label:
-      "font-black uppercase text-[10px] italic text-slate-500",
-  }}
->
-  {semesters.map((s) => (
-    <SelectItem
-    
-      key={s.semesterId}
-      textValue={`${s.code}-${s.name}`}
-    >
-      {s.code}-{s.name}
-    </SelectItem>
-  ))}
-</Select>
+                  label={
+                    <div className="flex items-center gap-1">
+                      {t('class_create.semester') || "Semester"}
+                      <RequiredStar rules={["Required field"]} />
+                    </div>
+                  }
+                  placeholder={t('class_create.select_semester') || "Select semester"}
+                  labelPlacement="outside"
+                  variant="bordered"
+                  isLoading={semesterLoading}
+                  selectedKeys={form.semesterId ? [form.semesterId] : []}
+                  onSelectionChange={(keys) =>
+                    handleChange("semesterId", Array.from(keys)[0] as string)
+                  }
+                  classNames={{
+                    base: "animate-fade-in-up",
+                    trigger: "h-12 rounded-xl",
+                    label: "font-black uppercase text-[10px] italic text-slate-500",
+                  }}
+                  style={{ animationDelay: '200ms', animationFillMode: 'both' }}
+                >
+                  {semesters.map((s) => (
+                    <SelectItem key={s.semesterId} textValue={`${s.code}-${s.name}`}>
+                      {s.code}-{s.name}
+                    </SelectItem>
+                  ))}
+                </Select>
 
                 <Input
                   label={
-                  <div className="flex items-center gap-1">
-                  Class Code
-                    <RequiredStar rules={["Required field","Class Code must be unique"]} />
-                  </div>
-                }
-                  value={form.classCode}
-                  onValueChange={(v) =>
-                    handleChange("classCode", v)
+                    <div className="flex items-center gap-1">
+                      {t('class_create.class_code') || "Class Code"}
+                      <RequiredStar rules={["Required field","Class Code must be unique"]} />
+                    </div>
                   }
+                  value={form.classCode}
+                  onValueChange={(v) => handleChange("classCode", v)}
                   labelPlacement="outside"
                   variant="bordered"
                   classNames={{
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
+                    base: "animate-fade-in-up",
+                    label: "font-black uppercase text-[10px] italic text-slate-500",
                     inputWrapper: "h-12 rounded-xl",
                   }}
+                  style={{ animationDelay: '250ms', animationFillMode: 'both' }}
                 />
+
                 <Select
-                              label={
-                <div className="flex items-center gap-1">
-                Teacher
-                  <RequiredStar rules={["Required field"]} />
-                </div>}
-                  placeholder="Select teacher"
+                  label={
+                    <div className="flex items-center gap-1">
+                      {t('class_create.teacher') || "Teacher"}
+                      <RequiredStar rules={["Required field"]} />
+                    </div>
+                  }
+                  placeholder={t('class_create.select_teacher') || "Select teacher"}
                   labelPlacement="outside"
                   variant="bordered"
                   isLoading={teacherLoading}
                   selectedKeys={form.teacherId ? [form.teacherId] : []}
                   onSelectionChange={(keys) =>
-                    handleChange(
-                      "teacherId",
-                      Array.from(keys)[0] as string
-                    )
+                    handleChange("teacherId", Array.from(keys)[0] as string)
                   }
                   classNames={{
+                    base: "animate-fade-in-up",
                     trigger: "h-12 rounded-xl",
-                    label:
-                      "font-black uppercase text-[10px] italic text-slate-500",
+                    label: "font-black uppercase text-[10px] italic text-slate-500",
                   }}
+                  style={{ animationDelay: '300ms', animationFillMode: 'both' }}
                 >
                   {teachers.map((t) => (
                     <SelectItem key={t.userId}>
@@ -238,11 +232,11 @@ const semesters = semesterData?.data?.items ?? [];
                     </SelectItem>
                   ))}
                 </Select>
-                <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border-2 border-dashed border-divider flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase italic text-slate-400">
-                    Class Identifier
-                  </span>
 
+                <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border-2 border-dashed border-divider flex items-center justify-between animate-fade-in-up" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+                  <span className="text-[10px] font-black uppercase italic text-slate-400">
+                    {t('class_create.class_identifier') || "Class Identifier"}
+                  </span>
                   <span className="font-[1000] italic text-xl text-blue-600 dark:text-blue-400 uppercase">
                     {selectedSubject?.code || "???"}-{form.classCode || "???"}
                   </span>
@@ -257,27 +251,26 @@ const semesters = semesterData?.data?.items ?? [];
         {/* RIGHT */}
         <div>
 
-          <div className="p-8 rounded-[2.5rem] bg-[#071739] text-white flex flex-col gap-6 relative overflow-hidden shadow-2xl">
+          <div className="p-8 rounded-[2.5rem] bg-[#071739] text-white flex flex-col gap-6 relative overflow-hidden shadow-2xl animate-fade-in-right" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
 
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Rocket size={120} />
             </div>
 
             <h3 className="text-sm font-black uppercase italic tracking-widest text-[#FF5C00]">
-              Finalize Classroom
+              {t('class_create.finalize_classroom') || "Finalize Classroom"}
             </h3>
 
             <p className="text-xs text-slate-400 italic">
-              Launch {selectedSubject?.code || "..."}-{form.classCode || "..."} in{" "}
-              {form.semesterId || "..."} semester.
+              {t('class_create.launch_text', { subject: selectedSubject?.code || "...", classCode: form.classCode || "...", semester: form.semesterId || "..." }) || `Launch ${selectedSubject?.code || "..."}-${form.classCode || "..."} in ${form.semesterId || "..."} semester.`}
             </p>
 
             <Button
               onPress={handleLaunch}
               isLoading={isLaunching}
-              className="w-full bg-[#FF5C00] text-[#071739] font-[1000] h-16 rounded-2xl shadow-xl uppercase text-sm italic"
+              className="w-full bg-[#FF5C00] text-[#071739] font-[1000] h-16 rounded-2xl shadow-xl uppercase text-sm italic active-bump"
             >
-              Create Class
+              {t('class_create.create_class_btn') || "Create Class"}
             </Button>
 
           </div>

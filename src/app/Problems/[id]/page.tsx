@@ -16,8 +16,7 @@ import {
   CheckSquare,
   Timer,
 } from "lucide-react";
-
-import { ProblemListSidebar } from "./ProblemListSidebar";
+import { useTranslation } from "@/hooks/useTranslation";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import CompileErrorTab from "./CompileError/page";
@@ -28,19 +27,19 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
-  { key: "description", label: "Description", Icon: AlignLeft },
-  { key: "editorial", label: "Editorial", Icon: BookOpen },
-  { key: "solutions", label: "Solutions", Icon: Lightbulb },
-  { key: "submissions", label: "Submissions", Icon: Send },
-  { key: "compileerror", label: "Compile Error", Icon: TriangleAlert },
+  { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
+  { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
+  { key: "solutions", tKey: "problem_workspace.solutions", defaultVi: "Lời giải", defaultEn: "Solutions", Icon: Lightbulb },
+  { key: "submissions", tKey: "problem_workspace.submissions", defaultVi: "Lịch sử nộp", defaultEn: "Submissions", Icon: Send },
+  { key: "compileerror", tKey: "problem_workspace.compile_error", defaultVi: "Lỗi biên dịch", defaultEn: "Compile Error", Icon: TriangleAlert },
 ] as const;
 
 type LeftTabKey = (typeof LEFT_TABS)[number]["key"];
 
 // ── Right bottom tabs ─────────────────────────────────────────────────────
 const BOTTOM_TABS = [
-  { key: "testcase", label: "Testcase", Icon: FlaskConical },
-  { key: "result", label: "Test Result", Icon: CheckSquare },
+  { key: "testcase", tKey: "problem_workspace.testcase", defaultVi: "Bộ Test", defaultEn: "Testcase", Icon: FlaskConical },
+  { key: "result", tKey: "problem_workspace.test_result", defaultVi: "Kết quả", defaultEn: "Test Result", Icon: CheckSquare },
 ] as const;
 
 type BottomTabKey = (typeof BOTTOM_TABS)[number]["key"];
@@ -90,13 +89,11 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
-    const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery({id : problemId})
-    console.log(response); // mai vào đây check code
-    
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery({id : problemId})
+  const { t, language } = useTranslation();
+  
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
-  const [activeBottomTab, setActiveBottomTab] =
-    useState<BottomTabKey>("testcase");
+  const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
 
   // Horizontal split: left panel width
@@ -143,55 +140,6 @@ export default function ProblemDetailsPage() {
 
   return (
     <div className="flex flex-col h-screen bg-[#EBEBEB] dark:bg-[#101828] overflow-hidden font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-300">
-      {/* ── TOP NAVBAR ──────────────────────────────────────────── */}
-      <header className="h-11 shrink-0 bg-white dark:bg-[#1C2737] border-b dark:border-[#334155] flex items-center px-3 gap-3 shadow-sm">
-        {/* Problem list toggle */}
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="flex items-center gap-1.5 text-[12px] font-black text-gray-400 dark:text-[#94A3B8] hover:text-black dark:hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828]"
-        >
-          <AlignLeft size={15} />
-          Problem List
-        </button>
-
-        <div className="flex items-center">
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
-            <ChevronLeft size={16} />
-          </button>
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        <div className="h-5 w-px bg-gray-200 dark:bg-[#334155]" />
-
-        {/* Problem title */}
-        <span className="text-[13px] font-black text-[#262626] dark:text-[#F9FAFB] truncate max-w-sm">
-          1. Two Sum
-        </span>
-
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-[12px] text-gray-400 dark:text-[#667085]">
-            <Timer size={13} />
-            <span className="font-mono font-bold">0:00</span>
-          </div>
-          <div className="h-5 w-px bg-gray-200 dark:bg-[#334155]" />
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
-            <Maximize2 size={15} />
-          </button>
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors">
-            <Settings2 size={15} />
-          </button>
-        </div>
-      </header>
-
-      {/* Sidebar overlay */}
-      <ProblemListSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        currentProblemId={problemId}
-      />
-
       {/* ── MAIN AREA ───────────────────────────────────────────── */}
       <main
         ref={containerRef}
@@ -203,23 +151,26 @@ export default function ProblemDetailsPage() {
           className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0"
         >
           {/* Tab bar */}
-          <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2 gap-0.5  no-scrollbar">
-            {LEFT_TABS.map(({ key, label, Icon }) => {
+          <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-x-auto no-scrollbar">
+            {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
               const isActive = activeLeftTab === key;
+              const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
               return (
-                <button
-                  key={key}
-                  onClick={() => setActiveLeftTab(key)}
-                  className={`flex items-center gap-1.5 px-3 h-11 text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all relative
-                    ${
-                      isActive
-                        ? "text-[#262626] dark:text-[#E3C39D] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:rounded-t-full after:bg-current"
-                        : "text-gray-400 dark:text-[#475569] hover:text-[#262626] dark:hover:text-[#94A3B8]"
-                    }`}
-                >
-                  <Icon size={12} />
-                  {label}
-                </button>
+                <div key={key} className="animate-fade-in-right" style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}>
+                  <button
+                    onClick={() => setActiveLeftTab(key)}
+                    className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+                      ${
+                        isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                      }
+                      after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
+                  >
+                    <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                    {label}
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -259,23 +210,26 @@ export default function ProblemDetailsPage() {
           {/* ── RIGHT-BOTTOM: TESTCASE ── */}
           <div className="flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0">
             {/* Bottom Tab bar */}
-            <div className="h-11 shrink-0 bg-[#fafafa] dark:bg-[#162130] border-b dark:border-[#334155] flex items-end px-2">
-              {BOTTOM_TABS.map(({ key, label, Icon }) => {
+            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-x-auto no-scrollbar">
+              {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
                 const isActive = activeBottomTab === key;
+                const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
                 return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveBottomTab(key)}
-                    className={`flex items-center gap-1.5 px-3 h-11 text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all relative
-                      ${
-                        isActive
-                          ? "text-[#262626] dark:text-[#E3C39D] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:rounded-t-full after:bg-current"
-                          : "text-gray-400 dark:text-[#475569] hover:text-[#262626] dark:hover:text-[#94A3B8]"
-                      }`}
-                  >
-                    <Icon size={12} />
-                    {label}
-                  </button>
+                  <div key={key} className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}>
+                    <button
+                      onClick={() => setActiveBottomTab(key)}
+                      className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+                        ${
+                          isActive
+                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        }
+                        after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
+                    >
+                      <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                      {label}
+                    </button>
+                  </div>
                 );
               })}
             </div>

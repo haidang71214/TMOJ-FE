@@ -50,10 +50,10 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
 
   // ── STEP 1: Problem form
-  const [form, setForm] = React.useState<CreateProblemDraftRequest>({
+  const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({
     slug: "",
     title: "",
-    // difficulty: "medium",
+    difficulty: "medium",
     typeCode: "algorithm",
     visibilityCode: "public",
     scoringCode: "acm",
@@ -237,10 +237,10 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
             <Divider />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* <Select
+              <Select
                 label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field"]} /></div>}
                 selectedKeys={[form.difficulty]}
-                onSelectionChange={(keys) => setForm({ ...form, difficulty: Array.from(keys)[0] as any })}
+                onSelectionChange={(keys) => setForm({ ...form, difficulty: Array.from(keys)[0] as string })}
                 variant="bordered"
                 radius="sm"
                 labelPlacement="outside"
@@ -248,7 +248,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
                 <SelectItem key="easy">Easy</SelectItem>
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="hard">Hard</SelectItem>
-              </Select> */}
+              </Select>
               
               <Input
                 label={<div className="flex items-center gap-1">Time Limit (ms)<RequiredStar rules={["Required field"]} /></div>}

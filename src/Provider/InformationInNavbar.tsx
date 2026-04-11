@@ -29,9 +29,11 @@ import { useDispatch } from "react-redux";
 import { baseApi } from "@/store/base";
 import webStorageClient from "@/utils/webStorageClient";
 import { ADMIN_PAGE_URL, PAGE_URL } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function InformationInNavbar() {
   const router = useRouter();
+  const { t } = useTranslation();
     // 🔥 Lấy user trực tiếp từ RTK Query
   const { data: user } = useGetUserInformationQuery();
   const handleLink = (link: string) => router.push(link);
@@ -122,9 +124,11 @@ const checkadminpage = () => {
             startContent={
               <List size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '50ms' }}
             onClick={() => handleLink("/Lists")}
           >
-            <span className="font-bold text-sm">My Lists</span>
+            <span className="font-bold text-sm">{t('mylists') || "My Lists"}</span>
           </DropdownItem>
 
           <DropdownItem
@@ -135,9 +139,11 @@ const checkadminpage = () => {
                 className="text-[#4B6382] dark:text-[#98A2B3]"
               />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '100ms' }}
             onClick={() => handleLink("/Problems/MyLists")}
           >
-            <span className="font-bold text-sm">Bookmarks</span>
+            <span className="font-bold text-sm">{t('bookmarks') || "Bookmarks"}</span>
           </DropdownItem>
 
           <DropdownItem
@@ -148,9 +154,11 @@ const checkadminpage = () => {
                 className="text-[#4B6382] dark:text-[#98A2B3]"
               />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '150ms' }}
             onClick={() => handleLink("/Progress")}
           >
-            <span className="font-bold text-sm">Progress</span>
+            <span className="font-bold text-sm">{t('progress') || "Progress"}</span>
           </DropdownItem>
 
           <DropdownItem
@@ -158,10 +166,12 @@ const checkadminpage = () => {
             startContent={
               <Coins size={18} className="text-[#A68868] dark:text-[#FFB800]" />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '200ms' }}
             onClick={() => handleLink("/Coin")}
           >
             <span className="font-black text-sm bg-gradient-to-r from-[#A68868] to-[#071739] dark:from-[#FFB800] dark:to-[#E3C39D] bg-clip-text text-transparent">
-              Coin
+              {t('coin') || "Coin"}
             </span>
           </DropdownItem>
 
@@ -173,9 +183,11 @@ const checkadminpage = () => {
                 className="text-[#A68868] dark:text-[#FFB800]"
               />
             }
+             className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '250ms' }}
             onClick={() => handleLink("/New-features")}
           >
-            Try New Features
+            {t('trynewfeatures') || "Try New Features"}
           </DropdownItem>
 
           <DropdownItem
@@ -186,9 +198,11 @@ const checkadminpage = () => {
                 className="text-[#4B6382] dark:text-[#98A2B3]"
               />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '300ms' }}
             onClick={() => handleLink("/Crders")}
           >
-            Orders
+            {t('orders') || "Orders"}
           </DropdownItem>
 
           <DropdownItem
@@ -199,18 +213,23 @@ const checkadminpage = () => {
                 className="text-[#4B6382] dark:text-[#98A2B3]"
               />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '350ms' }}
             onClick={() => handleLink("/Settings")}
           >
-            Setting
+            {t('setting') || "Setting"}
           </DropdownItem>
+          
           <DropdownItem
             key="profile"
             startContent={
               <User2Icon className="w-[18px] h-[18px] text-[#4B6382] dark:text-[#98A2B3]" />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '400ms' }}
             onClick={() => handleLink("/Profile")}
           >
-            Profile
+            {t('profile') || "Profile"}
           </DropdownItem>
 
           <DropdownItem
@@ -221,21 +240,21 @@ const checkadminpage = () => {
                 className="text-[#4B6382] dark:text-[#98A2B3]"
               />
             }
+            className="animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '450ms' }}
             onClick={() => handleLink("/Appearance")}
           >
-            Appearance
+            {t('appearance') || "Appearance"}
           </DropdownItem>
 
           <DropdownItem
             key="logout"
-
-            startContent={<LogOut
-              className="text-danger"
-              size={18} />}
-            className="text-danger"
+            startContent={<LogOut size={18} />}
+            className="text-danger animate-fade-in-left"
+            style={{ animationFillMode: 'both', animationDelay: '500ms' }}
             onClick={handleLogout}
           >
-            Sign Out
+            {t('signout') || "Sign Out"}
           </DropdownItem>
         </DropdownMenu>
       </Dropdown>

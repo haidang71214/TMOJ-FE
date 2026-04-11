@@ -38,9 +38,11 @@ import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DisplayProblem {
   id: string;
+  slug: string;
   title: string;
   difficulty: string;
   submissions?: number;           // API chưa có → để tạm optional hoặc fake
@@ -53,8 +55,13 @@ interface DisplayProblem {
 
 export default function GlobalProblemListPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDifficulty, setFilterDifficulty] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
 
   // ── RTK Query ───────────────────────────────────────────────
   const {
@@ -80,6 +87,7 @@ export default function GlobalProblemListPage() {
 
     return apiResponse.data.map((p) => ({
       id: p.id,
+      slug: p.slug || p.id.split("-")[0] || p.id,
       title: p.title,
       difficulty: p.difficulty?.toUpperCase() ?? "UNKNOWN",
       submissions: undefined, // API chưa có → có thể thêm field sau
@@ -91,21 +99,52 @@ export default function GlobalProblemListPage() {
     }));
   }, [apiResponse]);
 
-  const totalItems = allProblems.length;
-  const pages = Math.ceil(totalItems / rowsPerPage);
+  const filteredProblems = useMemo(() => {
+    let filtered = [...allProblems];
+    
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter((p) => 
+        p.title.toLowerCase().includes(q)
+      );
+    }
+    
+    // Filter
+    if (filterDifficulty && filterDifficulty !== "all") {
+      filtered = filtered.filter((p) => p.difficulty?.toLowerCase() === filterDifficulty.toLowerCase());
+    }
+    
+    // Sort
+    if (sortBy === "title") {
+      filtered.sort((a,b) => a.title.localeCompare(b.title));
+    } else if (sortBy === "ac") {
+      filtered.sort((a,b) => {
+        const acA = parseFloat(a.acRate) || 0;
+        const acB = parseFloat(b.acRate) || 0;
+        return acB - acA;
+      });
+    }
+    // newest can just remain default
+    
+    return filtered;
+  }, [allProblems, searchQuery, filterDifficulty, sortBy]);
+
+  const totalItems = filteredProblems.length;
+  const pages = Math.ceil(totalItems / rowsPerPage) || 1;
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return allProblems.slice(start, end);
-  }, [page, allProblems]);
+    return filteredProblems.slice(start, end);
+  }, [page, filteredProblems]);
 
   // ── Loading / Error UI ──────────────────────────────────────
   if (isLoading) {
     return (
       <div className="flex flex-col h-full items-center justify-center">
         <Spinner size="lg" color="primary" />
-        <p className="mt-4 text-slate-500">Đang tải danh sách bài tập...</p>
+        <p className="mt-4 text-slate-500">{t('problem_management.loading') || "Loading problem list..."}</p>
       </div>
     );
   }
@@ -113,12 +152,12 @@ export default function GlobalProblemListPage() {
   if (isError) {
     return (
       <div className="flex flex-col h-full items-center justify-center text-center p-8">
-        <div className="text-red-500 text-2xl mb-4">Có lỗi xảy ra</div>
+        <div className="text-red-500 text-2xl mb-4">{t('common.error') || "Có lỗi xảy ra"}</div>
         <p className="text-slate-400 mb-6">
-          {(error as ErrorForm)?.data?.data?.message || "Không thể tải danh sách bài tập"}
+          {(error as ErrorForm)?.data?.data?.message || t('problem_management.error_loading') || "Failed to load"}
         </p>
         <Button color="primary" onPress={refetch}>
-          Thử lại
+          {t('common.retry') || "Thử lại"}
         </Button>
       </div>
     );
@@ -128,69 +167,86 @@ export default function GlobalProblemListPage() {
     <div className="flex flex-col h-full gap-8 p-2">
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8">
-        <div>
+        <div className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
           <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            PROBLEM <span className="text-[#FF5C00]">REPOSITORY</span>
+            {t('problem_management.title1') || "PROBLEM"} <span className="text-[#FF5C00]">{t('problem_management.title2') || "REPOSITORY"}</span>
           </h1>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
-            Manage and monitor system-wide programming problems
+            {t('problem_management.subtitle') || "Manage and monitor system-wide programming problems"}
           </p>
         </div>
         <Button
           startContent={<Plus size={20} strokeWidth={3} />}
           onClick={() => router.push("/Management/Problem/create")}
-          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-up"
+          style={{ animationFillMode: 'both', animationDelay: '200ms' }}
         >
-          CREATE NEW PROBLEM
+          {t('problem_management.create_button') || "CREATE NEW PROBLEM"}
         </Button>
       </div>
 
       {/* FILTER BAR */}
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
-          placeholder="Search by title or ID..."
+          placeholder={t('problem_management.search_placeholder') || "Search by problem title..."}
           startContent={<Search size={18} className="text-slate-400" />}
           classNames={{
             inputWrapper:
               "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
           }}
-          className="max-w-xs font-medium"
+          className="max-w-xs font-medium animate-fade-in-up"
+          style={{ animationFillMode: 'both', animationDelay: '300ms' }}
+          value={searchQuery}
+          onValueChange={setSearchQuery}
         />
 
         <Dropdown>
           <DropdownTrigger>
             <Button
               variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5"
+              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5 active-press animate-fade-in-up"
+              style={{ animationFillMode: 'both', animationDelay: '400ms' }}
               startContent={<SortAsc size={16} />}
               endContent={<ChevronDown size={14} />}
             >
-              Sort By
+              {t('problem_management.sort_by') || "Sort By"}
             </Button>
           </DropdownTrigger>
-          <DropdownMenu aria-label="Sort Options" className="font-bold uppercase text-[10px]">
-            <DropdownItem key="newest">Latest ID</DropdownItem>
-            <DropdownItem key="title">Title A-Z</DropdownItem>
-            <DropdownItem key="ac">AC Rate</DropdownItem>
+          <DropdownMenu 
+            aria-label="Sort Options" 
+            className="font-bold uppercase text-[10px]"
+            selectionMode="single"
+            selectedKeys={new Set([sortBy])}
+            onSelectionChange={(keys) => setSortBy((Array.from(keys)[0] as string) || "newest")}
+          >
+            <DropdownItem key="newest">{t('problem_management.latest_id') || "Latest ID"}</DropdownItem>
+            <DropdownItem key="title">{t('problem_management.title_az') || "Title A-Z"}</DropdownItem>
+            <DropdownItem key="ac">{t('problem_management.ac_rate') || "AC Rate"}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
 
         <Select
-          placeholder="Difficulty"
-          className="w-40"
+          placeholder={t('problem_management.difficulty') || "Difficulty"}
+          className="w-44 animate-fade-in-up"
+          style={{ animationFillMode: 'both', animationDelay: '500ms' }}
           classNames={{
             trigger:
               "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
           }}
+          selectedKeys={new Set([filterDifficulty])}
+          onSelectionChange={(keys) => setFilterDifficulty((Array.from(keys)[0] as string) || "all")}
         >
+          <SelectItem key="all" className="font-bold uppercase text-[10px] text-slate-500">
+            {t('problem_management.all_difficulties') || "All Difficulties"}
+          </SelectItem>
           <SelectItem key="easy" className="font-bold uppercase text-[10px] text-emerald-500">
-            Easy
+            {t('problem_management.easy') || "Easy"}
           </SelectItem>
           <SelectItem key="medium" className="font-bold uppercase text-[10px] text-amber-500">
-            Medium
+            {t('problem_management.medium') || "Medium"}
           </SelectItem>
           <SelectItem key="hard" className="font-bold uppercase text-[10px] text-rose-500">
-            Hard
+            {t('problem_management.hard') || "Hard"}
           </SelectItem>
         </Select>
 
@@ -198,7 +254,8 @@ export default function GlobalProblemListPage() {
 
         <Button
           isIconOnly
-          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-90 ml-auto"
+          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active-press ml-auto animate-fade-in-up"
+          style={{ animationFillMode: 'both', animationDelay: '600ms' }}
           onPress={refetch}
         >
           <RefreshCw size={18} />
@@ -217,29 +274,33 @@ export default function GlobalProblemListPage() {
           }}
         >
           <TableHeader>
-            <TableColumn>ID</TableColumn>
-            <TableColumn>PROBLEM TITLE</TableColumn>
-            <TableColumn>TAGS</TableColumn>
-            <TableColumn>DIFFICULTY</TableColumn>
-            <TableColumn>SOURCE</TableColumn>
-            <TableColumn>AC RATE</TableColumn>
-            <TableColumn>VISIBLE</TableColumn>
-            <TableColumn>ACCESS</TableColumn>
-            <TableColumn className="text-right">OPERATIONS</TableColumn>
+            <TableColumn>{t('problem_management.id') || "ID"}</TableColumn>
+            <TableColumn>{t('problem_management.problem_title') || "PROBLEM TITLE"}</TableColumn>
+            <TableColumn>{t('problem_management.tags') || "TAGS"}</TableColumn>
+            <TableColumn>{t('problem_management.difficulty') || "DIFFICULTY"}</TableColumn>
+            <TableColumn>{t('problem_management.source') || "SOURCE"}</TableColumn>
+            <TableColumn>{t('problem_management.ac_rate') || "AC RATE"}</TableColumn>
+            <TableColumn>{t('problem_management.visible') || "VISIBLE"}</TableColumn>
+            <TableColumn>{t('problem_management.access') || "ACCESS"}</TableColumn>
+            <TableColumn className="text-right">{t('problem_management.operations') || "OPERATIONS"}</TableColumn>
           </TableHeader>
-          <TableBody emptyContent="Chưa có bài tập nào">
-            {items.map((p) => (
+          <TableBody emptyContent={t('problem_management.empty_state') || "Chưa có bài tập nào"}>
+            {items.map((p, index) => (
               <TableRow
                 key={p.id}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active-press animate-fade-in-right cursor-pointer"
+                style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}
+                onClick={() => router.push(`/Problems/Library/${p.id}`)}
               >
                 <TableCell>
-                  <span className="text-slate-400 font-black italic text-xs">#{p.id}</span>
+                  <span className="text-slate-400 font-black italic text-xs">#{index}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
-                    {p.title}
-                  </span>
+                  <div className="w-[60px] sm:w-[100px] md:w-[140px] lg:w-[180px] xl:w-[220px] truncate" title={p.title}>
+                    <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
+                      {p.title}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
@@ -269,7 +330,10 @@ export default function GlobalProblemListPage() {
                         : "bg-rose-500/10 text-rose-500"
                     }`}
                   >
-                    {p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1).toLowerCase()}
+                    {p.difficulty === "EASY" ? (t('problem_management.easy') || "EASY") :
+                     p.difficulty === "MEDIUM" ? (t('problem_management.medium') || "MEDIUM") :
+                     p.difficulty === "HARD" ? (t('problem_management.hard') || "HARD") :
+                     p.difficulty}
                   </Chip>
                 </TableCell>
                 <TableCell>
@@ -301,42 +365,42 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">
-                    {p.access ? "PUBLIC" : "DRAFT"}
+                    {p.access ? (t('common.public') || "PUBLIC") : (t('common.draft') || "DRAFT")}
                   </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    <Tooltip content="Archive to Bookmark" className="font-bold text-[10px]">
+                    <Tooltip content={t('common.archive') || "Archive to Bookmark"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() => handleOpenArchive(p)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#FFB800] transition-all rounded-lg h-9 w-9"
+                        onClick={(e) => { e.stopPropagation(); handleOpenArchive(p); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#FFB800] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Archive size={16} />
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Edit Detail" className="font-bold text-[10px]">
+                    <Tooltip content={t('common.edit') || "Edit Detail"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() => router.push(`/Management/Problem/${p.id}/edit`)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/edit`); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Edit size={16} />
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Remix Problem" className="font-bold text-[10px]">
+                    <Tooltip content={t('common.remix') || "Remix Problem"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() => router.push(`/Management/Problem/${p.id}/remix`)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/remix`); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Copy size={16} />
                       </Button>
@@ -348,25 +412,27 @@ export default function GlobalProblemListPage() {
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9"
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9 active-bump"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <Download size={16} />
                         </Button>
                       </DropdownTrigger>
                       <DropdownMenu aria-label="Judging Operations" className="font-bold uppercase text-[10px]">
-                        <DropdownItem key="dl-solution">Download Solution</DropdownItem>
-                        <DropdownItem key="dl-testset">Download Testset</DropdownItem>
-                        <DropdownItem key="ul-solution">Upload New Solution</DropdownItem>
-                        <DropdownItem key="set-score" className="text-amber-500">Set Problem Score</DropdownItem>
+                        <DropdownItem key="dl-solution">{t('problem_management.dl_solution') || "Download Solution"}</DropdownItem>
+                        <DropdownItem key="dl-testset">{t('problem_management.dl_testset') || "Download Testset"}</DropdownItem>
+                        <DropdownItem key="ul-solution">{t('problem_management.ul_solution') || "Upload New Solution"}</DropdownItem>
+                        <DropdownItem key="set-score" className="text-amber-500">{t('problem_management.set_score') || "Set Problem Score"}</DropdownItem>
                       </DropdownMenu>
                     </Dropdown>
 
-                    <Tooltip content="Delete" className="font-bold text-[10px]">
+                    <Tooltip content={t('common.delete') || "Delete"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9 active-bump"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <Trash2 size={16} />
                       </Button>

@@ -50,7 +50,8 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
           // Phần auto-action chạy ngầm
           (async () => {
             try {
-              const allRes = await triggerGetAllReports(undefined, false).unwrap();
+              // Tối ưu: Chỉ fetch nếu thực sự cần tính toán ngưỡng
+              const allRes = await triggerGetAllReports(undefined, true).unwrap();
               const allData = allRes?.data || [];
               const authorId = selectedReport.authorId;
               const targetId = selectedReport.targetId;
@@ -112,6 +113,25 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
               if (authorThresholdReached && authorId) {
                 await lockUser(authorId).unwrap();
                 toast.success(`Tài khoản ${selectedReport.authorName || authorId} đã bị khóa tự động do vi phạm ${effectiveAuthorCount} lần!`);
+
+                // Tự động ẩn/xóa toàn bộ nội dung vi phạm của người dùng này
+                const authorContents = allData.filter((r: any) => r.authorId === authorId);
+                const uniqueTargets = Array.from(new Set(authorContents.map((r: any) => `${r.targetType.toLowerCase()}:${r.targetId}`)));
+
+                for (const targetKey of uniqueTargets) {
+                  const [tType, tId] = targetKey.split(":");
+                  if (!tId) continue;
+                  try {
+                    if (tType === "comment") {
+                      await hideComment({ commentId: tId, isHidden: true }).unwrap();
+                    } else if (tType === "discussion") {
+                      await deleteDiscussion({ id: tId }).unwrap();
+                    }
+                  } catch (subErr) {
+                    console.error(`Lỗi auto-hide nội dung ${targetKey}:`, subErr);
+                  }
+                }
+                toast.success(`Đã tự động ẩn các nội dung vi phạm của ${selectedReport.authorName || authorId}.`);
               }
 
             } catch (autoErr) {
@@ -176,20 +196,36 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="font-black uppercase text-sm tracking-widest text-[#3F4755] dark:text-gray-400">
-            Lý do xử lý (Admin Note)
+        {selectedReport?.status === "pending" ? (
+          <div className="space-y-3">
+            <div className="font-black uppercase text-sm tracking-widest text-[#3F4755] dark:text-gray-400">
+              Lý do xử lý (Admin Note)
+            </div>
+            <Textarea
+              placeholder="Nhập lý do phê duyệt hoặc từ chối báo cáo này..."
+              variant="bordered"
+              value={adminReason}
+              onValueChange={setAdminReason}
+              classNames={{
+                input: "text-sm",
+              }}
+            />
           </div>
-          <Textarea
-            placeholder="Nhập lý do phê duyệt hoặc từ chối báo cáo này..."
-            variant="bordered"
-            value={adminReason}
-            onValueChange={setAdminReason}
-            classNames={{
-              input: "text-sm",
-            }}
-          />
-        </div>
+        ) : (
+          selectedReport?.moderatorNote && (
+            <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/50">
+              <div className="font-bold text-xs text-blue-800 dark:text-blue-400 uppercase tracking-tighter mb-1">Admin Processing Note:</div>
+              <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                "{selectedReport.moderatorNote}"
+              </p>
+              {selectedReport.resolvedBy && (
+                <div className="text-[10px] text-blue-500 mt-2 text-right">
+                  Processed by: {selectedReport.resolvedBy}
+                </div>
+              )}
+            </div>
+          )
+        )}
 
         <div>
           <div className="font-black uppercase text-sm tracking-widest mb-3 text-[#3F4755] dark:text-gray-400">
@@ -220,9 +256,12 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 font-bold italic">
-              Báo cáo này đã được duyệt (Status: <span className="uppercase">{selectedReport?.status}</span>).
-            </p>
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
+                <CheckCircle size={14} className="text-emerald-500" />
+                This report has been <span className="uppercase text-emerald-600 dark:text-emerald-400">{selectedReport?.status}</span>.
+              </p>
+            </div>
           )}
         </div>
       </div>

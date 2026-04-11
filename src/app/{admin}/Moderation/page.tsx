@@ -278,16 +278,18 @@ export default function ModerationManagementPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      color="primary"
-                      onPress={() => {
-                        openModal({ content: <ModerateReportActionModal selectedReport={r} onSuccess={refetch} /> })
-                      }}
-                    >
-                      <ShieldAlert size={16} />
-                    </Button>
+                    {r.status === "pending" && (
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        color="primary"
+                        onPress={() => {
+                          openModal({ content: <ModerateReportActionModal selectedReport={r} onSuccess={refetch} /> })
+                        }}
+                      >
+                        <ShieldAlert size={16} />
+                      </Button>
+                    )}
                     <Button 
                       isIconOnly 
                       size="sm"
@@ -356,11 +358,11 @@ export default function ModerationManagementPage() {
                       </div>
                     </div>
 
-                    {((reportDetail as any)?.adminNote || (reportDetail as any)?.moderatorNote) && (
+                    {((reportDetail as any)?.moderatorNote) && (
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                         <div className="font-bold text-sm text-blue-800 dark:text-blue-300 mb-2">Lý do xử lý của admin</div>
                         <p className="text-sm text-blue-900 dark:text-blue-200">
-                          {(reportDetail as any).adminNote || (reportDetail as any).moderatorNote}
+                          {(reportDetail as any).moderatorNote}
                         </p>
                         {((reportDetail as any).resolvedAt || (reportDetail as any).updatedAt) && (
                           <div className="text-xs text-blue-500 mt-2">

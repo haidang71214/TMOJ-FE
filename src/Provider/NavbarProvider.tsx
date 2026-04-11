@@ -12,6 +12,7 @@ import {
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
 import {  Search as SearchIcon, Globe } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import ThemeToggle from "./ThemeToggle";
 import InformationInNavbar from "./InformationInNavbar";
 import RegisterModal from "@/app/Modal/RegisterModal";
 import LoginModal from "@/app/Modal/LoginModal";
@@ -117,20 +118,17 @@ export default function NavbarProvider() {
             }
             if (item === "Ranking") link = "/Ranking";
             if (item === "Management") { 
-            if (user?.role?.includes("teacher")) {
-              link = "/Management/Contest";
-            } 
-            // admin và manager có thể vào đây
-          else if (
-            user?.role?.includes("manager") ||
-            user?.role?.includes("admin")
-          ) {
-            link = "/Management/Problem";
-          }
-            else {
-              return null; 
+              if (user?.role?.toLowerCase() === "teacher") {
+                link = "/Management/Contest";
+              } else if (
+                user?.role?.toLowerCase() === "manager" ||
+                user?.role?.toLowerCase() === "admin"
+              ) {
+                link = "/Management/Problem";
+              } else {
+                return null; 
+              }
             }
-          }
             if (item === "Coin") link = "/Coin";
 
             const isActive = pathname.startsWith(`/${item}`);
@@ -159,7 +157,10 @@ export default function NavbarProvider() {
       </NavbarContent>
 
       {/* 2. USER & LANGUAGE */}
-      <NavbarContent justify="end" className="gap-4">
+      <NavbarContent justify="end" className="gap-2">
+        <NavbarItem>
+          <ThemeToggle />
+        </NavbarItem>
         <NavbarItem>
           <Button
             size="sm"
@@ -179,30 +180,35 @@ export default function NavbarProvider() {
           </div>
         ) : (
           <div className="flex gap-2">
-            <NavbarItem>
+            <NavbarItem 
+              className="opacity-0 animate-fade-in-up"
+              style={{ animationDelay: "100ms", animationFillMode: "both" }}
+            >
               <Button
                 size="sm"
                 variant="light"
                 onClick={() =>
                   openModal({ title: "Đăng nhập", content: <LoginModal /> })
                 }
-                className="text-[#071739] dark:text-white font-black rounded-full"
+                className="text-[#071739] dark:text-white font-black rounded-full transition-transform active-bump"
               >
-                Sign In
+                {t('nav.signin') || (language === 'vi' ? 'Đăng nhập' : 'Sign In')}
               </Button>
             </NavbarItem>
 
-            <NavbarItem>
+            <NavbarItem 
+              className="opacity-0 animate-fade-in-up"
+              style={{ animationDelay: "200ms", animationFillMode: "both" }}
+            >
               <Button
                 size="sm"
                 onClick={() =>
                   openModal({ title: "Đăng kí", content: <RegisterModal /> })
                 }
                 style={{ backgroundColor: "#ff8904" }}
-                className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 active:scale-95 transition-all"
+                className="text-white font-black rounded-full shadow-lg shadow-[#ff8904]/20 hover:brightness-110 transition-transform active-bump"
               >
-                Sign Up
-                
+                {t('nav.signup') || (language === 'vi' ? 'Đăng ký' : 'Sign Up')}
               </Button>
             </NavbarItem>
           </div>

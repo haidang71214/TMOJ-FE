@@ -11,24 +11,29 @@ import { SemesterItem } from "@/types";
  */
 export function useCurrentSemester() {
   const { data, isLoading, error, refetch } = useGetSemestersQuery();
-
   const currentSemester = useMemo<SemesterItem | null>(() => {
     if (!data?.data?.items || data.data.items.length === 0) return null;
     
     const items = data.data.items;
 
-    // 1. Ưu tiên kì có isActive = true
-    const activeSemester = items.find((s) => s.isActive);
-    if (activeSemester) return activeSemester;
-
-    // 2. Fallback tìm kì dựa theo thời gian Date.now()
+    // 1. Tìm kì học bao phủ thời gian hiện tại
     const now = Date.now();
-    const currentByDate = items.find((s) => {
-      const start = new Date(s.startAt).getTime();
-      const end = new Date(s.endAt).getTime();
+    const currentByDate = items.filter((s) => {
+      const start = new Date(s.startAt).setHours(0, 0, 0, 0);
+      const end = new Date(s.endAt).setHours(23, 59, 59, 999);
       return now >= start && now <= end;
     });
-    if (currentByDate) return currentByDate;
+
+    if (currentByDate.length > 0) {
+      // Ưu tiên kì có isActive = true trong số các kì hiện tại
+      const activeAndCurrent = currentByDate.find(s => s.isActive);
+      if (activeAndCurrent) return activeAndCurrent;
+      return currentByDate[0];
+    }
+
+    // 2. Nếu không có kì nào bao phủ hiện tại, lấy kì có isActive = true
+    const activeSemester = items.find((s) => s.isActive);
+    if (activeSemester) return activeSemester;
 
     // 3. Fallback lấy kì cuối cùng
     return items[items.length - 1];

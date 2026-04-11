@@ -35,12 +35,14 @@ const ProblemEndPoint = {
   CREATE_TESTCASE_PROBLEM:`${API_LON}/Testsets/{id}/testcases`
 }
 const ProblemListEndpoint = {
-  GET_LIST_PUBLIC_PROBLEM : `${API_PREFIX}/problems?status_code=archived`,
+  // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
+  GET_LIST_PUBLIC_PROBLEM : `${API_LON}/Problems/public`,
   GET_DETAIL_PUBLIC_PROBLEM:`${API_PREFIX}/Problems/{id}`,
 }
 const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER:`${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
-   GET_SUBMITTION:`${API_LON}/submissions/{submissionId}`
+  GET_SUBMITTION:`${API_LON}/submissions/{submissionId}`,
+  GET_SUBMISSIONS_LIST_BY_PROBLEM: `${API_LON}/submissions/{problemId}/submissionslist`
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
@@ -65,7 +67,7 @@ const ClassEndpoint = {
    DELETE_INVITE_CODE:`${API_PREFIX}/Class/{classSemesterId}/invite-code`,
    GET_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/students`, // đang làm
 
-   ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{classSemesterId}/students/manual​`, // add student vào 
+   ADD_CLASS_MEMBERS:`${API_PREFIX}/Class/{classSemesterId}/students/manual`, // add student vào 
    POST_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    DELETE_CLASS_MEMBERS:`${API_PREFIX}/Class/{id}/members/{userId}`,
    DELETE_STUDENT_CLASS_SEMESTER:`${API_PREFIX}/Class/{classSemesterId}/students/{studentId}`,
@@ -132,6 +134,8 @@ const DiscussionEndpoint = {
 const TagEndpoint = {
   GET_TAGS: `${API_LON}/Problems/tags`,
   CREATE_TAG: `${API_LON}/Problems/tags`,
+  ATTACH_TAGS: `${API_LON}/Problems/{problemId}/tags/attach`,
+  UPDATE_PROBLEM_TAGS: `${API_LON}/Problems/{problemId}/tags`,
 };
 
 const ReportEndpoint = {

@@ -22,6 +22,7 @@ import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
 import { useCreateClassSlotMutation } from "@/store/queries/ClassSlot";
 import { CreateClassSlotRequest, ErrorForm, Problem } from "@/types";
 import { RequiredStar } from "@/Common/RequiredStar";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface CreateSlotFormProps {
   classId: string;
@@ -35,15 +36,17 @@ interface SelectedProblem {
 }
 // này đổi thành class semester id
 export default function CreateSlotForm({ classId }: CreateSlotFormProps) {
+  const { t } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
   console.log("classId", classId);
   
   const [page, setPage] = useState(1);
-  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListQuery({ page, limit: 20 });
+  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListQuery({ page, pageSize: 5 });
   console.log("problemResponse", problemResponse);
   
   const problems = problemResponse?.data || [];
+  const totalPages = problemResponse?.pagination?.totalPages || 1;
   console.log("problems", problems);
   
   const [slotNo, setSlotNo] = useState<number>(1);
@@ -61,11 +64,11 @@ const [closeAt, setCloseAt] = useState<string>("");
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!title.trim()) newErrors.title = "Slot title is required";
-    if (slotNo < 1) newErrors.slotNo = "Slot number must be at least 1";
+    if (!title.trim()) newErrors.title = t("slot.titleRequired") || "Slot title is required";
+    if (slotNo < 1) newErrors.slotNo = t("slot.slotNoMin") || "Slot number must be at least 1";
 
     if (mode === "problemset" && selectedProblems.length === 0) {
-      newErrors.problems = "At least one problem is required for Problem Set mode";
+      newErrors.problems = t("slot.problemRequiredForProblemset") || "At least one problem is required for Problem Set mode";
     }
 
     setErrors(newErrors);
@@ -74,7 +77,7 @@ const [closeAt, setCloseAt] = useState<string>("");
 
   const onSubmit = async () => {
     if (!validateForm()) {
-      toast.error("Please fix the errors in the form!");
+      toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
       return;
     }
 
@@ -98,13 +101,13 @@ const [closeAt, setCloseAt] = useState<string>("");
 
       await createSlot({ classId, data: payload }).unwrap();
 
-      toast.success("Class slot created successfully!");
+      toast.success(t("slot.createSuccess") || "Class slot created successfully!");
       closeModal();
     } catch (err) {
       const apiError = err as ErrorForm;
       const errorMessage =
         apiError?.data?.data?.message ||
-        "Failed to create slot. Please try again.";
+        (t("slot.createFailed") || "Failed to create slot. Please try again.");
       toast.error(errorMessage);
     }
   };
@@ -166,10 +169,10 @@ const handleSelectionChange = (keys : Selection) => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Create New Slot
+              {t("slot.createNewSlot") || "Create New Slot"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-              Configure a new learning/activity slot for this class
+              {t("slot.createNewSlotDesc") || "Configure a new learning/activity slot for this class"}
             </p>
           </div>
         </div>
@@ -182,7 +185,7 @@ const handleSelectionChange = (keys : Selection) => {
           <Input
             label={
               <div className="flex items-center gap-1.5">
-                Slot Number <RequiredStar rules={["Required"]} />
+                {t("slot.slotNumber") || "Slot Number"} <RequiredStar rules={[t("common.required") || "Required"]} />
               </div>
             }
             type="number"
@@ -198,39 +201,39 @@ const handleSelectionChange = (keys : Selection) => {
           <Input
             label={
               <div className="flex items-center gap-1.5">
-                Slot Title <RequiredStar rules={["Required"]} />
+                {t("slot.slotTitle") || "Slot Title"} <RequiredStar rules={[t("common.required") || "Required"]} />
               </div>
             }
             value={title}
             onValueChange={setTitle}
             isInvalid={!!errors.title}
             errorMessage={errors.title}
-            placeholder="e.g. Week 3 - Dynamic Programming"
+            placeholder={t("slot.titlePlaceholder") || "e.g. Week 3 - Dynamic Programming"}
             variant="bordered"
           />
         </div>
 
         <Textarea
-          label="Description (optional)"
+          label={t("slot.descriptionOptional") || "Description (optional)"}
           value={description}
           onValueChange={setDescription}
-          placeholder="Short description of what this slot covers..."
+          placeholder={t("slot.descPlaceholder") || "Short description of what this slot covers..."}
           variant="bordered"
           minRows={2}
         />
 
         <Textarea
-          label="Rules / Guidelines (optional)"
+          label={t("slot.rulesOptional") || "Rules / Guidelines (optional)"}
           value={rules}
           onValueChange={setRules}
-          placeholder="Time limit, submission rules, scoring policy..."
+          placeholder={t("slot.rulesPlaceholder") || "Time limit, submission rules, scoring policy..."}
           variant="bordered"
           minRows={2}
         />
 
         {/* Mode */}
         <Select
-          label="Slot Mode"
+          label={t("slot.slotMode") || "Slot Mode"}
           selectedKeys={[mode]}
           onSelectionChange={(keys) => {
             const selected = Array.from(keys)[0] as "problemset" | "contest";
@@ -238,13 +241,13 @@ const handleSelectionChange = (keys : Selection) => {
           }}
           variant="bordered"
         >
-          <SelectItem key="problemset">Problem Set (Practice)</SelectItem>
-          <SelectItem key="contest">Contest (Timed Competition)</SelectItem>
+          <SelectItem key="problemset">{t("slot.modeProblemSet") || "Problem Set (Practice)"}</SelectItem>
+          <SelectItem key="contest">{t("slot.modeContest") || "Contest (Timed Competition)"}</SelectItem>
         </Select>
          <div className="grid grid-cols-3 gap-4">
 
   <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">Open At <RequiredStar rules={["Optional",]} /></div>
+    <div className="text-sm font-medium">{t("slot.openAt") || "Open At"} <RequiredStar rules={[t("common.optional") || "Optional",]} /></div>
     <Input
       type="datetime-local"
       labelPlacement="outside"
@@ -255,7 +258,7 @@ const handleSelectionChange = (keys : Selection) => {
   </div>
 
   <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">Due At <RequiredStar rules={["Optional"]}/> </div>
+    <div className="text-sm font-medium">{t("slot.dueAt") || "Due At"} <RequiredStar rules={[t("common.optional") || "Optional"]}/> </div>
     <Input
       type="datetime-local"
       labelPlacement="outside"
@@ -266,7 +269,7 @@ const handleSelectionChange = (keys : Selection) => {
   </div>
 
   <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">Close At <RequiredStar rules={["Optional"]}/> </div>
+    <div className="text-sm font-medium">{t("slot.closeAt") || "Close At"} <RequiredStar rules={[t("common.optional") || "Optional"]}/> </div>
     <Input
       type="datetime-local"
       labelPlacement="outside"
@@ -281,25 +284,25 @@ const handleSelectionChange = (keys : Selection) => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
-              Problems
-              {mode === "problemset" && <RequiredStar rules={["At least 1 required"]} />}
+              {t("slot.problems") || "Problems"}
+              {mode === "problemset" && <RequiredStar rules={[t("slot.atLeastOneReq") || "At least 1 required"]} />}
             </label>
             {selectedProblems.length > 0 && (
               <Chip variant="flat" color="primary" size="sm">
-                {selectedProblems.length} selected
+                {selectedProblems.length} {t("common.selected") || "selected"}
               </Chip>
             )}
           </div>
             <div className="flex gap-2">
   <Input
-    placeholder="Search problems..."
+    placeholder={t("slot.searchProblems") || "Search problems..."}
     value={search}
     onValueChange={setSearch}
     variant="bordered"
   />
 
   <Select
-    placeholder="Difficulty"
+    placeholder={t("slot.difficulty") || "Difficulty"}
     selectedKeys={difficultyFilter ? [difficultyFilter] : []}
     onSelectionChange={(keys) => {
       const value = Array.from(keys)[0] as string;
@@ -308,19 +311,19 @@ const handleSelectionChange = (keys : Selection) => {
     variant="bordered"
     className="w-40"
   >
-    <SelectItem key="easy">Easy</SelectItem>
-    <SelectItem key="medium">Medium</SelectItem>
-    <SelectItem key="hard">Hard</SelectItem>
+    <SelectItem key="easy">{t("slot.diffEasy") || "Easy"}</SelectItem>
+    <SelectItem key="medium">{t("slot.diffMedium") || "Medium"}</SelectItem>
+    <SelectItem key="hard">{t("slot.diffHard") || "Hard"}</SelectItem>
   </Select>
 </div>
 
           {isLoadingProblems ? (
             <div className="flex items-center justify-center gap-3 py-6 text-gray-500 dark:text-slate-400">
-              <Spinner size="sm" /> Loading available problems...
+              <Spinner size="sm" /> {t("slot.loadingProblems") || "Loading available problems..."}
             </div>
           ) : problems.length === 0 ? (
             <div className="py-6 text-center text-gray-500 dark:text-slate-400 border border-dashed rounded-xl">
-              No problems available yet.
+              {t("slot.noProblems") || "No problems available yet."}
             </div>
           ) : (
             <>
@@ -331,18 +334,21 @@ const handleSelectionChange = (keys : Selection) => {
     onSelectionChange={handleSelectionChange}
     className="p-1"
   >
-    {filteredProblems.map((prob: Problem) => (
+    {filteredProblems.map((prob: Problem, index: number) => (
       <ListboxItem
         key={prob.id}
         textValue={prob.title}
         className="data-[hover=true]:bg-indigo-50 dark:data-[hover=true]:bg-indigo-900/20"
       >
-        <div className="flex flex-col py-1">
+        <div 
+          className="flex flex-col py-1 animate-fade-in-right opacity-0"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
           <span className="font-medium">{prob.title}</span>
 
           {prob.difficulty && (
             <span className="text-xs text-gray-500 dark:text-slate-400">
-              Difficulty: {prob.difficulty}
+              {t("slot.difficulty") || "Difficulty"}: {prob.difficulty}
             </span>
           )}
         </div>
@@ -356,7 +362,7 @@ const handleSelectionChange = (keys : Selection) => {
     showControls
     color="primary"
     page={page}
-    total={10}
+    total={totalPages}
     onChange={setPage}
   />
 </div>
@@ -367,7 +373,7 @@ const handleSelectionChange = (keys : Selection) => {
           {selectedProblems.length > 0 && (
             <div className="mt-4 space-y-3">
               <p className="text-sm font-medium text-gray-600 dark:text-slate-300">
-                Selected order (drag to reorder in future versions):
+                {t("slot.selectedOrder") || "Selected order (drag to reorder in future versions):"}
               </p>
               <div className="space-y-2">
                 {selectedProblems.map((p, idx) => {
@@ -375,7 +381,8 @@ const handleSelectionChange = (keys : Selection) => {
                   return (
                     <div
                       key={p.problemId}
-                      className="flex items-center justify-between gap-4 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700"
+                      className="flex items-center justify-between gap-4 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700 animate-fade-in-right opacity-0"
+                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <div className="flex items-center gap-3 flex-1">
                         <Chip
@@ -387,7 +394,7 @@ const handleSelectionChange = (keys : Selection) => {
                         </Chip>
                         <div>
                           <p className="font-medium text-gray-800 dark:text-slate-200">
-                            {prob?.title  || "Unknown Problem"}
+                            {prob?.title  || (t("slot.unknownProblem") || "Unknown Problem")}
                           </p>
                          
                         </div>
@@ -401,7 +408,7 @@ const handleSelectionChange = (keys : Selection) => {
                           wrapper: "group-data-[selected=true]:bg-indigo-600",
                         }}
                       >
-                        Required
+                        {t("slot.requiredToggle") || "Required"}
                       </Switch>
                     </div>
                   );
@@ -426,7 +433,7 @@ const handleSelectionChange = (keys : Selection) => {
           onPress={closeModal}
           className="px-6 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-300 dark:hover:bg-slate-600"
         >
-          Cancel
+          {t("common.cancel") || "Cancel"}
         </Button>
 
         <Button
@@ -439,7 +446,7 @@ const handleSelectionChange = (keys : Selection) => {
             boxShadow: "0 6px 20px rgba(99,102,241,0.4)",
           }}
         >
-          {isCreating ? "Creating..." : "Create Slot"}
+          {isCreating ? (t("slot.creating") || "Creating...") : (t("slot.createSlot") || "Create Slot")}
         </Button>
       </div>
     </div>

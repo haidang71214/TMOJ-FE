@@ -4,13 +4,25 @@ import { Problem } from "@/types";
 export const problemPublicApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getProblemList: builder.query<{data : Problem[]}, {page : number, limit : number}>({
-      query: ({page, limit}) => ({
+    getProblemList: builder.query<{
+      data: Problem[];
+      pagination: {
+        page: number;
+        pageSize: number;
+        totalCount: number;
+        totalPages: number;
+        hasPrevious: boolean;
+        hasNext: boolean;
+      };
+    }, { page: number; pageSize: number; search?: string; difficulty?: string }>({
+      query: ({ page, pageSize, search, difficulty }) => ({
         url: ProblemListEndpoint.GET_LIST_PUBLIC_PROBLEM,
         method: "GET",
         params: {
           page,
-          limit,
+          pageSize,
+          search,
+          difficulty,
         },
       }),
       providesTags: ["ProblemList"], 

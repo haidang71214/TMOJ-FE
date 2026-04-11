@@ -72,16 +72,15 @@ export default function AdminPage() {
     <div
       className="
       min-h-screen flex
-      bg-gradient-to-br from-[#000000] via-[#050505] to-[#020202]
-      text-slate-300
+      bg-[#F0F2F5] transition-colors duration-500 relative
+      text-[#071739]
     "
     >
       {/* SIDEBAR */}
       <aside
         className="
         w-64 p-6 border-r
-        bg-[#0A0A0A] border-[#22C55E]/20 backdrop-blur-xl
-        dark:bg-[#0A0A0A]/50
+        bg-white border-slate-200 overflow-y-auto shadow-xl z-50
       "
       >
 
@@ -98,10 +97,10 @@ export default function AdminPage() {
                   relative flex items-center gap-4 px-4 py-3 rounded-xl transition-all opacity-0 animate-fade-in-right active-bump overflow-hidden
                   ${
                     active
-                      ? "bg-[#22C55E]/10 text-[#4ADE80] shadow-md font-black shadow-[#22C55E]/20 border border-[#22C55E]/30"
-                      : "text-slate-400 hover:bg-[#22C55E]/5 hover:text-[#22C55E]"
+                      ? "bg-[#071739] text-white font-black shadow-lg shadow-[#071739]/30"
+                      : "text-slate-500 hover:bg-slate-100"
                   }
-                  after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[3px] after:w-0 hover:after:w-[70%] after:bg-[#4ADE80] after:transition-all after:duration-300
+                  after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[3px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300
                 `}
                 style={{ animationFillMode: 'both', animationDelay: `${index * 60 + 100}ms` }}
               >
@@ -121,7 +120,7 @@ export default function AdminPage() {
         <header
           className="
           h-16 px-8 flex items-center justify-between
-          border-b bg-black/80 border-[#22C55E]/20 backdrop-blur
+          border-b border-slate-200 bg-white/80 backdrop-blur shadow-sm sticky top-0 z-40
         "
         >
           <span className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
@@ -129,7 +128,7 @@ export default function AdminPage() {
           </span>
 
           <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#22C55E] to-[#10B981] flex items-center justify-center text-black font-black shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF5C00] to-[#E85500] flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/30">
               A
             </div>
           </div>
@@ -139,8 +138,8 @@ export default function AdminPage() {
         <main className="flex-1 p-10">
           <div
             className="
-            rounded-2xl p-8
-            bg-[#0A0A0A]/60 border border-[#22C55E]/20 backdrop-blur-xl shadow-[0_0_30px_rgba(34,197,94,0.15)]
+            rounded-3xl p-8 min-h-full
+            bg-white border border-slate-200 shadow-xl
           "
           >
             {pages[page]}

@@ -26,11 +26,15 @@ import {
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import CreateListModal from "./MyLists/CreateListModal";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProblemsSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { data: user } = useGetUserInformationQuery();
+  const { t } = useTranslation();
 
   const myLists = [
     {
@@ -72,6 +76,16 @@ export default function ProblemsSidebar() {
     <div className="w-full max-w-[260px] shrink-0 flex flex-col gap-8 py-2">
       {/* 1. EXPLORER SECTION */}
       <div className="flex flex-col gap-3">
+        {(user?.role?.includes("teacher") || user?.role?.includes("admin") || user?.role?.includes("manager")) && (
+          <Button
+            size="lg"
+            className="w-full bg-[#FF5C00] text-white font-black shadow-lg shadow-orange-500/30 active-bump rounded-2xl flex items-center justify-start px-4 h-12 uppercase tracking-wider text-sm"
+            startContent={<Plus size={20} strokeWidth={3} />}
+            onPress={() => router.push('/Problems/create')}
+          >
+            {t('problem_create.create_problem') || "CREATE PROBLEM"}
+          </Button>
+        )}
         <Listbox
           aria-label="Navigation"
           onAction={(key) => router.push(`/Problems/${String(key)}`)}

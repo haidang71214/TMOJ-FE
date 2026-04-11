@@ -227,6 +227,15 @@ updateClassSemester: builder.mutation<
   invalidatesTags: ["Class"],
 }),
 
+joinClass: builder.mutation<void, { inviteCode: string | null }>({
+  query: (data) => ({
+    url: "/api/v1/Class/join",
+    method: "POST",
+    body: data,
+  }),
+  invalidatesTags: ["MyClass"],
+}),
+
   }),
 });
 
@@ -250,4 +259,5 @@ export const {
    useExportStudentsClassSemesterMutation,
    useDeleteStudentClassSemesterMutation,
    useUpdateClassSemesterMutation,
+   useJoinClassMutation,
 } = classApi;

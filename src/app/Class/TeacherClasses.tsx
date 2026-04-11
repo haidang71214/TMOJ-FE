@@ -18,9 +18,13 @@ import {
   CheckCircle2,
   BookOpen,
   LogOut,
+  BookX,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import LeaveClassModal from "./../components/LeaveClassModal";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useCurrentSemester } from "@/hooks/useCurrentSemester";
 
 import { useGetMyClassesTeacherQuery } from "@/store/queries/Class";
 import { ClassItem } from "@/types";
@@ -31,19 +35,45 @@ export default function TeacherClasses() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);
+  const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>("INITIALIZING");
+  const { currentSemester, isLoading: isSemestersLoading } = useCurrentSemester();
+  
+  useEffect(() => {
+    if (selectedSemesterId === "INITIALIZING" && !isSemestersLoading) {
+      if (currentSemester) {
+        setSelectedSemesterId(currentSemester.semesterId);
+      } else {
+        setSelectedSemesterId(undefined); // fallback to all if no semester
+      }
+    }
+  }, [currentSemester, isSemestersLoading, selectedSemesterId]);
+
+  const querySemesterId = selectedSemesterId === "INITIALIZING" ? undefined : selectedSemesterId;
 
   const { data: responseData, isLoading } = useGetMyClassesTeacherQuery({ 
     page, 
     pageSize: rowsPerPage, 
-    semesterId: selectedSemesterId 
-  });
+    semesterId: querySemesterId 
+  }, { skip: selectedSemesterId === "INITIALIZING" });
+  const { t } = useTranslation();
   const fetchedClasses = responseData?.data?.items || [];
   const totalCount = responseData?.data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / rowsPerPage) || 1;
 console.log(responseData);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+
+  const uniqueSemesters = useMemo(() => {
+    const semesters = new Set();
+    fetchedClasses.forEach((cls: ClassItem) => {
+      cls.instances?.forEach((inst: any) => {
+        if (inst.semesterCode) {
+          semesters.add(inst.semesterCode);
+        }
+      });
+    });
+    return semesters.size;
+  }, [fetchedClasses]);
 
   useEffect(() => {
     setMounted(true);
@@ -72,42 +102,32 @@ console.log(responseData);
         {/* HEADER */}
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-[1000] italic tracking-tighter text-[#071739] dark:text-white uppercase leading-none">
-            TEACHING <span className="text-[#FF5C00]">CLASSES</span>
+            {t("class_management.teacher_title1") || "TEACHING"} <span className="text-[#FF5C00]">{t("class_management.teacher_title2") || "CLASSES"}</span>
           </h1>
           <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest italic">
-            MANAGE YOUR TEACHING CLASSES
+            {t("class_management.teacher_subtitle") || "MANAGE YOUR TEACHING CLASSES"}
           </p>
         </div>
 
         {/* TOP STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35] animate-in fade-in zoom-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
             <CardBody className="p-6">
               <p className="text-[10px] font-black text-slate-400 uppercase italic mb-1 tracking-widest">
-                Total Classes
+                {t("class_management.total_classes") || "Total Classes"}
               </p>
               <p className="text-4xl font-[1000] text-blue-600 dark:text-blue-400 italic leading-none">
                 {totalCount}
               </p>
             </CardBody>
           </Card>
-          <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
+          <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35] animate-in fade-in zoom-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both">
             <CardBody className="p-6">
               <p className="text-[10px] font-black text-slate-400 uppercase italic mb-1 tracking-widest">
-                Total Solved
+                {t("class_management.total_semesters") || "Total Semesters"}
               </p>
               <p className="text-4xl font-[1000] text-[#FF5C00] italic leading-none">
-                403
-              </p>
-            </CardBody>
-          </Card>
-          <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
-            <CardBody className="p-6">
-              <p className="text-[10px] font-black text-slate-400 uppercase italic mb-1 tracking-widest">
-                Total Problems
-              </p>
-              <p className="text-4xl font-[1000] text-[#00FF41] italic leading-none">
-                985
+                {uniqueSemesters}
               </p>
             </CardBody>
           </Card>
@@ -127,8 +147,9 @@ console.log(responseData);
             }}
           />
           <SemesterSelector 
-            selectedSemesterId={selectedSemesterId} 
+            selectedSemesterId={querySemesterId} 
             onSemesterChange={setSelectedSemesterId} 
+            hideAllOption
           />
           <Button
             isIconOnly
@@ -139,8 +160,16 @@ console.log(responseData);
         </div>
 
         {/* GRID LIST */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
-          {items.map((cls: ClassItem) => {
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-[#FF5C00] mb-4" />
+            <p className="text-sm font-bold text-slate-500 italic uppercase">
+              {t("class_management.loading") || "Loading classes..."}
+            </p>
+          </div>
+        ) : items.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6 mt-4">
+          {items.map((cls: ClassItem, index: number) => {
             const instance = cls.instances?.[0];
             const semesterCode = instance?.semesterCode || "UNKNOWN";
             const classNameFull = instance?.subjectName || instance?.subjectCode || "Unassigned Subject";
@@ -149,9 +178,16 @@ console.log(responseData);
             const total = 0;
             const progress = total > 0 ? Math.round((solved / total) * 100) : 0;
             
+            // animation delay sequence
+            const baseDelay = (index % 8) * 100;
+
             return (
-              <div key={cls.classId} className="relative group">
-                <Link href={`/Class/${instance?.classSemesterId || cls.classId}`} className="block h-full">
+              <div 
+                key={cls.classId} 
+                className="relative group animate-in fade-in zoom-in slide-in-from-right-8 duration-500 fill-mode-both"
+                style={{ animationDelay: `${baseDelay}ms` }}
+              >
+                <Link href={`/Class/${instance?.classSemesterId || cls.classId}?classCode=${encodeURIComponent(idString)}&semesterCode=${encodeURIComponent(semesterCode)}`} className="block h-full">
                   <Card className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm transition-all h-full hover:border-blue-600 dark:hover:border-[#00FF41] hover:-translate-y-1 overflow-hidden">
                     <CardBody className="p-5 flex flex-col justify-between gap-5">
                       <div className="space-y-4">
@@ -231,6 +267,19 @@ console.log(responseData);
             );
           })}
         </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in slide-in-from-bottom-4 duration-500">
+            <div className="w-24 h-24 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <BookX size={48} className="text-slate-400" />
+            </div>
+            <h3 className="text-xl font-[1000] text-[#071739] dark:text-white uppercase italic mb-2">
+              {t("class_management.no_classes")}
+            </h3>
+            <p className="text-sm font-bold text-slate-500 max-w-sm mx-auto">
+              {t("class_management.no_classes_teacher_desc")}
+            </p>
+          </div>
+        )}
 
         {/* PAGINATION */}
         <div className="flex justify-center mt-6 pb-10">

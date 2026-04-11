@@ -1,4 +1,4 @@
-import { Runtime, RuntimeResponse, SubmissionResponse, SubmitResponseV2 } from "@/types";
+import { Runtime, RuntimeResponse, SubmissionResponse, SubmitResponseV2, SubmissionListResponse } from "@/types";
 import { baseApi } from "../base";
 import { RuntimeEndpoint, SubmittionEndPoint } from "@/constants/endpoints";
 
@@ -10,14 +10,30 @@ export const SubmitionApi = baseApi.injectEndpoints({
     method: "POST",
     body: body,
   }),
-  invalidatesTags: ["submittion"],
+  invalidatesTags: ["submittion", "ProblemDetail"],
 }),
 getSubmission: builder.query<SubmitResponseV2, {submissionId:string}>({
     query: ({submissionId}) => ({
-      url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),     // ← thay url này bằng endpoint thật mà backend của bạn vừa làm
+      url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
       method: "GET",
     }),
+    async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      try {
+        await queryFulfilled;
+        // Kích hoạt rtk-query chọc API list tự động refetch lại mọi lần GET_SUBMITTION hoàn thành
+        dispatch(baseApi.util.invalidateTags(["ProblemDetail"]));
+      } catch (e) {
+        // silently ignore error map
+      }
+    },
   }),
+getSubmissionListByProblem: builder.query<SubmissionListResponse, string>({
+  query: (problemId) => ({
+    url: SubmittionEndPoint.GET_SUBMISSIONS_LIST_BY_PROBLEM.replace("{problemId}", problemId),
+    method: "GET",
+  }),
+  providesTags: ["ProblemDetail"],
+}),
 // get toàn bộ phần runtime, và get chi tiết phần runtime
 getRuntimeList: builder.query<RuntimeResponse, void>({
   query: () => ({
@@ -41,4 +57,5 @@ export const {
   usePostSubmissionMutation,
   useGetRuntimeListQuery,
   useGetRuntimeDetailQuery,
+  useGetSubmissionListByProblemQuery,
 } = SubmitionApi;

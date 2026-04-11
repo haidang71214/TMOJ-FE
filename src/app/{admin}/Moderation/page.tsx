@@ -224,6 +224,8 @@ export default function ModerationManagementPage() {
         >
           <TableHeader>
             <TableColumn>TYPE</TableColumn>
+            <TableColumn>AUTHOR</TableColumn>
+            <TableColumn>PROBLEM ID</TableColumn>
             <TableColumn>REASON (VIOLATION)</TableColumn>
             <TableColumn>STATUS</TableColumn>
             <TableColumn>TARGET ID</TableColumn>
@@ -239,6 +241,15 @@ export default function ModerationManagementPage() {
                   <Chip variant="flat" color="secondary" size="sm">
                     {r.targetType?.toUpperCase()}
                   </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-700 dark:text-slate-200">{r.authorName || "N/A"}</span>
+                    <span className="text-[10px] text-slate-400 font-mono truncate max-w-[100px]">{r.authorId}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs font-mono text-slate-500">{r.problemId || "N/A"}</span>
                 </TableCell>
                 <TableCell>
                   <div className="max-w-xs truncate font-medium">
@@ -258,7 +269,7 @@ export default function ModerationManagementPage() {
                   </Chip>
                 </TableCell>
                 <TableCell>
-                  <span className="text-slate-500 text-xs truncate max-w-[150px] inline-block" title={r.targetId}>
+                  <span className="text-slate-500 text-xs truncate max-w-[100px] inline-block" title={r.targetId}>
                     {r.targetId}
                   </span>
                 </TableCell>
@@ -324,6 +335,15 @@ export default function ModerationManagementPage() {
                           <p className="font-medium text-sm truncate" title={reportDetail?.targetId}>{reportDetail?.targetId}</p>
                         </div>
                         <div>
+                          <div className="font-bold text-xs text-slate-500">Author</div>
+                          <p className="font-medium text-sm">{(reportDetail as any)?.authorName || "N/A"}</p>
+                          <p className="text-[10px] text-slate-400">{(reportDetail as any)?.authorId}</p>
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-slate-500">Problem ID</div>
+                          <p className="font-medium text-sm">{(reportDetail as any)?.problemId || "N/A"}</p>
+                        </div>
+                        <div>
                           <div className="font-bold text-xs text-slate-500">Status</div>
                           <Chip size="sm" color={reportDetail?.status === "pending" ? "warning" : reportDetail?.status === "approved" ? "danger" : "default"}>
                             {reportDetail?.status?.toUpperCase()}
@@ -336,15 +356,15 @@ export default function ModerationManagementPage() {
                       </div>
                     </div>
 
-                    {((reportDetail as any)?.adminNote) && (
+                    {((reportDetail as any)?.adminNote || (reportDetail as any)?.moderatorNote) && (
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                         <div className="font-bold text-sm text-blue-800 dark:text-blue-300 mb-2">Lý do xử lý của admin</div>
                         <p className="text-sm text-blue-900 dark:text-blue-200">
-                          {(reportDetail as any).adminNote}
+                          {(reportDetail as any).adminNote || (reportDetail as any).moderatorNote}
                         </p>
-                        {(reportDetail as any).resolvedAt && (
+                        {((reportDetail as any).resolvedAt || (reportDetail as any).updatedAt) && (
                           <div className="text-xs text-blue-500 mt-2">
-                            Resolved at: {new Date((reportDetail as any).resolvedAt).toLocaleString()}
+                            Resolved at: {new Date((reportDetail as any).resolvedAt || (reportDetail as any).updatedAt).toLocaleString()}
                           </div>
                         )}
                         {(reportDetail as any).resolvedBy && (

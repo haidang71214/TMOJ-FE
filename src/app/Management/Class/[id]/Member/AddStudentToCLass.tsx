@@ -44,7 +44,6 @@ export default function AddStudentModal({ classId }: Props) {
       const res = await addMember({
         id: classId,
         data: {
-          rollNumber: selectedUser.roll_number ?? undefined,
           memberCode: selectedUser.member_code ?? undefined,
         },
       }).unwrap();

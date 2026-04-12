@@ -37,17 +37,19 @@ export default function LibraryPage() {
   };
 
   const [page, setPage] = useState(1);
-  const { data: problemResponse, isLoading } = useGetProblemListQuery({page: page, pageSize: 10});
-  const rawProblems = problemResponse?.data || [];
-  const totalPages = problemResponse?.pagination?.totalPages || 1;
-  console.log("rawProblems", problemResponse);
   
-  const problems = React.useMemo(() => {
-    if (!searchQuery.trim()) return rawProblems;
-    return rawProblems.filter((p) => 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase().trim())
-    );
-  }, [rawProblems, searchQuery]);
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  const { data: problemResponse, isLoading } = useGetProblemListQuery({
+    page: page, 
+    pageSize: 10,
+    search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined
+  });
+  const problems = problemResponse?.data || [];
+  const totalPages = problemResponse?.pagination?.totalPages || 1;
+  const totalCount = problemResponse?.pagination?.totalCount || 0;
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
       {/* SIDEBAR TRÁI */}
@@ -133,12 +135,12 @@ export default function LibraryPage() {
                 <div className="flex items-center gap-4 shrink-0 bg-white/40 dark:bg-[#1C2737]/30 p-4 rounded-2xl border border-[#A4B5C4]/10">
                   <div className="flex flex-col items-end w-40 text-right">
                     <span className="text-[10px] font-black text-[#4B6382] dark:text-[#FFB800] uppercase tracking-widest leading-none mb-2">
-                      6 / 3829 Solved
+                      0 / {totalCount} Solved
                     </span>
                     <Progress
                       aria-label="Solved progress"
                       size="sm"
-                      value={(6 / 3829) * 100}
+                      value={0}
                       classNames={{
                         indicator: "bg-green-500 dark:bg-[#FFB800]",
                         track: "bg-gray-200 dark:bg-[#101828]",
@@ -161,6 +163,8 @@ export default function LibraryPage() {
                       problems={problems}
                       likedProblems={likedProblems}
                       toggleLike={toggleLike}
+                      page={page}
+                      pageSize={10}
                     />
                     <div className="flex justify-center pb-2">
                       <Pagination

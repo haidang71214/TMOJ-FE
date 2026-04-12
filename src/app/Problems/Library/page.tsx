@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
+import { Pagination } from "@heroui/react";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -35,8 +36,11 @@ export default function LibraryPage() {
     });
   };
 
-  const { data: problemResponse, isLoading } = useGetProblemListQuery({page : 1, limit : 10});
+  const [page, setPage] = useState(1);
+  const { data: problemResponse, isLoading } = useGetProblemListQuery({page: page, pageSize: 10});
   const rawProblems = problemResponse?.data || [];
+  const totalPages = problemResponse?.pagination?.totalPages || 1;
+  console.log("rawProblems", problemResponse);
   
   const problems = React.useMemo(() => {
     if (!searchQuery.trim()) return rawProblems;
@@ -151,12 +155,24 @@ export default function LibraryPage() {
                     Loading problems...
                   </div>
                 ) : problems.length > 0 ? (
-                  <ProblemsTable
-                    key={searchQuery}
-                    problems={problems}
-                    likedProblems={likedProblems}
-                    toggleLike={toggleLike}
-                  />
+                  <div className="flex flex-col gap-4">
+                    <ProblemsTable
+                      key={searchQuery}
+                      problems={problems}
+                      likedProblems={likedProblems}
+                      toggleLike={toggleLike}
+                    />
+                    <div className="flex justify-center pb-2">
+                      <Pagination
+                        isCompact
+                        showControls
+                        color="warning"
+                        page={page}
+                        total={totalPages}
+                        onChange={setPage}
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium">
                     No problems found.

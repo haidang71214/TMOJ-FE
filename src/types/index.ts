@@ -356,13 +356,7 @@ export interface Runtime {
 }
 export interface SubmissionData {
   id: string;
-  status:
-    | "Accepted"
-    | "Compile Error"
-    | "Time Limit Exceeded"
-    | "Memory Limit Exceeded"
-    | "Runtime Error"
-    | "Compile Error";
+  status: string;
   language: string;
   runtime: string;
   memory: string;
@@ -406,6 +400,26 @@ export interface SubmissionResponse {
   message: string | null;
   traceId: string;
 }
+
+export interface SubmissionListItemDto {
+  id: string;
+  userId: string;
+  problemId: string;
+  statusCode: string | null;
+  verdictCode: string | null;
+  finalScore: number | null;
+  timeMs: number | null;
+  memoryKb: number | null;
+  createdAt: string;
+  judgedAt: string | null;
+}
+
+export interface SubmissionListResponse {
+  data: SubmissionListItemDto[];
+  message: string | null;
+  traceId: string | null;
+}
+
 export interface Semester {
   semesterId: string;
   semesterCode: string;

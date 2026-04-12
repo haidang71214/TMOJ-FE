@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 
 export default function ManagementLayout({
   children,
@@ -30,13 +31,15 @@ export default function ManagementLayout({
   const [activeKey, setActiveKey] = useState<string>("");
 
   const { t, language } = useTranslation();
+  const { data: user } = useGetUserInformationQuery();
+  const isManagerOrAdmin = user?.role?.toLowerCase() === "manager" || user?.role?.toLowerCase() === "admin";
 
   const menu = [
     { key: "Dashboard", label: t('sidebar.dashboard') || (language === 'vi' ? "Bảng Điều Khiển" : "Dashboard"), icon: <LayoutDashboard size={20} /> },
     { key: "Problem", label: t('sidebar.problem') || (language === 'vi' ? "Bài Tập" : "Problem"), icon: <FileCode size={20} /> },
     { key: "Contest", label: t('sidebar.contest') || (language === 'vi' ? "Kỳ Thi" : "Contest"), icon: <Trophy size={20} /> },
     { key: "Class", label: t('sidebar.class') || (language === 'vi' ? "Lớp Học" : "Class"), icon: <Users size={20} /> },
-    { key: "Teacher", label: t('sidebar.teacher') || (language === 'vi' ? "Giáo Viên" : "Teacher"), icon: <GraduationCap size={20} /> },
+    ...(isManagerOrAdmin ? [{ key: "Teacher", label: t('sidebar.teacher') || (language === 'vi' ? "Giáo Viên" : "Teacher"), icon: <GraduationCap size={20} /> }] : []),
     { key: "Subject", label: t('sidebar.subject') || (language === 'vi' ? "Môn Học" : "Subject"), icon: <BookOpenCheck size={20} /> },
     { key: "Settings", label: t('sidebar.settings') || (language === 'vi' ? "Cài Đặt" : "Settings"), icon: <Settings size={20} /> },
     { key: "Semester", label: t('sidebar.semester') || (language === 'vi' ? "Học Kỳ" : "Semester"), icon: <Calendar size={20} /> },
@@ -76,7 +79,7 @@ export default function ManagementLayout({
       >
         <div className="w-[212px]">
           <h1 className="text-3xl font-black text-[#071739] dark:text-white uppercase tracking-tighter italic mb-8">
-            Manager <span className="text-[#FF5C00]">.</span>
+            {user?.role?.toLowerCase() === "teacher" ? "Teacher Manager" : "Manager"} <span className="text-[#FF5C00]">.</span>
           </h1>
           <Listbox
             aria-label="Admin Menu"

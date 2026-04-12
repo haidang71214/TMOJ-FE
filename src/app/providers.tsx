@@ -3,6 +3,7 @@
 import { HeroUIProvider } from "@heroui/react"; // Sửa từ @heroui/system
 import { ToastProvider } from "@heroui/toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Suspense } from "react";
@@ -31,6 +32,7 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
   return (
     <Provider store={store}>
         <HeroUIProvider navigate={router.push}>
+          <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
           <GoogleOAuthProvider
             clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
           >
@@ -50,6 +52,7 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
 
             <ToastProvider placement="bottom-right" />
           </GoogleOAuthProvider>
+          </NextThemesProvider>
         </HeroUIProvider>
     </Provider>
   );

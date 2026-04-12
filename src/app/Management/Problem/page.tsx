@@ -267,6 +267,25 @@ export default function GlobalProblemListPage() {
         <Table
           aria-label="Problem Repository Table"
           removeWrapper
+          onRowAction={(key) => router.push(`/Problems/${key}`)}
+          bottomContent={
+            totalItems > 0 ? (
+              <div className="flex w-full justify-center py-4">
+                <Pagination
+                  isCompact
+                  showControls
+                  showShadow
+                  color="primary"
+                  page={page}
+                  total={pages}
+                  onChange={(p) => setPage(p)}
+                  classNames={{
+                    cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
+                  }}
+                />
+              </div>
+            ) : null
+          }
           classNames={{
             base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
             th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
@@ -290,7 +309,6 @@ export default function GlobalProblemListPage() {
                 key={p.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active-press animate-fade-in-right cursor-pointer"
                 style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}
-                onClick={() => router.push(`/Problems/Library/${p.id}`)}
               >
                 <TableCell>
                   <span className="text-slate-400 font-black italic text-xs">#{index}</span>
@@ -443,23 +461,6 @@ export default function GlobalProblemListPage() {
             ))}
           </TableBody>
         </Table>
-
-        {totalItems > 0 && (
-          <div className="flex w-full justify-center py-8">
-            <Pagination
-              isCompact
-              showControls
-              showShadow
-              color="primary"
-              page={page}
-              total={pages}
-              onChange={(p) => setPage(p)}
-              classNames={{
-                cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
-              }}
-            />
-          </div>
-        )}
       </div>
 
       <ArchiveProblemModal

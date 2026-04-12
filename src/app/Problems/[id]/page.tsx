@@ -9,13 +9,8 @@ import {
   Lightbulb,
   Send,
   TriangleAlert,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Settings2,
   FlaskConical,
   CheckSquare,
-  Timer,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { SubmissionsTab } from "./Submissions/index";
@@ -24,7 +19,6 @@ import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import SolutionsTab from "./Solutions/page";
-import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -90,7 +84,6 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
-  const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery({id : problemId})
   const { t, language } = useTranslation();
   
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
@@ -131,6 +124,7 @@ export default function ProblemDetailsPage() {
       case "submissions":
         return (
           <SubmissionsTab
+            problemId={problemId}
             onRowClick={() => setActiveLeftTab("compileerror")}
           />
         );
@@ -152,7 +146,7 @@ export default function ProblemDetailsPage() {
           className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0"
         >
           {/* Tab bar */}
-          <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
             {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
               const isActive = activeLeftTab === key;
               const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
@@ -211,7 +205,7 @@ export default function ProblemDetailsPage() {
           {/* ── RIGHT-BOTTOM: TESTCASE ── */}
           <div className="flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0">
             {/* Bottom Tab bar */}
-            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
               {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
                 const isActive = activeBottomTab === key;
                 const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);

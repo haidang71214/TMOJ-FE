@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState } from "react";
 import { Input, Button, addToast, Divider } from "@heroui/react";
@@ -14,6 +15,7 @@ export default function ForgotPasswordModal() {
   const [email, setEmail] = useState("");
   const { closeModal, openModal } = useModal();
   const [forgotpass] = useForgotpassMutation();
+  const { t, language } = useTranslation();
 
 const handleSubmit = async (e:any) => {
   e.preventDefault()
@@ -22,7 +24,7 @@ const handleSubmit = async (e:any) => {
     console.log(data);
     
     addToast({
-      title: "Secret URL already sent, please check your mail",
+      title: language === 'vi' ? "Đã gửi Email chứa URL bí mật." : "Secret URL already sent, please check your mail",
       color: "success",
     });
 
@@ -33,14 +35,14 @@ const handleSubmit = async (e:any) => {
   const err = error as ErrorForm;
 
   addToast({
-    title: err?.data?.data?.message ?? "Failed to send reset email",
+    title: err?.data?.data?.message ?? (language === 'vi' ? "Gửi email thất bại" : "Failed to send reset email"),
     color: "danger",
   });
 }
 };
 
   return (
-    <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none">
+    <div className="relative flex flex-col gap-5 py-10 px-8 bg-white dark:bg-[#282E3A] transition-colors duration-500 rounded-[2.5rem] shadow-2xl max-w-[420px] w-full border-none outline-none opacity-0 animate-fade-in-up">
       {/* Close Button */}
       <button
         onClick={closeModal}
@@ -50,13 +52,16 @@ const handleSubmit = async (e:any) => {
       </button>
 
       {/* Header */}
-      <div className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8">
+      <div 
+        className="flex flex-col gap-1 items-center justify-center text-center mt-2 mb-8 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "100ms", animationFillMode: "both" }}
+      >
         <h2 className="text-4xl font-black text-[#3F4755] dark:text-white tracking-tighter uppercase leading-none">
-          Forgot pass
+          {language === 'vi' ? "Quên mật khẩu" : "Forgot pass"}
           <span className="text-[#3F4755] dark:text-[#FFB800]">.</span>
         </h2>
         <p className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
-          Welcome to TMOJ
+          {language === 'vi' ? "CHÀO MỪNG ĐẾN VỚI TMOJ" : "Welcome to TMOJ"}
         </p>
       </div>
 
@@ -64,10 +69,12 @@ const handleSubmit = async (e:any) => {
         <div className="flex flex-col gap-4">
           <Input
             type="email"
-            placeholder="Email address"
+            placeholder={language === 'vi' ? "Địa chỉ Email" : "Email address"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "200ms", animationFillMode: "both" }}
             startContent={
               <Mail
                 size={18}
@@ -87,23 +94,30 @@ const handleSubmit = async (e:any) => {
         <Button
           type="submit"
           endContent={<ArrowRight size={18} />}
-          className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black rounded-2xl h-14 mt-4 shadow-lg dark:shadow-[0_8px_20px_rgba(255,184,0,0.3)] uppercase tracking-widest text-sm transition-transform active:scale-95"
+          className="bg-[#3F4755] dark:bg-[#FFB800] text-white dark:text-[#071739] font-black rounded-2xl h-14 mt-4 shadow-lg dark:shadow-[0_8px_20px_rgba(255,184,0,0.3)] uppercase tracking-widest text-sm transition-transform active-bump opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "300ms", animationFillMode: "both" }}
         >
-          Reset Password
+          {language === 'vi' ? "Khôi phục mật khẩu" : "Reset Password"}
         </Button>
        
       </form>
-      <div><p 
+      <div 
+        className="text-center opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "400ms", animationFillMode: "both" }}
+      ><p 
   onClick={() =>
     openModal({
       content: <ResetPassModal />,
     })
-  } className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase">
-      click here if you already send reset email 
+  } className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase cursor-pointer hover:underline transition-colors active:scale-95 text-center">
+      {language === 'vi' ? "Bấm vào đây nếu đã kiểm tra Email" : "click here if you already send reset email"}
         </p></div>
  
       {/* Social Login */}
-      <div className="flex flex-col gap-4 mt-2">
+      <div 
+        className="flex flex-col gap-4 mt-2 opacity-0 animate-fade-in-up"
+        style={{ animationDelay: "500ms", animationFillMode: "both" }}
+      >
         <Divider className="dark:bg-[#474F5D] opacity-50" />
         <div className="flex items-center justify-center gap-3">
           <Button
@@ -147,12 +161,12 @@ const handleSubmit = async (e:any) => {
           </Button>
         </div>
         <p className="text-center text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-2">
-          New to TMOJ?{" "}
+          {language === 'vi' ? "Chưa có tài khoản?" : "New to TMOJ?"}{" "}
           <span
-            className="text-[#3F4755] dark:text-[#FFB800] cursor-pointer hover:underline font-black"
+            className="text-[#3F4755] dark:text-[#FFB800] cursor-pointer hover:underline font-black transition-colors"
             onClick={() => openModal({ content: <RegisterModal /> })}
           >
-            Sign Up
+            {language === 'vi' ? "Đăng ký" : "Sign Up"}
           </span>
         </p>
       </div>

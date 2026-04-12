@@ -44,7 +44,8 @@ export default function DescriptionTab() {
     { id }, 
     { skip: !id }
   );
-
+  console.log("aaaa",response);
+  
   const problem = response?.data as Problem | undefined;
 
   if (isLoading) {

@@ -8,13 +8,8 @@ import {
   Lightbulb,
   Send,
   TriangleAlert,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Settings2,
   FlaskConical,
   CheckSquare,
-  Timer,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { SubmissionsTab } from "./Submissions/index";
@@ -23,7 +18,6 @@ import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import SolutionsTab from "./Solutions/page";
-import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -89,7 +83,6 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const problemId = params.id as string;
-  const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery({id : problemId})
   const { t, language } = useTranslation();
   
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");

@@ -1,14 +1,12 @@
 "use client";
 import { SubmissionData } from "@/types";
 import {
-  Button,
   Card,
   CardBody,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Input,
   Table,
   TableBody,
   TableCell,
@@ -18,9 +16,8 @@ import {
   Pagination,
   Spinner,
 } from "@heroui/react";
-import { Activity, Award, Ban, Bell, ChevronDown, Clock, Download, Flag, Inbox, Lock, RefreshCw, Settings, ShieldAlert } from "lucide-react";
+import { Activity, Award,ChevronDown, Clock, Inbox,  } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
 import { useGetSubmissionListByProblemQuery } from "@/store/queries/Submittion";
 
 interface SubmissionsTabProps {
@@ -43,7 +40,7 @@ export const SubmissionsTab = ({ problemId, onRowClick }: SubmissionsTabProps) =
   const [page, setPage] = useState(1);
   const rowsPerPage = 4;
 
-  const { data: apiResponse, isLoading, isError } = useGetSubmissionListByProblemQuery(problemId, { skip: !problemId });
+  const { data: apiResponse, isLoading } = useGetSubmissionListByProblemQuery(problemId, { skip: !problemId });
   console.log(apiResponse);
   const [statusFilter, setStatusFilter] = useState("Status");
   const [langFilter, setLangFilter] = useState("Language");

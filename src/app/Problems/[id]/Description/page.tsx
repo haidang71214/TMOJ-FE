@@ -44,23 +44,28 @@ export default function DescriptionTab() {
     { id }, 
     { skip: !id }
   );
-
+  console.log("aaaa",response);
+  
   const problem = response?.data as Problem | undefined;
 
   if (isLoading) {
     return (
-      <div className="h-full px-8 py-8 flex flex-col items-center justify-center text-slate-400 space-y-4 bg-white">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-orange-500 rounded-full animate-spin"></div>
-        <p className="animate-pulse">Đang tải mô tả bài toán...</p>
+      <div className="h-full w-full overflow-hidden px-8 py-8 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-4 bg-white dark:bg-[#1C2737]">
+        <div className="w-10 h-10 border-4 border-slate-100 dark:border-[#334155] border-t-orange-500 dark:border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="font-black tracking-widest uppercase text-xs">
+          {t("loading") || (language === "vi" ? "Đang tải dữ liệu..." : "Loading data...")}
+        </p>
       </div>
     );
   }
 
   if (isError || !problem) {
     return (
-      <div className="h-full px-8 py-8 flex flex-col items-center justify-center text-rose-500 space-y-4 bg-white">
+      <div className="h-full w-full overflow-hidden px-8 py-8 flex flex-col items-center justify-center text-rose-500 space-y-4 bg-white dark:bg-[#1C2737]">
         <AlertCircle size={48} className="text-rose-500/50" />
-        <p>Không tìm thấy bài toán hoặc đã có lỗi xảy ra.</p>
+        <p className="font-black tracking-widest uppercase text-xs text-center">
+          {t("error") || (language === "vi" ? "Không tìm thấy bài toán hoặc đã có lỗi xảy ra." : "Problem not found or an error occurred.")}
+        </p>
       </div>
     );
   }

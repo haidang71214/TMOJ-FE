@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -13,11 +13,11 @@ export default function ThemeToggle() {
 
   if (!mounted) return null; // chỉ render sau khi client mount
 
-  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
+  const toggleTheme = () => setTheme(resolvedTheme === 'light' ? 'dark' : 'light');
 
   return (
-    <Button isIconOnly aria-label="Like" color="danger"  onPress={toggleTheme} variant="flat">
- {theme === 'light' ? '🌞' : '🌙 '}
+    <Button isIconOnly aria-label="Toggle Theme" className="text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#ff8904]" onPress={toggleTheme} variant="light">
+      {resolvedTheme === 'light' ? '🌙' : '🌞'}
     </Button>
   )
 }

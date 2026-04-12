@@ -19,9 +19,11 @@ interface ProblemsTableProps {
   problems: Problem[];
   likedProblems: Set<string>; // Truyền từ parent
   toggleLike: (id: string) => void; // Hàm toggle từ parent
+  page?: number;
+  pageSize?: number;
 }
 
-export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsTableProps) => {
+export const ProblemsTable = ({ problems, likedProblems, toggleLike, page = 1, pageSize = 10 }: ProblemsTableProps) => {
   const { t, language } = useTranslation();
 
   return (
@@ -81,7 +83,7 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike }: ProblemsT
                 href={`/Problems/${p.id}`}
                 className="hover:text-blue-600 dark:hover:text-[#E3C39D] transition-colors block w-full"
               >
-                <span className="opacity-50 mr-1">{index + 1}.</span> {p.title}
+                <span className="opacity-50 mr-1">{(page - 1) * pageSize + index + 1}.</span> {p.title}
               </Link>
             </TableCell>
 

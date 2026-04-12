@@ -17,6 +17,7 @@ import {
   Chip,
   Divider,
   Pagination,
+  Spinner,
 } from "@heroui/react";
 import {
   ChevronLeft,
@@ -37,10 +38,19 @@ import {
   History,
   Medal,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
+import { ClassSlotResponse } from "@/types";
 
 export default function StudentClassDetail({ classId }: { classId: string }) {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const classCode = searchParams.get("classCode") || "Unknown";
+  const semesterCode = searchParams.get("semesterCode") || "";
+
+  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(classId);
+  const slots = slotData?.data ?? [];
 
   const [mounted, setMounted] = useState(false);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
@@ -52,16 +62,6 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
   }, []);
 
   /* ---------------- MOCK DATA ---------------- */
-  const classInfo = useMemo(
-    () => ({
-      id: classId || "PRF192_SP26",
-      name: "Programming Fundamentals",
-      semester: "Spring 2026",
-      lecturer: "HOAINTT",
-    }),
-    [classId]
-  );
-
   const myDetailedResult = {
     averageGrade: 9.25,
     rank: 12,
@@ -122,58 +122,10 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
     ],
   };
 
-  const allSlots = useMemo(
-    () =>
-      Array.from({ length: 15 }, (_, i) => {
-        const now = new Date();
-        const startDate = new Date();
-        const endDate = new Date();
-        if (i < 2) {
-          startDate.setHours(now.getHours() - 48);
-          endDate.setHours(now.getHours() - 24);
-        } else if (i === 2) {
-          startDate.setHours(now.getHours() - 1);
-          endDate.setHours(now.getHours() + 2);
-        } else {
-          startDate.setDate(now.getDate() + i * 2);
-        }
-        const status =
-          now > endDate ? "completed" : now >= startDate ? "active" : "locked";
-        return {
-          id: `s${i + 1}`,
-          title: `Slot ${i + 1}: Lesson Content ${i + 1}`,
-          start: startDate.toLocaleString("vi-VN"),
-          end: endDate.toLocaleString("vi-VN"),
-          status,
-          contests: [
-            {
-              id: `c${i}-1`,
-              title: `Mid-term Quiz Slot ${i + 1}`,
-              type: "Exam",
-              duration: "45m",
-            },
-          ],
-          problems: [
-            {
-              id: `p${i}-1`,
-              name: `Algorithm Practice ${i + 1}.1`,
-              difficulty: "Easy",
-            },
-            {
-              id: `p${i}-2`,
-              name: `Logic Challenge ${i + 1}.2`,
-              difficulty: "Medium",
-            },
-          ],
-        };
-      }),
-    []
-  );
-
   const currentSlots = useMemo(() => {
     const start = (slotPage - 1) * slotsPerPage;
-    return allSlots.slice(start, start + slotsPerPage);
-  }, [slotPage, allSlots]);
+    return slots.slice(start, start + slotsPerPage);
+  }, [slotPage, slots]);
 
   if (!mounted) return null;
 
@@ -194,31 +146,11 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <h2 className="text-5xl font-[1000] uppercase italic tracking-tighter leading-none">
-                  {classInfo.id}
+                  {classCode}
                 </h2>
                 <Chip className="font-black bg-[#FF5C00] text-white text-[10px] h-6 italic uppercase border-none shadow-lg shadow-orange-500/20">
-                  {classInfo.semester}
+                  {semesterCode}
                 </Chip>
-              </div>
-              <h3 className="text-2xl font-black uppercase italic text-slate-500 dark:text-slate-400">
-                {classInfo.name}
-              </h3>
-            </div>
-            <div className="flex items-center gap-3 bg-white dark:bg-[#1C2737] px-6 py-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-              <div className="text-right">
-                <p className="text-[9px] font-bold text-slate-400 uppercase italic leading-none mb-1">
-                  Teacher
-                </p>
-                <p className="text-sm font-black uppercase leading-none">
-                  {classInfo.lecturer}
-                </p>
-              </div>
-              <Divider
-                orientation="vertical"
-                className="h-8 mx-2 bg-slate-200 dark:bg-white/10"
-              />
-              <div className="p-2 bg-slate-100 dark:bg-[#0A0F1C] rounded-xl text-[#FF5C00]">
-                <User size={20} strokeWidth={3} />
               </div>
             </div>
           </div>
@@ -236,20 +168,20 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
           {/* --- TAB 1: LEARNING PATH --- */}
           <Tab key="slots" title="Learning Path">
             <div className="flex flex-col gap-4 mt-8">
-              {currentSlots.map((slot) => (
+              {slotLoading && (
+                <div className="flex justify-center py-20">
+                  <Spinner />
+                </div>
+              )}
+              {currentSlots.map((slot: ClassSlotResponse) => (
                 <Card
                   key={slot.id}
-                  className={`bg-white dark:bg-[#1C2737] border border-transparent transition-all shadow-sm rounded-[2rem] ${
-                    slot.status === "locked"
-                      ? "opacity-60 grayscale"
-                      : "hover:shadow-xl cursor-pointer"
-                  }`}
+                  className={`bg-white dark:bg-[#1C2737] border border-transparent transition-all shadow-sm rounded-[2rem] hover:shadow-xl cursor-pointer`}
                 >
                   <CardBody className="p-0">
                     <div
                       className="p-6 flex items-center justify-between group"
                       onClick={() =>
-                        slot.status !== "locked" &&
                         setExpandedSlot(
                           expandedSlot === slot.id ? null : slot.id
                         )
@@ -258,88 +190,50 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
                       <div className="flex items-center gap-5">
                         <div
                           className={`p-4 rounded-2xl ${
-                            slot.status === "completed"
+                            slot.isPublished
                               ? "bg-emerald-500/10 text-emerald-500"
-                              : slot.status === "active"
-                              ? "bg-blue-500/10 text-[#FF5C00] animate-pulse"
                               : "bg-slate-500/10 text-slate-400"
                           }`}
                         >
-                          {slot.status === "locked" ? (
-                            <Lock size={22} />
-                          ) : slot.status === "active" ? (
-                            <Zap size={22} />
-                          ) : (
+                          {slot.isPublished ? (
                             <CheckCircle2 size={22} />
+                          ) : (
+                            <Lock size={22} />
                           )}
                         </div>
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                            {slot.title}
+                            Slot {slot.slotNo}: {slot.title}
                           </h4>
                           <span className="text-[10px] font-bold text-slate-400 uppercase italic flex items-center gap-1 mt-1">
-                            <Clock size={12} /> {slot.start} — {slot.end}
+                            <Clock size={12} /> {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
                           </span>
                         </div>
                       </div>
-                      {slot.status !== "locked" && (
-                        <ChevronDown
-                          size={20}
-                          className={`text-slate-300 transition-transform ${
-                            expandedSlot === slot.id
-                              ? "rotate-180 text-[#FF5C00]"
-                              : ""
-                          }`}
-                        />
-                      )}
+                      <ChevronDown
+                        size={20}
+                        className={`text-slate-300 transition-transform ${
+                          expandedSlot === slot.id
+                            ? "rotate-180 text-[#FF5C00]"
+                            : ""
+                        }`}
+                      />
                     </div>
                     {expandedSlot === slot.id && (
                       <div className="px-8 pb-10 border-t border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-8">
-                          {/* CONTESTS */}
-                          <div className="space-y-4">
-                            <p className="text-[11px] font-[1000] uppercase italic text-[#FF5C00] flex items-center gap-2">
-                              <Trophy size={14} /> Active Contests
-                            </p>
-                            {slot.contests.map((c) => (
-                              <Card
-                                key={c.id}
-                                className="bg-slate-50 dark:bg-black/20 border-none rounded-2xl group transition-all"
-                              >
-                                <CardBody className="p-4 flex flex-row items-center justify-between">
-                                  <div className="min-w-0">
-                                    <h5 className="font-black text-sm uppercase italic truncate">
-                                      {c.title}
-                                    </h5>
-                                    <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase">
-                                      {c.type} • {c.duration}
-                                    </p>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    className="bg-[#FF5C00] text-white font-black uppercase italic text-[10px] rounded-xl px-5 h-9"
-                                    onPress={() =>
-                                      router.push(`/Contest/${c.id}`)
-                                    }
-                                  >
-                                    Join{" "}
-                                    <ArrowRight size={14} className="ml-1" />
-                                  </Button>
-                                </CardBody>
-                              </Card>
-                            ))}
-                          </div>
+                        <div className="grid grid-cols-1 gap-10 mt-8">
                           {/* PROBLEMS */}
                           <div className="space-y-4">
                             <p className="text-[11px] font-[1000] uppercase italic text-blue-600 flex items-center gap-2">
                               <Code2 size={14} /> Practice Problems
                             </p>
+                            {slot.problems && slot.problems.length > 0 ? (
                             <div className="grid grid-cols-1 gap-3">
                               {slot.problems.map((p) => (
                                 <button
-                                  key={p.id}
+                                  key={p.problemId}
                                   onClick={() =>
-                                    router.push(`/Problems/${p.id}`)
+                                    router.push(`/Problems/${p.problemId}`)
                                   }
                                   className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0A0F1C]/40 border border-slate-100 dark:border-white/5 hover:border-blue-600 transition-all text-left group"
                                 >
@@ -349,10 +243,10 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
                                     </div>
                                     <div>
                                       <p className="text-xs font-black uppercase italic group-hover:text-blue-600">
-                                        {p.name}
+                                        {p.problemTitle}
                                       </p>
                                       <span className="text-[9px] font-bold text-slate-400 uppercase">
-                                        {p.difficulty}
+                                        {p.points ?? 0} pts • {p.isRequired ? "Required" : "Optional"}
                                       </span>
                                     </div>
                                   </div>
@@ -363,6 +257,9 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
                                 </button>
                               ))}
                             </div>
+                            ) : (
+                              <p className="text-xs text-slate-400 italic">No problems assigned yet.</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -372,7 +269,7 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
               ))}
               <div className="flex justify-center mt-6">
                 <Pagination
-                  total={3}
+                  total={Math.ceil(slots.length / slotsPerPage) || 1}
                   page={slotPage}
                   onChange={setSlotPage}
                   classNames={{

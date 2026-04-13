@@ -8,9 +8,10 @@ import {
   useRejectReportMutation,
   useLazyGetAllReportsQuery,
 } from "@/store/queries/reports";
-import { useLockUserMutation } from "@/store/queries/user";
+import { useLockUserMutation, useGetUserRoleQuery, useGetUserListQuery } from "@/store/queries/user";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useHideCommentMutation, useDeleteDiscussionMutation } from "@/store/queries/discussion";
-import { ReportItem } from "@/types";
+import { ReportItem, UserRole, Users } from "@/types";
 import { useRouter } from "next/navigation";
 import { PAGE_URL } from "@/constants";
 
@@ -29,6 +30,8 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
 
   const [triggerGetAllReports] = useLazyGetAllReportsQuery();
   const [lockUser] = useLockUserMutation();
+  const { data: userListRes } = useGetUserListQuery();
+  const { data: currentUser } = useGetUserInformationQuery();
   const [hideComment] = useHideCommentMutation();
   const [deleteDiscussion] = useDeleteDiscussionMutation();
 
@@ -114,8 +117,27 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
               }
 
               if (authorThresholdReached && authorId) {
-                await lockUser(authorId).unwrap();
-                toast.success(`Tài khoản ${selectedReport.authorName || authorId} đã bị khóa tự động do vi phạm ${effectiveAuthorCount} lần!`);
+                // Safety check: Prevent self-lock and only allow locking students
+                const targetUser = userListRes?.data?.find((u: Users) => u.userId === authorId);
+                const roleStr = (targetUser?.role || "").toLowerCase();
+                const isPrivileged = 
+                  roleStr.includes("admin") || 
+                  roleStr.includes("teacher") || 
+                  roleStr.includes("manager") ||
+                  (targetUser as any)?.roles?.some((r: any) => {
+                    const rs = String(r || "").toLowerCase();
+                    return rs.includes("admin") || rs.includes("teacher") || rs.includes("manager");
+                  });
+
+                const isStudent = !isPrivileged; // Treat as student if not privileged
+                const isSelf = authorId === currentUser?.userId;
+
+                if (isStudent && !isSelf) {
+                  await lockUser(authorId).unwrap();
+                  toast.success(`Tài khoản ${selectedReport.authorName || authorId} đã bị khóa tự động do vi phạm ${effectiveAuthorCount} lần!`);
+                } else {
+                  console.log(`Skipping auto-lock for ${authorId}: isStudent=${isStudent}, isSelf=${isSelf}`);
+                }
 
                 // Tự động ẩn/xóa toàn bộ nội dung vi phạm của người dùng này
                 const authorContents = allData.filter((r: any) => r.authorId === authorId);

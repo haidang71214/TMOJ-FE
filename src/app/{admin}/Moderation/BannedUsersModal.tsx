@@ -27,8 +27,9 @@ import {
   useLockUserMutation, 
   useUnlockUserMutation 
 } from "@/store/queries/user";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
-import { Users } from "@/types";
+import { Users, UserRole } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
 
   const { data: lockedRes, isLoading: isLoadingLocked } = useGetLockedUsersQuery();
   const { data: unlockedRes, isLoading: isLoadingUnlocked } = useGetUnlockedUsersQuery();
+  const { data: currentUser } = useGetUserInformationQuery();
   
   const [lockUser, { isLoading: isLocking }] = useLockUserMutation();
   const [unlockUser, { isLoading: isUnlocking }] = useUnlockUserMutation();
@@ -52,10 +54,39 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
     setPage(1);
   };
 
+  const filterStudentsOnly = (rawData: Users[]) => {
+    return rawData.filter(u => {
+      const roleStr = (u.role || "").toLowerCase();
+      const rolesArr = (u as any).roles || [];
+      
+      // Check if user has any privileged role
+      const hasPrivilegedRole = 
+        roleStr.includes("admin") || 
+        roleStr.includes("teacher") || 
+        roleStr.includes("manager") ||
+        rolesArr.some((r: any) => {
+          const rs = String(r || "").toLowerCase();
+          return rs.includes("admin") || rs.includes("teacher") || rs.includes("manager");
+        });
+
+      const isNotSelf = !currentUser?.userId || u.userId !== currentUser.userId;
+      
+      // "Student only" is someone who is not an Admin, Teacher, or Manager
+      return !hasPrivilegedRole && isNotSelf;
+    });
+  };
+
+  const studentLocked = useMemo(() => {
+    return filterStudentsOnly(lockedRes?.data || []);
+  }, [lockedRes, currentUser]);
+
+  const studentUnlocked = useMemo(() => {
+    return filterStudentsOnly(unlockedRes?.data || []);
+  }, [unlockedRes, currentUser]);
+
   const currentUsers: Users[] = useMemo(() => {
-    if (selectedTab === "locked") return lockedRes?.data || [];
-    return unlockedRes?.data || [];
-  }, [selectedTab, lockedRes, unlockedRes]);
+    return selectedTab === "locked" ? studentLocked : studentUnlocked;
+  }, [selectedTab, studentLocked, studentUnlocked]);
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return currentUsers;
@@ -78,6 +109,23 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
   }, [page, filteredUsers]);
 
   const handleAction = async (user: Users, action: "lock" | "unlock") => {
+    // Safety check
+    if (user.userId === currentUser?.userId) {
+       toast.warning("Bạn không thể tự khóa tài khoản của chính mình.");
+       return;
+    }
+
+    const roleStr = (user.role || "").toLowerCase();
+    const isPrivileged = 
+      roleStr.includes("admin") || 
+      roleStr.includes("teacher") || 
+      roleStr.includes("manager");
+
+    if (isPrivileged) {
+       toast.warning("Không thể khóa/mở khóa tài khoản đặc quyền (Admin, Teacher, Manager).");
+       return;
+    }
+
     try {
       if (action === "lock") {
         await lockUser(user.userId).unwrap();
@@ -184,7 +232,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
                     title={
                       <div className="flex items-center space-x-2">
                         <Lock size={14} />
-                        <span>LOCKED ({lockedRes?.data?.length || 0})</span>
+                        <span>LOCKED ({studentLocked.length})</span>
                       </div>
                     }
                   />
@@ -193,7 +241,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
                     title={
                       <div className="flex items-center space-x-2">
                         <Unlock size={14} />
-                        <span>UNLOCKED ({unlockedRes?.data?.length || 0})</span>
+                        <span>UNLOCKED ({studentUnlocked.length})</span>
                       </div>
                     }
                   />

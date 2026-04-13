@@ -55,7 +55,7 @@ interface DisplayProblem {
 
 export default function GlobalProblemListPage() {
   const router = useRouter();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 

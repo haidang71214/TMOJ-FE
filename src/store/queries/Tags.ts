@@ -5,6 +5,7 @@ export interface Tag {
   id: string;
   name: string | null;
   slug: string | null;
+  isActive?: boolean;
 }
 
 export interface CreateTagPayload {

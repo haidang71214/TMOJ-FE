@@ -628,7 +628,8 @@ export interface StudentSubmissionDetailResponse {
 }
 
 export interface addClassMemberRequest {
-  memberCode?: string
+  memberCode?: string | null; 
+  rollNumber?: string | null;
 }
 
 export interface DeleteClassStudentRequest {

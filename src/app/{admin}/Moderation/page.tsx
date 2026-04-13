@@ -39,7 +39,9 @@ import {
   useGetAllReportsQuery, 
   useGetReportByIdQuery
 } from "@/store/queries/reports";
-import { ReportItem } from "@/types";
+import { useGetUserListQuery } from "@/store/queries/user";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { ReportItem, UserRole } from "@/types";
 import { BannedUsersModal } from "./BannedUsersModal";
 import ModerateReportActionModal from "./ModerateReportActionModal";
 import { useModal } from "@/Provider/ModalProvider";
@@ -57,9 +59,39 @@ export default function ModerationManagementPage() {
     targetType: typeFilter,
     status: statusFilter,
   });
+  const { data: userListRes } = useGetUserListQuery();
+  const { data: currentUser } = useGetUserInformationQuery();
+
   console.log(allReportsRes);
   
-  let reports: ReportItem[] = allReportsRes?.data || [];
+  let reports: ReportItem[] = useMemo(() => {
+    let rawReports = allReportsRes?.data || [];
+    
+    // Filter to only show reports where the author is a student and not the current user
+    if (userListRes?.data) {
+      rawReports = rawReports.filter((r: ReportItem) => {
+        const author = userListRes.data.find(u => u.userId === r.authorId);
+        if (!author) return false;
+        
+        const roleStr = (author.role || "").toLowerCase();
+        const isPrivileged = 
+          roleStr.includes("admin") || 
+          roleStr.includes("teacher") || 
+          roleStr.includes("manager") ||
+          (author as any).roles?.some((r: any) => {
+            const rs = String(r || "").toLowerCase();
+            return rs.includes("admin") || rs.includes("teacher") || rs.includes("manager");
+          });
+
+        const isStudent = !isPrivileged;
+        const isNotSelf = !currentUser?.userId || author.userId !== currentUser.userId;
+        
+        return isStudent && isNotSelf;
+      });
+    }
+    
+    return rawReports;
+  }, [allReportsRes, userListRes, currentUser]);
 
   if (typeFilter !== "all") {
     reports = reports.filter((r) => r.targetType?.toLowerCase() === typeFilter.toLowerCase());

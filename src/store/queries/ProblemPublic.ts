@@ -4,7 +4,7 @@ import { Problem } from "@/types";
 export const problemPublicApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getProblemList: builder.query<{
+    getProblemListPublic: builder.query<{
       data: Problem[];
       pagination: {
         page: number;
@@ -39,6 +39,6 @@ getDetailProblemPublic: builder.query<{ data: Problem }, { id: string }>({
 
 
 export const {
-  useGetProblemListQuery,
+  useGetProblemListPublicQuery,
   useGetDetailProblemPublicQuery
 } = problemPublicApi;

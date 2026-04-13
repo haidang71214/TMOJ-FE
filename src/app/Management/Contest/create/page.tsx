@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Input,
   Button,
@@ -22,9 +22,46 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useCreateContestMutation } from "@/store/queries/Contest";
+import { toast } from "sonner";
+import { CreateContestRequest } from "@/types";
 
 export default function CreateContestPage() {
   const router = useRouter();
+  const [createContest, { isLoading }] = useCreateContestMutation();
+
+  const [formData, setFormData] = useState<CreateContestRequest>({
+    title: "",
+    description: "",
+    startAt: "",
+    endAt: "",
+    visibilityCode: "public",
+    allowTeams: false,
+    contestType: "acm",
+  });
+
+  const handleCreateContest = async () => {
+    try {
+      if (!formData.title || !formData.startAt || !formData.endAt) {
+        toast.error("Vui lòng nhập đầy đủ thông tin bắt buộc (Tiêu đề, Thời gian bắt đầu/kết thúc)");
+        return;
+      }
+
+      // Convert local datetime to ISO string for backend
+      const payload = {
+        ...formData,
+        startAt: new Date(formData.startAt).toISOString(),
+        endAt: new Date(formData.endAt).toISOString(),
+      };
+
+      const result = await createContest(payload).unwrap();
+      toast.success("Tạo contest thành công!");
+      router.push(`/Management/Contest`);
+    } catch (error: any) {
+      console.error("Failed to create contest:", error);
+      toast.error(error?.data?.message || "Đã xảy ra lỗi khi tạo contest");
+    }
+  };
 
   const EditorToolbar = () => (
     <div className="bg-slate-50 dark:bg-black/20 p-2 border-b border-slate-200 dark:border-white/10 flex gap-1">
@@ -75,6 +112,8 @@ export default function CreateContestPage() {
           label="Contest Title"
           placeholder="e.g. TMOJ Spring Contest 2025"
           labelPlacement="outside"
+          value={formData.title}
+          onValueChange={(val) => setFormData((prev) => ({ ...prev, title: val }))}
           classNames={{
             inputWrapper:
               "rounded-2xl dark:bg-black/20 h-14 border-2 border-transparent focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-all",
@@ -95,6 +134,10 @@ export default function CreateContestPage() {
               placeholder="Explain the rules, prizes, and details..."
               variant="flat"
               minRows={5}
+              value={formData.description}
+              onValueChange={(val) =>
+                setFormData((prev) => ({ ...prev, description: val }))
+              }
               classNames={{
                 inputWrapper: "bg-transparent shadow-none p-4",
                 input: "font-medium text-slate-600 dark:text-slate-300",
@@ -109,6 +152,8 @@ export default function CreateContestPage() {
             label="Start Time"
             type="datetime-local"
             labelPlacement="outside"
+            value={formData.startAt}
+            onValueChange={(val) => setFormData((prev) => ({ ...prev, startAt: val }))}
             startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
               inputWrapper:
@@ -121,6 +166,8 @@ export default function CreateContestPage() {
             label="End Time"
             type="datetime-local"
             labelPlacement="outside"
+            value={formData.endAt}
+            onValueChange={(val) => setFormData((prev) => ({ ...prev, endAt: val }))}
             startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
               inputWrapper:
@@ -134,6 +181,7 @@ export default function CreateContestPage() {
             type="password"
             placeholder="Keep empty for public"
             labelPlacement="outside"
+            disabled // Chưa hỗ trợ trường này trong API schema
             startContent={<Lock size={18} className="text-slate-400" />}
             classNames={{
               inputWrapper:
@@ -149,7 +197,10 @@ export default function CreateContestPage() {
           <RadioGroup
             label="Rule System"
             orientation="horizontal"
-            defaultValue="acm"
+            value={formData.contestType}
+            onValueChange={(val) =>
+              setFormData((prev) => ({ ...prev, contestType: val }))
+            }
             classNames={{
               label:
                 "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
@@ -190,7 +241,13 @@ export default function CreateContestPage() {
               Publicly Visible
             </span>
             <Switch
-              defaultSelected
+              isSelected={formData.visibilityCode === "public"}
+              onValueChange={(isSelected) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  visibilityCode: isSelected ? "public" : "private",
+                }))
+              }
               size="sm"
               classNames={{
                 wrapper:
@@ -202,7 +259,7 @@ export default function CreateContestPage() {
           <RadioGroup
             label="Public Solution"
             orientation="horizontal"
-            defaultValue="acm"
+            defaultValue="after"
             classNames={{
               label:
                 "text-black dark:text-white font-black uppercase text-[10px] tracking-widest mb-4",
@@ -210,13 +267,13 @@ export default function CreateContestPage() {
           >
             <div className="flex gap-8">
               <Radio
-                value="acm"
+                value="after"
                 classNames={{ label: "text-xs font-black uppercase italic" }}
               >
                 After
               </Radio>
               <Radio
-                value="oi"
+                value="always"
                 classNames={{ label: "text-xs font-black uppercase italic" }}
               >
                 Always
@@ -231,12 +288,14 @@ export default function CreateContestPage() {
             variant="flat"
             startContent={<X size={18} />}
             className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all"
-            onClick={() => router.back()}
+            onPress={() => router.back()}
           >
             Discard Draft
           </Button>
           <Button
             startContent={<Trophy size={20} strokeWidth={3} />}
+            isLoading={isLoading}
+            onPress={handleCreateContest}
             className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-2xl h-14 px-16 uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all"
           >
             Launch Contest

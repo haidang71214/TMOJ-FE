@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
+import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { Pagination } from "@heroui/react";
 
 export default function LibraryPage() {

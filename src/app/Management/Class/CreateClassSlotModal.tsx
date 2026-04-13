@@ -18,7 +18,7 @@ import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
   import { Selection } from "@react-types/shared";
 import { useModal } from "@/Provider/ModalProvider";
-import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
+import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useCreateClassSlotMutation } from "@/store/queries/ClassSlot";
 import { CreateClassSlotRequest, ErrorForm, Problem } from "@/types";
 import { RequiredStar } from "@/Common/RequiredStar";
@@ -42,7 +42,7 @@ export default function CreateSlotForm({ classId }: CreateSlotFormProps) {
   console.log("classId", classId);
   
   const [page, setPage] = useState(1);
-  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListQuery({ page, pageSize: 5 });
+  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListPublicQuery({ page, pageSize: 5 });
   console.log("problemResponse", problemResponse);
   
   const problems = problemResponse?.data || [];

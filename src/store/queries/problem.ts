@@ -1,10 +1,10 @@
 import { ProblemEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {  CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
-export const prolemApi = baseApi.injectEndpoints({
+export const problemApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getProblemListQuery: builder.query<ProblemListResponse, void>({
+    getProblemList: builder.query<ProblemListResponse, void>({
   query: () => ({
     url: ProblemEndPoint.GET_LIST_PROBLEM,
     method: "GET",
@@ -46,8 +46,8 @@ createTestSet: builder.mutation<ProblemTestsetResponse,{ id: string; body: Probl
    
   })
 export const {
-  useGetProblemListQueryQuery,
+  useGetProblemListQuery,
   useCreateProblemDraftMutation,
   useCreateTestSetMutation,
   useCreateTestCaseMutation
-} = prolemApi;
+} = problemApi;

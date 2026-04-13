@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Table,
   TableHeader,
@@ -18,7 +18,7 @@ import { useRouter, useParams } from "next/navigation";
 import { AddProblemModal } from "../../../../components/AddProblemModal";
 import { useGetContestProblemsQuery, useAddProblemToContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
-import { Problem, ContestProblemDto } from "@/types";
+import { Problem, ContestProblemDto, AddProblemToContestRequest } from "@/types";
 
 export default function ContestProblemsPage() {
   const router = useRouter();
@@ -30,7 +30,21 @@ export default function ContestProblemsPage() {
   const { data: response, isLoading: isLoadingProblems, refetch } = useGetContestProblemsQuery(contestId);
   const [addProblemToContest, { isLoading: isAdding }] = useAddProblemToContestMutation();
 
-  const problems = (response?.data?.items || []) as ContestProblemDto[];
+  const problems = useMemo(() => {
+    if (!response?.data) return [] as ContestProblemDto[];
+    
+    // Nếu data là mảng trực tiếp (giống như ProblemListResponse mới)
+    if (Array.isArray(response.data)) {
+      return response.data as ContestProblemDto[];
+    }
+    
+    // Nếu data có field items (theo struct cũ/hiện tại trong types)
+    if (response.data && typeof response.data === 'object' && 'items' in response.data) {
+      return (response.data.items || []) as ContestProblemDto[];
+    }
+
+    return [] as ContestProblemDto[];
+  }, [response]);
 
   // Hàm điều hướng sang trang chỉnh sửa bài tập
   const goToEdit = (problemId: string) => {
@@ -38,23 +52,24 @@ export default function ContestProblemsPage() {
   };
 
   // Hàm xử lý nhận dữ liệu từ Modal
-  const handleAddFromBank = async (selectedFromBank: Problem[]) => {
+  const handleAddFromBank = async (payload: AddProblemToContestRequest) => {
     try {
-      const results = await Promise.all(
-        selectedFromBank.map((p) =>
-          addProblemToContest({
-            contestId,
-            body: {
-              problemId: p.id,
-              displayIndex: problems.length + 1, // Optional: automatically assign index
-            },
-          }).unwrap()
-        )
-      );
-      toast.success(`Đã thêm ${results.length} bài tập vào contest!`);
+      console.log("🚀 Adding problem to contest:", { contestId, payload });
+      
+      // Clean payload: remove undefined and empty strings
+      const finalPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, v]) => v !== undefined && v !== "")
+      ) as AddProblemToContestRequest;
+
+      await addProblemToContest({
+        contestId,
+        body: finalPayload
+      }).unwrap();
+      
+      toast.success(`Đã thêm bài tập vào contest!`);
       refetch();
     } catch (error: any) {
-      console.error("Failed to add problems:", error);
+      console.error("Failed to add problem:", error);
       toast.error(error?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
     }
   };
@@ -122,7 +137,7 @@ export default function ContestProblemsPage() {
           <TableColumn className="text-right">OPERATIONS</TableColumn>
         </TableHeader>
         <TableBody emptyContent={isLoadingProblems ? <Spinner color="warning" /> : "Chưa có bài tập nào trong contest này"}>
-          {problems.map((p, idx) => (
+          {problems.map((p: ContestProblemDto, idx: number) => (
             <TableRow
               key={p.problemId}
               className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
@@ -201,6 +216,7 @@ export default function ContestProblemsPage() {
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         onConfirm={handleAddFromBank}
+        problemCount={problems.length}
       />
 
       {/* FOOTER DECOR */}

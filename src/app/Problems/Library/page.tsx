@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useGetProblemListQuery } from "@/store/queries/ProblemPublic";
+import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { Pagination } from "@heroui/react";
 
 export default function LibraryPage() {
@@ -37,7 +37,7 @@ export default function LibraryPage() {
   };
 
   const [page, setPage] = useState(1);
-  const { data: problemResponse, isLoading } = useGetProblemListQuery({page: page, pageSize: 10});
+  const { data: problemResponse, isLoading } = useGetProblemListPublicQuery({page: page, pageSize: 10});
   const rawProblems = problemResponse?.data || [];
   const totalPages = problemResponse?.pagination?.totalPages || 1;
   console.log("rawProblems", problemResponse);

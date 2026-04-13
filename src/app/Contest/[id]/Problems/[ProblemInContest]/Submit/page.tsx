@@ -7,11 +7,20 @@ import { Button, Select, SelectItem } from "@heroui/react";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 
+import { useParams, useRouter } from "next/navigation";
+import { useSubmitContestMutation } from "@/store/queries/Contest";
+import { toast } from "sonner";
+
 export default function SubmitProblemPage() {
   const searchParams = useSearchParams();
+  const params = useParams();
+  const router = useRouter();
   const { theme } = useTheme();
   
-  const problemId = searchParams.get("problemId") || "A";
+  const contestId = params.id as string;
+  const contestProblemId = params.ProblemInContest as string; // Assuming the URL param is the contestProblemId
+
+  const [submitContest, { isLoading: isSubmitting }] = useSubmitContestMutation();
 
   const [code, setCode] = useState<string>("#include <bits/stdc++.h>\n\nusing namespace std;\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n\n    return 0;\n}\n");
   const [language, setLanguage] = useState<string>("cpp20");
@@ -31,7 +40,7 @@ export default function SubmitProblemPage() {
         
         {/* TITLE */}
         <h1 className="text-[22px] sm:text-[26px] font-medium text-slate-800 dark:text-white mb-6">
-          Submit Code <span className="text-[#F26F21]">ICPC 2023 Regional - {problemId}: Area Query</span>
+          Submit Code <span className="text-[#F26F21]">Contest Problem - {contestProblemId}</span>
         </h1>
 
         {/* MAIN EDITOR WRAPPER */}
@@ -109,8 +118,23 @@ export default function SubmitProblemPage() {
             <div className="w-full sm:w-auto flex justify-end pt-4 sm:pt-0 pb-1 sm:pb-0">
               <Button 
                 className="w-full sm:w-auto bg-[#F26F21] hover:bg-[#d95b16] text-white font-medium px-8 h-10 shadow-md shadow-orange-500/10 rounded"
-                onClick={() => {
-                  alert("Code submitted. Redirecting to results page!");
+                isLoading={isSubmitting}
+                onClick={async () => {
+                  try {
+                    const result = await submitContest({
+                      contestId: contestId,
+                      body: {
+                        contestId: contestId,
+                        contestProblemId: contestProblemId,
+                        code: code,
+                        language: language
+                      }
+                    }).unwrap();
+                    toast.success("Code submitted successfully!");
+                    router.push(`/Contest/${contestId}/Submissions`);
+                  } catch (error: any) {
+                    toast.error(error?.data?.message || "Submission failed.");
+                  }
                 }}
               >
                 Submit!

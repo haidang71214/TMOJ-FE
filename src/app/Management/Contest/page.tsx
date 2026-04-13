@@ -18,6 +18,7 @@ import {
   DropdownItem,
   Pagination,
   useDisclosure,
+  Spinner,
 } from "@heroui/react";
 import {
   Edit3,
@@ -35,75 +36,43 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
-interface Contest {
-  id: number;
-  title: string;
-  rule: string;
-  type: string;
-  status: string;
-  visible: boolean;
-}
-
-const CONTESTS_DATA = [
-  {
-    id: 1024,
-    title: "TMOJ Spring Contest 2025",
-    rule: "ACM",
-    type: "Public",
-    status: "Running",
-    visible: true,
-  },
-  {
-    id: 1025,
-    title: "Beginner Free Contest #01",
-    rule: "OI",
-    type: "Password",
-    status: "Ended",
-    visible: false,
-  },
-  {
-    id: 1026,
-    title: "ICPC Regional Qualifiers",
-    rule: "ACM",
-    type: "Public",
-    status: "Upcoming",
-    visible: true,
-  },
-  {
-    id: 1027,
-    title: "Monthly Challenge #12",
-    rule: "OI",
-    type: "Public",
-    status: "Ended",
-    visible: true,
-  },
-  {
-    id: 1028,
-    title: "Algorithm Masters 2026",
-    rule: "ACM",
-    type: "Private",
-    status: "Upcoming",
-    visible: false,
-  },
-];
+import { useGetContestListQuery, usePublishContestMutation } from "@/store/queries/Contest";
+import { ContestDto } from "@/types";
+import { toast } from "sonner";
 
 export default function ContestListPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const rowsPerPage = 5;
+  const [searchTerm, setSearchTerm] = useState("");
+  const rowsPerPage = 10;
 
-  const pages = Math.ceil(CONTESTS_DATA.length / rowsPerPage);
+  const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
+    page,
+    pageSize: rowsPerPage,
+  });
 
-  const items = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    return CONTESTS_DATA.slice(start, end);
-  }, [page]);
+  const [publishContest] = usePublishContestMutation();
+
+  const handlePublishToggle = async (id: string) => {
+    try {
+      await publishContest(id).unwrap();
+      toast.success("Cập nhật trạng thái hiển thị thành công");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Không thể cập nhật trạng thái hiển thị");
+    }
+  };
+
+  const pages = contestData?.data?.totalCount
+    ? Math.ceil(contestData.data.totalCount / rowsPerPage)
+    : 0;
+
+  const items = contestData?.data?.items || [];
+
   // Logic cho Extend Modal
   const extendModal = useDisclosure();
-  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [selectedContest, setSelectedContest] = useState<ContestDto | null>(null);
 
-  const handleOpenExtend = (contest: Contest) => {
+  const handleOpenExtend = (contest: ContestDto) => {
     setSelectedContest(contest);
     extendModal.onOpen();
   };
@@ -122,7 +91,7 @@ export default function ContestListPage() {
         </div>
         <Button
           startContent={<Plus size={20} strokeWidth={3} />}
-          onClick={() => router.push("/Management/Contest/create")}
+          onPress={() => router.push("/Management/Contest/create")}
           className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
         >
           CREATE NEW CONTEST
@@ -133,6 +102,8 @@ export default function ContestListPage() {
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
           placeholder="Search contest title or ID..."
+          value={searchTerm}
+          onValueChange={setSearchTerm}
           startContent={<Search size={18} className="text-[#A4B5C4]" />}
           classNames={{
             inputWrapper:
@@ -177,6 +148,8 @@ export default function ContestListPage() {
 
         <Button
           isIconOnly
+          onPress={() => refetch()}
+          isLoading={isFetching}
           className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
         >
           <RefreshCw size={18} />
@@ -184,7 +157,7 @@ export default function ContestListPage() {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar relative">
         <Table
           aria-label="Contest Management Table"
           removeWrapper
@@ -203,17 +176,20 @@ export default function ContestListPage() {
             <TableColumn>VISIBLE</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
-          <TableBody>
+          <TableBody 
+            loadingContent={<Spinner color="primary" />}
+            isLoading={isLoading}
+            emptyContent={!isLoading && "Không tìm thấy contest nào."}
+          >
             {items.map((c) => (
               <TableRow
                 key={c.id}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-// 
-                onClick={()=> router.push(`/Contest/${c.id}`)}
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                onClick={() => router.push(`/Contest/${c.id}`)}
               >
                 <TableCell>
-                  <span className="text-slate-400 font-black italic text-xs">
-                    #{c.id}
+                  <span className="text-slate-400 font-black italic text-[10px]">
+                    #{c.id.substring(0, 8)}...
                   </span>
                 </TableCell>
                 <TableCell>
@@ -226,17 +202,17 @@ export default function ContestListPage() {
                     variant="flat"
                     size="sm"
                     className={`font-black uppercase text-[9px] px-2 ${
-                      c.rule === "ACM"
+                      c.contestType?.toUpperCase() === "ACM"
                         ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
                         : "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
                     }`}
                   >
-                    {c.rule}
+                    {c.contestType || "N/A"}
                   </Chip>
                 </TableCell>
                 <TableCell>
                   <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
-                    {c.type}
+                    {c.visibility}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -244,9 +220,9 @@ export default function ContestListPage() {
                     size="sm"
                     variant="dot"
                     color={
-                      c.status === "Running"
+                      c.status?.toLowerCase() === "running"
                         ? "success"
-                        : c.status === "Upcoming"
+                        : c.status?.toLowerCase() === "upcoming"
                         ? "warning"
                         : "default"
                     }
@@ -255,9 +231,10 @@ export default function ContestListPage() {
                     {c.status}
                   </Chip>
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <Switch
-                    defaultSelected={c.visible}
+                    isSelected={c.status?.toLowerCase() !== "draft"}
+                    onValueChange={() => handlePublishToggle(c.id)}
                     size="sm"
                     classNames={{
                       wrapper:
@@ -265,9 +242,9 @@ export default function ContestListPage() {
                     }}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-2">
-                    {c.status === "Running" && (
+                    {c.status?.toLowerCase() === "running" && (
                       <Tooltip
                         content="Extend Time"
                         className="font-bold text-[10px]"
@@ -278,7 +255,7 @@ export default function ContestListPage() {
                           size="sm"
                           variant="flat"
                           className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-[#22C55E] hover:bg-green-600 hover:text-white transition-all rounded-lg h-9 w-9"
-                          onClick={() => handleOpenExtend(c)}
+                          onPress={() => handleOpenExtend(c)}
                         >
                           <Clock size={16} />
                         </Button>
@@ -292,7 +269,7 @@ export default function ContestListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() =>
+                        onPress={() =>
                           router.push(`/Management/Contest/${c.id}/edit`)
                         }
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
@@ -308,7 +285,7 @@ export default function ContestListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() =>
+                        onPress={() =>
                           router.push(`/Management/Contest/${c.id}/problems`)
                         }
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
@@ -324,7 +301,7 @@ export default function ContestListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={() =>
+                        onPress={() =>
                           router.push(`/Management/Contest/${c.id}/remix`)
                         }
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"

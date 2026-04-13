@@ -12,31 +12,17 @@ import {
   SelectItem,
   Checkbox,
   Chip,
+  Spinner,
 } from "@heroui/react";
 import { Search, Database, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useModal } from "@/Provider/ModalProvider";
-
-// Định nghĩa interface cho dữ liệu tĩnh
-interface ProblemBankItem {
-  id: string;
-  title: string;
-  difficulty: string;
-}
-
-const PROBLEM_BANK_DATA: ProblemBankItem[] = [
-  { id: "601", title: "Reverse Integer", difficulty: "Easy" },
-  { id: "602", title: "String to Integer", difficulty: "Medium" },
-  { id: "603", title: "Container With Most Water", difficulty: "Hard" },
-  { id: "604", title: "Integer to Roman", difficulty: "Medium" },
-  { id: "605", title: "Roman to Integer", difficulty: "Easy" },
-  { id: "606", title: "3Sum Closest", difficulty: "Medium" },
-];
+import { useGetProblemListQuery } from "@/store/queries/problem";
+import { Problem } from "@/types";
 
 interface AddProblemModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  onConfirm: (selectedProblems: ProblemBankItem[]) => void;
+  onConfirm: (selectedProblems: Problem[]) => void;
 }
 
 export const AddProblemModal = ({
@@ -48,17 +34,20 @@ export const AddProblemModal = ({
   const [searchBank, setSearchBank] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const { closeModal } = useModal();
+
+  const { data: problemBank, isLoading } = useGetProblemListQuery();
+
   const filteredBank = useMemo(() => {
-    return PROBLEM_BANK_DATA.filter((p) => {
+    const rawData = problemBank?.data?.items || [];
+    return rawData.filter((p) => {
       const matchSearch = p.title
         .toLowerCase()
         .includes(searchBank.toLowerCase());
       const matchDifficulty =
-        filterDifficulty === "all" || p.difficulty === filterDifficulty;
+        filterDifficulty === "all" || p.difficulty.toLowerCase() === filterDifficulty.toLowerCase();
       return matchSearch && matchDifficulty;
     });
-  }, [searchBank, filterDifficulty]);
+  }, [problemBank, searchBank, filterDifficulty]);
 
   const handleSelectProblem = (id: string) => {
     const newSelected = new Set(selectedIds);
@@ -68,11 +57,11 @@ export const AddProblemModal = ({
   };
 
   const handleConfirm = () => {
-    // Lọc ra danh sách các đối tượng đã chọn thay vì dùng any
-    const selected = PROBLEM_BANK_DATA.filter((p) => selectedIds.has(p.id));
+    const rawData = problemBank?.data?.items || [];
+    const selected = rawData.filter((p) => selectedIds.has(p.id));
     onConfirm(selected);
     setSelectedIds(new Set());
-    closeModal();
+    onOpenChange(); // Close modal
   };
 
   return (
@@ -159,52 +148,58 @@ export const AddProblemModal = ({
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredBank.map((libProb) => (
-                  <div
-                    key={libProb.id}
-                    onClick={() => handleSelectProblem(libProb.id)}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${
-                      selectedIds.has(libProb.id)
-                        ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
-                        : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Checkbox
-                        isSelected={selectedIds.has(libProb.id)}
-                        color="primary"
-                        classNames={{
-                          wrapper:
-                            "rounded-md after:bg-blue-600 dark:after:bg-[#22C55E]",
-                        }}
-                        onChange={() => handleSelectProblem(libProb.id)}
-                      />
-                      <div>
-                        <p
-                          className={`font-black uppercase italic transition-colors ${
-                            selectedIds.has(libProb.id)
-                              ? "text-blue-600 dark:text-[#22C55E]"
-                              : ""
-                          }`}
-                        >
-                          {libProb.title}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                          ID: #{libProb.id}
-                        </p>
-                      </div>
-                    </div>
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      className="font-black uppercase text-[9px]"
+              {isLoading ? (
+                <div className="flex justify-center p-20">
+                  <Spinner size="lg" color="warning" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredBank.map((libProb) => (
+                    <div
+                      key={libProb.id}
+                      onClick={() => handleSelectProblem(libProb.id)}
+                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${
+                        selectedIds.has(libProb.id)
+                          ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
+                          : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
+                      }`}
                     >
-                      {libProb.difficulty}
-                    </Chip>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          isSelected={selectedIds.has(libProb.id)}
+                          color="primary"
+                          classNames={{
+                            wrapper:
+                              "rounded-md after:bg-blue-600 dark:after:bg-[#22C55E]",
+                          }}
+                          onChange={() => handleSelectProblem(libProb.id)}
+                        />
+                        <div>
+                          <p
+                            className={`font-black uppercase italic transition-colors ${
+                              selectedIds.has(libProb.id)
+                                ? "text-blue-600 dark:text-[#22C55E]"
+                                : ""
+                            }`}
+                          >
+                            {libProb.title}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase italic">
+                            ID: #{libProb.id.substring(0, 8)}...
+                          </p>
+                        </div>
+                      </div>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        className="font-black uppercase text-[9px]"
+                      >
+                        {libProb.difficulty}
+                      </Chip>
+                    </div>
+                  ))}
+                </div>
+              )}
             </ModalBody>
 
             <ModalFooter className="border-t border-slate-100 dark:border-white/5 p-8">

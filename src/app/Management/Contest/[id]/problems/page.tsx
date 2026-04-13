@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import {
   Table,
   TableHeader,
@@ -11,70 +11,52 @@ import {
   Switch,
   Tooltip,
   useDisclosure,
+  Spinner,
 } from "@heroui/react";
-import { Plus, Edit, Trash2, ChevronLeft } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, RefreshCw } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { AddProblemModal } from "../../../../components/AddProblemModal";
-
-interface ProblemItem {
-  id: number | string;
-  displayId: string;
-  title: string;
-  difficulty: string;
-  visible: boolean;
-}
-
-interface SelectedFromBank {
-  id: string;
-  title: string;
-  difficulty: string;
-}
+import { useGetContestProblemsQuery, useAddProblemToContestMutation } from "@/store/queries/Contest";
+import { toast } from "sonner";
+import { Problem, ContestProblemDto } from "@/types";
 
 export default function ContestProblemsPage() {
   const router = useRouter();
   const params = useParams();
-  const contestId = params.id;
+  const contestId = params.id as string;
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  // State danh sách bài tập hiện tại trong Contest
-  const [problems, setProblems] = useState<ProblemItem[]>([
-    {
-      id: 501,
-      displayId: "A",
-      title: "Two Sum",
-      difficulty: "Easy",
-      visible: true,
-    },
-    {
-      id: 502,
-      displayId: "B",
-      title: "Longest Substring",
-      difficulty: "Medium",
-      visible: true,
-    },
-  ]);
+  // RTK Query hooks
+  const { data: response, isLoading: isLoadingProblems, refetch } = useGetContestProblemsQuery(contestId);
+  const [addProblemToContest, { isLoading: isAdding }] = useAddProblemToContestMutation();
+
+  const problems = (response?.data?.items || []) as ContestProblemDto[];
 
   // Hàm điều hướng sang trang chỉnh sửa bài tập
-  const goToEdit = (problemId: string | number) => {
-    // Nếu là bài tập add từ Bank (có đuôi random), tách lấy ID gốc trước dấu "-"
-    const originalId =
-      typeof problemId === "string" ? problemId.split("-")[0] : problemId;
-    router.push(`/Management/Contest/${contestId}/problems/${originalId}/edit`);
+  const goToEdit = (problemId: string) => {
+    router.push(`/Management/Contest/${contestId}/problems/${problemId}/edit`);
   };
 
   // Hàm xử lý nhận dữ liệu từ Modal
-  const handleAddFromBank = (selectedFromBank: SelectedFromBank[]) => {
-    const formattedNewProblems: ProblemItem[] = selectedFromBank.map(
-      (p, index) => ({
-        id: `${p.id}-${Math.random().toFixed(4)}`, // Đảm bảo key duy nhất cho list hiện tại
-        displayId: String.fromCharCode(65 + problems.length + index),
-        title: p.title,
-        difficulty: p.difficulty,
-        visible: true,
-      })
-    );
-
-    setProblems([...problems, ...formattedNewProblems]);
+  const handleAddFromBank = async (selectedFromBank: Problem[]) => {
+    try {
+      const results = await Promise.all(
+        selectedFromBank.map((p) =>
+          addProblemToContest({
+            contestId,
+            body: {
+              problemId: p.id,
+              displayIndex: problems.length + 1, // Optional: automatically assign index
+            },
+          }).unwrap()
+        )
+      );
+      toast.success(`Đã thêm ${results.length} bài tập vào contest!`);
+      refetch();
+    } catch (error: any) {
+      console.error("Failed to add problems:", error);
+      toast.error(error?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
+    }
   };
 
   return (
@@ -96,17 +78,28 @@ export default function ContestProblemsPage() {
               CONTEST <span className="text-[#FF5C00]">PROBLEMS</span>
             </h1>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-              Contest ID: #{contestId}
+              Contest ID: #{contestId.substring(0, 8)}...
             </p>
           </div>
 
-          <Button
-            startContent={<Plus size={20} strokeWidth={3} />}
-            onPress={onOpen}
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black rounded-xl h-12 px-8 uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all"
-          >
-            Add from Problem Bank
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              isIconOnly
+              variant="flat"
+              onPress={() => refetch()}
+              className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 h-12 w-12 rounded-xl"
+            >
+              <RefreshCw size={20} className={isLoadingProblems ? "animate-spin" : ""} />
+            </Button>
+            <Button
+              startContent={<Plus size={20} strokeWidth={3} />}
+              onPress={onOpen}
+              isLoading={isAdding}
+              className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black rounded-xl h-12 px-8 uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all"
+            >
+              Add from Problem Bank
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -122,36 +115,40 @@ export default function ContestProblemsPage() {
       >
         <TableHeader>
           <TableColumn>ID</TableColumn>
-          <TableColumn>DISPLAY</TableColumn>
-          <TableColumn>PROBLEM TITLE</TableColumn>
+          <TableColumn>INDEX</TableColumn>
+          <TableColumn>ALIAS / TITLE ID</TableColumn>
+          <TableColumn>POINTS</TableColumn>
           <TableColumn>VISIBLE</TableColumn>
           <TableColumn className="text-right">OPERATIONS</TableColumn>
         </TableHeader>
-        <TableBody>
-          {problems.map((p) => (
+        <TableBody emptyContent={isLoadingProblems ? <Spinner color="warning" /> : "Chưa có bài tập nào trong contest này"}>
+          {problems.map((p, idx) => (
             <TableRow
-              key={p.id}
+              key={p.problemId}
               className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
             >
               <TableCell>
                 <span className="text-slate-400 font-black italic text-xs">
-                  #{typeof p.id === "string" ? p.id.split("-")[0] : p.id}
+                  #{p.problemId.substring(0, 8)}
                 </span>
               </TableCell>
               <TableCell>
                 <span className="text-xl font-black text-blue-600 dark:text-[#FF5C00] italic">
-                  {p.displayId}
+                  {p.displayIndex || idx + 1}
                 </span>
               </TableCell>
               <TableCell>
                 <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
-                  {p.title}
+                  {p.alias || p.problemId.substring(0, 12)}
                 </span>
+              </TableCell>
+              <TableCell>
+                <span className="font-bold">{p.points || 0}</span>
               </TableCell>
               <TableCell>
                 <Switch
                   size="sm"
-                  defaultSelected={p.visible}
+                  defaultSelected={true} // Tạm thời để mặc định do chưa có field visible trong DTO
                   classNames={{
                     wrapper:
                       "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
@@ -168,7 +165,7 @@ export default function ContestProblemsPage() {
                       isIconOnly
                       size="sm"
                       variant="flat"
-                      onPress={() => goToEdit(p.id)}
+                      onPress={() => goToEdit(p.problemId)}
                       className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                     >
                       <Edit size={16} />
@@ -183,9 +180,10 @@ export default function ContestProblemsPage() {
                       isIconOnly
                       size="sm"
                       variant="flat"
-                      onPress={() =>
-                        setProblems(problems.filter((item) => item.id !== p.id))
-                      }
+                      onPress={() => {
+                        // setProblems(problems.filter((item) => item.problemId !== p.problemId))
+                        toast.info("Tính năng xóa bài tập đang được cập nhật");
+                      }}
                       className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
                     >
                       <Trash2 size={16} />

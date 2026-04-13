@@ -58,19 +58,19 @@ export default function TagsManagementPage() {
     );
   }
 
-//   if (isError) {
-//     return (
-//       <div className="flex flex-col h-full items-center justify-center text-center p-8 min-h-[500px]">
-//         <div className="text-red-500 text-2xl mb-4 font-black">Error occurred</div>
-//         <p className="text-slate-400 mb-6 font-medium">
-//           {(error as ErrorForm)?.data?.data?.message || "Unable to load tags list."}
-//         </p>
-//         <Button color="primary" onPress={refetch} className="font-bold">
-//           Retry
-//         </Button>
-//       </div>
-//     );
-//   }
+  if (isError) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center text-center p-8 min-h-[500px]">
+        <div className="text-red-500 text-2xl mb-4 font-black">Error occurred</div>
+        <p className="text-slate-400 mb-6 font-medium">
+          {(error as ErrorForm)?.data?.data?.message || "Unable to load tags list."}
+        </p>
+        <Button color="primary" onPress={refetch} className="font-bold">
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -128,6 +128,7 @@ export default function TagsManagementPage() {
             <TableColumn>ID</TableColumn>
             <TableColumn>TAG NAME</TableColumn>
             <TableColumn>SLUG</TableColumn>
+            <TableColumn>STATUS</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
           <TableBody emptyContent="No tags found">
@@ -153,6 +154,17 @@ export default function TagsManagementPage() {
                   <span className="text-sm font-medium text-slate-500 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-md lowercase">
                     {tag.slug || "none"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {tag.isActive === false ? (
+                    <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 font-bold text-[10px] uppercase rounded-md">
+                      INACTIVE
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold text-[10px] uppercase rounded-md">
+                      ACTIVE
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">

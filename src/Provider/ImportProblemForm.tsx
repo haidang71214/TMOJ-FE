@@ -9,6 +9,7 @@ import {
   ListboxItem,
   Chip,
   Spinner,
+  Pagination,
 } from "@heroui/react";
 import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import { useImportProblemToSlotMutation } from "@/store/queries/Class";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ImportProblemClassRequest } from "@/types";
 import { useModal } from "./ModalProvider";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Props {
   instanceId: string;
@@ -36,11 +38,14 @@ interface SelectedProblem {
 }
 
 export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
+  const { t } = useTranslation();
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
   const { closeModal } = useModal();
   const [importProblems, { isLoading }] = useImportProblemToSlotMutation();
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 5;
 
   const { data: apiResponse, isLoading: isLoadingProblems } =
     useGetProblemListQueryQuery();
@@ -63,6 +68,13 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
       return matchSearch && matchDifficulty;
     });
   }, [problems, search, difficultyFilter]);
+
+  const pages = Math.ceil(filteredProblems.length / rowsPerPage) || 1;
+  const paginatedProblems = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filteredProblems.slice(start, end);
+  }, [page, filteredProblems]);
 
   const handleSelectionChange = (keys: any) => {
     const ids = Array.from(keys) as string[];
@@ -96,39 +108,38 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
     );
   };
 
-const handleSubmit = async () => {
-  if (selectedProblems.length === 0) {
-    toast.error("Vui lòng chọn ít nhất một bài tập");
-    return;
-  }
+  const handleSubmit = async () => {
+    if (selectedProblems.length === 0) {
+      toast.error(t('problem_management.select_at_least_one') || "Vui lòng chọn ít nhất một bài tập");
+      return;
+    }
 
-  const payload: ImportProblemClassRequest[] = selectedProblems.map((p, index) => ({
-    problemId: p.problemId,
-    ordinal: index,
-    points: p.points,
-    isRequired: p.isRequired,
-  }));
+    const payload: ImportProblemClassRequest[] = selectedProblems.map((p, index) => ({
+      problemId: p.problemId,
+      ordinal: index,
+      points: p.points,
+      isRequired: p.isRequired,
+    }));
 
-  try {
-    await importProblems({
-      instanceId,
-      slotId,
-      data: payload,
-    }).unwrap();
-    closeModal();
-    toast.success("Add assignment to slot Success!");
-  } catch (err) {
-    console.error(err);
-    toast.error("Can not add assisgnment, please act again.");
-  }
-};
+    try {
+      await importProblems({
+        instanceId,
+        slotId,
+        data: payload,
+      }).unwrap();
+      closeModal();
+      toast.success(t('class_management.add_problem_success') || "Add assignment to slot Success!");
+    } catch (err) {
+      console.error(err);
+      toast.error(t('class_management.add_problem_failed') || "Can not add assisgnment, please act again.");
+    }
+  };
 
   return (
-    <div className="w-[640px] max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-[#0f172a] border border-orange-200 dark:border-orange-500/20 shadow-2xl flex flex-col">
-
+    <div className="w-[640px] max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-[#0f172a] border border-orange-200 dark:border-orange-500/20 shadow-2xl flex flex-col animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 px-6 pt-5 pb-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-600/10 dark:to-amber-600/10 border-b border-orange-200 dark:border-orange-500/20 backdrop-blur-sm">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '200ms' }}>
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
             style={{
@@ -140,115 +151,141 @@ const handleSubmit = async () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Add Problems to Slot
+              {t('class_management.add_problems_to_slot') || "Add Problems to Slot"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-              Chọn và cấu hình bài tập cho slot này
+              {t('class_management.add_problems_desc') || "Chọn và cấu hình bài tập cho slot này"}
             </p>
           </div>
         </div>
       </div>
 
       {/* Body */}
-      <div className="flex-1 px-6 py-6 overflow-y-auto flex flex-col gap-6">
+      <div className="flex-1 px-6 py-6 overflow-y-auto flex flex-col gap-6 custom-scrollbar">
 
         {/* Search & Filter */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '300ms' }}>
           <Input
-            placeholder="Tìm kiếm bài tập..."
+            placeholder={t('problem_management.search_placeholder') || "Tìm kiếm bài tập..."}
             value={search}
-            onValueChange={setSearch}
+            onValueChange={(val) => {
+              setSearch(val);
+              setPage(1); // Reset page on search
+            }}
             variant="bordered"
             startContent={<span className="text-gray-400">🔍</span>}
           />
 
           <select
             value={difficultyFilter || ""}
-            onChange={(e) => setDifficultyFilter(e.target.value || null)}
-            className="px-4 py-2 rounded-xl border border-orange-200 dark:border-orange-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-orange-500 w-40"
+            onChange={(e) => {
+              setDifficultyFilter(e.target.value || null);
+              setPage(1); // Reset page on filter change
+            }}
+            className="px-4 py-2 rounded-xl border border-orange-200 dark:border-orange-700 bg-white dark:bg-[#111c35] text-sm focus:outline-none focus:border-orange-500 w-40"
           >
-            <option value="">Tất cả độ khó</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="">{t('problem_management.all_difficulties') || "Tất cả độ khó"}</option>
+            <option value="easy">{t('problem_management.easy') || "Easy"}</option>
+            <option value="medium">{t('problem_management.medium') || "Medium"}</option>
+            <option value="hard">{t('problem_management.hard') || "Hard"}</option>
           </select>
         </div>
 
         {/* Problem List */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '400ms' }}>
           <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-            Danh sách bài tập
+            {t('problem_management.problem_list') || "Danh sách bài tập"}
             {selectedProblems.length > 0 && (
               <Chip variant="flat" color="warning" size="sm" className="bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
-                {selectedProblems.length} đã chọn
+                {selectedProblems.length} {t('common.selected') || "đã chọn"}
               </Chip>
             )}
           </label>
 
-          <div className="border border-orange-200 dark:border-orange-700 rounded-xl bg-orange-50/50 dark:bg-slate-800/30 h-[260px] overflow-hidden flex flex-col">
+          <div className="border border-orange-200 dark:border-orange-700 rounded-xl bg-orange-50/50 dark:bg-slate-800/30 h-[300px] flex flex-col">
             {isLoadingProblems ? (
               <div className="flex-1 flex items-center justify-center gap-3 text-gray-500 dark:text-slate-400">
-                <Spinner size="sm" />
-                Đang tải danh sách bài tập...
+                <Spinner size="sm" color="warning" />
+                {t('common.loading') || "Đang tải danh sách bài tập..."}
               </div>
             ) : problems.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400">
-                Chưa có bài tập nào.
+                {t('problem_management.empty_state') || "Chưa có bài tập nào."}
               </div>
             ) : (
-              <Listbox
-                selectionMode="multiple"
-                selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
-                onSelectionChange={handleSelectionChange}
-                className="p-2 overflow-y-auto flex-1"
-              >
-                {filteredProblems.map((p) => (
-                  <ListboxItem
-                    key={p.id}
-                    textValue={p.title}
-                    className="data-[hover=true]:bg-orange-100 dark:data-[hover=true]:bg-orange-900/30 rounded-lg"
-                  >
-                    <div className="flex justify-between items-center py-1">
-                      <span className="font-medium text-gray-800 dark:text-slate-200">
-                        {p.title}
-                      </span>
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        className={`text-xs font-medium ${
-                          p.difficulty === "easy"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : p.difficulty === "medium"
-                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        }`}
-                      >
-                        {p.difficulty.toUpperCase()}
-                      </Chip>
-                    </div>
-                  </ListboxItem>
-                ))}
-              </Listbox>
+              <>
+                <Listbox
+                  selectionMode="multiple"
+                  selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
+                  onSelectionChange={handleSelectionChange}
+                  className="p-2 overflow-y-auto flex-1 custom-scrollbar"
+                >
+                  {paginatedProblems.map((p, index) => (
+                    <ListboxItem
+                      key={p.id}
+                      textValue={p.title}
+                      className="data-[hover=true]:bg-orange-100 dark:data-[hover=true]:bg-orange-900/30 rounded-lg animate-fade-in-right"
+                      style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}
+                    >
+                      <div className="flex justify-between items-center py-1">
+                        <span className="font-medium text-gray-800 dark:text-slate-200">
+                          {p.title}
+                        </span>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          className={`text-xs font-medium ${
+                            p.difficulty === "easy"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : p.difficulty === "medium"
+                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                          }`}
+                        >
+                          {p.difficulty.toUpperCase()}
+                        </Chip>
+                      </div>
+                    </ListboxItem>
+                  ))}
+                </Listbox>
+                {pages > 0 && (
+                  <div className="flex w-full justify-center py-2 mt-auto border-t border-orange-200 dark:border-orange-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-b-xl">
+                    <Pagination
+                      isCompact
+                      showControls
+                      showShadow
+                      color="warning"
+                      page={page}
+                      total={pages}
+                      onChange={(p) => setPage(p)}
+                      classNames={{
+                        cursor: "bg-orange-500 text-white font-bold",
+                      }}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
         {/* Selected Problems */}
         {selectedProblems.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '500ms' }}>
             <p className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center gap-2">
               <PlusCircle size={18} className="text-orange-500" />
-              Bài tập đã chọn (thứ tự)
+              {t('problem_management.selected_problems') || "Bài tập đã chọn (thứ tự)"}
             </p>
 
-            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
               {selectedProblems.map((p, idx) => {
                 const problem = problems.find((x) => x.id === p.problemId);
 
                 return (
                   <div
                     key={p.problemId}
-                    className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-2xl border border-orange-200 dark:border-orange-700"
+                    className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-2xl border border-orange-200 dark:border-orange-700 animate-fade-in-right"
+                    style={{ animationFillMode: 'both', animationDelay: `${100 + idx * 50}ms` }}
                   >
                     <Chip
                       variant="flat"
@@ -259,7 +296,7 @@ const handleSubmit = async () => {
                     </Chip>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 dark:text-slate-200 truncate">
+                      <p className="font-medium text-gray-800 dark:text-slate-200 truncate" title={problem?.title}>
                         {problem?.title}
                       </p>
                     </div>
@@ -294,27 +331,26 @@ const handleSubmit = async () => {
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 z-10 px-6 py-4 flex justify-end gap-3 bg-white/80 dark:bg-[#0f172a]/80 border-t border-orange-200 dark:border-orange-500/20 backdrop-blur-sm">
+      <div className="sticky bottom-0 z-10 px-6 py-4 flex justify-end gap-3 bg-white/80 dark:bg-[#0f172a]/80 border-t border-orange-200 dark:border-orange-500/20 backdrop-blur-sm animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '600ms' }}>
         <Button
           variant="flat"
-          className="px-6"
+          className="px-6 active-bump"
           onPress={() => {
-            // Nếu bạn dùng modal, có thể thêm closeModal ở đây
             setSelectedProblems([]);
             setSearch("");
             setDifficultyFilter(null);
           }}
         >
-          Hủy
+          {t('common.cancel') || "Hủy"}
         </Button>
 
         <Button
           isLoading={isLoading}
           onPress={handleSubmit}
           isDisabled={selectedProblems.length === 0 || isLoading}
-          className="px-8 font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg min-w-[160px]"
+          className="px-8 font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg min-w-[160px] active-bump"
         >
-          {isLoading ? "Đang lưu..." : "Lưu bài tập"}
+          {isLoading ? (t('common.saving') || "Đang lưu...") : (t('common.save') || "Lưu bài tập")}
         </Button>
       </div>
     </div>

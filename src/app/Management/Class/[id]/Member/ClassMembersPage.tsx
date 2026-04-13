@@ -48,7 +48,8 @@ export default function ClassMembersPage({
   useEffect(() => {
     setMounted(true);
   }, []);
-
+  console.log("aaaaaaaaaaaaaaaaa");
+  
   const { data, isLoading } = useGetClassMembersQuery({ id: classId });
   console.log(data);
   

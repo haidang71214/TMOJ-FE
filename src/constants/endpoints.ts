@@ -132,7 +132,7 @@ const DiscussionEndpoint = {
   HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
 };
 const TagEndpoint = {
-  GET_TAGS: `${API_LON}/Problems/tags`,
+  GET_TAGS: `${API_PREFIX}/Problems/tags`,
   CREATE_TAG: `${API_LON}/Problems/tags`,
   ATTACH_TAGS: `${API_LON}/Problems/{problemId}/tags/attach`,
   UPDATE_PROBLEM_TAGS: `${API_LON}/Problems/{problemId}/tags`,

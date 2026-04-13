@@ -70,7 +70,7 @@ export default function GlobalProblemListPage() {
     isError,
     error,
     refetch,
-  } = useGetProblemListQueryQuery();
+  } = useGetProblemListQuery();
   console.log(apiResponse);
   // ── Modal Archive ───────────────────────────────────────────
   const archiveModal = useDisclosure();

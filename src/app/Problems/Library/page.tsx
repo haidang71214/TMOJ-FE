@@ -42,7 +42,7 @@ export default function LibraryPage() {
     setPage(1);
   }, [searchQuery]);
 
-  const { data: problemResponse, isLoading } = useGetProblemListQuery({
+  const { data: problemResponse, isLoading } = useGetProblemListPublicQuery({
     page: page, 
     pageSize: 10,
     search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined

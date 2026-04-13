@@ -17,8 +17,8 @@ import {
 import { Tabs, Tab } from "@heroui/react";
 import { Search, Database, X, ExternalLink, Globe, ChevronRight, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Problem } from "@/types";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { Problem, AddProblemToContestRequest } from "@/types";
 
 interface AddProblemModalProps {
   isOpen: boolean;
@@ -39,11 +39,37 @@ export const AddProblemModal = ({
   const [searchBank, setSearchBank] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
 
-  const { data: problemBank, isLoading } = useGetProblemListQueryQuery();
+  // Form state for configuration
+  const [formData, setFormData] = useState<Partial<AddProblemToContestRequest>>({
+    points: 100,
+    penaltyPerWrong: 20,
+    displayIndex: problemCount + 1,
+    ordinal: problemCount + 1,
+    scoringCode: "acm",
+    maxScore: 100,
+    outputLimitKb: 1024,
+  });
+
+  // Sync defaults when problemCount changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        displayIndex: problemCount + 1,
+        ordinal: problemCount + 1,
+      }));
+    }
+  }, [isOpen, problemCount]);
+
+  // Hook cho Ngân hàng hệ thống (Sử dụng hook theo yêu cầu của User)
+  const { data: problemsResponse, isLoading } = useGetProblemListQueryQuery(undefined, { skip: !isOpen || stage !== "select" });
+
+  const currentBank = useMemo(() => {
+    return problemsResponse?.data || [];
+  }, [problemsResponse]);
 
   const filteredBank = useMemo(() => {
-    const rawData = problemBank?.data || [];
-    return rawData.filter((p) => {
+    return currentBank.filter((p) => {
       const matchSearch = p.title
         .toLowerCase()
         .includes(searchBank.toLowerCase());
@@ -67,11 +93,21 @@ export const AddProblemModal = ({
   };
 
   const handleConfirm = () => {
-    const rawData = problemBank?.data || [];
-    const selected = rawData.filter((p) => selectedIds.has(p.id));
-    onConfirm(selected);
-    setSelectedIds(new Set());
-    onOpenChange(); // Close modal
+    if (selectedProblem) {
+      // Clean payload: remove undefined and empty strings
+      const cleanedFormData = Object.entries(formData).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== "") {
+          acc[key as keyof AddProblemToContestRequest] = value as any;
+        }
+        return acc;
+      }, {} as Partial<AddProblemToContestRequest>) as AddProblemToContestRequest;
+
+      onConfirm(cleanedFormData);
+      // Reset
+      setStage("select");
+      setSelectedProblem(null);
+      onOpenChange();
+    }
   };
 
   return (

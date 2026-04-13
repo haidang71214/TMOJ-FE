@@ -14,7 +14,7 @@ import {
 import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useImportProblemToSlotMutation } from "@/store/queries/Class";
-import { useGetProblemListQuery } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ImportProblemClassRequest } from "@/types";
 import { useModal } from "./ModalProvider";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -48,11 +48,11 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
   const rowsPerPage = 5;
 
   const { data: apiResponse, isLoading: isLoadingProblems } =
-    useGetProblemListQuery();
+    useGetProblemListQueryQuery();
 
   const problems = useMemo<Problem[]>(() => {
-    if (!apiResponse?.data?.items) return [];
-    return (apiResponse.data.items as any[]).map((p: any) => ({
+    if (!apiResponse?.data) return [];
+    return apiResponse.data.map((p: any) => ({
       id: p.id,
       title: p.title,
       difficulty: p.difficulty ?? "unknown",

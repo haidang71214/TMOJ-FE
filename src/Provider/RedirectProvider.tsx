@@ -19,6 +19,7 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
 
     const handleRouting = async () => { // hande routing
         const token = webStorageClient.getToken() ?? webStorageClient.get("__admin_access_token");
+        
         const user = webStorageClient.getUser();
         const isAdminSubdomain = window.location.hostname.includes("admin");
         setAdminSubdomain(isAdminSubdomain);

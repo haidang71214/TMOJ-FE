@@ -52,7 +52,7 @@ export const SubmissionsTab = ({ problemId, onRowClick }: SubmissionsTabProps) =
   const allSubmissions: SubmissionData[] = useMemo(() => {
     return rawSubmissions.map((s) => ({
       id: s.id,
-      status: getStatusLabel(s.verdictCode, s.statusCode) as any,
+      status: getStatusLabel(s.verdictCode, s.statusCode),
       language: "Unknown", // Currently API hasn't mapped this
       runtime: s.timeMs != null ? `${s.timeMs} ms` : "N/A",
       memory: s.memoryKb != null ? `${(s.memoryKb / 1024).toFixed(1)} MB` : "N/A",

@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
-import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { useGetProblemListQuery } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -83,9 +83,9 @@ export default function GlobalProblemListPage() {
 
   // ── Transform API data → display format ─────────────────────
   const allProblems = useMemo<DisplayProblem[]>(() => {
-    if (!apiResponse?.data) return [];
+    if (!apiResponse?.data?.items) return [];
 
-    return apiResponse.data.map((p) => ({
+    return apiResponse.data.items.map((p) => ({
       id: p.id,
       slug: p.slug || p.id.split("-")[0] || p.id,
       title: p.title,

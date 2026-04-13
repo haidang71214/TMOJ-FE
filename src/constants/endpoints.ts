@@ -149,6 +149,19 @@ const ReportEndpoint = {
   GET_REPORT_GROUPS: `${API_PREFIX}/reports/groups`,
 };
 
+const ContestEndpoint = {
+  CREATE_CONTEST: `${API_PREFIX}/contests`,
+  GET_CONTEST_LIST: `${API_PREFIX}/contests`,
+  GET_CONTEST_DETAIL: `${API_PREFIX}/contests/{id}`,
+  JOIN_CONTEST: `${API_PREFIX}/contests/{id}/join`,
+  ADD_PROBLEM_TO_CONTEST: `${API_PREFIX}/contests/{contestId}/problems`,
+  GET_CONTEST_PROBLEMS: `${API_PREFIX}/contests/{contestId}/problems`,
+  SUBMIT_CONTEST: `${API_PREFIX}/contests/{contestId}/submit`,
+  PUBLISH_CONTEST: `${API_PREFIX}/contests/{id}/publish`,
+  LEADERBOARD: `${API_PREFIX}/contests/{contestId}/leaderboard`,
+  PING: `${API_PREFIX}/contests/ping`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -164,5 +177,6 @@ export {
   NotificationEndpoint,
   DiscussionEndpoint,
   TagEndpoint,
-  ReportEndpoint
+  ReportEndpoint,
+  ContestEndpoint
 };

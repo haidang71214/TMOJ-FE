@@ -126,7 +126,12 @@ export interface Problem {
   publishedAt: string | null;
 }
 export interface ProblemListResponse {
-  data: Problem[];
+  data: {
+    items: Problem[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+  };
   message: string | null;
   traceId: string;
 }
@@ -846,4 +851,157 @@ export interface ReportDetailResponse {
   data: ReportItem;
   message: string;
   traceId: string | null;
+}
+
+// ── Contest API Definitions ───────────────────────
+
+export interface ContestDto {
+  id: string;
+  title: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  visibility: string;
+  allowTeams: boolean;
+  status: string;
+  contestType?: string;
+}
+
+export interface ContestPagedResult {
+  items: ContestDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
+export interface ContestListResponse {
+  data: ContestPagedResult;
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface ContestProblemDto {
+  problemId: string;
+  alias?: string;
+  ordinal?: number;
+  displayIndex?: number;
+  points?: number;
+  maxScore?: number;
+  timeLimitMs?: number;
+  memoryLimitKb?: number;
+  outputLimitKb?: number;
+  penaltyPerWrong?: number;
+  scoringCode?: string;
+  overrideTestsetId?: string;
+}
+
+export interface ContestDetailDto {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  visibility: string;
+  contestType: string;
+  allowTeams: boolean;
+  status: string;
+  phase: string;
+  canJoin: boolean;
+  startAt: string;
+  endAt: string;
+  problemCount: number;
+  totalPoints: number;
+  problems: ContestProblemDto[];
+}
+
+export interface ContestDetailResponse {
+  data: ContestDetailDto;
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface CreateContestRequest {
+  title: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  visibilityCode: string;
+  allowTeams: boolean;
+  contestType?: string;
+}
+
+export interface CreateContestResponse {
+  data: string; // contestId
+  message: string;
+}
+
+export interface JoinContestRequest {
+  contestId: string;
+  teamId?: string;
+}
+
+export interface JoinContestResponse {
+  data: string; // contestTeamId
+  message: string;
+}
+
+export interface AddProblemToContestRequest extends ContestProblemDto {
+}
+
+export interface AddProblemToContestResponse {
+  data: string; // contestProblemId
+  message: string;
+}
+
+export interface ContestProblemsResponse {
+  data: {
+    items: ContestProblemDto[];
+    totalCount: number;
+    page?: number;
+    pageSize?: number;
+  };
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface SubmitContestRequest {
+  contestId: string;
+  contestProblemId: string;
+  code: string;
+  language: string;
+}
+
+export interface SubmitContestResponse {
+  data: string; // submissionId
+  message: string;
+}
+
+export interface PublishContestResultDto {
+  [key: string]: any;
+}
+
+export interface PublishContestResponse {
+  success: boolean;
+  data: PublishContestResultDto;
+  message: string;
+}
+
+export interface LeaderboardTeamProblem {
+  problemId: string;
+  solved: boolean;
+  penalty: number;
+  attempts: number;
+}
+
+export interface LeaderboardTeam {
+  rank: number;
+  teamId: string;
+  teamName: string;
+  solved: number;
+  penalty: number;
+  problems: LeaderboardTeamProblem[];
+}
+
+export interface LeaderboardResponse {
+  contestId: string;
+  teams: LeaderboardTeam[];
 }

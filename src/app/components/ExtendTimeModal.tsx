@@ -17,7 +17,7 @@ interface Props {
   onOpenChange: () => void;
   // Bổ sung currentEndTime vào interface nếu dữ liệu có sẵn,
   // ở đây tôi tạm lấy thời gian hiện tại làm mốc cũ nếu không có.
-  contest: { id: number; title: string; currentEndTime?: string } | null;
+  contest: { id: string; title: string; endAt?: string } | null;
 }
 
 export default function ExtendTimeModal({
@@ -30,8 +30,8 @@ export default function ExtendTimeModal({
 
   // Giả lập thời gian cũ (Nếu contest không có currentEndTime thì lấy ngay bây giờ)
   const currentEndTime = useMemo(() => {
-    return contest?.currentEndTime
-      ? new Date(contest.currentEndTime)
+    return contest?.endAt
+      ? new Date(contest.endAt)
       : new Date();
   }, [contest]);
 

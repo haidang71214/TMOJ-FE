@@ -11,26 +11,23 @@ import {
   TableRow, TableCell, Card, CardBody, Divider 
 } from "@heroui/react";
 
-type ProblemItem = {
-  id: number;
-  displayId: string;
-  title: string;
-};
+import { useGetContestDetailQuery } from "@/store/queries/Contest";
+import ContestHeader from "./components/ContestHeader";
 
 export default function ContestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const contestId = params.id as string;
   
+  const { data: contestData, isLoading } = useGetContestDetailQuery(contestId);
   const [selectedTab] = useState("info");
 
-  const problems: ProblemItem[] = [
-    { id: 1, displayId: "A", title: "Awesome MST Problem" },
-    { id: 2, displayId: "B", title: "Backbone Network" },
-    { id: 3, displayId: "C", title: "Coloring Polygon" },
-    { id: 4, displayId: "D", title: "Distinctive Number" },
-    { id: 5, displayId: "E", title: "Even Paths" },
-  ];
+  if (isLoading) {
+    return <div className="text-center py-20 font-black italic uppercase">Loading Contest Details...</div>;
+  }
+
+  const contest = contestData?.data;
+  const problems = contest?.problems || [];
 
   return (
     <div className="w-full">
@@ -51,13 +48,13 @@ export default function ContestDetailPage() {
                 <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-center gap-4 shadow-sm relative overflow-hidden">
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-sky-400"></div>
                   <h2 className="text-xl sm:text-2xl text-blue-600 dark:text-sky-400 font-semibold m-0 flex items-center gap-2">
-                    Contest has ended
+                    {contest?.status || "Contest"}
                   </h2>
                   <div className="hidden sm:block w-[1px] h-6 bg-slate-300 dark:bg-slate-700"></div>
                   <div className="flex items-center gap-2 text-[15px] font-medium text-slate-600 dark:text-slate-300">
                     <Clock className="w-4 h-4 text-blue-500 dark:text-sky-400" />
                     <p>
-                      05 hrs, 00 mins <span className="opacity-70 font-normal mx-1">from</span> Mar 25, 2022, 9:30 +07
+                      {new Date(contest?.startAt || "").toLocaleString()} - {new Date(contest?.endAt || "").toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -151,13 +148,13 @@ export default function ContestDetailPage() {
                   </TableHeader>
                   <TableBody items={problems}>
                     {(item) => (
-                      <TableRow key={item.id} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.id}`)}>
+                      <TableRow key={item.problemId} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.problemId}`)}>
                         <TableCell className="text-center font-bold text-slate-700 dark:text-slate-300">
-                          {item.displayId}
+                          {item.alias || item.problemId.substring(0, 4)}
                         </TableCell>
                         <TableCell>
                           <span className="text-blue-600 dark:text-sky-400 group-hover:underline transition-all">
-                            ICPC 2021 Regional - {item.displayId}: {item.title}
+                            {item.alias}: {item.problemId}
                           </span>
                         </TableCell>
                       </TableRow>

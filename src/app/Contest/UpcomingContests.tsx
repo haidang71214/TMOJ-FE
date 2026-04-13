@@ -28,96 +28,6 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-/* ---------------- TYPES ---------------- */
-interface Contest {
-  id: number;
-  title: string;
-  status: "Running" | "Upcoming" | "Ended";
-  image: string;
-  participants: number;
-  endsIn?: string;
-  startsIn?: string;
-  date?: string;
-}
-
-/* ---------------- MOCK DATA (Đã thêm mới) ---------------- */
-const allContests: Contest[] = [
-  {
-    id: 1,
-    title: "FPTU Coding Master Spring 2026",
-    status: "Running",
-    endsIn: "02h 45m",
-    participants: 1240,
-    image:
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070",
-  },
-  {
-    id: 2,
-    title: "Weekly Challenge #42: Dynamic Programming",
-    status: "Upcoming",
-    startsIn: "1d 12h",
-    participants: 856,
-    image:
-      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070",
-  },
-  {
-    id: 3,
-    title: "Biweekly Contest 172: Advanced Data Structures",
-    status: "Upcoming",
-    startsIn: "5d 20h",
-    participants: 420,
-    image:
-      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=2069",
-  },
-  {
-    id: 7,
-    title: "Cyber Security Challenge 2026",
-    status: "Upcoming",
-    startsIn: "10d 05h",
-    participants: 310,
-    image:
-      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070",
-  },
-  {
-    id: 8,
-    title: "AI Generation Hackathon",
-    status: "Running",
-    endsIn: "15h 20m",
-    participants: 2100,
-    image:
-      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070",
-  },
-  {
-    id: 4,
-    title: "Winter Code Sprint 2025",
-    status: "Ended",
-    date: "Jan 10, 2026",
-    participants: 3200,
-    image:
-      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070",
-  },
-  {
-    id: 5,
-    title: "Algorithm Masters Cup",
-    status: "Ended",
-    date: "Dec 20, 2025",
-    participants: 1500,
-    image:
-      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=2128",
-  },
-  {
-    id: 6,
-    title: "Weekly Contest 480",
-    status: "Ended",
-    date: "Dec 14, 2025",
-    participants: 5600,
-    image:
-      "https://images.unsplash.com/photo-1517134191118-9d595e4c8c2b?q=80&w=2070",
-  },
-];
-
-const myRegisteredIds = [1, 4, 8];
-
 const globalRanking = [
   { rank: 1, name: "Miruu", rating: 3703, attended: 26, crown: "gold" },
   { rank: 2, name: "Neal Wu", rating: 3686, attended: 51, crown: "silver" },
@@ -125,14 +35,32 @@ const globalRanking = [
   { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
 ];
 
+import { useGetContestListQuery } from "@/store/queries/Contest";
+import { ContestDto } from "@/types";
+
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
   const [inviteCode, setInviteCode] = useState("");
   const router = useRouter();
 
+  // Fetch all contests (ignoring status param to handle filtering on frontend for now, or could pass status)
+  const { data: contestsData, isLoading } = useGetContestListQuery({
+    page: 1,
+    pageSize: 50,
+  });
+
+  const allContests: ContestDto[] = contestsData?.data?.items || [];
+
   const activeContests = allContests.filter((c) => c.status !== "Ended");
-  const myContests = allContests.filter((c) => myRegisteredIds.includes(c.id));
+  // Assuming 'myRegisteredIds' logic might need future API support, 
+  // currently we don't have a "registered" flag in ContestDto.
+  // We'll keep it empty or mock for now if not available.
+  const myContests = allContests.filter((c) => (c as any).isRegistered); 
   const pastContests = allContests.filter((c) => c.status === "Ended");
+
+  if (isLoading) {
+    return <div className="text-center py-20 font-black italic uppercase">Loading Contests...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-12">
@@ -161,7 +89,7 @@ export default function UpcomingContests() {
                   className="h-[200px] relative cursor-pointer overflow-hidden"
                 >
                   <Image
-                    src={contest.image}
+                    src={(contest as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
                     alt={contest.title}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -181,11 +109,11 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
-                        {contest.participants} Students
+                        {(contest as any).participants || 0} Students
                       </span>
                       <span className="flex gap-2 items-center">
                         <Clock size={14} className="text-[#FF5C00]" />{" "}
-                        {contest.endsIn || contest.startsIn}
+                        {contest.status === "Upcoming" ? `Starts: ${new Date(contest.startAt).toLocaleDateString()}` : `Ends: ${new Date(contest.endAt).toLocaleDateString()}`}
                       </span>
                     </div>
                   </div>
@@ -241,7 +169,7 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-5">
                       <div className="w-14 h-14 relative rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-200 dark:border-white/5">
                         <Image
-                          src={contest.image}
+                          src={(contest as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
                           alt={contest.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform"
@@ -267,7 +195,7 @@ export default function UpcomingContests() {
                           <p className="text-[10px] font-bold text-gray-400 uppercase italic">
                             {contest.status === "Running"
                               ? "Compete now"
-                              : `Ended on ${contest.date}`}
+                              : `Ended on ${new Date(contest.endAt).toLocaleDateString()}`}
                           </p>
                         </div>
                       </div>
@@ -303,7 +231,7 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 relative rounded-xl overflow-hidden bg-slate-200 shrink-0">
                         <Image
-                          src={contest.image}
+                          src={(contest as any).image || "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070"}
                           alt={contest.title}
                           fill
                           className="object-cover opacity-50"
@@ -315,10 +243,10 @@ export default function UpcomingContests() {
                         </h4>
                         <div className="flex gap-4 items-center">
                           <span className="flex items-center gap-1 text-[9px] font-bold text-gray-400 uppercase italic">
-                            <Calendar size={10} /> {contest.date}
+                            <Calendar size={10} /> {new Date(contest.endAt).toLocaleDateString()}
                           </span>
                           <span className="text-[9px] font-black text-[#FF5C00] uppercase italic">
-                            {contest.participants} Solved
+                            {(contest as any).participants || 0} Solved
                           </span>
                         </div>
                       </div>

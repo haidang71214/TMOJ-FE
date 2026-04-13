@@ -5,11 +5,21 @@ import { usePathname } from "next/navigation";
 import { Tabs, Tab, Button } from "@heroui/react";
 import { Info, BarChart2, TrendingUp, Award, FileText, Users } from "lucide-react";
 
+import { useGetContestDetailQuery } from "@/store/queries/Contest";
+
 interface ContestHeaderProps {
   contestId: string;
+  title?: string;
 }
 
-export default function ContestHeader({ contestId }: ContestHeaderProps) {
+export default function ContestHeader({ contestId, title: initialTitle }: ContestHeaderProps) {
+  // Only fetch if we don't have a title and we have a valid contestId
+  const { data: contestData } = useGetContestDetailQuery(contestId, {
+    skip: !!initialTitle || !contestId,
+  });
+
+  const title = initialTitle || contestData?.data?.title;
+  
   const pathname = usePathname();
   // Determine which tab is active based on the URL
   let selectedTab = "info";
@@ -31,7 +41,7 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
       <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white tracking-tight relative z-10 transition-colors">
-            The 2021 ICPC Asia Hanoi Regional Contest Mirror
+            {title || "Contest"}
           </h1>
         </div>
 

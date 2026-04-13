@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
-import { useGetProblemListQuery } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -70,7 +70,7 @@ export default function GlobalProblemListPage() {
     isError,
     error,
     refetch,
-  } = useGetProblemListQuery();
+  } = useGetProblemListQueryQuery();
   console.log(apiResponse);
   // ── Modal Archive ───────────────────────────────────────────
   const archiveModal = useDisclosure();

@@ -628,7 +628,6 @@ export interface StudentSubmissionDetailResponse {
 }
 
 export interface addClassMemberRequest {
-  rollNumber?: string 
   memberCode?: string
 }
 

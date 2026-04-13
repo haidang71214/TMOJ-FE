@@ -54,12 +54,9 @@ export default function CreateProblemForm() {
     memoryLimitKb: 262144,
     difficulty: "medium",
   });
+console.log(form);
 
-  // ── STEP 2: TestSet form ──────────────────────────────────────────────────
-  const [testset, setTestset] = React.useState({
-    type: "public",
-    note: "",
-  });
+
 
   // ── STEP 3: TestCase files ────────────────────────────────────────────────
   const [zipFile, setZipFile] = React.useState<File | null>(null);
@@ -98,33 +95,22 @@ export default function CreateProblemForm() {
       const problem = await createProblemDraft(formData).unwrap();  
       console.log(problem);
       setCreatedProblemId(problem.data.id);
+      
+      try {
+        const ts = await createTestSet({
+          id: problem.data.id,
+          body: { type: "public", note: "" },
+        }).unwrap();
+        setCreatedTestSetId(ts?.data.id ?? null);
+      } catch (tsError: any) {
+        console.error("Create testset failed:", tsError);
+        addToast({ title: "Warning", description: "Problem created, but failed to create default test set.", color: "warning" });
+      }
+
       setStep(1);
     } catch (error: any) {
       console.error("Create problem failed:", error);
       addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Create Failed"), description: error?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể tạo bản nháp bài tập" : "Failed to create problem draft"), color: "danger" });
-    }
-  };
-
-  const handleStep2 = async () => {
-    if (!createdProblemId) return;
-    if (!testset.type) { addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.testset_type_required') || (language === 'vi' ? "Cần chọn loại TestSet" : "TestSet type is required"), color: "danger" }); return; }
-
-    if (createdTestSetId) {
-      setStep(2);
-      return;
-    }
-
-    try {
-      const ts = await createTestSet({
-        id: createdProblemId,
-        body: testset,
-      }).unwrap();
-      
-      setCreatedTestSetId(ts?.data.id ?? null);
-      setStep(2);
-    } catch (error: any) {
-      console.error("Create testset failed:", error);
-      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Create Failed"), description: error?.data?.message || t('problem_create.failed_testset') || (language === 'vi' ? "Không thể tạo bộ test" : "Failed to create testset"), color: "danger" });
     }
   };
 
@@ -182,7 +168,6 @@ export default function CreateProblemForm() {
     const { t } = useTranslation();
     const STEPS = [
       { label: t('problem_create.step_info') || "Problem Info", description: t('problem_create.step_info_desc') || "Basic info & limits" },
-      { label: t('problem_create.step_testset') || "TestSet", description: t('problem_create.step_testset_desc') || "Configure test data set" },
       { label: t('problem_create.step_testcases') || "TestCases", description: t('problem_create.step_testcases_desc') || "Upload zip file with test cases" },
     ];
     return (
@@ -369,70 +354,14 @@ export default function CreateProblemForm() {
               isDisabled={isUserLoading || isCreatingProblem}
               className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em]"
             >
-              {t('problem_create.proceed_testset') || "Next — TestSet"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* ── STEP 2: TestSet ────────────────────────────────────────────────── */}
-      {step === 1 && (
-        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30 animate-fade-in-up">
-          <div className="text-sm text-slate-400 font-bold animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
-            {t('problem_create.problem_id') || "Problem ID:"} <span className="text-black dark:text-white">{createdProblemId}</span>
-          </div>
-
-          <Select
-            label={t('problem_create.testset_type') || "TestSet Type"}
-            placeholder={t('problem_create.select_type') || "Select type"}
-            className="animate-fade-in-up"
-            style={{ animationFillMode: 'both', animationDelay: '200ms' }}
-            selectedKeys={testset.type ? [testset.type] : []}
-            onSelectionChange={(keys) => {
-              const value = Array.from(keys)[0] as string;
-              setTestset({ ...testset, type: value });
-            }}
-          >
-            <SelectItem key="public">{t('problem_create.ts_public') || "Public"}</SelectItem>
-            <SelectItem key="private">{t('problem_create.ts_private') || "Private"}</SelectItem>
-             <SelectItem key="sample">{t('problem_create.ts_sample') || "Sample"}</SelectItem>
-          </Select>
-
-          <Divider className="my-4 dark:bg-white/10 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '300ms' }} />
-
-          <Textarea
-            className="animate-fade-in-up"
-            style={{ animationFillMode: 'both', animationDelay: '400ms' }}
-            label={t('problem_create.testset_note') || "Note (optional)"}
-            placeholder={t('problem_create.note_placeholder') || "Optional note about this testset..."}
-            value={testset.note}
-            onChange={(e) => setTestset({ ...testset, note: e.target.value })}
-          />
-
-          <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '500ms' }}>
-            <Button
-              variant="flat"
-              startContent={<ChevronLeft size={18} />}
-              onPress={() => setStep(0)}
-            >
-              {t('common.cancel') || "Back"}
-            </Button>
-
-            <Button
-              startContent={<ChevronRight size={20} />}
-              onPress={handleStep2}
-              isLoading={isCreatingTestSet}
-              isDisabled={isCreatingTestSet}
-              className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl"
-            >
               {t('problem_create.proceed_testcases') || "Next — TestCases"}
             </Button>
           </div>
         </div>
       )}
 
-      {/* ── STEP 3: TestCases ─────────────────────────────────────────────── */}
-      {step === 2 && (
+      {/* ── STEP 2: TestCases ─────────────────────────────────────────────── */}
+      {step === 1 && (
         <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-10 border border-transparent dark:border-[#474F5D]/30">
           <div className="flex gap-6 text-sm text-slate-400 font-bold animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '100ms' }}>
             <span>{t('problem_create.problem_id') || "Problem ID:"} <span className="text-black dark:text-white">{createdProblemId}</span></span>
@@ -512,7 +441,7 @@ export default function CreateProblemForm() {
             <Button
               variant="flat"
               startContent={<ChevronLeft size={18} />}
-              onPress={() => setStep(1)}
+              onPress={() => setStep(0)}
             >
               {t('common.cancel') || "Back"}
             </Button>

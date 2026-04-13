@@ -70,8 +70,8 @@ export default function GlobalProblemListPage() {
     isError,
     error,
     refetch,
-  } = useGetProblemListQuery();
-
+  } = useGetProblemListQueryQuery();
+  console.log(apiResponse);
   // ── Modal Archive ───────────────────────────────────────────
   const archiveModal = useDisclosure();
   const [selectedProblem, setSelectedProblem] = useState<DisplayProblem | null>(null);

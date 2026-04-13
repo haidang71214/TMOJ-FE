@@ -52,7 +52,7 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
 
   const problems = useMemo<Problem[]>(() => {
     if (!apiResponse?.data) return [];
-    return apiResponse.data.map((p: any) => ({
+    return apiResponse.data?.map((p: any) => ({
       id: p.id,
       title: p.title,
       difficulty: p.difficulty ?? "unknown",

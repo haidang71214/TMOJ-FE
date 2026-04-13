@@ -83,9 +83,9 @@ export default function GlobalProblemListPage() {
 
   // ── Transform API data → display format ─────────────────────
   const allProblems = useMemo<DisplayProblem[]>(() => {
-    if (!apiResponse?.data?.items) return [];
+    if (!apiResponse?.data) return [];
 
-    return apiResponse.data.items.map((p) => ({
+    return apiResponse.data.map((p) => ({
       id: p.id,
       slug: p.slug || p.id.split("-")[0] || p.id,
       title: p.title,

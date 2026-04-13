@@ -45,7 +45,7 @@ import {
   FileArchive,
 } from "lucide-react";
 import CreateProblem from "./CreateProblem";
-import { useGetProblemListQuery } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
 
 export default function ProblemManagementPage() {
@@ -53,9 +53,9 @@ export default function ProblemManagementPage() {
   const { t, language } = useTranslation();
   
   // Use the API query
-  const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQuery();
+  const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
   // Safe extraction of the problem array
-  const apiProblems: Problem[] = problemListData?.data?.items || [];
+  const apiProblems: Problem[] = problemListData?.data || [];
 
   // We still need local state if we want optimistic updates for Approve/Reject 
   // before building out the mutations for them.
@@ -65,8 +65,8 @@ export default function ProblemManagementPage() {
 
   // Sync API data to local state when it loads
   useEffect(() => {
-    if (problemListData?.data?.items) {
-      setProblems(problemListData.data.items);
+    if (problemListData?.data) {
+      setProblems(problemListData.data);
     }
   }, [problemListData]);
 

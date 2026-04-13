@@ -16,8 +16,8 @@ import {
 } from "@heroui/react";
 import { Search, Database, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useGetProblemListQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
+import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 
 interface AddProblemModalProps {
   isOpen: boolean;
@@ -35,10 +35,10 @@ export const AddProblemModal = ({
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const { data: problemBank, isLoading } = useGetProblemListQuery();
+  const { data: problemBank, isLoading } = useGetProblemListQueryQuery();
 
   const filteredBank = useMemo(() => {
-    const rawData = problemBank?.data?.items || [];
+    const rawData = problemBank?.data || [];
     return rawData.filter((p) => {
       const matchSearch = p.title
         .toLowerCase()
@@ -57,7 +57,7 @@ export const AddProblemModal = ({
   };
 
   const handleConfirm = () => {
-    const rawData = problemBank?.data?.items || [];
+    const rawData = problemBank?.data || [];
     const selected = rawData.filter((p) => selectedIds.has(p.id));
     onConfirm(selected);
     setSelectedIds(new Set());

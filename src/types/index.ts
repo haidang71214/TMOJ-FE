@@ -126,12 +126,7 @@ export interface Problem {
   publishedAt: string | null;
 }
 export interface ProblemListResponse {
-  data: {
-    items: Problem[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-  };
+  data: Problem[];
   message: string | null;
   traceId: string;
 }

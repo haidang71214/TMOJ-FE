@@ -33,7 +33,6 @@ import {
   Download,
   Upload,
   Trash2,
-  Rocket,
 } from "lucide-react";
 
 import { useRouter, useSearchParams } from "next/navigation";

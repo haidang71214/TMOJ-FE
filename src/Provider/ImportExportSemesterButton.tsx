@@ -2,15 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@heroui/react';
-import {  Upload, FileSpreadsheet } from 'lucide-react';
+import {  Upload, FileSpreadsheet, Download } from 'lucide-react';
 import { addToast } from '@heroui/toast';
 
-import { 
-  useGetSemesterImportTemplateMutation, 
-  useImportSemestersMutation 
-} from '@/store/queries/Semester';
+
 import { ErrorForm } from '@/types';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useExportSemestersMutation, useGetSemesterImportTemplateMutation, useImportSemestersMutation } from '@/store/queries/Semester';
 
 export default function SemesterImportExport() {
   const { t, language } = useTranslation();
@@ -79,8 +77,8 @@ export default function SemesterImportExport() {
     formData.append('file', file);
 
     try {
-      await importSemesters(formData).unwrap();
-
+      const a =  await importSemesters(formData).unwrap();
+      console.log(a);
       addToast({
         title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'),
         description: t('semester_management.import_success') || (language === 'vi' ? 'Import danh sách học kỳ thành công!' : 'Semester list imported successfully!'),
@@ -108,6 +106,35 @@ export default function SemesterImportExport() {
     }
   };
 
+  // Export list semester
+  const [exportSemesters, { isLoading: isExporting }] = useExportSemestersMutation();
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportSemesters().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "semesters.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      addToast({ title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'), description: language === 'vi' ? 'Export thành công!' : 'Export successfully!', color: "success" });
+    } catch (error: unknown) {
+      console.error(error);
+      let errorMessage = 'Export thất bại!';
+      if (error && typeof error === 'object' && 'data' in error) {
+        const err = error as ErrorForm;
+        errorMessage = err.data?.data?.message || errorMessage;
+      }
+      addToast({
+        title: t('common.error') || (language === 'vi' ? 'Lỗi' : 'Error'),
+        description: errorMessage,
+        color: "danger",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-3">
       {/* Nút Tải Template */}
@@ -121,8 +148,9 @@ export default function SemesterImportExport() {
       </Button>
 
       {/* Nút Import */}
-      <label className="cursor-pointer">
+      <div>
         <input
+          id="semester-import-file"
           type="file"
           accept=".xlsx,.xls"
           onChange={handleImport}
@@ -130,11 +158,22 @@ export default function SemesterImportExport() {
         />
         <Button
           startContent={<Upload size={20} strokeWidth={3} />}
-          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          onPress={() => document.getElementById("semester-import-file")?.click()}
+          className="bg-emerald-500/10 text-emerald-600 font-black h-11 px-4 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 hover:bg-emerald-500/20"
         >
-          {t('common.import') || (language === 'vi' ? 'NHẬP DỮ LIỆU' : 'IMPORT SEMESTERS')}
+          {t('common.import') || (language === 'vi' ? 'NHẬP' : 'IMPORT')}
         </Button>
-      </label>
+      </div>
+
+      {/* Nút Export */}
+      <Button
+        startContent={<Download size={20} strokeWidth={3} />}
+        onPress={handleExport}
+        isLoading={isExporting}
+        className="bg-blue-500/10 text-blue-600 font-black h-11 px-4 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 hover:bg-blue-500/20"
+      >
+        {t('common.export') || (language === 'vi' ? 'XUẤT' : 'EXPORT')}
+      </Button>
     </div>
   );
 }

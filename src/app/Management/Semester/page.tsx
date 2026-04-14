@@ -29,12 +29,15 @@ import {
 import {
   useGetALLSemestersQuery,
   useUpdateSemesterMutation,
+  useExportSemestersMutation,
+  useImportSemestersMutation,
 } from "@/store/queries/Semester";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import CreateUpdateSemester from "./CreateUpdateSemester";
 import { CreateSemesterRequest, ErrorForm } from "@/types";
 import SemesterImportExport from "@/Provider/ImportExportSemesterButton";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Download, Upload } from "lucide-react";
 
 export default function SemesterPage() {
   const { t, language } = useTranslation();

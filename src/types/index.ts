@@ -40,8 +40,8 @@ export interface Users {
   username: string;
   avatarUrl: string | null;
   role: string;
-  roll_number:string | null,
-  member_code:string | null,
+  rollNumber:string | null,
+  memberCode:string | null,
   isLocked?: boolean;
 }
 

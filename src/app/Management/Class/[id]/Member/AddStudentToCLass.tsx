@@ -13,7 +13,7 @@ import { UserPlus } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
 import { useAddClassMembersMutation } from "@/store/queries/Class";
 import { useGetUserRoleQuery } from "@/store/queries/user";
-import { Users } from "@/types";
+import { Users, ErrorForm } from "@/types";
 
 interface Props {
   classId: string;
@@ -39,13 +39,13 @@ export default function AddStudentModal({ classId }: Props) {
       return;
     }
     console.log("selectedUser", selectedUser);
-
+    
     try {
       const res = await addMember({
         id: classId,
         data: {
-          memberCode: selectedUser.roll_number ?? null,
-          rollNumber: selectedUser.member_code ?? null,
+          memberCode: selectedUser.memberCode ?? null,
+          rollNumber: selectedUser.rollNumber ?? null,
         },
       }).unwrap();
       console.log("asdasdasd", res);
@@ -54,7 +54,13 @@ export default function AddStudentModal({ classId }: Props) {
       closeModal();
     } catch (error) {
       console.log("error", error);
-      toast.error("Failed to add student");
+      const err = error as ErrorForm;
+      
+      if (err?.data?.data?.message) {
+        toast.error(err.data.data.message);
+      } else {
+        toast.error("Failed to add student");
+      }
     }
   };
 

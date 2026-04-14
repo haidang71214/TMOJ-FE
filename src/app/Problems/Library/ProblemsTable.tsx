@@ -39,8 +39,8 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike, page = 1, p
       <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-center text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
         {t('common.difficulty') || (language === 'vi' ? 'Độ khó' : 'Difficulty')}
       </TableColumn>
-      <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-right text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4">
-        {t('common.status') || (language === 'vi' ? 'Trạng thái' : 'Status')}
+      <TableColumn className="bg-transparent border-b border-gray-100 dark:border-[#334155] text-right text-[11px] text-gray-400 dark:text-[#94a3b8] uppercase font-black py-4 w-40">
+        {t('common.tags') || (language === 'vi' ? 'Chủ đề' : 'Tags')}
       </TableColumn>
     </TableHeader>
     <TableBody>
@@ -105,11 +105,23 @@ export const ProblemsTable = ({ problems, likedProblems, toggleLike, page = 1, p
               </span>
             </TableCell>
 
-            {/* Status */}
-            <TableCell className="text-right py-5 pr-4">
-              <div className="flex justify-end items-center">
-                 {/*  TODO: Map with user's solved status from API when available */}
-                 <span className="text-gray-200 dark:text-[#334155] font-light">—</span>
+            {/* Tags replacing Status */}
+            <TableCell className="text-right py-3 pr-4 pl-0 w-40 align-middle">
+              <div className="flex flex-wrap justify-end gap-x-1.5 gap-y-1 w-full ml-auto">
+                {(p as any).tags && (p as any).tags.length > 0 ? (
+                  (p as any).tags.map((tag: any) => (
+                    <span
+                      key={tag.id}
+                      className="relative flex items-center justify-center bg-slate-100 dark:bg-white/10 text-[10px] font-medium px-2 py-0.5 rounded shadow-sm shrink-0 group hover:bg-slate-200 dark:hover:bg-white/20 transition-colors border border-transparent hover:border-slate-300 dark:hover:border-white/20"
+                      style={{ color: tag.color || "inherit" }}
+                      title={`${tag.name} - ${tag.description}`}
+                    >
+                      <span>{tag.name}</span>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-[10px] text-gray-300 dark:text-[#475569] italic font-black uppercase tracking-widest block w-full text-right">—</span>
+                )}
               </div>
             </TableCell>
           </TableRow>

@@ -76,7 +76,7 @@ export default function GlobalProblemListPage() {
   } = useGetProblemListQueryQuery();
   console.log(apiResponse);
   const [updateDifficulty, { isLoading: isUpdatingDifficulty }] = useUpdateProblemDifficultyMutation();
-
+  
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {
     try {
       await updateDifficulty({ problemId, difficulty }).unwrap();

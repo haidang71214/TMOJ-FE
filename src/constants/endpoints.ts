@@ -110,6 +110,7 @@ const SemesterEndpoint = {
   GET_ALL_SEMESTER:`${API_PREFIX}/Semester/all-semester`,
   IMPORT_TEMPLATE: `${API_PREFIX}/Semester/import/template`,
   IMPORT_SEMESTER: `${API_PREFIX}/Semester/import`,
+  EXPORT_SEMESTER: `${API_PREFIX}/Semester/export`,
 };
 const ClassSlotEndpoint = {
   GET_CLASS_SLOTS: `${API_PREFIX}/class-instance/{classId}/slots`, // đang sửa

@@ -256,6 +256,26 @@ export default function CreateContestPage() {
             />
           </div>
 
+          <div className="flex flex-col gap-4">
+            <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none">
+              Allow Teams
+            </span>
+            <Switch
+              isSelected={formData.allowTeams}
+              onValueChange={(isSelected) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  allowTeams: isSelected,
+                }))
+              }
+              size="sm"
+              classNames={{
+                wrapper:
+                  "group-data-[selected=true]:bg-[#FF5C00] dark:group-data-[selected=true]:bg-[#FF5C00]",
+              }}
+            />
+          </div>
+
           <RadioGroup
             label="Public Solution"
             orientation="horizontal"

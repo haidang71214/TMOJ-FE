@@ -26,7 +26,7 @@ import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function GlobalProblemEditPage({
+export default function AdminProblemEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -38,7 +38,7 @@ export default function GlobalProblemEditPage({
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
   const problemData = detailData?.data as any;
-  console.log(problemData);
+
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
 
@@ -102,10 +102,9 @@ export default function GlobalProblemEditPage({
         });
       }
       
-    const a =   await updateProblemContent({ problemId: id, body: formData }).unwrap();  
-    console.log(a);
+      await updateProblemContent({ problemId: id, body: formData }).unwrap();  
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
-      // router.back();
+      router.back();
     } catch (error: any) {
       console.error("Update problem failed:", error);
       addToast({ title: "Update Failed", description: error?.data?.message || "Failed to update problem", color: "danger" });
@@ -131,15 +130,15 @@ export default function GlobalProblemEditPage({
           className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
           startContent={<ChevronLeft size={16} />}
         >
-          {t('problem_create.back_to_repo') || "Back to Repository"}
+          {t('problem_create.back_to_repo') || "Back to Management"}
         </Button>
         <div className="space-y-2">
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            EDIT <span className="text-[#FF5C00]">REPOSITORY PROBLEM</span>
+            EDIT <span className="text-[#FF5C00]">PROBLEM</span>
           </h1>
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-              Global ID: #{id}
+              Admin Edit ID: #{id}
             </span>
             <Chip
               size="sm"
@@ -147,7 +146,7 @@ export default function GlobalProblemEditPage({
               color="primary"
               className="font-black uppercase text-[8px] h-5 italic px-2"
             >
-              Master Data
+              System Data
             </Chip>
           </div>
         </div>
@@ -367,7 +366,7 @@ export default function GlobalProblemEditPage({
             isLoading={isUpdatingProblem}
             className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
           >
-            Update Repository Problem
+            Update Admin Problem
           </Button>
         </div>
       </div>

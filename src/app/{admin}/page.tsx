@@ -15,6 +15,7 @@ import {
   BookOpen,
   School,
   Calendar,
+  Tag,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -30,6 +31,7 @@ import PracticePackagePage from "./Package/page";
 import ClassComponents from "./Class/ClassComponents";
 import SubjectComponents from "./Subject/SubjectComponents";
 import SemesterComponents from "./Semester/SemesterComponents";
+import TagsManagementPage from "../Management/Tags/page";
 
 
 const NAV = [
@@ -46,6 +48,7 @@ const NAV = [
   { name: "Class", tKey: "admin_sidebar.class", defaultVi: "Lớp học", defaultEn: "Class", key: "class", icon: School },
   { name: "Subject", tKey: "admin_sidebar.subject", defaultVi: "Môn học", defaultEn: "Subject", key: "subject", icon: BookOpen },
   { name: "Semester", tKey: "admin_sidebar.semester", defaultVi: "Học kỳ", defaultEn: "Semester", key: "semester", icon: Calendar },
+  { name: "Tags", tKey: "admin_sidebar.tags", defaultVi: "Nhãn bài tập", defaultEn: "Tags", key: "tags", icon: Tag },
 ];
 
 export default function AdminPage() {
@@ -65,6 +68,7 @@ export default function AdminPage() {
     class:<ClassComponents/>,
     subject:<SubjectComponents/>,
     semester:<SemesterComponents/>,
+    tags: <TagsManagementPage />,
     settings: <div>Settings</div>,
   };
 
@@ -135,15 +139,8 @@ export default function AdminPage() {
         </header>
 
         {/* CONTENT */}
-        <main className="flex-1 p-10">
-          <div
-            className="
-            rounded-3xl p-8 min-h-full
-            bg-white border border-slate-200 shadow-xl
-          "
-          >
-            {pages[page]}
-          </div>
+        <main className="flex-1 p-6 md:p-10 overflow-x-hidden">
+          {pages[page]}
         </main>
       </div>
     </div>

@@ -30,7 +30,17 @@ export default function UpdateProblemIntoSlot({
   problems,
 }: Props) {
   const { t, language } = useTranslation();
-  const [items, setItems] = useState<ProblemItem[]>(problems);
+  const [items, setItems] = useState<ProblemItem[]>(() => {
+    if (problems.length === 0) return problems;
+    // Tạm thời chia đều 10 điểm, ưu tiên làm tròn số nguyên sao cho tổng luôn = 10
+    const basePts = Math.floor(10 / problems.length);
+    const remainder = 10 % problems.length;
+    
+    return problems.map((p, idx) => ({ 
+      ...p, 
+      points: basePts + (idx < remainder ? 1 : 0) 
+    }));
+  });
   const [deleteProblems] = useDeleteSlotProblemsMutation();
   const [updateProblems, { isLoading }] = useUpdateSlotProblemsMutation();
 

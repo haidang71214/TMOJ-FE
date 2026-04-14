@@ -86,6 +86,15 @@ export default function ProblemsSidebar() {
             {t('problem_create.create_problem') || "CREATE PROBLEM"}
           </Button>
         )}
+        {user?.role?.includes("student") && (
+          <Button
+            size="lg"
+            className="w-full bg-[#FF5C00] text-white font-black shadow-lg shadow-orange-500/30 active-bump rounded-2xl flex items-center justify-start px-4 h-12 uppercase tracking-wider text-sm"
+            onPress={() => router.push('/Problems/Draft')}
+          >
+            {t('problem_create.request_draft') || "REQUEST DRAFT PROBLEM"}
+          </Button>
+        )}
         <Listbox
           aria-label="Navigation"
           onAction={(key) => router.push(`/Problems/${String(key)}`)}

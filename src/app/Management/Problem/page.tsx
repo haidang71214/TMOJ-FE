@@ -21,6 +21,7 @@ import {
   DropdownItem,
   useDisclosure,
   Spinner,
+  addToast,
 } from "@heroui/react";
 import {
   Plus,
@@ -38,7 +39,7 @@ import {
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
 import AttachTagsModal from "./../../components/AttachTagsModal";
-import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery, useUpdateProblemDifficultyMutation, useDownloadProblemStatementMutation } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -74,6 +75,41 @@ export default function GlobalProblemListPage() {
     refetch,
   } = useGetProblemListQueryQuery();
   console.log(apiResponse);
+  const [updateDifficulty, { isLoading: isUpdatingDifficulty }] = useUpdateProblemDifficultyMutation();
+
+  const handleDifficultyChange = async (problemId: string, difficulty: string) => {
+    try {
+      await updateDifficulty({ problemId, difficulty }).unwrap();
+      addToast({ title: t('common.success') || "Success", description: "Difficulty updated successfully", color: "success" });
+      refetch();
+    } catch (error: any) {
+      console.error(error);
+      const msg = error?.data?.message || "Failed to update difficulty";
+      addToast({ title: "Update Failed", description: msg, color: "danger" });
+    }
+  };
+
+  const [downloadStatement, { isLoading: isDownloadingStatement }] = useDownloadProblemStatementMutation();
+
+  const handleDownloadStatement = async (problemId: string, slug: string) => {
+    try {
+      const blob = await downloadStatement(problemId).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const extension = blob.type === "application/pdf" ? "pdf" : "md";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `statement_${slug}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      addToast({ title: t('common.success') || "Success", description: "Statement downloaded successfully", color: "success" });
+    } catch (error) {
+      console.error("Download statement error:", error);
+      addToast({ title: "Download Failed", description: "Could not download statement", color: "danger" });
+    }
+  };
+
   // ── Modal Archive ───────────────────────────────────────────
   const archiveModal = useDisclosure();
   const [selectedProblem, setSelectedProblem] = useState<DisplayProblem | null>(null);
@@ -348,22 +384,37 @@ export default function GlobalProblemListPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    variant="flat"
-                    size="sm"
-                    className={`font-black uppercase text-[9px] px-2 ${
-                      p.difficulty === "EASY"
-                        ? "bg-emerald-500/10 text-emerald-500"
-                        : p.difficulty === "MEDIUM"
-                        ? "bg-amber-500/10 text-amber-500"
-                        : "bg-rose-500/10 text-rose-500"
-                    }`}
-                  >
-                    {p.difficulty === "EASY" ? (t('problem_management.easy') || "EASY") :
-                     p.difficulty === "MEDIUM" ? (t('problem_management.medium') || "MEDIUM") :
-                     p.difficulty === "HARD" ? (t('problem_management.hard') || "HARD") :
-                     p.difficulty}
-                  </Chip>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Chip
+                        variant="flat"
+                        size="sm"
+                        className={`cursor-pointer font-black uppercase text-[9px] px-2 hover:opacity-80 transition-opacity ${
+                          p.difficulty === "EASY"
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : p.difficulty === "MEDIUM"
+                            ? "bg-amber-500/10 text-amber-500"
+                            : p.difficulty === "HARD"
+                            ? "bg-rose-500/10 text-rose-500"
+                            : "bg-default/10 text-default-500"
+                        }`}
+                      >
+                        {p.difficulty === "EASY" ? (t('problem_management.easy') || "EASY") :
+                         p.difficulty === "MEDIUM" ? (t('problem_management.medium') || "MEDIUM") :
+                         p.difficulty === "HARD" ? (t('problem_management.hard') || "HARD") :
+                         p.difficulty}
+                      </Chip>
+                    </DropdownTrigger>
+                    <DropdownMenu 
+                      aria-label="Change Difficulty"
+                      onAction={(key) => handleDifficultyChange(p.id, String(key))}
+                      className="font-bold text-[10px] uppercase tracking-wider"
+                    >
+                      <DropdownItem key="Easy" className="text-emerald-500">{t('problem_management.easy') || "Easy"}</DropdownItem>
+                      <DropdownItem key="Medium" className="text-amber-500">{t('problem_management.medium') || "Medium"}</DropdownItem>
+                      <DropdownItem key="Hard" className="text-rose-500">{t('problem_management.hard') || "Hard"}</DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </TableCell>
                 <TableCell>
                   <span
@@ -447,25 +498,20 @@ export default function GlobalProblemListPage() {
                       </Button>
                     </Tooltip>
 
-                    <Dropdown placement="bottom-end" className="dark:bg-[#111c35] dark:border-white/10">
-                      <DropdownTrigger>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9 active-bump"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Download size={16} />
-                        </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu aria-label="Judging Operations" className="font-bold uppercase text-[10px]">
-                        <DropdownItem key="dl-solution">{t('problem_management.dl_solution') || "Download Solution"}</DropdownItem>
-                        <DropdownItem key="dl-testset">{t('problem_management.dl_testset') || "Download Testset"}</DropdownItem>
-                        <DropdownItem key="ul-solution">{t('problem_management.ul_solution') || "Upload New Solution"}</DropdownItem>
-                        <DropdownItem key="set-score" className="text-amber-500">{t('problem_management.set_score') || "Set Problem Score"}</DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
+                    <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9 active-bump"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadStatement(p.id, p.slug);
+                        }}
+                      >
+                        <Download size={16} />
+                      </Button>
+                    </Tooltip>
 
                     <Tooltip content={t('common.delete') || "Delete"} className="font-bold text-[10px]">
                       <Button

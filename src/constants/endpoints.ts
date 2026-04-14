@@ -28,11 +28,22 @@ const AdminUserEndPoint = {
     GET_USER_IMPORT_TEMPLATE: `${API_PREFIX}/user/import/template`,
     IMPORT_USERS: `${API_PREFIX}/user/import`,
 }
+// published là để public thuộc status code. ok, auto published. 
+// , visibility là để public/private - in -bank.
 const ProblemEndPoint = {
-  GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, 
-  CREATE_PROBLEM_DAFT:`${API_LON}/Problems/drafts`,
+  // làm lại cái public problm cho student -> draft cho manager/teacher/admin thấy
+  GET_LIST_PROBLEM_PUBLIC: `${API_LON}/Problems/public`, // public là để public thuộc status code. ok, auto published. cho sinh viên, 
+  GET_LIST_PROBLEM :`${API_PREFIX}/Problems`, // cái ni đang là lấy hết. // visibility code = published/
+  CREATE_PROBLEM_DAFT:`${API_LON}/Problems`, // bỏ create mặc định thành cái này
+  UPDATE_PROBLEM:`${API_LON}/Problems/{problemId}/content`,
   CREATE_TESTSET_PROBLEM:`${API_PREFIX}/problems/{id}/testsets`,
-  CREATE_TESTCASE_PROBLEM:`${API_LON}/Testsets/{id}/testcases`
+  CREATE_TESTCASE_PROBLEM:`${API_LON}/Testsets/{id}/testcases`,
+  UPDATE_PROBLEM_DIFFICULTY: `${API_LON}/Problems/{problemId}/difficulty`,
+  DOWNLOAD_PROBLEM_STATEMENT: `${API_LON}/Problems/{problemId}/statement`,
+  // có 1 cái để quản lí problem draft cho problem
+  // create problem draft để student tạo -> admin và manager duyệt
+  CREATE_PROBLEM_STUDENT: `${API_LON}/Problems/drafts`,
+
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
@@ -84,6 +95,7 @@ const ClassEndpoint = {
   IMPORT_STUDENTS: `${API_PREFIX}/students/import`,
   IMPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/import`,
   EXPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/export`,
+  
   UPDATE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
   DELETE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
   GET_MY_CLASSES_STUDENT: `${API_PREFIX}/Class/my-classes/student`,
@@ -100,8 +112,8 @@ const SemesterEndpoint = {
   IMPORT_SEMESTER: `${API_PREFIX}/Semester/import`,
 };
 const ClassSlotEndpoint = {
-  GET_CLASS_SLOTS: `${API_PREFIX}/class-instance/{classId}/slots`,
-  CREATE_CLASS_SLOT: `${API_PREFIX}/class-instance/{instanceId}/slots`,
+  GET_CLASS_SLOTS: `${API_PREFIX}/class-instance/{classId}/slots`, // đang sửa
+  CREATE_CLASS_SLOT: `${API_PREFIX}/class-instance/{instanceId}/slots`, 
   
   UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/due-date`,
   PUBLISH_SLOT: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/publish`,
@@ -132,7 +144,7 @@ const DiscussionEndpoint = {
   HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
 };
 const TagEndpoint = {
-  GET_TAGS: `${API_PREFIX}/Problems/tags`,
+  GET_TAGS: `${API_LON}/Problems/tags`,
   CREATE_TAG: `${API_LON}/Problems/tags`, // làm rồi
   ATTACH_TAGS_PROBLEM:`${API_LON}Problems/{problemId}/tags/attach`,
  UPDATE_PROBLEM_TAGS: `${API_LON}/Problems/{problemId}/tags` // sẽ làm

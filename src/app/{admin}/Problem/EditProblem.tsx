@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Input,
   Button,
@@ -19,26 +19,24 @@ import {
 } from "@heroui/react";
 
 import { Save, X, ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useUpdateProblemContentMutation } from "@/store/queries/problem";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function GlobalProblemEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const router = useRouter();
-  const { t, language } = useTranslation();
-  const unwrappedParams = use(params);
-  const id = unwrappedParams.id;
+interface EditProblemProps {
+  problemId: string;
+  onCancel: () => void;
+  onFinish: () => void;
+}
 
-  const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
+export default function EditProblem({ problemId, onCancel, onFinish }: EditProblemProps) {
+  const { t, language } = useTranslation();
+
+  const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id: problemId });
   const problemData = detailData?.data as any;
-  console.log(problemData);
+
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
 
@@ -102,10 +100,9 @@ export default function GlobalProblemEditPage({
         });
       }
       
-    const a =   await updateProblemContent({ problemId: id, body: formData }).unwrap();  
-    console.log(a);
+      await updateProblemContent({ problemId, body: formData }).unwrap();  
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
-      // router.back();
+      onFinish();
     } catch (error: any) {
       console.error("Update problem failed:", error);
       addToast({ title: "Update Failed", description: error?.data?.message || "Failed to update problem", color: "danger" });
@@ -114,32 +111,32 @@ export default function GlobalProblemEditPage({
 
   if (isDetailLoading) {
     return (
-      <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto items-center pt-20">
-        <Skeleton className="w-[300px] h-[50px] rounded-2xl" />
-        <Skeleton className="w-full h-[500px] rounded-2xl" />
+      <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto items-center pt-20 w-full animate-fade-in-up">
+        <Skeleton className="w-[300px] h-[50px] rounded-full" />
+        <Skeleton className="w-full h-[500px] rounded-3xl" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
+    <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto w-full animate-fade-in-up">
       {/* HEADER SECTION */}
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
-          onPress={() => router.back()}
+          onPress={onCancel}
           className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
           startContent={<ChevronLeft size={16} />}
         >
-          {t('problem_create.back_to_repo') || "Back to Repository"}
+          {t('common.cancel') || "Cancel & Go Back"}
         </Button>
         <div className="space-y-2">
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            EDIT <span className="text-[#FF5C00]">REPOSITORY PROBLEM</span>
+            EDIT <span className="text-[#FF5C00]">PROBLEM</span>
           </h1>
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-              Global ID: #{id}
+              Admin Edit ID: #{problemId}
             </span>
             <Chip
               size="sm"
@@ -147,7 +144,7 @@ export default function GlobalProblemEditPage({
               color="primary"
               className="font-black uppercase text-[8px] h-5 italic px-2"
             >
-              Master Data
+              System Data
             </Chip>
           </div>
         </div>
@@ -357,7 +354,7 @@ export default function GlobalProblemEditPage({
             variant="flat"
             startContent={<X size={18} />}
             className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all"
-            onClick={() => router.back()}
+            onClick={onCancel}
           >
             Discard Changes
           </Button>
@@ -367,7 +364,7 @@ export default function GlobalProblemEditPage({
             isLoading={isUpdatingProblem}
             className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
           >
-            Update Repository Problem
+            Update Admin Problem
           </Button>
         </div>
       </div>

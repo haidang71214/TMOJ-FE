@@ -15,6 +15,8 @@ import {
   CardBody,
   CardHeader,
   Chip,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 
 import { Save, ArrowLeft, ArrowRight, Check, UploadCloud } from "lucide-react";
@@ -25,13 +27,13 @@ import {
   useCreateTestCaseMutation,
   useCreateTestSetMutation,
 } from "@/store/queries/problem";
+import { useGetTagsQuery } from "@/store/queries/Tags";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { RequiredStar } from "@/Common/RequiredStar";
 
 const STEPS = [
   { id: 1, label: "Basic Configuration", description: "Problem details and constraints" },
-  { id: 2, label: "Testset Configuration", description: "Define testing environment" },
-  { id: 3, label: "Upload Testcases", description: "Upload inputs and outputs" },
+  { id: 2, label: "Upload Testcases", description: "Upload inputs and outputs" },
 ];
 
 interface CreateProblemProps {
@@ -48,6 +50,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
+  const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
 
   // ── STEP 1: Problem form
   const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({
@@ -55,19 +58,18 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
     title: "",
     difficulty: "medium",
     typeCode: "algorithm",
+    statusCode: "draft",
     visibilityCode: "public",
     scoringCode: "acm",
     descriptionMd: "",
     displayIndex: 1,
     timeLimitMs: 1000,
     memoryLimitKb: 262144,
+    tagIds: [] as string[],
   });
+  const [statementFile, setStatementFile] = React.useState<File | null>(null);
 
-  // ── STEP 2: TestSet form
-  const [testset, setTestset] = React.useState({
-    type: "public",
-    note: "",
-  });
+
 
   // ── STEP 3: TestCase files
   const [zipFile, setZipFile] = React.useState<File | null>(null);
@@ -89,14 +91,37 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
     const formData = new FormData();
 
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && key !== "tagIds") {
         formData.append(key, String(value));
       }
     });
 
+    if (form.tagIds && form.tagIds.length > 0) {
+      form.tagIds.forEach((tagId: string) => {
+        formData.append("TagIds", tagId);
+      });
+    }
+
+    if (statementFile) {
+      formData.append("StatementFile", statementFile);
+    }
+
     const problem = await createProblemDraft(formData).unwrap();
 
     setCreatedProblemId(problem.data.id);
+
+    try {
+      const ts = await createTestSet({
+        id: problem.data.id,
+        body: { type: "public", note: "" },
+      }).unwrap();
+      
+      setCreatedTestSetId(ts?.data.id ?? null);
+    } catch (testsetError) {
+      console.error("Create testset failed:", testsetError);
+      alert("Problem created, but failed to create default test set");
+    }
+
     setStep(1);
   } catch (error) {
     console.error("Create problem failed:", error);
@@ -104,23 +129,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   }
 };
 
-  const handleStep2 = async () => {
-    if (!createdProblemId) return;
-    if (!testset.type) { alert("TestSet type is required"); return; }
 
-    try {
-      const ts = await createTestSet({
-        id: createdProblemId,
-        body: testset,
-      }).unwrap();
-      
-      setCreatedTestSetId(ts?.data.id ?? null);
-      setStep(2);
-    } catch (error) {
-      console.error("Create testset failed:", error);
-      alert("Create testset failed");
-    }
-  };
 
   const handleUploadTestCase = async () => {
     if (!createdProblemId || !createdTestSetId) return;
@@ -234,9 +243,57 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
               labelPlacement="outside"
             />
 
+            <div className="flex flex-col gap-2">
+              <Autocomplete
+                label="Search & Add Tags (Optional)"
+                placeholder="Type to search tags..."
+                onSelectionChange={(key) => {
+                  if (key && !form.tagIds.includes(String(key))) {
+                    setForm({ ...form, tagIds: [...form.tagIds, String(key)] });
+                  }
+                }}
+                variant="bordered"
+                radius="sm"
+                labelPlacement="outside"
+                isLoading={isTagsLoading}
+              >
+                {(fetchTags || []).map((tag) => (
+                  <AutocompleteItem key={tag.id} textValue={tag.name || tag.id}>{tag.name || tag.id}</AutocompleteItem>
+                ))}
+              </Autocomplete>
+              {form.tagIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {form.tagIds.map((tagId: string) => {
+                    const tagObj = fetchTags?.find(t => t.id === tagId);
+                    return (
+                      <Chip
+                        key={tagId}
+                        onClose={() => setForm({ ...form, tagIds: form.tagIds.filter((id: string) => id !== tagId) })}
+                        variant="flat"
+                        color="primary"
+                        size="sm"
+                      >
+                        {tagObj?.name || tagId.substring(0, 8)}
+                      </Chip>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-small font-medium text-foreground">Statement File (.md, .pdf) - Optional</label>
+              <input
+                type="file"
+                accept=".md,.pdf"
+                onChange={(e) => setStatementFile(e.target.files?.[0] ?? null)}
+                className="text-sm border border-default-200 rounded-md p-2 bg-default-50"
+              />
+            </div>
+
             <Divider />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
                 label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field"]} /></div>}
                 selectedKeys={[form.difficulty]}
@@ -248,6 +305,20 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
                 <SelectItem key="easy">Easy</SelectItem>
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="hard">Hard</SelectItem>
+              </Select>
+
+              <Select
+                label={<div className="flex items-center gap-1">Status<RequiredStar rules={["Required field"]} /></div>}
+                selectedKeys={[form.statusCode]}
+                onSelectionChange={(keys) => setForm({ ...form, statusCode: Array.from(keys)[0] as string })}
+                variant="bordered"
+                radius="sm"
+                labelPlacement="outside"
+              >
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="pending">Pending</SelectItem>
+                <SelectItem key="published">Published</SelectItem>
+                <SelectItem key="archived">Archived</SelectItem>
               </Select>
               
               <Input
@@ -300,12 +371,12 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
                 color="primary"
                 endContent={<ArrowRight size={16} />}
                 onPress={handleStep1}
-                isLoading={isCreatingProblem}
-                isDisabled={isUserLoading || isCreatingProblem}
+                isLoading={isCreatingProblem || isCreatingTestSet}
+                isDisabled={isUserLoading || isCreatingProblem || isCreatingTestSet}
                 radius="sm"
                 className="font-semibold"
               >
-                Continue to Testset
+                Continue to TestCases
               </Button>
             </div>
           </CardBody>
@@ -313,67 +384,6 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
       )}
 
       {step === 1 && (
-        <Card className="border-none shadow-sm dark:bg-default-50/50">
-          <CardHeader className="px-8 pt-8 pb-0">
-            <h2 className="text-lg font-semibold">Testset Configuration</h2>
-          </CardHeader>
-          <CardBody className="p-8 gap-6">
-            <div className="bg-default-100 px-4 py-3 rounded-md text-sm text-default-600 border border-default-200">
-              Problem ID: <strong>{createdProblemId}</strong> has been generated successfully.
-            </div>
-
-            <Select
-              label="Testset Category"
-              placeholder="Select category"
-              selectedKeys={testset.type ? [testset.type] : []}
-              onSelectionChange={(keys) => setTestset({ ...testset, type: Array.from(keys)[0] as string })}
-              variant="bordered"
-              radius="sm"
-              labelPlacement="outside"
-              className="max-w-md"
-            >
-              <SelectItem key="public">Public (Hidden logic, shown status)</SelectItem>
-              <SelectItem key="private">Private (Strictly hidden during contest)</SelectItem>
-              <SelectItem key="sample">Sample (Shown on problem description)</SelectItem>
-            </Select>
-
-            <Textarea
-              label="Internal Note (Optional)"
-              placeholder="Notes for other admins..."
-              value={testset.note}
-              onChange={(e) => setTestset({ ...testset, note: e.target.value })}
-              variant="bordered"
-              radius="sm"
-              labelPlacement="outside"
-            />
-
-            <div className="flex justify-between border-t border-default-100 pt-6 mt-4">
-              <Button
-                variant="bordered"
-                startContent={<ArrowLeft size={16} />}
-                onPress={() => setStep(0)}
-                radius="sm"
-              >
-                Back
-              </Button>
-
-              <Button
-                color="primary"
-                endContent={<ArrowRight size={16} />}
-                onPress={handleStep2}
-                isLoading={isCreatingTestSet}
-                isDisabled={isCreatingTestSet}
-                radius="sm"
-                className="font-semibold"
-              >
-                Create Testset & Continue
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
-      )}
-
-      {step === 2 && (
         <Card className="border-none shadow-sm dark:bg-default-50/50">
           <CardHeader className="px-8 pt-8 pb-0 flex-col items-start gap-1">
             <h2 className="text-lg font-semibold">Upload Testcases</h2>
@@ -457,7 +467,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
               <Button
                 variant="bordered"
                 startContent={<ArrowLeft size={16} />}
-                onPress={() => setStep(1)}
+                onPress={() => setStep(0)}
                 radius="sm"
               >
                 Back

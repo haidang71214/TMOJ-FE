@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 
 import { CreateProblemDraftRequest } from "@/types";
 import {
-  useCreateProblemDraftMutation,
+  useCreateProblemStudentMutation,
   useCreateTestCaseMutation,
   useCreateTestSetMutation,
 } from "@/store/queries/problem";
@@ -31,7 +31,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function CreateProblemForm() {
+export default function RequestProblemForm() {
   const router = useRouter();
   const { t, language } = useTranslation();
 
@@ -39,7 +39,7 @@ export default function CreateProblemForm() {
   const [createdProblemId, setCreatedProblemId] = React.useState<string | null>(null);
   const [createdTestSetId, setCreatedTestSetId] = React.useState<string | null>(null);
 
-  const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
+  const [createProblemStudent, { isLoading: isCreatingProblem }] = useCreateProblemStudentMutation();
   const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
@@ -86,7 +86,6 @@ export default function CreateProblemForm() {
 
     try {
       const formData = new FormData();
-      console.log(form.difficulty);
       formData.append("slug", form.slug);
       formData.append("title", form.title);
       formData.append("difficulty", form.difficulty ? form.difficulty.charAt(0).toUpperCase() + form.difficulty.slice(1).toLowerCase() : "Medium");
@@ -106,8 +105,7 @@ export default function CreateProblemForm() {
         });
       }
       
-      const problem = await createProblemDraft(formData).unwrap();  
-      console.log(problem);
+      const problem = await createProblemStudent(formData).unwrap();  
       setCreatedProblemId(problem.data.id);
       
       try {
@@ -118,13 +116,13 @@ export default function CreateProblemForm() {
         setCreatedTestSetId(ts?.data.id ?? null);
       } catch (tsError: any) {
         console.error("Create testset failed:", tsError);
-        addToast({ title: "Warning", description: "Problem created, but failed to create default test set.", color: "warning" });
+        addToast({ title: "Warning", description: "Problem draft requested, but failed to create default test set.", color: "warning" });
       }
 
       setStep(1);
     } catch (error: any) {
-      console.error("Create problem failed:", error);
-      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Create Failed"), description: error?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể tạo bản nháp bài tập" : "Failed to create problem draft"), color: "danger" });
+      console.error("Request problem failed:", error);
+      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Request Failed"), description: error?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể gửi yêu cầu tạo bài tập" : "Failed to request problem draft"), color: "danger" });
     }
   };
 
@@ -172,7 +170,7 @@ export default function CreateProblemForm() {
        }
     }
     
-    addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.problem_created_success') || (language === 'vi' ? "Tạo bài tập thành công!" : "Problem created successfully!"), color: "success" });
+    addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.problem_created_success') || (language === 'vi' ? "Yêu cầu tạo bài tập thành công!" : "Problem requested successfully!"), color: "success" });
     router.push(`/Problems/${createdProblemId}`);
   };
 
@@ -228,7 +226,7 @@ export default function CreateProblemForm() {
 
         <div className="space-y-2">
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white">
-            {t('problem_create.title1') || "CREATE"} <span className="text-[#FF5C00]">{t('problem_create.title2') || "PROBLEM"}</span>
+            REQUEST <span className="text-[#FF5C00]">PROBLEM DRAFT</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">
             {t('problem_create.subtitle') || "Define algorithm challenge, testset and testcases"}
@@ -240,7 +238,7 @@ export default function CreateProblemForm() {
 
       {/* ── STEP 1: Problem Info ───────────────────────────────────────────── */}
       {step === 0 && (
-        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-12">
+        <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-12 border border-transparent dark:border-[#474F5D]/30">
           <Input
               label={
     <div className="flex items-center gap-1">
@@ -386,16 +384,10 @@ export default function CreateProblemForm() {
                   <RequiredStar rules={[t('common.required_field') || "Required field"]} />
                 </div>
               }
-              selectedKeys={[form.statusCode]}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as "draft" | "pending" | "published" | "archived";
-                setForm({ ...form, statusCode: value });
-              }}
+              selectedKeys={["draft"]}
+              isDisabled
             >
               <SelectItem key="draft">Draft</SelectItem>
-              <SelectItem key="pending">Pending</SelectItem>
-              <SelectItem key="published">Published</SelectItem>
-              <SelectItem key="archived">Archived</SelectItem>
             </Select>
           </div>
 

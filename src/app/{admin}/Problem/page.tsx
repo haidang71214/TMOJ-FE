@@ -45,6 +45,7 @@ import {
   FileArchive,
 } from "lucide-react";
 import CreateProblem from "./CreateProblem";
+import EditProblem from "./EditProblem";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
 
@@ -62,6 +63,7 @@ export default function ProblemManagementPage() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
+  const [editProblemId, setEditProblemId] = useState<string | null>(null);
 
   // Sync API data to local state when it loads
   useEffect(() => {
@@ -209,7 +211,12 @@ export default function ProblemManagementPage() {
             <Button isIconOnly size="sm" className="active-bump">
               <Eye size={16} />
             </Button>
-            <Button isIconOnly size="sm" className="active-bump">
+            <Button 
+              isIconOnly 
+              size="sm" 
+              className="active-bump"
+              onPress={() => setEditProblemId(prob.id)}
+            >
               <Pencil size={16} />
             </Button>
             {/* Nút mới: Chuyển đến trang edit Editorial */}
@@ -322,7 +329,12 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <div className="flex gap-2">
-            <Button isIconOnly size="sm" className="active-bump">
+            <Button 
+              isIconOnly 
+              size="sm" 
+              className="active-bump"
+              onPress={() => setEditProblemId(prob.id)}
+            >
               <Pencil size={16} />
             </Button>
             <Button isIconOnly size="sm" className="active-bump">
@@ -393,6 +405,32 @@ export default function ProblemManagementPage() {
         onCancel={() => setIsCreatingProblem(false)}
         onFinish={() => {
           setIsCreatingProblem(false);
+          refreshData();
+        }}
+      />
+    );
+  }
+
+  if (editProblemId) {
+    return (
+      <EditProblem
+        problemId={editProblemId}
+        onCancel={() => setEditProblemId(null)}
+        onFinish={() => {
+          setEditProblemId(null);
+          refreshData();
+        }}
+      />
+    );
+  }
+
+  if (editProblemId) {
+    return (
+      <EditProblem
+        problemId={editProblemId}
+        onCancel={() => setEditProblemId(null)}
+        onFinish={() => {
+          setEditProblemId(null);
           refreshData();
         }}
       />

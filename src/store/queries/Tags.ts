@@ -5,12 +5,18 @@ export interface Tag {
   id: string;
   name: string | null;
   slug: string | null;
+  description?: string | null;
+  color?: string | null;
+  icon?: string | null;
   isActive?: boolean;
 }
 
 export interface CreateTagPayload {
   name: string | null;
-  slug: string | null;
+  slug?: string | null;
+  description?: string | null;
+  color?: string | null;
+  icon?: string | null;
 }
 
 export interface AttachTagsPayload {
@@ -29,8 +35,11 @@ export const tagApi = baseApi.injectEndpoints({
       providesTags: ["Tag"] as any,
       // Fallback in case the API returns { data: Tag[] } or directly Tag[]
       transformResponse: (response: any) => {
-        if (response?.data) return response.data;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
+        if (response?.items && Array.isArray(response.items)) return response.items;
         if (Array.isArray(response)) return response;
+        if (response?.data) return [response.data]; // fallback for single obj
         return [];
       }
     }),

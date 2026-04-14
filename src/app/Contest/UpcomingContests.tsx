@@ -37,11 +37,17 @@ const globalRanking = [
 
 import { useGetContestListQuery } from "@/store/queries/Contest";
 import { ContestDto } from "@/types";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "@/app/Modal/LoginModal";
 
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
   const [inviteCode, setInviteCode] = useState("");
   const router = useRouter();
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const { openModal } = useModal();
 
   // Fetch all contests (ignoring status param to handle filtering on frontend for now, or could pass status)
   const { data: contestsData, isLoading } = useGetContestListQuery({
@@ -121,9 +127,15 @@ export default function UpcomingContests() {
                     fullWidth
                     isDisabled={contest.isRegistered}
                     className={`${contest.isRegistered ? "bg-green-500" : "bg-[#071739]"} text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90`}
-                    onPress={() =>
-                      !contest.isRegistered && router.push(`/Contest/${contest.id}/register`)
-                    }
+                    onPress={() => {
+                      if (!currentUser) {
+                        openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                        return;
+                      }
+                      if (!contest.isRegistered) {
+                        router.push(`/Contest/${contest.id}/register`);
+                      }
+                    }}
                   >
                     {contest.isRegistered ? "Joined" : "Register Now"} {!contest.isRegistered && <ArrowRight size={18} />}
                   </Button>

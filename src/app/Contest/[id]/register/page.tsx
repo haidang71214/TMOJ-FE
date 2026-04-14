@@ -17,10 +17,13 @@ import { useGetContestDetailQuery, useRegisterContestMutation } from "@/store/qu
 import { useCreateTeamMutation, useJoinTeamByCodeMutation, useGetTeamDetailQuery, useAddTeamMemberMutation } from "@/store/queries/Team";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "@/app/Modal/LoginModal";
 
 export default function ContestRegistrationPage() {
   const params = useParams();
   const router = useRouter();
+  const { openModal } = useModal();
   const contestId = params.id as string;
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
@@ -80,9 +83,10 @@ export default function ContestRegistrationPage() {
   useEffect(() => {
     if (!isContestLoading && !currentUser) {
       toast.error("Vui lòng đăng nhập để đăng ký Contest!");
-      router.push("/Auth/login"); 
+      router.push("/Contest"); // Quay lại danh sách thay vì 404
+      openModal({ title: "Đăng nhập", content: <LoginModal /> });
     }
-  }, [currentUser, isContestLoading, router]);
+  }, [currentUser, isContestLoading, router, openModal]);
 
   const handleCopyInviteCode = () => {
     if (teamInviteCode) {

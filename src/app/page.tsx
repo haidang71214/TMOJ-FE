@@ -25,8 +25,13 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
-import { Contest } from "@/types";
+import { ContestDto } from "@/types";
 import NewsFeed from "./components/NewsFeed";
+import { useGetContestListQuery } from "@/store/queries/Contest";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "./Modal/LoginModal";
 // Types
 
 interface NewsPost {
@@ -46,45 +51,18 @@ export default function Home() {
 
   const brandOrange = "#FF5C00";
   const brandNavy = "#071739";
+  const { openModal } = useModal();
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  const activeContests: Contest[] = [
-    {
-      id: 1,
-      title: "FPTU Coding Master Spring 2026",
-      status: "Running",
-      endsIn: "02h 45m",
-      participants: 1240,
-      image:
-        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Weekly Challenge #42: Dynamic Programming",
-      status: "Upcoming",
-      startsIn: "1d 12h",
-      participants: 856,
-      image:
-        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      id: 3,
-      title: "ICPC FPTU Qualifier 2026",
-      status: "Registration Open",
-      startsIn: "Jan 30",
-      participants: 2100,
-      image:
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop",
-    },
-    {
-      id: 4,
-      title: "Internet FPTU 2026",
-      status: "Registration Open",
-      startsIn: "Jan 30",
-      participants: 2100,
-      image:
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop",
-    },
-  ];
+  // Fetch real contests
+  const { data: contestsData, isLoading: isContestsLoading } = useGetContestListQuery({
+    page: 1,
+    pageSize: 10,
+  });
+
+  const activeContests: ContestDto[] = (contestsData?.data?.items || []).filter(
+    (c) => c.status?.toLowerCase() === "running" || c.status?.toLowerCase() === "upcoming"
+  );
 
   const news: NewsPost[] = [
     {
@@ -212,7 +190,7 @@ export default function Home() {
                     <Card className="h-[420px] border-none bg-white dark:bg-[#1C2737] rounded-[32px] overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
                       <div className="h-1/2 relative overflow-hidden">
                         <Image
-                          src={contest.image}
+                          src={(contest as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
                           alt={contest.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
@@ -220,9 +198,9 @@ export default function Home() {
                         <div className="absolute top-4 right-4 z-10">
                           <Chip
                             color={
-                              contest.status === "Running"
-                                ? "danger"
-                                : "warning"
+                              contest.status?.toLowerCase() === "running"
+                                ? "success"
+                                : "primary"
                             }
                             className="font-black uppercase text-[10px] animate-pulse text-white"
                           >
@@ -236,14 +214,25 @@ export default function Home() {
                         </h4>
                         <div className="flex items-center gap-4 text-[10px] font-black uppercase text-[#A4B5C4] tracking-widest">
                           <span className="flex items-center gap-1">
-                            <Users size={14} /> {contest.participants} Students
+                            <Users size={14} /> {(contest as any).participants || 0} Students
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock size={14} />{" "}
-                            {contest.endsIn || contest.startsIn}
+                            {contest.status?.toLowerCase() === "running" 
+                              ? `Ends: ${new Date(contest.endAt).toLocaleDateString()}` 
+                              : `Starts: ${new Date(contest.startAt).toLocaleDateString()}`}
                           </span>
                         </div>
-                        <Button className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105">
+                        <Button 
+                          onPress={() => {
+                            if (!currentUser) {
+                              openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                              return;
+                            }
+                            router.push(`/Contest/${contest.id}/register`);
+                          }}
+                          className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105"
+                        >
                           Register Now <ArrowRight size={18} />
                         </Button>
                       </CardBody>

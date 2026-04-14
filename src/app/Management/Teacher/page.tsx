@@ -34,7 +34,7 @@ import {
 import DeleteTeacherModal from "../../components/DeleteModal";
 import ProfileTeacherModal from "../../components/ProfileModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
-import { Teacher, Student, Users } from "@/types";
+import {  Student, Users } from "@/types";
 import { useGetUserRoleQuery } from "@/store/queries/user";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -57,7 +57,7 @@ export default function TeacherListPage() {
     const q = searchQuery.toLowerCase();
     return fetchedTeachers.filter((user: Users) => {
       const name = (user.displayName || (user.firstName + " " + user.lastName) || "").toLowerCase();
-      const code = (user.member_code || user.userId || "").toLowerCase();
+      const code = ( user.userId || "").toLowerCase();
       return name.includes(q) || code.includes(q);
     });
   }, [fetchedTeachers, searchQuery]);
@@ -198,7 +198,7 @@ export default function TeacherListPage() {
                         {tUser.displayName || tUser.firstName + " " + tUser.lastName}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
-                        ID: {tUser.member_code || tUser.userId.substring(0, 8)}
+                        ID: {tUser.userId || tUser.userId.substring(0, 8)}
                       </span>
                     </div>
                   </div>

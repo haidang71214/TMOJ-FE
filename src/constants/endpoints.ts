@@ -133,9 +133,9 @@ const DiscussionEndpoint = {
 };
 const TagEndpoint = {
   GET_TAGS: `${API_PREFIX}/Problems/tags`,
-  CREATE_TAG: `${API_LON}/Problems/tags`,
-  ATTACH_TAGS: `${API_LON}/Problems/{problemId}/tags/attach`,
-  UPDATE_PROBLEM_TAGS: `${API_LON}/Problems/{problemId}/tags`,
+  CREATE_TAG: `${API_LON}/Problems/tags`, // làm rồi
+  ATTACH_TAGS_PROBLEM:`${API_LON}Problems/{problemId}/tags/attach`,
+ UPDATE_PROBLEM_TAGS: `${API_LON}/Problems/{problemId}/tags` // sẽ làm
 };
 
 const ReportEndpoint = {

@@ -33,9 +33,11 @@ import {
   SortAsc,
   ChevronDown,
   Archive,
+  Tags,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
+import AttachTagsModal from "./../../components/AttachTagsModal";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -79,6 +81,15 @@ export default function GlobalProblemListPage() {
   const handleOpenArchive = (problem: DisplayProblem) => {
     setSelectedProblem(problem);
     archiveModal.onOpen();
+  };
+
+  // ── Modal Tags ──────────────────────────────────────────────
+  const tagsModal = useDisclosure();
+  const [selectedProblemForTags, setSelectedProblemForTags] = useState<DisplayProblem | null>(null);
+
+  const handleOpenTags = (problem: DisplayProblem) => {
+    setSelectedProblemForTags(problem);
+    tagsModal.onOpen();
   };
 
   // ── Transform API data → display format ─────────────────────
@@ -388,6 +399,18 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
+                    <Tooltip content={t('problem_management.attach_tags') || "Manage Tags"} className="font-bold text-[10px]">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={(e) => { e.stopPropagation(); handleOpenTags(p); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
+                      >
+                        <Tags size={16} />
+                      </Button>
+                    </Tooltip>
+
                     <Tooltip content={t('common.archive') || "Archive to Bookmark"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
@@ -467,6 +490,12 @@ export default function GlobalProblemListPage() {
         isOpen={archiveModal.isOpen}
         onOpenChange={archiveModal.onOpenChange}
         problem={selectedProblem}
+      />
+
+      <AttachTagsModal
+        isOpen={tagsModal.isOpen}
+        onOpenChange={tagsModal.onOpenChange}
+        problem={selectedProblemForTags}
       />
     </div>
   );

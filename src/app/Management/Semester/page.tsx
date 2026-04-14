@@ -30,6 +30,7 @@ import {
   useGetALLSemestersQuery,
   useUpdateSemesterMutation,
 } from "@/store/queries/Semester";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import CreateUpdateSemester from "./CreateUpdateSemester";
 import { CreateSemesterRequest, ErrorForm } from "@/types";
 import SemesterImportExport from "@/Provider/ImportExportSemesterButton";
@@ -39,6 +40,9 @@ export default function SemesterPage() {
   const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  const { data: userProfile } = useGetUserInformationQuery();
+  const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
 
   const { data, isLoading, isError, error, refetch } = useGetALLSemestersQuery();
   console.log(data);
@@ -138,6 +142,15 @@ await updateSemester({
       <div className="flex flex-col h-full items-center justify-center">
         <Spinner size="lg" color="primary" />
         <p className="mt-4 text-slate-500">Loading semesters...</p>
+      </div>
+    );
+  }
+
+  if (userProfile && !isManagerOrAdmin) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <h2 className="text-2xl font-black text-red-500 mb-2">Access Denied</h2>
+        <p className="text-slate-500 font-bold">You do not have permission to view Semesters.</p>
       </div>
     );
   }

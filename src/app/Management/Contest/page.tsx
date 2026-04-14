@@ -223,7 +223,9 @@ export default function ContestListPage() {
                       c.status?.toLowerCase() === "running"
                         ? "success"
                         : c.status?.toLowerCase() === "upcoming"
-                        ? "warning"
+                        ? "primary"
+                        : c.status?.toLowerCase() === "draft"
+                        ? "danger"
                         : "default"
                     }
                     className="font-black uppercase text-[9px] border-none"
@@ -261,22 +263,24 @@ export default function ContestListPage() {
                         </Button>
                       </Tooltip>
                     )}
-                    <Tooltip
-                      content="Edit Details"
-                      className="font-bold text-[10px]"
-                    >
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        onPress={() =>
-                          router.push(`/Management/Contest/${c.id}/edit`)
-                        }
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                    {c.status?.toLowerCase() !== "running" && c.status?.toLowerCase() !== "ended" && (
+                      <Tooltip
+                        content="Edit Details"
+                        className="font-bold text-[10px]"
                       >
-                        <Edit3 size={16} />
-                      </Button>
-                    </Tooltip>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onPress={() =>
+                            router.push(`/Management/Contest/${c.id}/edit`)
+                          }
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                        >
+                          <Edit3 size={16} />
+                        </Button>
+                      </Tooltip>
+                    )}
                     <Tooltip
                       content="Manage Problems"
                       className="font-bold text-[10px]"

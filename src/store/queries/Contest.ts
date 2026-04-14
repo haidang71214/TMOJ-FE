@@ -8,10 +8,10 @@ import {
   ContestProblemsResponse,
   CreateContestRequest,
   CreateContestResponse,
-  JoinContestRequest,
-  JoinContestResponse,
   LeaderboardResponse,
   PublishContestResponse,
+  RegisterContestRequest,
+  RegisterContestResponse,
   SubmitContestRequest,
   SubmitContestResponse,
 } from "@/types";
@@ -27,6 +27,16 @@ export const contestApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ["Contest"],
+    }),
+
+    // 1.1 Cập nhật contest
+    updateContest: builder.mutation<CreateContestResponse, { id: string; body: CreateContestRequest }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.UPDATE_CONTEST.replace("{id}", id),
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Contest", id }, "Contest"],
     }),
 
     // 2. Danh sách contest
@@ -51,20 +61,7 @@ export const contestApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: "Contest", id }],
     }),
 
-    // 4. Join contest
-    joinContest: builder.mutation<
-      JoinContestResponse,
-      { id: string; body: JoinContestRequest }
-    >({
-      query: ({ id, body }) => ({
-        url: ContestEndpoint.JOIN_CONTEST.replace("{id}", id),
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Contest", id }],
-    }),
-
-    // 5. Thêm problem vào contest
+    // 4. Thêm problem vào contest (Endpoint 5 cũ)
     addProblemToContest: builder.mutation<
       AddProblemToContestResponse,
       { contestId: string; body: AddProblemToContestRequest }
@@ -79,7 +76,7 @@ export const contestApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 6. Danh sách problem contest
+    // 5. Danh sách problem contest (Endpoint 6 cũ)
     getContestProblems: builder.query<ContestProblemsResponse, string>({
       query: (contestId) => ({
         url: ContestEndpoint.GET_CONTEST_PROBLEMS.replace("{contestId}", contestId),
@@ -90,7 +87,7 @@ export const contestApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 7. Submit bài contest
+    // 6. Submit bài contest (Endpoint 7 cũ)
     submitContest: builder.mutation<
       SubmitContestResponse,
       { contestId: string; body: SubmitContestRequest }
@@ -105,7 +102,7 @@ export const contestApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 8. Publish contest
+    // 7. Publish contest (Endpoint 8 cũ)
     publishContest: builder.mutation<PublishContestResponse, string>({
       query: (id) => ({
         url: ContestEndpoint.PUBLISH_CONTEST.replace("{id}", id),
@@ -114,7 +111,7 @@ export const contestApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, id) => [{ type: "Contest", id }],
     }),
 
-    // 9. Bảng xếp hạng
+    // 8. Bảng xếp hạng (Endpoint 9 cũ)
     getLeaderboard: builder.query<LeaderboardResponse, string>({
       query: (contestId) => ({
         url: ContestEndpoint.LEADERBOARD.replace("{contestId}", contestId),
@@ -125,26 +122,44 @@ export const contestApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // 10. Health check
-    pingContest: builder.query<string, void>({
-      query: () => ({
-        url: ContestEndpoint.PING,
-        method: "GET",
-        responseHandler: (response) => response.text(),
+    // 9. Register contest (Endpoint 11 cũ)
+    registerContest: builder.mutation<
+      RegisterContestResponse,
+      { contestId: string; body: RegisterContestRequest }
+    >({
+      query: ({ contestId, body }) => ({
+        url: ContestEndpoint.REGISTER.replace("{contestId}", contestId),
+        method: "POST",
+        body,
       }),
+      invalidatesTags: (result, error, { contestId }) => [
+        { type: "Contest", id: contestId },
+      ],
+    }),
+
+    // 10. Unregister contest (Endpoint 12 cũ)
+    unregisterContest: builder.mutation<any, string>({
+      query: (contestId) => ({
+        url: ContestEndpoint.UNREGISTER.replace("{contestId}", contestId),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, contestId) => [
+        { type: "Contest", id: contestId },
+      ],
     }),
   }),
 });
 
 export const {
   useCreateContestMutation,
+  useUpdateContestMutation,
   useGetContestListQuery,
   useGetContestDetailQuery,
-  useJoinContestMutation,
   useAddProblemToContestMutation,
   useGetContestProblemsQuery,
   useSubmitContestMutation,
   usePublishContestMutation,
   useGetLeaderboardQuery,
-  usePingContestQuery,
+  useRegisterContestMutation,
+  useUnregisterContestMutation,
 } = contestApi;

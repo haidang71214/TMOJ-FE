@@ -96,7 +96,7 @@ export default function UpcomingContests() {
                   />
                   <Chip
                     className="absolute top-4 right-4 font-black uppercase text-[9px] text-white"
-                    color={contest.status === "Running" ? "danger" : "warning"}
+                    color={contest.status?.toLowerCase() === "running" ? "success" : "primary"}
                   >
                     {contest.status}
                   </Chip>
@@ -119,12 +119,13 @@ export default function UpcomingContests() {
                   </div>
                   <Button
                     fullWidth
-                    className="bg-[#071739] dark:bg-[#071739] text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:bg-[#00FF41] hover:text-[#071739] dark:hover:bg-[#00FF41] dark:hover:text-[#071739]"
+                    isDisabled={contest.isRegistered}
+                    className={`${contest.isRegistered ? "bg-green-500" : "bg-[#071739]"} text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90`}
                     onPress={() =>
-                      router.push(`/Contest/${contest.id}/register`)
+                      !contest.isRegistered && router.push(`/Contest/${contest.id}/register`)
                     }
                   >
-                    Register Now <ArrowRight size={18} />
+                    {contest.isRegistered ? "Joined" : "Register Now"} {!contest.isRegistered && <ArrowRight size={18} />}
                   </Button>
                 </CardBody>
               </Card>
@@ -184,8 +185,8 @@ export default function UpcomingContests() {
                             size="sm"
                             variant="flat"
                             color={
-                              contest.status === "Running"
-                                ? "danger"
+                              contest.status?.toLowerCase() === "running"
+                                ? "success"
                                 : "default"
                             }
                             className="font-black italic uppercase text-[8px] h-5"

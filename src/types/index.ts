@@ -861,6 +861,7 @@ export interface ContestDto {
   allowTeams: boolean;
   status: string;
   contestType?: string;
+  isRegistered?: boolean;
 }
 
 export interface ContestPagedResult {
@@ -1000,4 +1001,79 @@ export interface LeaderboardTeam {
 export interface LeaderboardResponse {
   contestId: string;
   teams: LeaderboardTeam[];
+}
+
+// ── Team API Definitions ───────────────────────
+
+export interface CreateTeamRequest {
+  teamName: string;
+  avatarUrl?: string | null;
+}
+
+export interface CreateTeamResponse {
+  data: {
+    teamId: string;
+    inviteCode: string;
+  };
+  message: string;
+  traceId: string | null;
+}
+
+export interface TeamMember {
+  userId: string;
+  joinedAt: string;
+  userName?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  displayName?: string;
+  email?: string;
+  avatarUrl?: string | null;
+}
+
+export interface TeamDetail {
+  id: string;
+  teamName: string;
+  leaderId: string;
+  teamSize: number;
+  isPersonal: boolean;
+  inviteCode: string;
+  createdAt: string;
+  members: TeamMember[];
+}
+
+export interface TeamDetailResponse {
+  data: TeamDetail;
+  message: string;
+  traceId: string | null;
+}
+
+export interface AddTeamMemberRequest {
+  teamId: string;
+  userId: string;
+}
+
+export interface JoinTeamByCodeRequest {
+  code: string;
+}
+
+export interface JoinTeamByCodeResponse {
+  data: any;
+  message: string;
+  traceId: string | null;
+}
+
+// ── New Contest Registration ───────────────────
+
+export interface RegisterContestRequest {
+  contestId: string;
+  isTeam: boolean;
+  teamName: string | null; // This is string as requested in the doc even if it's solo
+  memberIds: string[];
+}
+
+export interface RegisterContestResponse {
+  data: string; // Registration ID
+  message: string;
+  traceId: string | null;
 }

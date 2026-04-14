@@ -80,6 +80,14 @@ export const semesterApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Semester"],
     }),
+
+    exportSemesters: builder.mutation<Blob, void>({
+      query: () => ({
+        url: SemesterEndpoint.EXPORT_SEMESTER,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
   }),
 });
 
@@ -92,4 +100,5 @@ export const {
   useDeleteSemesterMutation,
   useGetSemesterImportTemplateMutation,
   useImportSemestersMutation,
+  useExportSemestersMutation,
 } = semesterApi;

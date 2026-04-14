@@ -226,7 +226,7 @@ updateClassSemester: builder.mutation<
   }),
   invalidatesTags: ["Class"],
 }),
-
+//aaaaaaaaaaaaaaaaaaaaaa
 joinClass: builder.mutation<void, { inviteCode: string | null }>({
   query: (data) => ({
     url: "/api/v1/Class/join",

@@ -11,6 +11,7 @@ import {
   Button,
   addToast,
   Tooltip,
+  Input,
 } from "@heroui/react";
 
 import {
@@ -18,6 +19,7 @@ import {
   Mail,
   User,
   Trash2,
+  Search,
 } from "lucide-react";
 
 import { useGetClassMembersQuery, useDeleteStudentClassSemesterMutation } from "@/store/queries/Class";
@@ -28,10 +30,10 @@ export default function ClassMembersPage({
 }: {
   classId: string;
 }) {
-  console.log(classId);
-  
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentClassSemesterMutation();
 
   const handleDelete = async (studentId: string) => {
@@ -48,32 +50,57 @@ export default function ClassMembersPage({
   useEffect(() => {
     setMounted(true);
   }, []);
-  console.log("aaaaaaaaaaaaaaaaa");
   
   const { data, isLoading } = useGetClassMembersQuery({ id: classId });
-  console.log(data);
   
   const members = data?.data ?? [];
+
+  const filteredMembers = members.filter((m: ClassMemberResponse) => 
+    m.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
 
   if (!mounted) return null;
 
   return (
     <div className="flex flex-col gap-6 mt-8">
 
-      {/* HEADER */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5">
-          <Users size={22} className="text-slate-400" />
+      {/* HEADER & SEARCH BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Title */}
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/5">
+            <Users size={22} className="text-slate-400" />
+          </div>
+
+          <div>
+            <h3 className="text-xl font-black uppercase italic">
+              Class Members
+            </h3>
+
+            <p className="text-[11px] text-slate-400 uppercase font-bold">
+              {filteredMembers.length} participants
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h3 className="text-xl font-black uppercase italic">
-            Class Members
-          </h3>
-
-          <p className="text-[11px] text-slate-400 uppercase font-bold">
-            {members.length} participants
-          </p>
+        {/* Search */}
+        <div className="w-full sm:w-72">
+          <Input
+            placeholder="Search by name or email..."
+            startContent={<Search size={16} className="text-gray-400" />}
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+            variant="faded"
+            radius="lg"
+            classNames={{
+              input: "text-[13px] font-bold",
+            }}
+          />
         </div>
       </div>
 
@@ -86,7 +113,7 @@ export default function ClassMembersPage({
 
       {/* MEMBER LIST */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {members
+        {filteredMembers
           .slice((page - 1) * rowsPerPage, page * rowsPerPage)
           .map((member: ClassMemberResponse) => (
             <Card
@@ -155,13 +182,19 @@ export default function ClassMembersPage({
           ))}
       </div>
 
-      {/* PAGINATION */}
-      <Pagination
-        total={Math.ceil(members.length / rowsPerPage)}
-        page={page}
-        onChange={setPage}
-        className="self-center mt-6"
-      />
+      {/* NO RESULTS OR PAGINATION */}
+      {!isLoading && filteredMembers.length === 0 ? (
+        <div className="text-center py-10 text-slate-500 font-bold italic">
+          No members found matching "{searchQuery}"
+        </div>
+      ) : (
+        <Pagination
+          total={Math.ceil(filteredMembers.length / rowsPerPage)}
+          page={page}
+          onChange={setPage}
+          className="self-center mt-6"
+        />
+      )}
     </div>
   );
 }

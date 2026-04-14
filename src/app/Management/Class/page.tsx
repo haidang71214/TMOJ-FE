@@ -31,9 +31,11 @@ import {
 import Link from "next/link";
 import { useGetClassesQuery, useExportClassTemplateMutation } from "@/store/queries/Class";
 import CreateSlotForm from "./CreateClassSlotModal";
+import CreateClassModal from "./components/CreateClassModal";
 import { useModal } from "@/Provider/ModalProvider";
 import UpdateTeacherModal from "./UpdateTeacherModal";
 import { useGetALLSemestersQuery } from "@/store/queries/Semester";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { ClassItem, SemesterItem } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -43,6 +45,8 @@ export default function ClassListPage() {
   const { t, language } = useTranslation();
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
+  const { data: userProfile } = useGetUserInformationQuery();
+  const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
   const [exportClassTemplate] = useExportClassTemplateMutation();
   const [selectedSemesterName, setSelectedSemesterName] = useState<string | undefined>(undefined);
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);
@@ -140,6 +144,15 @@ export default function ClassListPage() {
     });
   };
 
+  if (userProfile && !isManagerOrAdmin) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8 min-h-[400px]">
+        <h2 className="text-2xl font-black text-red-500 mb-2">Access Denied</h2>
+        <p className="text-slate-500 font-bold">You do not have permission to view this page.</p>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-full items-center justify-center min-h-[400px]">
@@ -183,14 +196,13 @@ const handleExportTemplateClass = async()=>{
           </p>
         </div>
         <div className="flex gap-3">
-          <Link href="/Management/Class/create">
-            <Button
-              className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
-              startContent={<Plus size={16} />}
-            >
-              {t('class_management.create_button') || "CREATE NEW CLASS"}
-            </Button>
-          </Link>
+          <Button
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
+            startContent={<Plus size={16} />}
+            onPress={() => openModal({ content: <CreateClassModal onCreated={() => refetch()} /> })}
+          >
+            {t('class_management.create_button') || "CREATE NEW CLASS"}
+          </Button>
           <Button
             startContent={<Download size={16} strokeWidth={3} />}
             size="lg"

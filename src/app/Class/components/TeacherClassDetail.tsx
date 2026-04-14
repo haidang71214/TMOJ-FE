@@ -41,7 +41,6 @@ import { useDeleteSlotProblemsMutation, useExportStudentsImportTemplateMutation,
 import { ClassSlotResponse } from "@/types";
 import { useModal } from "@/Provider/ModalProvider";
 import { useTranslation } from "@/hooks/useTranslation";
-
 import CreateSlotForma from "@/app/Management/Class/CreateSlotForClassSession";
 import AddProblemToSlotForm from "@/Provider/ImportProblemForm";
 import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
@@ -86,6 +85,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
       content: <CreateSlotForma classId={classId} />,
     });
   };
+
 
   const openAddProblemModal = (slotId: string) => {
     openModal({
@@ -277,7 +277,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
             </Button>
             
             <div className="w-[1px] h-6 bg-slate-200 dark:bg-white/10 mx-2 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '250ms' }}></div>
-
+    
             <Button
               startContent={<Plus size={16} strokeWidth={2.5} />}
               size="md"

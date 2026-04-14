@@ -11,32 +11,34 @@ import { SemesterItem } from "@/types";
  */
 export function useCurrentSemester() {
   const { data, isLoading, error, refetch } = useGetSemestersQuery();
+  console.log(data);
   const currentSemester = useMemo<SemesterItem | null>(() => {
     if (!data?.data?.items || data.data.items.length === 0) return null;
     
     const items = data.data.items;
 
-    // 1. Tìm kì học bao phủ thời gian hiện tại
     const now = Date.now();
-    const currentByDate = items.filter((s) => {
+
+    const getDistance = (s: SemesterItem) => {
       const start = new Date(s.startAt).setHours(0, 0, 0, 0);
       const end = new Date(s.endAt).setHours(23, 59, 59, 999);
-      return now >= start && now <= end;
-    });
+      if (now >= start && now <= end) return 0; // Đang diễn ra
+      if (now < start) return start - now; // Sắp diễn ra
+      return now - end; // Đã qua
+    };
 
-    if (currentByDate.length > 0) {
-      // Ưu tiên kì có isActive = true trong số các kì hiện tại
-      const activeAndCurrent = currentByDate.find(s => s.isActive);
-      if (activeAndCurrent) return activeAndCurrent;
-      return currentByDate[0];
+    // Ưu tiên chỉ xét những kì đang được bật (isActive = true)
+    const activeItems = items.filter((s) => s.isActive);
+
+    if (activeItems.length > 0) {
+      // Sắp xếp theo khoảng cách thời gian gần hiện tại nhất
+      activeItems.sort((a, b) => getDistance(a) - getDistance(b));
+      return activeItems[0];
     }
 
-    // 2. Nếu không có kì nào bao phủ hiện tại, lấy kì có isActive = true
-    const activeSemester = items.find((s) => s.isActive);
-    if (activeSemester) return activeSemester;
-
-    // 3. Fallback lấy kì cuối cùng
-    return items[items.length - 1];
+    // Fallback: nếu không có kì nào active, lấy kì bất kỳ gần hiện tại nhất
+    const allSorted = [...items].sort((a, b) => getDistance(a) - getDistance(b));
+    return allSorted[0] || null;
   }, [data]);
 
   return {

@@ -24,6 +24,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useGetAllSubjectQueryQuery, useGetImportTemplateMutation, useImportClassMutation } from "@/store/queries/Subject";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useModal } from "@/Provider/ModalProvider";
 import CreateSubjectModal from "./CreateSubjectModal";
 import EditSubjectModal from "./EditSubjectModal";
@@ -35,6 +36,9 @@ export default function SubjectListPage() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   const { openModal } = useModal();
+  const { data: userProfile } = useGetUserInformationQuery();
+  const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
+
   const { data, isLoading } = useGetAllSubjectQueryQuery();
   const [getImportTemplate] = useGetImportTemplateMutation();
   const [importClass] = useImportClassMutation();
@@ -126,41 +130,43 @@ export default function SubjectListPage() {
           </h1>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
             {t('subject_management.desc') || (language === 'vi' ? 'Quản lý môn học và kho học liệu' : 'Manage academic subjects and repositories')}
-          </p>
+            </p>
+          </div>
+          {isManagerOrAdmin && (
+            <div className="flex items-center gap-3">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".xlsx, .xls"
+                onChange={handleImport}
+              />
+              <Button
+                startContent={<Download size={16} strokeWidth={3} />}
+                onPress={handleDownloadTemplate}
+                className="bg-blue-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
+              >
+                {t('common.template') || (language === 'vi' ? 'BIỂU MẪU' : 'TEMPLATE')}
+              </Button>
+              <Button
+                startContent={<Upload size={16} strokeWidth={3} />}
+                onPress={() => fileInputRef.current?.click()}
+                className="bg-purple-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
+              >
+                {t('common.import') || (language === 'vi' ? 'NHẬP' : 'IMPORT')}
+              </Button>
+              <Button
+                onPress={handleOpenCreate}
+                startContent={<Plus size={20} strokeWidth={3} />}
+                className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
+              >
+                {t('subject_management.create_new') || (language === 'vi' ? 'TẠO MÔN HỌC MỚI' : 'CREATE NEW SUBJECT')}
+              </Button>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept=".xlsx, .xls"
-            onChange={handleImport}
-          />
-          <Button
-            startContent={<Download size={16} strokeWidth={3} />}
-            onPress={handleDownloadTemplate}
-            className="bg-blue-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
-          >
-            {t('common.template') || (language === 'vi' ? 'BIỂU MẪU' : 'TEMPLATE')}
-          </Button>
-          <Button
-            startContent={<Upload size={16} strokeWidth={3} />}
-            onPress={() => fileInputRef.current?.click()}
-            className="bg-purple-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
-          >
-            {t('common.import') || (language === 'vi' ? 'NHẬP' : 'IMPORT')}
-          </Button>
-          <Button
-            onPress={handleOpenCreate}
-            startContent={<Plus size={20} strokeWidth={3} />}
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
-          >
-            {t('subject_management.create_new') || (language === 'vi' ? 'TẠO MÔN HỌC MỚI' : 'CREATE NEW SUBJECT')}
-          </Button>
-        </div>
-      </div>
-
-      {/* FILTER & SEARCH SECTION */}
+        
+        {/* FILTER & SEARCH SECTION */}
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         <Input
           placeholder={t('subject_management.search_placeholder') || (language === 'vi' ? 'Tìm kiếm mã hoặc tên...' : 'Search code or name...')}
@@ -241,19 +247,22 @@ export default function SubjectListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    <Tooltip content={t('subject_management.edit') || (language === 'vi' ? 'Sửa môn học' : 'Edit Subject')} className="font-bold text-[10px]" placement="top">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => handleOpenEdit(s as any)}
-                        className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/20 animate-fade-in-up"
-                        style={{ animationFillMode: 'both', animationDelay: `${index * 50 + 100}ms` }}
-                      >
-                        <Edit3 size={18} />
-                      </Button>
-                    </Tooltip>
-                    
+                    {isManagerOrAdmin ? (
+                      <Tooltip content={t('subject_management.edit') || (language === 'vi' ? 'Sửa môn học' : 'Edit Subject')} className="font-bold text-[10px]" placement="top">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onPress={() => handleOpenEdit(s as any)}
+                          className="text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/20 animate-fade-in-up"
+                          style={{ animationFillMode: 'both', animationDelay: `${index * 50 + 100}ms` }}
+                        >
+                          <Edit3 size={18} />
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">—</span>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

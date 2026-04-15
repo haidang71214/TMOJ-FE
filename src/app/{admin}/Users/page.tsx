@@ -19,11 +19,15 @@ import {
   ModalFooter,
   Input,
   addToast,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@heroui/react";
 
 import { Edit3, UserPlus, Shield, Lock, Unlock, KeyRound, Download, Upload } from "lucide-react";
 import { Users as ApiUser } from "@/types";
-import { useGetUserListQuery, useDownloadImportUserTemplateMutation, useImportUsersMutation, useLockUserMutation, useUnlockUserMutation } from "@/store/queries/user";
+import { useGetUserListQuery, useDownloadImportUserTemplateMutation, useImportUsersMutation, useLockUserMutation, useUnlockUserMutation, useAssignRoleMutation } from "@/store/queries/user";
 import { useModal } from "@/Provider/ModalProvider";
 import CreateUserModal from "./CreateUserModal";
 
@@ -37,7 +41,17 @@ export default function UserManagerPage() {
   const [importUsers, { isLoading: isImporting }] = useImportUsersMutation();
   const [lockUser] = useLockUserMutation();
   const [unlockUser] = useUnlockUserMutation();
+  const [assignRole] = useAssignRoleMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleAssignRole = async (user: ApiUser, key: string | number) => {
+    try {
+      await assignRole({ id: user.userId, data: { roleCode: key.toString() } }).unwrap();
+      addToast({ title: `Role changed to ${key} successfully`, color: "success" });
+    } catch (error) {
+      addToast({ title: "Failed to change role", color: "danger" });
+    }
+  };
   
   const handleToggleLock = async (u: ApiUser) => {
     try {
@@ -254,11 +268,30 @@ const items = useMemo(() => {
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content="Change role">
-                      <Button isIconOnly size="sm" variant="flat">
-                        <Shield size={16} />
-                      </Button>
-                    </Tooltip>
+                    {u.role !== 'admin' ? (
+                      <Dropdown>
+                        <DropdownTrigger>
+                           <Button isIconOnly size="sm" variant="flat" aria-label="Change role">
+                             <Shield size={16} />
+                           </Button>
+                        </DropdownTrigger>
+                        <DropdownMenu aria-label="Assign Role" onAction={(key) => handleAssignRole(u, key)}>
+                          {['manager', 'teacher', 'student']
+                            .filter(role => role !== u.role)
+                            .map(role => (
+                              <DropdownItem key={role} className="capitalize">
+                                Set as {role}
+                              </DropdownItem>
+                            ))}
+                        </DropdownMenu>
+                      </Dropdown>
+                    ) : (
+                      <Tooltip content="Cannot change admin role">
+                        <Button isIconOnly size="sm" variant="flat" isDisabled>
+                          <Shield size={16} className="text-slate-400" />
+                        </Button>
+                      </Tooltip>
+                    )}
 
                     <Tooltip content={u.isLocked ? "Unlock account" : "Lock account"}>
                       <Button

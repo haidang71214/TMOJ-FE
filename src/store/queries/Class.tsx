@@ -1,6 +1,6 @@
 import { ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { addClassMemberRequest, DeleteClassStudentRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse } from "@/types";
+import { addClassMemberRequest, DeleteClassStudentRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -126,7 +126,7 @@ addClassMembers: builder.mutation<
     method: "POST",
     body: data,
   }),
-  invalidatesTags: ["Class"],
+  invalidatesTags: ["Class","MyClass"],
 }),
     // Export danh sách lớp (không truyền params)
     exportClassTemplate: builder.mutation<Blob, void>({
@@ -235,7 +235,23 @@ joinClass: builder.mutation<void, { inviteCode: string | null }>({
   }),
   invalidatesTags: ["MyClass"],
 }),
-
+         getStudentsNotYet: builder.query<
+      StudentsNotYetResponse, 
+      { 
+        classSemesterId: string; 
+        search?: string;
+        // page và pageSize đã bỏ theo yêu cầu trước đó của bạn
+      }
+    >({
+      query: ({ classSemesterId, search }) => ({
+        url: ClassEndpoint.STUDENT_NOT_YET.replace("{classSemesterId}", classSemesterId),
+        method: "GET",
+        params: {
+          search: search?.trim() || undefined,
+        },
+      }),
+      providesTags: ["MyClass"],    
+    }),
   }),
 });
 
@@ -260,4 +276,5 @@ export const {
    useDeleteStudentClassSemesterMutation,
    useUpdateClassSemesterMutation,
    useJoinClassMutation,
+   useGetStudentsNotYetQuery,
 } = classApi;

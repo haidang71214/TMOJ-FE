@@ -186,6 +186,14 @@ const TeamEndpoint = {
   JOIN_BY_CODE: `${API_PREFIX}/teams/join-by-code`,
 };
 
+const ProblemEditorialEndpoint = {
+  GET_EDITORIALS: `${API_PREFIX}/problem-editorials`,
+  CREATE_EDITORIAL: `${API_PREFIX}/problem-editorials`,
+  GET_EDITORIAL_BY_ID: `${API_PREFIX}/problem-editorials/{id}`,
+  UPDATE_EDITORIAL: `${API_PREFIX}/problem-editorials/{id}`,
+  DELETE_EDITORIAL: `${API_PREFIX}/problem-editorials/{id}`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -203,5 +211,6 @@ export {
   TagEndpoint,
   ReportEndpoint,
   ContestEndpoint,
-  TeamEndpoint
+  TeamEndpoint,
+  ProblemEditorialEndpoint
 };

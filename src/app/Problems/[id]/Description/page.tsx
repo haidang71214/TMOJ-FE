@@ -111,11 +111,6 @@ export default function DescriptionTab() {
       </div>
 
       {/* Main Description Content - Render thật từ Markdown */}
-      <div className="prose prose-slate dark:prose-invert prose-headings:text-[#071739] dark:prose-headings:text-white prose-headings:font-bold 
-                      prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-strong:text-[#071739] dark:prose-strong:text-white 
-                      prose-a:text-[#FF5C00] hover:prose-a:text-[#FFB800] 
-                      max-w-none text-[14.5px] leading-relaxed animate-fade-in-up"
-           style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
@@ -150,7 +145,6 @@ export default function DescriptionTab() {
         >
           {problem.content || "Chưa có mô tả cho bài toán này."}
         </ReactMarkdown>
-      </div>
       {/* Metadata */}
       <div className="flex flex-wrap gap-4 pt-4 animate-fade-in-up" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
         <div className="flex items-center gap-3 bg-white dark:bg-[#162130] border border-orange-100 dark:border-white/5 rounded-lg px-4 py-3 hover:border-[#FF5C00]/50 hover:shadow-md transition-all duration-300 group shadow-sm">

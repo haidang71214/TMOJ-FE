@@ -193,7 +193,6 @@
     "diff_hard": "Hard",
     "public_visible": "Public Visible",
     "problem_id": "Problem ID:",
-    "testset_type": "TestSet Type",
     "select_type": "Select type",
     "ts_public": "Public",
     "ts_private": "Private",
@@ -246,7 +245,15 @@
     "operations": "OPERATIONS",
     "empty_state": "No problems available yet",
     "loading": "Loading problem list...",
-    "error_loading": "Failed to load problem list"
+    "error_loading": "Failed to load problem list",
+    "editorial_management": "Editorial Management",
+    "editorial_write": "Write",
+    "editorial_preview": "Preview",
+    "editorial_save": "Save Editorial",
+    "editorial_update": "Update Editorial",
+    "editorial_delete": "Delete Editorial",
+    "editorial_fetching": "Loading editorial data...",
+    "official_editorial": "Official Editorial"
   },
   "slot": {
     "titleRequired": "Slot title is required",

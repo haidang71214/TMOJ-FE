@@ -35,10 +35,12 @@ import {
   ChevronDown,
   Archive,
   Tags,
+  BookOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import ArchiveProblemModal from "./../../components/ArchiveProblemModal";
-import AttachTagsModal from "./../../components/AttachTagsModal";
+import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
+import AttachTagsModal from "@/app/components/AttachTagsModal";
+import EditorialManagementModal from "@/app/components/EditorialManagementModal";
 import { useGetProblemListQueryQuery, useUpdateProblemDifficultyMutation, useDownloadProblemStatementMutation } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -126,6 +128,15 @@ export default function GlobalProblemListPage() {
   const handleOpenTags = (problem: DisplayProblem) => {
     setSelectedProblemForTags(problem);
     tagsModal.onOpen();
+  };
+
+  // ── Modal Editorial ────────────────────────────────────────
+  const editorialModal = useDisclosure();
+  const [selectedProblemForEditorial, setSelectedProblemForEditorial] = useState<DisplayProblem | null>(null);
+
+  const handleOpenEditorial = (problem: DisplayProblem) => {
+    setSelectedProblemForEditorial(problem);
+    editorialModal.onOpen();
   };
 
   // ── Transform API data → display format ─────────────────────
@@ -462,6 +473,18 @@ export default function GlobalProblemListPage() {
                       </Button>
                     </Tooltip>
 
+                    <Tooltip content="Editorial Management" className="font-bold text-[10px]">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={(e) => { e.stopPropagation(); handleOpenEditorial(p); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-amber-500 transition-all rounded-lg h-9 w-9 active-bump"
+                      >
+                        <BookOpen size={16} />
+                      </Button>
+                    </Tooltip>
+
                     <Tooltip content={t('common.archive') || "Archive to Bookmark"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
@@ -542,6 +565,13 @@ export default function GlobalProblemListPage() {
         isOpen={tagsModal.isOpen}
         onOpenChange={tagsModal.onOpenChange}
         problem={selectedProblemForTags}
+      />
+
+      <EditorialManagementModal
+        isOpen={editorialModal.isOpen}
+        onOpenChange={editorialModal.onOpenChange}
+        problemId={selectedProblemForEditorial?.id}
+        problemTitle={selectedProblemForEditorial?.title}
       />
     </div>
   );

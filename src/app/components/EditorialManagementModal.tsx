@@ -1,0 +1,236 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Textarea,
+  Tabs,
+  Tab,
+  addToast,
+} from "@heroui/react";
+import { BookOpen, Save, Trash2, Eye, Edit3, Loader2 } from "lucide-react";
+import MarkdownRenderer from "./MarkdownRenderer";
+import { 
+  useGetEditorialsQuery, 
+  useCreateEditorialMutation, 
+  useUpdateEditorialMutation, 
+  useDeleteEditorialMutation 
+} from "@/store/queries/ProblemEditorial";
+
+interface EditorialManagementModalProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  problemId?: string;
+  problemTitle?: string;
+}
+
+import { useTranslation } from "@/hooks/useTranslation";
+
+export default function EditorialManagementModal({
+  isOpen,
+  onOpenChange,
+  problemId,
+  problemTitle,
+}: EditorialManagementModalProps) {
+  const { t } = useTranslation();
+  const [content, setContent] = useState("");
+  const [activeTab, setActiveTab] = useState("write");
+
+  const { data: editorialData, isLoading: isLoadingEditorial } = useGetEditorialsQuery(
+    { problemId: problemId || "" },
+    { skip: !problemId || !isOpen }
+  );
+
+  // Defensive data access: check for nested data.data, but also data.items or data directly
+  const existingEditorial = editorialData?.data?.data?.[0] || (editorialData?.data as any)?.items?.[0] || (editorialData as any)?.data?.[0];
+
+  const [createEditorial, { isLoading: isCreating }] = useCreateEditorialMutation();
+  const [updateEditorial, { isLoading: isUpdating }] = useUpdateEditorialMutation();
+  const [deleteEditorial, { isLoading: isDeleting }] = useDeleteEditorialMutation();
+
+  useEffect(() => {
+    if (existingEditorial) {
+      // Normalize literal \n from API if any, and handle standard newlines
+      const normalized = (existingEditorial.content || "")
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "");
+      setContent(normalized);
+    } else {
+      setContent("");
+    }
+  }, [existingEditorial, isOpen]);
+
+  const handleSave = async () => {
+    if (!problemId) return;
+
+    try {
+      if (existingEditorial) {
+        await updateEditorial({
+          id: existingEditorial.id,
+          content: content.replace(/\r\n/g, '\n'), // Normalize newlines
+        }).unwrap();
+        addToast({ title: t('common.success') || "Success", description: t('problem_management.editorial_update') || "Editorial updated successfully", color: "success" });
+      } else {
+        await createEditorial({
+          problemId,
+          content: content.replace(/\r\n/g, '\n'), // Normalize newlines
+        }).unwrap();
+        addToast({ title: t('common.success') || "Success", description: t('problem_management.editorial_save') || "Editorial created successfully", color: "success" });
+      }
+      onOpenChange(false);
+    } catch (error: any) {
+      const msg = error?.data?.message || "Failed to save editorial";
+      addToast({ title: t('common.error') || "Error", description: msg, color: "danger" });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!existingEditorial) return;
+
+    if (!confirm(t('common.confirm_delete') || "Are you sure you want to delete this editorial?")) return;
+
+    try {
+      await deleteEditorial(existingEditorial.id).unwrap();
+      addToast({ title: t('common.success') || "Success", description: t('problem_management.editorial_delete') || "Editorial deleted successfully", color: "success" });
+      onOpenChange(false);
+    } catch (error: any) {
+      const msg = error?.data?.message || "Failed to delete editorial";
+      addToast({ title: t('common.error') || "Error", description: msg, color: "danger" });
+    }
+  };
+
+  const isSaving = isCreating || isUpdating;
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onOpenChange={onOpenChange} 
+      size="5xl" 
+      scrollBehavior="inside"
+      backdrop="blur"
+      className="dark:bg-[#0f172a] dark:text-gray-200"
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1 border-b dark:border-gray-800">
+              <div className="flex items-center gap-2">
+                <BookOpen className="text-amber-500" size={24} />
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold">{t('problem_management.editorial_management') || "Editorial Management"}</span>
+                  <span className="text-xs text-gray-500 font-normal uppercase tracking-widest font-bold">{problemTitle || "Loading..."}</span>
+                </div>
+              </div>
+            </ModalHeader>
+            <ModalBody className="py-6">
+              {isLoadingEditorial ? (
+                <div className="h-64 flex flex-col items-center justify-center gap-4">
+                  <Loader2 size={40} className="animate-spin text-amber-500" />
+                  <p className="text-gray-500 italic">{t('problem_management.editorial_fetching') || "Fetching editorial data..."}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4 h-[600px]">
+                  <Tabs 
+                    aria-label="Editorial Mode" 
+                    selectedKey={activeTab} 
+                    onSelectionChange={(key) => setActiveTab(key as string)}
+                    variant="underlined"
+                    classNames={{
+                      tabList: "gap-6 w-full relative rounded-none border-b border-divider",
+                      cursor: "w-full bg-amber-500",
+                      tab: "max-w-fit px-0 h-12",
+                      tabContent: "group-data-[selected=true]:text-amber-500 font-bold uppercase tracking-widest text-[11px]",
+                    }}
+                  >
+                    <Tab 
+                      key="write" 
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <Edit3 size={18} />
+                          <span>{t('problem_management.editorial_write') || "Write"}</span>
+                        </div>
+                      } 
+                    />
+                    <Tab 
+                      key="preview" 
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <Eye size={18} />
+                          <span>{t('problem_management.editorial_preview') || "Preview"}</span>
+                        </div>
+                      } 
+                    />
+                  </Tabs>
+
+                  {activeTab === "write" ? (
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="text-[10px] text-gray-400 italic mb-2 uppercase tracking-tight">
+                        Supported Markdown: GFM, Tables, Images, HTML.
+                      </div>
+                      <Textarea
+                        placeholder="Type your editorial content here (Markdown supported)..."
+                        value={content}
+                        onValueChange={setContent}
+                        minRows={20}
+                        classNames={{
+                          input: "font-mono text-sm leading-relaxed",
+                          inputWrapper: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-amber-500/50 focus-within:!border-amber-500 transition-all shadow-inner",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto p-6 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 prose prose-sm dark:prose-invert max-w-none custom-scrollbar shadow-inner">
+                      {content ? (
+                        <MarkdownRenderer content={content} />
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-400 italic text-sm">
+                           Nothing to preview. Start writing in the "Write" tab.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </ModalBody>
+            <ModalFooter className="border-t dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              {existingEditorial && (
+                <Button 
+                  color="danger" 
+                  variant="light" 
+                  startContent={<Trash2 size={18} />} 
+                  onPress={handleDelete}
+                  isLoading={isDeleting}
+                  isDisabled={isSaving}
+                  className="font-black mr-auto uppercase text-[10px] tracking-widest active-press"
+                >
+                  {t('problem_management.editorial_delete') || "Delete Editorial"}
+                </Button>
+              )}
+              <Button 
+                variant="light" 
+                onPress={onClose}
+                className="font-black uppercase text-[10px] tracking-widest active-press"
+              >
+                {t('common.cancel') || "Cancel"}
+              </Button>
+              <Button 
+                color="warning" 
+                className="bg-[#FF5C00] text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-orange-500/20 active-bump"
+                startContent={<Save size={18} />}
+                onPress={handleSave}
+                isLoading={isSaving}
+                isDisabled={isLoadingEditorial || isDeleting}
+              >
+                {existingEditorial ? t('problem_management.editorial_update') : t('problem_management.editorial_save')}
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}

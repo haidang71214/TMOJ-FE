@@ -18,6 +18,7 @@ import {
   Pagination,
   Avatar,
   Spinner,
+  addToast,
 } from "@heroui/react";
 import {
   Search,
@@ -26,16 +27,16 @@ import {
   ChevronDown,
   RefreshCw,
   Eye,
-  Bell,
-  Trash2,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 // --- REUSED MODALS ---
 import DeleteTeacherModal from "../../components/DeleteModal";
-import ProfileTeacherModal from "../../components/ProfileModal";
+import TeacherDetailModal from "./TeacherDetailModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
 import {  Student, Users } from "@/types";
-import { useGetUserRoleQuery } from "@/store/queries/user";
+import { useGetUserRoleQuery, useLockUserMutation, useUnlockUserMutation } from "@/store/queries/user";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TeacherListPage() {
@@ -45,7 +46,7 @@ export default function TeacherListPage() {
 
   const { data: teacherResponse, isLoading } = useGetUserRoleQuery({ roleName: "teacher" });
   const fetchedTeachers = teacherResponse?.data || [];
-  
+  console.log(fetchedTeachers);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -78,6 +79,24 @@ export default function TeacherListPage() {
     actionSetter(true);
   };
 
+  const [lockUser] = useLockUserMutation();
+  const [unlockUser] = useUnlockUserMutation();
+
+  const handleToggleLock = async (u: Users) => {
+    try {
+      if (u.isLocked) {
+        await unlockUser(u.userId).unwrap();
+        addToast({ title: t('common.unlocked_success') || "Account unlocked successfully", color: "success" });
+      } else {
+        await lockUser(u.userId).unwrap();
+         addToast({ title: t('common.locked_success') || "Account locked successfully", color: "success" });
+      }
+    } catch (e) {
+      console.error(e);
+      addToast({ title: t('common.error') || "Failed to update account status", color: "danger" });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -102,24 +121,6 @@ export default function TeacherListPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button
-            startContent={<Bell size={18} />}
-            onPress={() => {
-              setSelectedTeacher(null);
-              setIsNotifyOpen(true);
-            }}
-            className="bg-white dark:bg-[#F4F4F5] border border-slate-200 dark:border-transparent text-[#071739] dark:text-[#071739] font-black h-11 px-6 rounded-xl uppercase text-[10px] tracking-wider shadow-sm transition-all hover:opacity-90 animate-fade-in-up active-bump"
-            style={{ animationFillMode: "both", animationDelay: "100ms" }}
-          >
-            {t('common.notify_all') || (language === 'vi' ? 'Thông báo tất cả' : 'Notify All')}
-          </Button>
-          <Button
-            startContent={<Plus size={20} strokeWidth={3} />}
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 animate-fade-in-up active-bump"
-            style={{ animationFillMode: "both", animationDelay: "150ms" }}
-          >
-            {t('teacher_management.add_new') || (language === 'vi' ? 'Thêm giảng viên' : 'ADD NEW TEACHER')}
-          </Button>
         </div>
       </div>
 
@@ -137,22 +138,7 @@ export default function TeacherListPage() {
           className="max-w-xs font-bold italic"
         />
 
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-divider font-[1000] text-[10px] uppercase italic text-[#071739] dark:text-white"
-              startContent={<Filter size={16} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              {t('teacher_management.department') || (language === 'vi' ? 'Bộ môn' : 'Department')}
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Department Filter">
-            <DropdownItem key="se">Software Engineering</DropdownItem>
-            <DropdownItem key="is">Information System</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+
 
         <Button
           isIconOnly
@@ -175,8 +161,7 @@ export default function TeacherListPage() {
         >
           <TableHeader>
             <TableColumn>{t('teacher_management.instructor') || (language === 'vi' ? 'GIẢNG VIÊN' : 'INSTRUCTOR')}</TableColumn>
-            <TableColumn>{t('teacher_management.department_col') || (language === 'vi' ? 'BỘ MÔN' : 'DEPARTMENT')}</TableColumn>
-            <TableColumn>{t('teacher_management.join_date') || (language === 'vi' ? 'NGÀY GIA NHẬP' : 'JOIN DATE')}</TableColumn>
+            <TableColumn>{t('common.email') || (language === 'vi' ? 'EMAIL' : 'EMAIL')}</TableColumn>
             <TableColumn>{t('common.status') || (language === 'vi' ? 'TRẠNG THÁI' : 'STATUS')}</TableColumn>
             <TableColumn className="text-right">{t('common.operations') || (language === 'vi' ? 'THAO TÁC' : 'OPERATIONS')}</TableColumn>
           </TableHeader>
@@ -195,22 +180,17 @@ export default function TeacherListPage() {
                     />
                     <div className="flex flex-col">
                       <span className="text-base font-[1000] uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#FF5C00] transition-colors leading-none">
-                        {tUser.displayName || tUser.firstName + " " + tUser.lastName}
+                        {tUser.displayName || `${tUser.firstName} ${tUser.lastName}`}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
-                        ID: {tUser.userId || tUser.userId.substring(0, 8)}
+                        ID: {tUser.userId ? tUser.userId.substring(0, 8) : "N/A"}
                       </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 italic">
-                    N/A
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-[11px] font-black uppercase text-slate-400">
-                    N/A
+                  <span className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+                    {tUser.email}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -237,31 +217,19 @@ export default function TeacherListPage() {
                         <Eye size={18} className="text-blue-500" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content={t('common.notify') || (language === 'vi' ? 'Thông báo' : 'Notify')} placement="top" className="font-bold text-[10px]">
+
+                    <Tooltip content={tUser.isLocked ? (t('common.unlock') || (language === 'vi' ? 'Mở khóa' : 'Unlock')) : (t('common.lock') || (language === 'vi' ? 'Khóa' : 'Lock'))} placement="top" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="light"
-                        onPress={() => openAction(tUser, setIsNotifyOpen)}
-                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-amber-100 dark:hover:bg-amber-500/20"
+                        onPress={() => handleToggleLock(tUser)}
+                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-rose-100 dark:hover:bg-rose-500/20"
                         style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 150}ms` }}
                       >
-                        <Bell size={18} className="text-amber-500" />
+                         {tUser.isLocked ? <Unlock size={18} className="text-success" /> : <Lock size={18} className="text-danger" />}
                       </Button>
-                    </Tooltip>
-                    <Tooltip content={t('common.delete') || (language === 'vi' ? 'Xóa' : 'Delete')} color="danger" placement="top" className="font-bold text-[10px]">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => openAction(tUser, setIsDeleteOpen)}
-                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-rose-100 dark:hover:bg-rose-500/20"
-                        style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 200}ms` }}
-                      >
-                        <Trash2 size={18} className="text-danger" />
-                      </Button>
-                    </Tooltip>
-                  </div>
+                    </Tooltip>                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -286,10 +254,10 @@ export default function TeacherListPage() {
       </div>
 
       {/* --- MODALS --- */}
-      <ProfileTeacherModal
+      <TeacherDetailModal
         isOpen={isProfileOpen}
-        onOpenChange={() => setIsProfileOpen(false)}
-        student={selectedTeacher as unknown as Student}
+        onOpenChange={setIsProfileOpen}
+        teacherId={selectedTeacher?.userId}
       />
       <NotifyTeacherModal
         isOpen={isNotifyOpen}

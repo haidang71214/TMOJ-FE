@@ -20,10 +20,13 @@ import {
   User,
   Trash2,
   Search,
+  Info
 } from "lucide-react";
 
 import { useGetClassMembersQuery, useDeleteStudentClassSemesterMutation } from "@/store/queries/Class";
 import { ClassMemberResponse } from "@/types";
+import { useModal } from "@/Provider/ModalProvider";
+import StudentDetailModal from "./StudentDetailModal";
 
 export default function ClassMembersPage({
   classId,
@@ -33,6 +36,7 @@ export default function ClassMembersPage({
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const { openModal } = useModal();
   
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentClassSemesterMutation();
 
@@ -163,13 +167,26 @@ export default function ClassMembersPage({
                     >
                       Student
                     </Chip>
+                    <Tooltip content="View Details" color="primary">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        color="primary"
+                        className="ml-2"
+                        onPress={() => openModal({ content: <StudentDetailModal studentId={member.userId} /> })}
+                      >
+                        <Info size={16} />
+                      </Button>
+                    </Tooltip>
+
                     <Tooltip content="Remove" color="danger">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
                         color="danger"
-                        className="ml-2"
+                        className="ml-1"
                         onPress={() => handleDelete(member.userId)}
                       >
                         <Trash2 size={16} />

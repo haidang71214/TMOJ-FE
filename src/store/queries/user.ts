@@ -74,6 +74,43 @@ export const userApi = baseApi.injectEndpoints({
       }),
       providesTags: ["User"],
     }),
+
+    getStudentById: builder.query<{ data: Users }, { id: string; semesterId?: string; subjectId?: string }>({
+      query: ({ id, semesterId, subjectId }) => {
+        let url = AdminUserEndPoint.GET_STUDENT_BY_ID.replace("{id}", id);
+        const params = new URLSearchParams();
+        if (semesterId) params.append("semesterId", semesterId);
+        if (subjectId) params.append("subjectId", subjectId);
+        if (params.toString()) url += `?${params.toString()}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+      providesTags: ["User"],
+    }),
+    getTeacherById: builder.query<{ data: any }, { id: string; semesterId?: string; subjectId?: string }>({
+      query: ({ id, semesterId, subjectId }) => {
+        let url = AdminUserEndPoint.GET_TEACHER_BY_ID.replace("{id}", id);
+        const params = new URLSearchParams();
+        if (semesterId) params.append("semesterId", semesterId);
+        if (subjectId) params.append("subjectId", subjectId);
+        if (params.toString()) url += `?${params.toString()}`;
+        return {
+          url,
+          method: "GET",
+        };
+      },
+      providesTags: ["User"],
+    }),
+    assignRole: builder.mutation<{ message: string }, { id: string, data: { roleCode: string } }>({
+      query: ({ id, data }) => ({
+        url: AdminUserEndPoint.POST_ASSIGN_ROLE.replace("{id}", id),
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
   
 });
@@ -89,4 +126,7 @@ export const {
   useUnlockUserMutation,
   useGetLockedUsersQuery,
   useGetUnlockedUsersQuery,
+  useGetStudentByIdQuery,
+  useGetTeacherByIdQuery,
+  useAssignRoleMutation,
 } = userApi;

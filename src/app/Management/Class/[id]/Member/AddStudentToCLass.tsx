@@ -12,7 +12,7 @@ import { UserPlus } from "lucide-react";
 
 import { useModal } from "@/Provider/ModalProvider";
 import { useAddClassMembersMutation } from "@/store/queries/Class";
-import { useGetUserRoleQuery } from "@/store/queries/user";
+import { useGetStudentsNotYetQuery } from "@/store/queries/Class";
 import { Users, ErrorForm } from "@/types";
 
 interface Props {
@@ -23,37 +23,81 @@ export default function AddStudentModal({ classId }: Props) {
   const { closeModal } = useModal();
 
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
-  console.log("selectedUser", selectedUser);
+  const [search, setSearch] = useState<string>("");
+  const [selectedKey, setSelectedKey] = useState<any>(null);
 
   const [addMember, { isLoading }] = useAddClassMembersMutation();
 
-  const { data: studentData, isLoading: studentLoading } =
-    useGetUserRoleQuery({
-      roleName: "student",
-    });
-  console.log("studentData", studentData);
+  const { data: studentResponse, isLoading: studentLoading } = useGetStudentsNotYetQuery(
+    {
+      classSemesterId: classId,
+      search: search.trim() || undefined,
+    },
+    {
+      skip: !!selectedKey, // Bỏ qua viêc fetch lại API khi đã chọn xong user
+    }
+  );
+
+  const students = studentResponse?.data?.items || [];
+    console.log("students", students);
+  // Đảm bảo selectedUser luôn có trong danh sách để tránh lỗi văng app của HeroUI 
+  // (khi selectedKey không có trong ds render)
+  const studentsList: any[] = [...students];
+  if (selectedUser && !studentsList.find((s: any) => s.userId === selectedUser.userId)) {
+    studentsList.push(selectedUser);
+  }
+
+  const handleInputChange = (value: string) => {
+    setSearch(value);
+    
+    // Nếu gõ hoặc xoá khác với đoạn text của user đã chọn, reset về trạng thái chưa chọn
+    if (selectedUser) {
+      const userText = selectedUser.email || selectedUser.displayName || `${selectedUser.firstName} ${selectedUser.lastName}`;
+      if (value !== userText) {
+        setSelectedUser(null);
+        setSelectedKey(null);
+      }
+    } else if (!value) {
+      setSelectedUser(null);
+      setSelectedKey(null);
+    }
+  };
+
+  const handleSelectionChange = (key: any) => {
+    if (!key) {
+      setSelectedUser(null);
+      setSelectedKey(null);
+      return;
+    }
+
+    const user = studentsList.find((u: Users) => String(u.userId) === String(key));
+    
+    if (user) {
+      setSelectedUser(user);
+      setSelectedKey(key);
+      setSearch(user.email || user.displayName || `${user.firstName} ${user.lastName}`); // Hiển thị tên/email vào ô input
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedUser) {
       toast.error("Please select a student");
       return;
     }
-    console.log("selectedUser", selectedUser);
-    
+
     try {
-      const res = await addMember({
+      await addMember({
         id: classId,
         data: {
           memberCode: selectedUser.memberCode ?? null,
           rollNumber: selectedUser.rollNumber ?? null,
         },
       }).unwrap();
-      console.log("asdasdasd", res);
 
       toast.success("Student added successfully");
       closeModal();
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
       const err = error as ErrorForm;
       
       if (err?.data?.data?.message) {
@@ -78,32 +122,38 @@ export default function AddStudentModal({ classId }: Props) {
             Add Student
           </h3>
           <p className="text-xs text-slate-500">
-            Search student by email
+            Search student by email or name
           </p>
         </div>
       </div>
 
       <Divider />
 
-      {/* AUTOCOMPLETE */}
-
+      {/* AUTOCOMPLETE - ĐÃ SỬA */}
       <Autocomplete
-        label="Student Email"
-        placeholder="Type email..."
+        label="Student"
+        placeholder="Type email or name..."
         isLoading={studentLoading}
         variant="bordered"
-        onSelectionChange={(key) => {
-          const user = studentData?.data?.find(
-            (u: Users) => u.userId === key
-          );
-          if (user) setSelectedUser(user);
-        }}
+        inputValue={search}
+        onInputChange={handleInputChange}            // ← Dùng onChange mới
+        selectedKey={selectedKey}                    // ← Quan trọng
+        onSelectionChange={handleSelectionChange}    // ← Dùng hàm riêng
+        allowsCustomValue={false}
       >
-        {(studentData?.data || []).map((u: Users) => (
-          <AutocompleteItem key={u.userId} textValue={u.email}>
+        {studentsList.map((u: Users) => (
+          <AutocompleteItem 
+            key={u.userId!} 
+            textValue={u.email || ""}
+          >
             <div className="flex flex-col">
-              <span className="font-semibold">{u.displayName}</span>
+              <span className="font-semibold">
+                {u.displayName || `${u.firstName} ${u.lastName}`}
+              </span>
               <span className="text-xs text-slate-500">{u.email}</span>
+              {u.rollNumber && (
+                <span className="text-xs text-slate-400">MS: {u.rollNumber}</span>
+              )}
             </div>
           </AutocompleteItem>
         ))}
@@ -112,9 +162,7 @@ export default function AddStudentModal({ classId }: Props) {
       <Divider />
 
       {/* BUTTONS */}
-
       <div className="flex justify-end gap-3">
-
         <Button variant="flat" radius="lg" onPress={closeModal}>
           Cancel
         </Button>
@@ -128,7 +176,6 @@ export default function AddStudentModal({ classId }: Props) {
         >
           Add Student
         </Button>
-
       </div>
     </div>
   );

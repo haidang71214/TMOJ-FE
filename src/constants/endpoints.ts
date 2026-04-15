@@ -24,6 +24,8 @@ const AdminUserEndPoint = {
     GET_USER_LOCK:`${API_PREFIX}/User/locked`,
     POST_ASSIGN_ROLE:`${API_PREFIX}/User/{id}/role`,
     GET_USER_ROLE:`${API_PREFIX}/User/role/{roleName}`,
+    GET_STUDENT_BY_ID: `${API_PREFIX}/User/students/{id}`,
+    GET_TEACHER_BY_ID: `${API_PREFIX}/User/teachers/{id}`,
     ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`,
     GET_USER_IMPORT_TEMPLATE: `${API_PREFIX}/user/import/template`,
     IMPORT_USERS: `${API_PREFIX}/user/import`,
@@ -100,6 +102,7 @@ const ClassEndpoint = {
   DELETE_SLOT_PROBLEMS:`${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
   GET_MY_CLASSES_STUDENT: `${API_PREFIX}/Class/my-classes/student`,
   GET_MY_CLASSES_TEACHER: `${API_PREFIX}/Class/my-classes/teacher`,
+  STUDENT_NOT_YET:`${API_PREFIX}/Class/{classSemesterId}/students/available`
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

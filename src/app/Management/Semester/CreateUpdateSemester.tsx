@@ -59,10 +59,36 @@ export default function CreateUpdateSemester({
   }, [semester]);
 
   const handleChange = (key: string, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => {
+      const newForm = { ...prev, [key]: value };
+
+      if (!semester && key === "code") {
+        const code = value.toUpperCase();
+        const match = code.match(/^(SP|SU|FA)(\d{2})$/);
+        
+        if (match) {
+          const prefix = match[1];
+          const yearSuffix = match[2];
+          const fullYear = `20${yearSuffix}`;
+          
+          if (prefix === "SP") {
+            newForm.name = `Spring ${yearSuffix}`;
+            newForm.startAt = `${fullYear}-01-01`;
+            newForm.endAt = `${fullYear}-05-31`;
+          } else if (prefix === "SU") {
+            newForm.name = `Summer ${yearSuffix}`;
+            newForm.startAt = `${fullYear}-05-01`;
+            newForm.endAt = `${fullYear}-09-30`;
+          } else if (prefix === "FA") {
+            newForm.name = `Fall ${yearSuffix}`;
+            newForm.startAt = `${fullYear}-09-01`;
+            newForm.endAt = `${fullYear}-12-31`;
+          }
+        }
+      }
+      
+      return newForm;
+    });
   };
 
   const handleSubmit = async () => {

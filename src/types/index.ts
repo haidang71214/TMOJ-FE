@@ -1077,6 +1077,27 @@ export interface RegisterContestResponse {
   message: string;
   traceId: string | null;
 }
+export interface StudentNotYet {
+  avatarUrl: string | null;
+  displayName: string;
+  email: string;
+  emailVerified: boolean;
+  firstName: string;
+  lastName: string;
+  memberCode: string | null;
+  role: string;
+  rollNumber: string | null;
+  userId: string;
+  username: string;
+  // thêm các field khác nếu sau này API trả thêm
+}
+
+export interface StudentsNotYetResponse {
+  data: {
+    items: StudentNotYet[];
+    // total?: number;     // nếu sau này API có trường total thì mở ra
+  };
+}
 
 // ── Problem Editorial API Definitions ───────────────────────
 

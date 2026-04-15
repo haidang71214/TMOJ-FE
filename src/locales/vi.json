@@ -193,7 +193,6 @@
     "diff_hard": "Khó",
     "public_visible": "Công Khai",
     "problem_id": "Mã Bài Tập (ID):",
-    "testset_type": "Loại TestSet",
     "select_type": "Chọn loại",
     "ts_public": "Công khai",
     "ts_private": "Ẩn",
@@ -246,7 +245,15 @@
     "operations": "THAO TÁC",
     "empty_state": "Chưa có bài tập nào",
     "loading": "Đang tải danh sách bài tập...",
-    "error_loading": "Không thể tải danh sách bài tập"
+    "error_loading": "Không thể tải danh sách bài tập",
+    "editorial_management": "Quản lý Lời giải",
+    "editorial_write": "Viết bài",
+    "editorial_preview": "Xem trước",
+    "editorial_save": "Lưu lời giải",
+    "editorial_update": "Cập nhật lời giải",
+    "editorial_delete": "Xóa lời giải",
+    "editorial_fetching": "Đang tải dữ liệu lời giải...",
+    "official_editorial": "Lời giải chính thức"
   },
   "slot": {
     "titleRequired": "Tên slot là bắt buộc",

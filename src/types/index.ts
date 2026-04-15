@@ -1077,3 +1077,52 @@ export interface RegisterContestResponse {
   message: string;
   traceId: string | null;
 }
+
+// ── Problem Editorial API Definitions ───────────────────────
+
+export interface ProblemEditorial {
+  id: string;
+  problemId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EditorialListResponse {
+  data: {
+    success: boolean;
+    count: number;
+    data: ProblemEditorial[];
+  };
+  message: string | null;
+  traceId: string;
+}
+
+export interface EditorialDetailResponse {
+  data: {
+    success: boolean;
+    data: ProblemEditorial;
+  };
+  message: string | null;
+  traceId: string;
+}
+
+export interface CreateEditorialRequest {
+  problemId: string;
+  content: string;
+}
+
+export interface UpdateEditorialRequest {
+  id: string;
+  content: string;
+}
+
+export interface DeleteEditorialResponse {
+  data: {
+    success: boolean;
+    message: string;
+  };
+  message: string | null;
+  traceId: string;
+}

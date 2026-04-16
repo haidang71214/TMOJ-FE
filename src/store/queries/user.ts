@@ -1,6 +1,6 @@
 import { AdminUserEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { CreateUserRequest, CreateUserResponse, ImportUsersResponse, Users } from "@/types";
+import { CreateUserRequest, CreateUserResponse, ImportUsersResponse, UpdateUserRequest, Users } from "@/types";
 
 
 
@@ -111,6 +111,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    updateUser: builder.mutation<{ message: string }, { id: string; data: UpdateUserRequest }>({
+      query: ({ id, data }) => ({
+        url: AdminUserEndPoint.UPDATE_USER.replace("{id}", id),
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
   
 });
@@ -129,4 +137,5 @@ export const {
   useGetStudentByIdQuery,
   useGetTeacherByIdQuery,
   useAssignRoleMutation,
+  useUpdateUserMutation,
 } = userApi;

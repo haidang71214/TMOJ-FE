@@ -27,8 +27,6 @@ import {
   ChevronDown,
   RefreshCw,
   Eye,
-  Lock,
-  Unlock,
 } from "lucide-react";
 
 // --- REUSED MODALS ---
@@ -36,7 +34,7 @@ import DeleteTeacherModal from "../../components/DeleteModal";
 import TeacherDetailModal from "./TeacherDetailModal";
 import NotifyTeacherModal from "../../components/NotifyModal";
 import {  Student, Users } from "@/types";
-import { useGetUserRoleQuery, useLockUserMutation, useUnlockUserMutation } from "@/store/queries/user";
+import { useGetUserRoleQuery } from "@/store/queries/user";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TeacherListPage() {
@@ -77,24 +75,6 @@ export default function TeacherListPage() {
   ) => {
     setSelectedTeacher(teacher);
     actionSetter(true);
-  };
-
-  const [lockUser] = useLockUserMutation();
-  const [unlockUser] = useUnlockUserMutation();
-
-  const handleToggleLock = async (u: Users) => {
-    try {
-      if (u.isLocked) {
-        await unlockUser(u.userId).unwrap();
-        addToast({ title: t('common.unlocked_success') || "Account unlocked successfully", color: "success" });
-      } else {
-        await lockUser(u.userId).unwrap();
-         addToast({ title: t('common.locked_success') || "Account locked successfully", color: "success" });
-      }
-    } catch (e) {
-      console.error(e);
-      addToast({ title: t('common.error') || "Failed to update account status", color: "danger" });
-    }
   };
 
   if (isLoading) {
@@ -162,7 +142,6 @@ export default function TeacherListPage() {
           <TableHeader>
             <TableColumn>{t('teacher_management.instructor') || (language === 'vi' ? 'GIẢNG VIÊN' : 'INSTRUCTOR')}</TableColumn>
             <TableColumn>{t('common.email') || (language === 'vi' ? 'EMAIL' : 'EMAIL')}</TableColumn>
-            <TableColumn>{t('common.status') || (language === 'vi' ? 'TRẠNG THÁI' : 'STATUS')}</TableColumn>
             <TableColumn className="text-right">{t('common.operations') || (language === 'vi' ? 'THAO TÁC' : 'OPERATIONS')}</TableColumn>
           </TableHeader>
           <TableBody emptyContent={t('common.no_data') || (language === 'vi' ? 'Không có dữ liệu' : 'No data available')}>
@@ -194,16 +173,6 @@ export default function TeacherListPage() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    size="sm"
-                    variant="dot"
-                    color={!tUser.isLocked ? "success" : "warning"}
-                    className="font-black uppercase text-[9px] border-none"
-                  >
-                    {!tUser.isLocked ? (t('common.active') || (language === 'vi' ? 'Hoạt động' : 'Active')) : (t('common.locked') || (language === 'vi' ? 'Đã khóa' : 'Locked'))}
-                  </Chip>
-                </TableCell>
-                <TableCell>
                   <div className="flex justify-end gap-2">
                     <Tooltip content={t('common.profile') || (language === 'vi' ? 'Hồ sơ' : 'Profile')} placement="top" className="font-bold text-[10px]">
                       <Button
@@ -217,19 +186,7 @@ export default function TeacherListPage() {
                         <Eye size={18} className="text-blue-500" />
                       </Button>
                     </Tooltip>
-
-                    <Tooltip content={tUser.isLocked ? (t('common.unlock') || (language === 'vi' ? 'Mở khóa' : 'Unlock')) : (t('common.lock') || (language === 'vi' ? 'Khóa' : 'Lock'))} placement="top" className="font-bold text-[10px]">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => handleToggleLock(tUser)}
-                        className="transition-all rounded-lg h-9 w-9 animate-fade-in-up hover:bg-rose-100 dark:hover:bg-rose-500/20"
-                        style={{ animationFillMode: "both", animationDelay: `${300 + index * 50 + 150}ms` }}
-                      >
-                         {tUser.isLocked ? <Unlock size={18} className="text-success" /> : <Lock size={18} className="text-danger" />}
-                      </Button>
-                    </Tooltip>                  </div>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

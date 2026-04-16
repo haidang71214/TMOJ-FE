@@ -66,6 +66,7 @@ export default function GlobalProblemListPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
   // ── RTK Query ───────────────────────────────────────────────
@@ -171,6 +172,14 @@ export default function GlobalProblemListPage() {
     // Filter
     if (filterDifficulty && filterDifficulty !== "all") {
       filtered = filtered.filter((p) => p.difficulty?.toLowerCase() === filterDifficulty.toLowerCase());
+    }
+    
+    if (filterStatus && filterStatus !== "all") {
+      if (filterStatus === "published") {
+        filtered = filtered.filter((p) => p.access);
+      } else if (filterStatus === "draft") {
+        filtered = filtered.filter((p) => !p.access);
+      }
     }
     
     // Sort
@@ -308,7 +317,27 @@ export default function GlobalProblemListPage() {
           </SelectItem>
         </Select>
 
-        {/* Các filter khác giữ nguyên, sau này connect với query params nếu cần */}
+        <Select
+          placeholder="Status"
+          className="w-44 animate-fade-in-up"
+          style={{ animationFillMode: 'both', animationDelay: '550ms' }}
+          classNames={{
+            trigger:
+              "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
+          }}
+          selectedKeys={new Set([filterStatus])}
+          onSelectionChange={(keys) => setFilterStatus((Array.from(keys)[0] as string) || "all")}
+        >
+          <SelectItem key="all" className="font-bold uppercase text-[10px] text-slate-500">
+            All Status
+          </SelectItem>
+          <SelectItem key="draft" className="font-bold uppercase text-[10px]">
+            Draft
+          </SelectItem>
+          <SelectItem key="published" className="font-bold uppercase text-[10px] text-blue-500">
+            Published
+          </SelectItem>
+        </Select>
 
         <Button
           isIconOnly
@@ -355,8 +384,7 @@ export default function GlobalProblemListPage() {
             <TableColumn>{t('problem_management.problem_title') || "PROBLEM TITLE"}</TableColumn>
             <TableColumn>{t('problem_management.tags') || "TAGS"}</TableColumn>
             <TableColumn>{t('problem_management.difficulty') || "DIFFICULTY"}</TableColumn>
-            <TableColumn>{t('problem_management.source') || "SOURCE"}</TableColumn>
-            <TableColumn>{t('problem_management.ac_rate') || "AC RATE"}</TableColumn>
+            <TableColumn className="text-center">{t('problem_management.source') || "SOURCE"}</TableColumn>
             <TableColumn>{t('problem_management.visible') || "VISIBLE"}</TableColumn>
             <TableColumn>{t('problem_management.access') || "ACCESS"}</TableColumn>
             <TableColumn className="text-right">{t('problem_management.operations') || "OPERATIONS"}</TableColumn>
@@ -428,21 +456,15 @@ export default function GlobalProblemListPage() {
                   </Dropdown>
                 </TableCell>
                 <TableCell>
-                  <span
-                    className={`text-[10px] font-black uppercase ${
-                      p.contest === "None" ? "text-slate-400 italic" : "text-blue-600 dark:text-[#FF5C00]"
-                    }`}
-                  >
-                    {p.contest}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col leading-tight">
-                    <span className="text-emerald-500 font-black italic text-sm">{p.acRate}</span>
-                    <span className="text-[9px] text-slate-400 uppercase tracking-tighter">
-                      {p.submissions ?? "—"} Subs
+                  <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
+                    <span
+                      onClick={(e) => { e.stopPropagation(); handleDownloadStatement(p.id, p.slug); }}
+                      className="flex items-center justify-center gap-1.5 w-fit mx-auto cursor-pointer text-slate-400 hover:text-emerald-500 transition-colors group"
+                    >
+                      <Download size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:scale-110" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">PDF</span>
                     </span>
-                  </div>
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Switch
@@ -518,21 +540,6 @@ export default function GlobalProblemListPage() {
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Copy size={16} />
-                      </Button>
-                    </Tooltip>
-
-                    <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-emerald-500 transition-all rounded-lg h-9 w-9 active-bump"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownloadStatement(p.id, p.slug);
-                        }}
-                      >
-                        <Download size={16} />
                       </Button>
                     </Tooltip>
 

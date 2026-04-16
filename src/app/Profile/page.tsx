@@ -13,6 +13,7 @@ import {
   ModalContent,
   ModalHeader,
   Progress,
+  Spinner,
   Tab,
   Tabs,
   useDisclosure,
@@ -20,22 +21,24 @@ import {
 import {
   Award,
   Bookmark,
-  Cake,
+  BookOpen,
+  Briefcase,
   ChevronRight,
+  Clock,
   Edit3,
   Flame,
-  Github,
-  Globe,
-  Linkedin,
   Lock,
-  MapPin,
+  Mail,
+  Presentation,
   Star,
-  Terminal,
   User,
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useGetStudentByIdQuery, useGetTeacherByIdQuery } from "@/store/queries/user";
+import EditProfileModal from "./EditProfileModal";
 
 // --- INTERFACES ---
 interface DifficultyStat {
@@ -63,70 +66,55 @@ interface BadgeItem {
 export default function ProfilePage() {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+  // ── /me ──
+  const { data: meData, isLoading: meLoading } = useGetUserInformationQuery();
+  const userId = meData?.userId ?? "";
+  const role = meData?.role ?? "";
+
+  // ── Role-based detail query ──
+  const { data: studentData, isLoading: studentLoading } = useGetStudentByIdQuery(
+    { id: userId },
+    { skip: !userId || role !== "student" }
+  );
+  const { data: teacherData, isLoading: teacherLoading } = useGetTeacherByIdQuery(
+    { id: userId },
+    { skip: !userId || role !== "teacher" }
+  );
+
+  const isDetailLoading = meLoading || studentLoading || teacherLoading;
+
+  // ── Derived data ──
+  const student = (studentData as any)?.data?.student;
+  const studentClasses = (studentData as any)?.data?.classes ?? [];
+
+  const teacher = (teacherData as any)?.data?.teacher;
+  const teacherSubjects = (teacherData as any)?.data?.subjects ?? [];
+  const teacherClasses = (teacherData as any)?.data?.classes ?? [];
+  const totalClasses = (teacherData as any)?.data?.totalClasses ?? 0;
+
+  const profile = role === "student" ? student : role === "teacher" ? teacher : meData;
+  const displayName = profile?.displayName ?? meData?.displayName ?? "";
+  const email = profile?.email ?? meData?.email ?? "";
+  const username = profile?.username ?? meData?.username ?? "";
+  const avatarUrl = profile?.avatarUrl ?? "";
 
   const difficultyData: DifficultyStat[] = useMemo(
     () => [
-      {
-        label: "Easy",
-        solved: 120,
-        total: 922,
-        color: "text-[#00FF41]",
-        variant: "success",
-      },
-      {
-        label: "Med",
-        solved: 95,
-        total: 1986,
-        color: "text-blue-500",
-        variant: "primary",
-      },
-      {
-        label: "Hard",
-        solved: 11,
-        total: 900,
-        color: "text-[#FF5C00]",
-        variant: "warning",
-      },
+      { label: "Easy", solved: 120, total: 922, color: "text-[#00FF41]", variant: "success" },
+      { label: "Med", solved: 95, total: 1986, color: "text-blue-500", variant: "primary" },
+      { label: "Hard", solved: 11, total: 900, color: "text-[#FF5C00]", variant: "warning" },
     ],
     []
   );
 
   const badges: BadgeItem[] = [
-    {
-      id: "1",
-      name: "Logic Master Lvl 4",
-      date: "Jan 2024",
-      isLocked: false,
-      color: "#00FF41",
-    },
-    {
-      id: "2",
-      name: "50 Days Streak",
-      date: "Dec 2023",
-      isLocked: false,
-      color: "#FF5C00",
-    },
-    {
-      id: "3",
-      name: "Top 100 Weekly",
-      date: "Nov 2023",
-      isLocked: false,
-      color: "#2563eb",
-    },
-    {
-      id: "4",
-      name: "Bug Hunter",
-      date: "Locked",
-      isLocked: true,
-      color: "#94a3b8",
-    },
-    {
-      id: "5",
-      name: "Algorithm Knight",
-      date: "Locked",
-      isLocked: true,
-      color: "#94a3b8",
-    },
+    { id: "1", name: "Logic Master Lvl 4", date: "Jan 2024", isLocked: false, color: "#00FF41" },
+    { id: "2", name: "50 Days Streak", date: "Dec 2023", isLocked: false, color: "#FF5C00" },
+    { id: "3", name: "Top 100 Weekly", date: "Nov 2023", isLocked: false, color: "#2563eb" },
+    { id: "4", name: "Bug Hunter", date: "Locked", isLocked: true, color: "#94a3b8" },
+    { id: "5", name: "Algorithm Knight", date: "Locked", isLocked: true, color: "#94a3b8" },
   ];
 
   const MOCK_PUBLIC_COLLECTIONS = [
@@ -137,37 +125,16 @@ export default function ProfilePage() {
 
   const SOLVED_COUNT = 226;
   const TOTAL_COUNT = 3808;
-   
-  const BASIC_INFO = {
-  name: "Đăng Hải",
-  location: "Vietnam",
-  birthday: "2002-08-19",
-  website: "https://danghai.dev",
-  github: "github.com/danghai",
-  linkedin: "linkedin.com/in/danghai",
-};
- const Item = ({
-    icon,
-    label,
-    value,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-  }) => (
+
+  const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <div className="text-[#FF5C00]">{icon}</div>
-        <span className="text-[10px] font-black uppercase italic text-slate-400">
-          {label}
-        </span>
+        <span className="text-[10px] font-black uppercase italic text-slate-400">{label}</span>
       </div>
-      <span className="text-xs font-[1000] italic text-[#071739] dark:text-white text-right">
-        {value}
-      </span>
+      <span className="text-xs font-[1000] italic text-[#071739] dark:text-white text-right truncate max-w-[55%]">{value}</span>
     </div>
   );
-
 
   return (
     <div className="min-h-screen text-foreground px-6 py-10 custom-scrollbar bg-[#F0F2F5] dark:bg-[#0A0F1C]  transition-colors ">
@@ -179,18 +146,24 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="relative">
                   <Avatar
-                    src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop"
+                    src={avatarUrl || undefined}
+                    name={displayName || username}
                     className="w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg"
                   />
                   <div className="absolute -bottom-1 -right-1 bg-[#00FF41] w-7 h-7 rounded-full border-4 border-white dark:border-[#071739] shadow-md animate-pulse" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none text-[#071739] dark:text-white">
-                    Đăng <span className="text-[#FF5C00]">Hải</span>
+                    {displayName || username || (meLoading ? "..." : "—")}
                   </h1>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">
-                    ID: yMXnOfMOzd
+                    {username ? `@${username}` : ""}
                   </p>
+                  {role && (
+                    <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#FF5C00]/10 text-[#FF5C00]">
+                      {role}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-white/10 text-[#071739] dark:text-white">
@@ -212,175 +185,142 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardBody>
-      <CardHeader className="px-8 pt-8 flex items-center justify-between">
+
+      {/* ── BASIC INFO ── */}
+      <CardHeader className="px-8 pt-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <User size={16} className="text-[#FF5C00]" />
           <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
             Basic Info
           </h2>
         </div>
-        <Button
-          isIconOnly
-          size="sm"
-          variant="light"
-          onClick={() => router.push("/Settings")}
-          className="text-[#FF5C00]"
-        >
+        <Button isIconOnly size="sm" variant="light" onClick={() => setIsEditProfileOpen(true)} className="text-[#FF5C00]">
           <Edit3 size={14} />
         </Button>
       </CardHeader>
 
       <CardBody className="px-8 pb-8 space-y-4">
-        <Item icon={<User size={14} />} label="Name" value={BASIC_INFO.name} />
-        <Divider className="opacity-30" />
+        {isDetailLoading ? (
+          <div className="flex justify-center py-6"><Spinner color="warning" /></div>
+        ) : (
+          <>
+            <InfoItem icon={<User size={14} />} label="Display Name" value={displayName || "—"} />
+            <Divider className="opacity-30" />
+            <InfoItem icon={<Mail size={14} />} label="Email" value={email || "—"} />
+            <Divider className="opacity-30" />
+            <InfoItem icon={<User size={14} />} label="Username" value={username ? `@${username}` : "—"} />
+            <Divider className="opacity-30" />
+            <InfoItem icon={<Zap size={14} />} label="Role" value={role || "—"} />
 
-        <Item
-          icon={<MapPin size={14} />}
-          label="Location"
-          value={BASIC_INFO.location}
-        />
-        <Divider className="opacity-30" />
+            {/* Student-specific */}
+            {role === "student" && student && (
+              <>
+                <Divider className="opacity-30" />
+                <InfoItem icon={<BookOpen size={14} />} label="Roll Number" value={student.rollNumber || "—"} />
+                <Divider className="opacity-30" />
+                <InfoItem icon={<Briefcase size={14} />} label="Member Code" value={student.memberCode || "—"} />
+              </>
+            )}
 
-        <Item
-          icon={<Cake size={14} />}
-          label="Birthday"
-          value={BASIC_INFO.birthday}
-        />
-        <Divider className="opacity-30" />
+            {/* Teacher-specific */}
+            {role === "teacher" && teacher && (
+              <>
+                <Divider className="opacity-30" />
+                <InfoItem icon={<Presentation size={14} />} label="Total Classes" value={String(totalClasses)} />
+              </>
+            )}
+          </>
+        )}
 
-        <Item
-          icon={<Globe size={14} />}
-          label="Website"
-          value={BASIC_INFO.website}
-        />
-        <Divider className="opacity-30" />
-
-        <Item
-          icon={<Github size={14} />}
-          label="Github"
-          value={BASIC_INFO.github}
-        />
-        <Divider className="opacity-30" />
-
-        <Item
-          icon={<Linkedin size={14} />}
-          label="LinkedIn"
-          value={BASIC_INFO.linkedin}
-        />
-          <Button
-                size="lg"
-                className="w-full font-black uppercase italic text-[11px] tracking-widest bg-slate-50 dark:bg-white/5 text-[#071739] dark:text-white hover:bg-[#00FF41] hover:text-[#071739] transition-all rounded-2xl border border-slate-200 dark:border-white/10"
-                startContent={<Edit3 size={16} />}
-                onClick={() => router.push("/Settings")}
-              >
-                Edit Profile
-              </Button>
+        <Button
+          size="lg"
+          className="w-full font-black uppercase italic text-[11px] tracking-widest bg-slate-50 dark:bg-white/5 text-[#071739] dark:text-white hover:bg-[#00FF41] hover:text-[#071739] transition-all rounded-2xl border border-slate-200 dark:border-white/10 mt-2"
+          startContent={<Edit3 size={16} />}
+          onClick={() => setIsEditProfileOpen(true)}
+        >
+          Edit Profile
+        </Button>
       </CardBody>
     </Card>
 
-          <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-            <CardHeader className="px-8 pt-8 flex items-center gap-2">
-              <Globe size={18} className="text-[#FF5C00]" />
-              <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-                Community
-              </h2>
-            </CardHeader>
-            <CardBody className="px-8 pb-8 space-y-4">
-              {[
-                ["Views", "1.2k"],
-                ["Solution", "45"],
-                ["Discuss", "12"],
-                ["Reputation", "850"],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="flex justify-between items-center group cursor-default"
-                >
-                  <span className="text-[10px] font-black uppercase text-slate-400 italic group-hover:text-blue-600 transition-colors">
-                    {label}
-                  </span>
-                  <span className="text-sm font-black italic text-[#071739] dark:text-slate-200">
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </CardBody>
-          </Card>
-
-          <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-            <CardHeader className="px-8 pt-8 flex items-center gap-2">
-              <Terminal size={18} className="text-[#FF5C00]" />
-              <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-                Languages
-              </h2>
-            </CardHeader>
-            <CardBody className="px-8 pb-8 space-y-4 text-[#071739] dark:text-white">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-[1000] italic uppercase">
-                  Java
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase italic">
-                  156 Solved
-                </span>
+    {/* ── ROLE EXTRA CARD ── */}
+    {role === "teacher" && teacherSubjects.length > 0 && (
+      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+        <CardHeader className="px-8 pt-8 flex items-center gap-2">
+          <BookOpen size={18} className="text-[#FF5C00]" />
+          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+            Subjects
+          </h2>
+        </CardHeader>
+        <CardBody className="px-8 pb-8 space-y-3">
+          {teacherSubjects.map((s: any) => (
+            <div key={s.subjectId} className="flex justify-between items-center">
+              <div>
+                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{s.code}</p>
+                <p className="text-[10px] text-slate-400 italic">{s.name}</p>
               </div>
-              <Divider className="opacity-50" />
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-[1000] italic uppercase">
-                  JavaScript
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase italic">
-                  72 Solved
-                </span>
-              </div>
-            </CardBody>
-          </Card>
+              <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px] bg-orange-50 text-[#FF5C00] dark:bg-[#FF5C00]/10">
+                {s.classCount} class{s.classCount !== 1 ? "es" : ""}
+              </Chip>
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+    )}
 
-          <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-            <CardHeader className="px-8 pt-8 flex items-center gap-2">
-              <Zap size={18} className="text-[#FF5C00]" />
-              <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-                Skills
-              </h2>
-            </CardHeader>
-            <CardBody className="px-8 pb-8 space-y-6">
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-slate-400 italic">
-                  Advanced
-                </p>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  className="font-black italic uppercase text-[9px] bg-blue-50 text-blue-600 dark:bg-blue-500/10"
-                >
-                  Dynamic Programming ×12
+    {role === "student" && studentClasses.length > 0 && (
+      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+        <CardHeader className="px-8 pt-8 flex items-center gap-2">
+          <Briefcase size={18} className="text-[#FF5C00]" />
+          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+            Classes
+          </h2>
+        </CardHeader>
+        <CardBody className="px-8 pb-8 space-y-4">
+          {studentClasses.slice(0, 4).map((c: any, i: number) => (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between items-center">
+                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
+                <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
+                  {c.semesterCode}
                 </Chip>
               </div>
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase text-slate-400 italic">
-                  Intermediate
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    className="font-black italic uppercase text-[9px] bg-orange-50 text-[#FF5C00] dark:bg-[#FF5C00]/10"
-                  >
-                    Hash Table ×32
-                  </Chip>
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    className="font-black italic uppercase text-[9px] bg-green-50 text-[#00FF41] dark:bg-[#00FF41]/10"
-                  >
-                    Recursion ×14
-                  </Chip>
-                </div>
+              <p className="text-[10px] text-slate-400 italic">{c.subjectName}</p>
+              {i < studentClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+    )}
+
+    {role === "teacher" && teacherClasses.length > 0 && (
+      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+        <CardHeader className="px-8 pt-8 flex items-center gap-2">
+          <Clock size={18} className="text-[#FF5C00]" />
+          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+            Active Classes
+          </h2>
+        </CardHeader>
+        <CardBody className="px-8 pb-8 space-y-4">
+          {teacherClasses.slice(0, 4).map((c: any, i: number) => (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between items-center">
+                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
+                <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
+                  {c.semesterCode}
+                </Chip>
               </div>
-            </CardBody>
-          </Card>
-        </div>
+              <p className="text-[10px] text-slate-400 italic">{c.subjectName} · {c.memberCount} students</p>
+              {i < teacherClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+    )}
+
 
         {/* ================= MAIN CONTENT ================= */}
+        </div>
         <div className="space-y-8">
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[3rem] shadow-sm">
             <CardBody className="p-10 grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
@@ -686,6 +626,13 @@ export default function ProfilePage() {
           )}
         </ModalContent>
       </Modal>
+
+      {/* EDIT PROFILE MODAL */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        profile={meData ?? null}
+      />  
 
       <style jsx global>{`
         .grid-cols-53 {

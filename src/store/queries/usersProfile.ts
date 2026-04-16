@@ -2,6 +2,13 @@ import { UpdateUserDto, Users } from "@/types";
 import { baseApi } from "../base";
 import { userProfileEndpoint } from "@/constants/endpoints";
 
+export interface UpdateMeRequest {
+  displayName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  password?: string | null;
+}
+
 export const userApi = baseApi.injectEndpoints({
 
   endpoints: (builder) => ({
@@ -11,28 +18,32 @@ export const userApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       transformResponse: (response: { data: Users }) => {
-        console.log(`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${JSON.stringify(response)}`);
         return response.data;
       },
-      
-      providesTags: ["User"], 
+      providesTags: ["User"],
     }),
-    getUserManual: builder.mutation<Users,string>({
-      query: (token:string) => ({
-        url:userProfileEndpoint.GET_PROFILE,
+    getUserManual: builder.mutation<Users, string>({
+      query: (token: string) => ({
+        url: userProfileEndpoint.GET_PROFILE,
         method: "GET",
-        headers: {"Authorization": token}
+        headers: { "Authorization": token }
       }),
-      
     }),
-
     updateUserProfile: builder.mutation<void, UpdateUserDto>({
       query: (body) => ({
         url: userProfileEndpoint.UPDATE_INFOMATION,
         method: "PATCH",
         body,
       }),
-      invalidatesTags: ["User"], 
+      invalidatesTags: ["User"],
+    }),
+    updateMe: builder.mutation<void, UpdateMeRequest>({
+      query: (body) => ({
+        url: userProfileEndpoint.UPDATE_ME,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
     }),
   }),
 });
@@ -41,5 +52,6 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useUpdateUserProfileMutation,
   useGetUserInformationQuery,
-  useGetUserManualMutation
+  useGetUserManualMutation,
+  useUpdateMeMutation,
 } = userApi;

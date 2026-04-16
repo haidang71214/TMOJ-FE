@@ -65,7 +65,7 @@ export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: 
               </p>
             </ModalHeader>
 
-            <ModalBody className="p-8 pt-6 relative border-t border-divider dark:border-white/10">
+            <ModalBody className="p-6 relative border-t border-divider dark:border-white/10">
               {isLoading ? (
                 <div className="flex justify-center items-center py-20">
                   <Spinner size="lg" color="warning" />
@@ -75,7 +75,7 @@ export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: 
                    {t("common.no_data") || (language === "vi" ? "Không có dữ liệu cho giảng viên này." : "No data available for this instructor.")}
                 </div>
               ) : (
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-4">
                   {/* TOP PROFILE HEADER */}
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: "150ms" }}>
                     <Avatar
@@ -141,7 +141,7 @@ export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: 
                   <Divider className="opacity-50 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: "300ms" }} />
 
                   {/* SUBJECTS & CLASSES */}
-                  <div className="h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="max-h-[25vh] overflow-y-auto pr-2 custom-scrollbar">
                     <Accordion variant="splitted" className="px-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: "350ms" }}>
                       <AccordionItem 
                         key="subjects" 

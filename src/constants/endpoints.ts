@@ -4,6 +4,7 @@ const API_LON = "api/v2";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
+  GITHUB_LOGIN: `${API_PREFIX}/Auth/github-login`,
   REGISTER:`${API_PREFIX}/Auth/register`,
   LOGOUT:`${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD:`${API_PREFIX}/Auth/forgot-password`,
@@ -11,7 +12,8 @@ const authEndpoint = {
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,
-  UPDATE_INFOMATION: `${API_PREFIX}/users/profile`
+  UPDATE_INFOMATION: `${API_PREFIX}/users/profile`,
+  UPDATE_ME: `${API_PREFIX}/User/me`,
 }
 const AdminUserEndPoint = {
   GET_LIST_USER : `${API_PREFIX}/User/list-all`, // bệt đuôi api vô
@@ -29,6 +31,7 @@ const AdminUserEndPoint = {
     ASSIGN_TEACHER_ROLE:`${API_PREFIX}/Class/assign-teacher-role`,
     GET_USER_IMPORT_TEMPLATE: `${API_PREFIX}/user/import/template`,
     IMPORT_USERS: `${API_PREFIX}/user/import`,
+    UPDATE_USER: `${API_PREFIX}/User/{id}`,
 }
 // published là để public thuộc status code. ok, auto published. 
 // , visibility là để public/private - in -bank.

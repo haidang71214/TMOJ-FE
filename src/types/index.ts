@@ -42,7 +42,7 @@ export interface Users {
   role: string;
   rollNumber:string | null,
   memberCode:string | null,
-  isLocked?: boolean;
+  status?: boolean;
 }
 
 export enum UserRole {
@@ -644,6 +644,16 @@ export interface CreateUserRequest {
 export interface CreateUserResponse {
   message: string;
   userId: string;
+}
+
+export interface UpdateUserRequest {
+  displayName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+  password?: string | null;
+  roleCode?: string | null;
+  status?: boolean | null;
 }
 
 export interface SubmitResponseV1 {

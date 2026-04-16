@@ -289,6 +289,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
           cursor: "bg-[#FF5C00]",
           tab: "font-black uppercase italic text-sm h-12 mr-12",
           tabContent: "group-data-[selected=true]:text-[#FF5C00]",
+          panel: "min-h-[500px]",
         }}
       >
         <Tab key="slots" title="Class Curriculum">

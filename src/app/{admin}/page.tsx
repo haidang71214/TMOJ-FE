@@ -120,23 +120,6 @@ export default function AdminPage() {
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col">
-        {/* TOPBAR */}
-        <header
-          className="
-          h-16 px-8 flex items-center justify-between
-          border-b border-slate-200 bg-white/80 backdrop-blur shadow-sm sticky top-0 z-40
-        "
-        >
-          <span className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-            system / admin
-          </span>
-
-          <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF5C00] to-[#E85500] flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/30">
-              A
-            </div>
-          </div>
-        </header>
 
         {/* CONTENT */}
         <main className="flex-1 p-6 md:p-10 overflow-x-hidden">

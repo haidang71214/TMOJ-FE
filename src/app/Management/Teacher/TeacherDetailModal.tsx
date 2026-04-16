@@ -18,7 +18,6 @@ import {
 import { useGetTeacherByIdQuery } from "@/store/queries/user";
 import { Mail, Briefcase, BookOpen, Clock, Presentation } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useGetClassDetailQuery } from "@/store/queries/Class";
 
 interface Props {
   isOpen: boolean;
@@ -26,49 +25,13 @@ interface Props {
   teacherId?: string;
 }
 
-function AssignedClassItem({ cls, t, language, index }: { cls: any, t: any, language: any, index: number }) {
-  const { data: classData, isLoading } = useGetClassDetailQuery({ id: cls.classSemesterId }, { skip: !cls.classSemesterId });
-  const classDetail: any = classData?.data;
-  console.log(classData);
-  return (
-    <div className="flex flex-col p-4 rounded-xl border border-slate-100 dark:border-[#FF5C00]/20 bg-slate-50/50 dark:bg-white/5 gap-2 hover:border-[#FF5C00]/30 transition-all animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${400 + index * 50}ms` }}>
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-2">
-            <h4 className="font-black text-[#071739] dark:text-white text-md">
-              {isLoading ? <Spinner size="sm" color="warning" className="w-4 h-4" /> : (classDetail?.classCode || cls.subjectCode)}
-            </h4>
-            {classDetail?.classCode && (
-              <Chip size="sm" className="bg-[#071739]/10 text-[#071739] dark:bg-white/10 dark:text-white text-[10px] font-black h-5 uppercase">
-                {cls.subjectCode}
-              </Chip>
-            )}
-            <Chip size="sm" className="bg-[#FF5C00]/20 text-[#FF5C00] text-[10px] font-black h-5 uppercase">
-              {cls.semesterCode}
-            </Chip>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">{cls.subjectName}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-[10px] font-black uppercase text-slate-400">
-            {t("common.members") || (language === "vi" ? "Thành viên" : "Members")}
-          </p>
-          <p className="font-black text-[#071739] dark:text-white">{cls.memberCount}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-1 mt-2 text-[11px] font-bold text-slate-500">
-        <Clock size={12} className="text-[#FF5C00]" />
-        {cls.startAt && cls.endAt ? `${new Date(cls.startAt).toLocaleDateString()} - ${new Date(cls.endAt).toLocaleDateString()}` : "No schedule"}
-      </div>
-    </div>
-  );
-}
 
 export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: Props) {
   const { data: response, isLoading } = useGetTeacherByIdQuery(
     { id: teacherId! },
     { skip: !teacherId || !isOpen }
   );
+  console.log(response);
   
   const { t, language } = useTranslation();
 
@@ -215,8 +178,41 @@ export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: 
                       >
                         {classes.length > 0 ? (
                           <div className="flex flex-col gap-3 py-2">
-                            {classes.map((cls: any, index: number) => (
-                              <AssignedClassItem key={cls.classSemesterId} cls={cls} index={index} t={t} language={language} />
+                          {classes.map((cls: any, index: number) => (
+                              <div
+                                key={cls.classSemesterId}
+                                className="flex flex-col p-4 rounded-xl border border-slate-100 dark:border-[#FF5C00]/20 bg-slate-50/50 dark:bg-white/5 gap-2 hover:border-[#FF5C00]/30 transition-all animate-fade-in-up"
+                                style={{ animationFillMode: "both", animationDelay: `${400 + index * 50}ms` }}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-black text-[#071739] dark:text-white text-md">
+                                        {cls.classCode}
+                                      </h4>
+                                      <Chip size="sm" className="bg-[#071739]/10 text-[#071739] dark:bg-white/10 dark:text-white text-[10px] font-black h-5 uppercase">
+                                        {cls.subjectCode}
+                                      </Chip>
+                                      <Chip size="sm" className="bg-[#FF5C00]/20 text-[#FF5C00] text-[10px] font-black h-5 uppercase">
+                                        {cls.semesterCode}
+                                      </Chip>
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium">{cls.subjectName}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-[10px] font-black uppercase text-slate-400">
+                                      {t("common.members") || (language === "vi" ? "Thành viên" : "Members")}
+                                    </p>
+                                    <p className="font-black text-[#071739] dark:text-white">{cls.memberCount}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 mt-2 text-[11px] font-bold text-slate-500">
+                                  <Clock size={12} className="text-[#FF5C00]" />
+                                  {cls.startAt && cls.endAt
+                                    ? `${new Date(cls.startAt).toLocaleDateString()} - ${new Date(cls.endAt).toLocaleDateString()}`
+                                    : "No schedule"}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         ) : (

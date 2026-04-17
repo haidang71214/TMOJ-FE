@@ -10,6 +10,8 @@ import {
   Divider,
   Chip,
   Spinner,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import {
   Save,
@@ -25,6 +27,8 @@ import {
   X,
   CalendarDays,
   ChevronLeft,
+  Globe,
+  EyeOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetContestDetailQuery, useUpdateContestMutation } from "@/store/queries/Contest";
@@ -306,16 +310,56 @@ export default function EditContestPage({
             <span className="text-black dark:text-white font-black uppercase text-[10px] tracking-widest leading-none group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors">
               Visible Status
             </span>
-            <Switch
-              isSelected={formData.visibilityCode === "public"}
-              onValueChange={(val) => setFormData(p => ({ ...p, visibilityCode: val ? "public" : "private" }))}
-              isDisabled={isRestricted || isReadOnly}
+            <Select
               size="sm"
-              classNames={{
-                wrapper:
-                  "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+              variant="flat"
+              disallowEmptySelection
+              selectedKeys={[formData.visibilityCode]}
+              onSelectionChange={(keys) => {
+                const val = Array.from(keys)[0] as string;
+                setFormData((prev) => ({ ...prev, visibilityCode: val }));
               }}
-            />
+              isDisabled={isRestricted || isReadOnly}
+              classNames={{
+                trigger: "bg-white dark:bg-black/20 rounded-xl border border-transparent hover:border-blue-600 h-10",
+                value: "font-black uppercase text-[10px] italic tracking-wider",
+              }}
+              renderValue={(items) => {
+                return items.map((item) => (
+                  <div key={item.key} className="flex items-center gap-2">
+                    {item.key === "public" ? <Globe size={14} className="text-green-500" /> :
+                      item.key === "private" ? <LockIcon size={14} className="text-amber-500" /> :
+                        <EyeOff size={14} className="text-slate-400" />}
+                    <span>{item.textValue?.toUpperCase()}</span>
+                  </div>
+                ));
+              }}
+            >
+              <SelectItem
+                key="public"
+                textValue="Public"
+                startContent={<Globe size={18} className="text-green-500" />}
+                className="font-black uppercase text-[10px] italic tracking-wider"
+              >
+                Public
+              </SelectItem>
+              <SelectItem
+                key="private"
+                textValue="Private"
+                startContent={<LockIcon size={18} className="text-amber-500" />}
+                className="font-black uppercase text-[10px] italic tracking-wider"
+              >
+                Private
+              </SelectItem>
+              <SelectItem
+                key="hidden"
+                textValue="Hidden"
+                startContent={<EyeOff size={18} className="text-slate-400" />}
+                className="font-black uppercase text-[10px] italic tracking-wider"
+              >
+                Hidden
+              </SelectItem>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-4 group">

@@ -72,10 +72,16 @@ export default function Home() {
       );
       return { ...contest, isRegistered };
     })
-    .filter((c) => {
+    .filter((c: any) => {
       const statusLower = c.status?.toLowerCase();
-      // Chỉ hiện Running/Upcoming và CHƯA đăng ký
-      return (statusLower === "running" || statusLower === "upcoming") && !c.isRegistered;
+      const visibility = (c.visibilityCode || c.visibility || "public").toLowerCase();
+
+      // Chỉ hiện Running/Upcoming, CÔNG KHAI (Public) và CHƯA đăng ký
+      return (
+        (statusLower === "running" || statusLower === "upcoming") &&
+        visibility === "public" &&
+        !c.isRegistered
+      );
     });
 
   const news: NewsPost[] = [

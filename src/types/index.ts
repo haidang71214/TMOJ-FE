@@ -958,6 +958,16 @@ export interface UpdateContestResponse {
   message: string;
 }
 
+export interface ChangeVisibilityRequest {
+  visibilityCode: "public" | "private" | "hidden" | string;
+}
+
+export interface ChangeVisibilityResponse {
+  success: boolean;
+  data: boolean;
+  message: string;
+}
+
 export interface UnregisterContestResponse {
   success: boolean;
   data: boolean;

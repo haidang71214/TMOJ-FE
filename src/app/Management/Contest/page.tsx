@@ -38,9 +38,10 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
-import { useGetContestListQuery, usePublishContestMutation } from "@/store/queries/Contest";
+import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation } from "@/store/queries/Contest";
 import { ContestDto } from "@/types";
 import { toast } from "sonner";
+import { Globe, Lock as LockIcon, EyeOff } from "lucide-react";
 
 export default function ContestListPage() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export default function ContestListPage() {
 
 
   const [publishContest] = usePublishContestMutation();
+  const [changeVisibility] = useChangeVisibilityMutation();
 
   const handlePublishToggle = async (id: string) => {
     try {
@@ -67,6 +69,15 @@ export default function ContestListPage() {
       toast.success("Cập nhật trạng thái hiển thị thành công");
     } catch (error: any) {
       toast.error(error?.data?.message || "Không thể cập nhật trạng thái hiển thị");
+    }
+  };
+
+  const handleChangeVisibility = async (id: string, visibility: string) => {
+    try {
+      await changeVisibility({ id, body: { visibilityCode: visibility } }).unwrap();
+      toast.success(`Chuyển sang chế độ ${visibility.toUpperCase()} thành công`);
+    } catch (error: any) {
+      toast.error(error?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
     }
   };
 
@@ -82,11 +93,14 @@ export default function ContestListPage() {
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return items;
     const q = searchTerm.toLowerCase();
-    return items.filter(c =>
-      c.title.toLowerCase().includes(q) ||
-      c.id.toLowerCase().includes(q) ||
-      c.visibilityCode?.toLowerCase().includes(q)
-    );
+    return items.filter(c => {
+      const visibility = (c.visibilityCode || (c as any).visibility || "").toLowerCase();
+      return (
+        c.title.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        visibility.includes(q)
+      );
+    });
   }, [items, searchTerm]);
 
   // Tính tổng số trang
@@ -297,9 +311,26 @@ export default function ContestListPage() {
                   </Chip>
                 </TableCell>
                 <TableCell>
-                  <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
-                    {c.visibilityCode}
-                  </span>
+                  <Chip
+                    variant="flat"
+                    size="sm"
+                    className={`font-black uppercase text-[9px] px-2 ${c.visibilityCode?.toLowerCase() === "public"
+                      ? "bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400"
+                      : c.visibilityCode?.toLowerCase() === "private"
+                        ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
+                        : "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400"
+                      }`}
+                  >
+                    <span className="text-black dark:text-white font-black italic tracking-wider flex items-center gap-2">
+                      {(() => {
+                        const vis = (c.visibilityCode || (c as any).visibility || "public").toLowerCase();
+                        if (vis === "public") return <Globe size={14} className="text-green-500" />;
+                        if (vis === "private") return <LockIcon size={14} className="text-amber-500" />;
+                        return <EyeOff size={14} className="text-slate-400" />;
+                      })()}
+                      {(c.visibilityCode || (c as any).visibility || "PUBLIC").toUpperCase()}
+                    </span>
+                  </Chip>
                 </TableCell>
                 <TableCell>
                   <Chip
@@ -320,15 +351,50 @@ export default function ContestListPage() {
                   </Chip>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Switch
-                    isSelected={c.status?.toLowerCase() !== "draft"}
-                    onValueChange={() => handlePublishToggle(c.id)}
-                    size="sm"
-                    classNames={{
-                      wrapper:
-                        "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
-                    }}
-                  />
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        className="bg-slate-100 dark:bg-white/5 font-black uppercase text-[9px] h-8 rounded-lg"
+                        startContent={(() => {
+                          const vis = (c.visibilityCode || (c as any).visibility || "public").toLowerCase();
+                          if (vis === "public") return <Globe size={12} />;
+                          if (vis === "private") return <LockIcon size={12} />;
+                          return <EyeOff size={12} />;
+                        })()}
+                        endContent={<ChevronDown size={12} />}
+                      >
+                        {(c.visibilityCode || (c as any).visibility || "PUBLIC").toUpperCase()}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Change Visibility"
+                      onAction={(key) => handleChangeVisibility(c.id, key as string)}
+                    >
+                      <DropdownItem
+                        key="public"
+                        startContent={<Globe size={14} className="text-green-500" />}
+                        className="font-bold text-xs uppercase"
+                      >
+                        Public
+                      </DropdownItem>
+                      <DropdownItem
+                        key="private"
+                        startContent={<LockIcon size={14} className="text-amber-500" />}
+                        className="font-bold text-xs uppercase"
+                      >
+                        Private
+                      </DropdownItem>
+                      <DropdownItem
+                        key="hidden"
+                        startContent={<EyeOff size={14} className="text-slate-500" />}
+                        className="font-bold text-xs uppercase"
+                      >
+                        Hidden
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-2">

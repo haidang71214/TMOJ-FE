@@ -94,7 +94,15 @@ export default function UpcomingContests() {
   const activeContests = allContests.filter((c: any) => {
     const isPast = new Date(c.endAt) < new Date();
     const statusLower = c.status?.toLowerCase();
-    return statusLower !== "ended" && statusLower !== "past" && !isPast && !c.isRegistered;
+    const visibility = (c.visibilityCode || c.visibility || "public").toLowerCase();
+
+    return (
+      statusLower !== "ended" &&
+      statusLower !== "past" &&
+      !isPast &&
+      !c.isRegistered &&
+      visibility === "public"
+    );
   });
 
   const myContestsSorted = myRegisteredContests.filter((c: any) => {

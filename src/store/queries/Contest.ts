@@ -17,6 +17,8 @@ import {
   UnregisterContestResponse,
   SubmitContestRequest,
   SubmitContestResponse,
+  ChangeVisibilityRequest,
+  ChangeVisibilityResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -168,6 +170,15 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }],
     }),
+    // 13. Thay đổi visibility
+    changeVisibility: builder.mutation<ChangeVisibilityResponse, { id: string; body: ChangeVisibilityRequest }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.CHANGE_VISIBILITY.replace("{id}", id),
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Contest", id }, "Contest"],
+    }),
   }),
 });
 
@@ -185,4 +196,5 @@ export const {
   useUnregisterContestMutation,
   useGetMyContestsQuery,
   useRemoveProblemFromContestMutation,
+  useChangeVisibilityMutation,
 } = contestApi;

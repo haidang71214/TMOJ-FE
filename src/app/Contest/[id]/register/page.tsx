@@ -39,6 +39,7 @@ export default function ContestRegistrationPage() {
 
   // APIs
   const { data: contestResult, isLoading: isContestLoading } = useGetContestDetailQuery(contestId);
+  console.log("contestResult", contestResult);
   const [registerContest, { isLoading: isRegistering }] = useRegisterContestMutation();
   const [createTeam, { isLoading: isCreatingTeam }] = useCreateTeamMutation();
   const [joinTeamByCode, { isLoading: isJoiningByCode }] = useJoinTeamByCodeMutation();
@@ -106,6 +107,7 @@ export default function ContestRegistrationPage() {
         avatarUrl: teamAvatarUrl.trim() || "" 
       }).unwrap();
       setCreatedTeamId(result.data.teamId);
+      console.log("result", result.data);
       setTeamInviteCode(result.data.inviteCode);
       toast.success("Team created successfully! Now add your members.");
     } catch (error: any) {
@@ -226,17 +228,25 @@ export default function ContestRegistrationPage() {
         <div className="container mx-auto relative h-full flex flex-col justify-end p-10 text-white pb-32">
           <div className="max-w-4xl space-y-6 animate-in slide-in-from-bottom-10 duration-1000">
             <div className="flex flex-wrap gap-3">
-              <Chip className="bg-[#FF5C00] text-white font-black italic uppercase text-[10px] px-4 py-1.5 shadow-lg border-none" size="sm">
-                Registration Open
+              <Chip className={`text-white font-black italic uppercase text-[10px] px-4 py-1.5 shadow-lg border-none ${contestData.status?.toLowerCase() === 'running' ? 'bg-green-500' : contestData.status?.toLowerCase() === 'upcoming' ? 'bg-[#FF5C00]' : 'bg-gray-500'}`} size="sm">
+                {contestData.status || "Upcoming"}
               </Chip>
               <Chip className="bg-white/20 backdrop-blur-xl text-white font-black italic uppercase text-[10px] px-4 py-1.5 border border-white/20" size="sm">
-                Competitive Programming
+                {contestData.visibility || "Public"}
+              </Chip>
+              <Chip className="bg-white/20 backdrop-blur-xl text-white font-black italic uppercase text-[10px] px-4 py-1.5 border border-[#FF5C00] text-[#FF5C00]" size="sm">
+                {contestData.contestType === 'acm' ? 'ACM Format' : (contestData.contestType || "Standard")}
               </Chip>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-[1000] italic uppercase leading-[0.9] tracking-tighter">
               {contestData.title}
             </h1>
+            {contestData.description && (
+              <p className="text-white/80 font-medium text-lg max-w-2xl border-l-4 border-[#FF5C00] pl-4 italic">
+                {contestData.description}
+              </p>
+            )}
 
             <div className="flex flex-wrap items-center gap-8 pt-4">
               <div className="flex items-center gap-3">
@@ -255,7 +265,7 @@ export default function ContestRegistrationPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-white/50 leading-none mb-1 text-left">Duration</p>
-                  <p className="font-black italic uppercase text-sm leading-none">05 Hours</p>
+                  <p className="font-black italic uppercase text-sm leading-none">{contestData.durationMinutes} Minutes</p>
                 </div>
               </div>
 
@@ -265,7 +275,7 @@ export default function ContestRegistrationPage() {
                   <Avatar src="https://i.pravatar.cc/150?u=a04258a2462d826712d" />
                   <Avatar src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
                 </AvatarGroup>
-                <p className="font-black italic uppercase text-xs">Join {(contestData as any).participants || 1200}+ Students</p>
+                <p className="font-black italic uppercase text-xs">{(contestData as any).participants}</p>
               </div>
             </div>
           </div>
@@ -320,7 +330,7 @@ export default function ContestRegistrationPage() {
                           <Award className="w-4 h-4 text-[#FF5C00]" />
                           <span className="text-[10px] font-black uppercase italic">Prizes at stake</span>
                         </div>
-                        <p className="text-xl font-black italic uppercase leading-none">$2,500 <span className="text-[10px] text-[#FF5C00]">Total pool</span></p>
+                        <p className="text-xl font-black italic uppercase leading-none">{contestData.totalPoints || 0} <span className="text-[10px] text-[#FF5C00]">Total Points Pool</span></p>
                       </div>
                     </div>
                   </div>

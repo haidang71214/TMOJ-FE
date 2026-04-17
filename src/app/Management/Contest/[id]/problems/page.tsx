@@ -43,7 +43,7 @@ export default function ContestProblemsPage() {
   const { data: response, isLoading: isLoadingProblems, refetch } = useGetContestProblemsQuery(contestId);
   const [addProblemToContest, { isLoading: isAdding }] = useAddProblemToContestMutation();
   const [removeProblemFromContest] = useRemoveProblemFromContestMutation();
-
+  console.log("response", response);
   const contestStatus = contestDetailResponse?.data?.status?.toLowerCase();
   const isLocked = contestStatus === "running" || contestStatus === "ended";
 
@@ -115,12 +115,10 @@ export default function ContestProblemsPage() {
 
   // Hàm xử lý xóa bài tập
   const handleDeleteProblem = async (problemId: string, title?: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa bài tập "${title || problemId}" khỏi contest không?`)) {
-      return;
-    }
-
     try {
-      await removeProblemFromContest({ contestId, id: problemId }).unwrap();
+      const res = await removeProblemFromContest({ contestId, id: problemId }).unwrap();
+      console.log(res);
+
       toast.success("Đã xóa bài tập khỏi contest!");
       refetch();
     } catch (error: any) {

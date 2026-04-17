@@ -1,6 +1,5 @@
 
 import React from "react";
-import ContestHeader from "./components/ContestHeader";
 
 // Layout giờ phải là async function
 export default async function ContestLayout({
@@ -15,8 +14,6 @@ export default async function ContestLayout({
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a]">
-      {/* Shared Header for Tab Animations */}
-      <ContestHeader contestId={id} />  {/* ← dùng id sau khi await */}
       {children}
     </div>
   );

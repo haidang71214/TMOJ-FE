@@ -16,6 +16,8 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Select,
+  SelectItem,
   Pagination,
   useDisclosure,
   Spinner,
@@ -44,12 +46,18 @@ export default function ContestListPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
     page,
     pageSize: rowsPerPage,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: searchTerm || undefined,
+    title: searchTerm || undefined,
+    name: searchTerm || undefined,
   });
+
 
   const [publishContest] = usePublishContestMutation();
 
@@ -62,11 +70,28 @@ export default function ContestListPage() {
     }
   };
 
-  const pages = contestData?.data?.totalCount
-    ? Math.ceil(contestData.data.totalCount / rowsPerPage)
-    : 0;
+  // Lấy totalCount linh hoạt (đề phòng API trả về tên trường khác)
+  const totalCount = (contestData?.data as any)?.totalCount ??
+    (contestData?.data as any)?.total ??
+    (contestData as any)?.data?.total_count ??
+    (contestData as any)?.totalCount ?? 0;
 
   const items = contestData?.data?.items || [];
+
+  // Lọc Client-side (dành cho trường hợp Server không hỗ trợ lọc)
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim()) return items;
+    const q = searchTerm.toLowerCase();
+    return items.filter(c =>
+      c.title.toLowerCase().includes(q) ||
+      c.id.toLowerCase().includes(q) ||
+      c.visibilityCode?.toLowerCase().includes(q)
+    );
+  }, [items, searchTerm]);
+
+  // Tính tổng số trang
+  const calculatedPages = Math.ceil(totalCount / rowsPerPage);
+  const pages = Math.max(1, calculatedPages || (items.length === rowsPerPage ? page + 1 : page));
 
   // Logic cho Extend Modal
   const extendModal = useDisclosure();
@@ -76,6 +101,124 @@ export default function ContestListPage() {
     setSelectedContest(contest);
     extendModal.onOpen();
   };
+
+  // Reset về trang 1 khi search hoặc đổi rowsPerPage
+  const onSearchChange = React.useCallback((value?: string) => {
+    setSearchTerm(value || "");
+    setPage(1);
+  }, []);
+
+  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
+
+  const topContent = useMemo(() => {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between gap-3 items-end">
+          <Input
+            isClearable
+            className="w-full sm:max-w-[44%]"
+            placeholder="Search contest title or ID..."
+            startContent={<Search size={18} className="text-[#A4B5C4]" />}
+            value={searchTerm}
+            onClear={() => onSearchChange("")}
+            onValueChange={onSearchChange}
+            classNames={{
+              inputWrapper: "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5",
+            }}
+          />
+          <div className="flex gap-3">
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<ChevronDown size={14} />}
+                  variant="flat"
+                  className="bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase"
+                >
+                  Status
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Filter Status"
+                closeOnSelect={false}
+                selectedKeys={new Set([statusFilter])}
+                selectionMode="single"
+                onSelectionChange={(keys) => {
+                  setStatusFilter(Array.from(keys)[0] as string);
+                  setPage(1);
+                }}
+              >
+                <DropdownItem key="all">All Status</DropdownItem>
+                <DropdownItem key="running">Running</DropdownItem>
+                <DropdownItem key="upcoming">Upcoming</DropdownItem>
+                <DropdownItem key="ended">Ended</DropdownItem>
+                <DropdownItem key="draft">Draft</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+            <Button
+              isIconOnly
+              onPress={() => refetch()}
+              isLoading={isFetching}
+              className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
+            >
+              <RefreshCw size={18} />
+            </Button>
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-slate-400 text-xs font-bold">
+            Total {contestData?.data?.totalCount || 0} contests
+          </span>
+          <label className="flex items-center text-slate-400 text-xs font-bold gap-2">
+            Rows per page:
+            <select
+              className="bg-transparent outline-none text-slate-500 text-xs font-bold cursor-pointer"
+              onChange={onRowsPerPageChange}
+              value={rowsPerPage}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    );
+  }, [searchTerm, statusFilter, rowsPerPage, contestData?.data?.totalCount, isFetching, onSearchChange, onRowsPerPageChange, refetch]);
+
+  const bottomContent = useMemo(() => {
+    return (
+      <div className="py-2 px-2 flex justify-between items-center">
+        <span className="w-[30%] text-xs font-bold text-slate-400 italic">
+          {selectedContest ? `Selected: ${selectedContest.title}` : ""}
+        </span>
+        <Pagination
+          showControls
+          showShadow
+          color="primary"
+          variant="faded"
+          page={page}
+          total={pages}
+          onChange={setPage}
+          classNames={{
+            cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-black",
+            wrapper: "gap-2",
+            item: "font-bold hover:bg-slate-100 dark:hover:bg-white/10",
+          }}
+        />
+        <div className="hidden sm:flex w-[30%] justify-end gap-2 text-right">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+            Showing {Math.min(items.length, rowsPerPage)} of {contestData?.data?.totalCount || 0}
+          </span>
+        </div>
+      </div>
+    );
+  }, [page, pages, selectedContest]);
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -98,73 +241,17 @@ export default function ContestListPage() {
         </Button>
       </div>
 
-      {/* FILTER & SEARCH SECTION */}
-      <div className="flex flex-wrap items-center gap-3 shrink-0">
-        <Input
-          placeholder="Search contest title or ID..."
-          value={searchTerm}
-          onValueChange={setSearchTerm}
-          startContent={<Search size={18} className="text-[#A4B5C4]" />}
-          classNames={{
-            inputWrapper:
-              "bg-white dark:bg-[#111827] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#22C55E] transition-colors",
-          }}
-          className="max-w-xs font-medium"
-        />
-
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
-              startContent={<Filter size={16} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              Rule Type
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Rule Type">
-            <DropdownItem key="acm">ACM</DropdownItem>
-            <DropdownItem key="oi">OI</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase tracking-wider"
-              startContent={<SortAsc size={16} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              Sort By
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Sort">
-            <DropdownItem key="id">Latest ID</DropdownItem>
-            <DropdownItem key="status">Status</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-
-        <Button
-          isIconOnly
-          onPress={() => refetch()}
-          isLoading={isFetching}
-          className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
-        >
-          <RefreshCw size={18} />
-        </Button>
-      </div>
-
       {/* TABLE SECTION */}
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar relative">
         <Table
           aria-label="Contest Management Table"
           removeWrapper
+          topContent={topContent}
+          bottomContent={bottomContent}
           classNames={{
             base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
-            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4",
-            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none",
+            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
+            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
           }}
         >
           <TableHeader>
@@ -176,12 +263,12 @@ export default function ContestListPage() {
             <TableColumn>VISIBLE</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
           </TableHeader>
-          <TableBody 
+          <TableBody
             loadingContent={<Spinner color="primary" />}
             isLoading={isLoading}
             emptyContent={!isLoading && "Không tìm thấy contest nào."}
           >
-            {items.map((c) => (
+            {filteredItems.map((c) => (
               <TableRow
                 key={c.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
@@ -201,18 +288,17 @@ export default function ContestListPage() {
                   <Chip
                     variant="flat"
                     size="sm"
-                    className={`font-black uppercase text-[9px] px-2 ${
-                      c.contestType?.toUpperCase() === "ACM"
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
-                        : "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
-                    }`}
+                    className={`font-black uppercase text-[9px] px-2 ${c.contestType?.toUpperCase() === "ACM"
+                      ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
+                      : "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
+                      }`}
                   >
                     {c.contestType || "N/A"}
                   </Chip>
                 </TableCell>
                 <TableCell>
                   <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
-                    {c.visibility}
+                    {c.visibilityCode}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -223,10 +309,10 @@ export default function ContestListPage() {
                       c.status?.toLowerCase() === "running"
                         ? "success"
                         : c.status?.toLowerCase() === "upcoming"
-                        ? "primary"
-                        : c.status?.toLowerCase() === "draft"
-                        ? "danger"
-                        : "default"
+                          ? "primary"
+                          : c.status?.toLowerCase() === "draft"
+                            ? "danger"
+                            : "default"
                     }
                     className="font-black uppercase text-[9px] border-none"
                   >
@@ -345,22 +431,6 @@ export default function ContestListPage() {
             ))}
           </TableBody>
         </Table>
-
-        {/* PAGINATION SECTION */}
-        <div className="flex w-full justify-center py-6">
-          <Pagination
-            isCompact
-            showControls
-            showShadow
-            color="primary"
-            page={page}
-            total={pages}
-            onChange={(p) => setPage(p)}
-            classNames={{
-              cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold",
-            }}
-          />
-        </div>
       </div>
       <ExtendTimeModal
         isOpen={extendModal.isOpen}

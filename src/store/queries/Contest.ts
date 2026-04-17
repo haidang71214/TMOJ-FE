@@ -45,7 +45,7 @@ export const contestApi = baseApi.injectEndpoints({
     // 2. Danh sách contest
     getContestList: builder.query<
       ContestListResponse,
-      { page?: number; pageSize?: number; status?: string }
+      { page?: number; pageSize?: number; status?: string; search?: string; title?: string; name?: string }
     >({
       query: (params) => ({
         url: ContestEndpoint.GET_CONTEST_LIST,

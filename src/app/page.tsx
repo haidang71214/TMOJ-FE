@@ -27,7 +27,7 @@ import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 import { ContestDto } from "@/types";
 import NewsFeed from "./components/NewsFeed";
-import { useGetContestListQuery } from "@/store/queries/Contest";
+import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -60,9 +60,23 @@ export default function Home() {
     pageSize: 10,
   });
 
-  const activeContests: ContestDto[] = (contestsData?.data?.items || []).filter(
-    (c) => c.status?.toLowerCase() === "running" || c.status?.toLowerCase() === "upcoming"
-  );
+  // Fetch my contests to check registration status
+  const { data: myContestsResponse } = useGetMyContestsQuery({});
+  const myContests = myContestsResponse?.data || [];
+
+  const activeContests = (contestsData?.data?.items || [])
+    .map(contest => {
+      const isRegistered = myContests.some((my: any) =>
+        String(my.id) === String(contest.id) ||
+        String(my.contestId) === String(contest.id)
+      );
+      return { ...contest, isRegistered };
+    })
+    .filter((c) => {
+      const statusLower = c.status?.toLowerCase();
+      // Chỉ hiện Running/Upcoming và CHƯA đăng ký
+      return (statusLower === "running" || statusLower === "upcoming") && !c.isRegistered;
+    });
 
   const news: NewsPost[] = [
     {
@@ -83,9 +97,8 @@ export default function Home() {
     <main className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex transition-colors duration-500">
       {/* SIDEBAR */}
       <aside
-        className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl ${
-          isSidebarOpen ? "w-[260px]" : "w-0"
-        }`}
+        className={`transition-all duration-300 ease-in-out border-r border-[#A4B5C4] dark:border-[#1C2737] bg-white dark:bg-[#1C2737] sticky top-0 h-screen overflow-hidden flex-shrink-0 z-40 shadow-xl ${isSidebarOpen ? "w-[260px]" : "w-0"
+          }`}
       >
         <div className="w-[260px] p-6 pr-2">
           <Sidebar />
@@ -187,54 +200,84 @@ export default function Home() {
               >
                 {activeContests.map((contest) => (
                   <SwiperSlide key={contest.id}>
-                    <Card className="h-[420px] border-none bg-white dark:bg-[#1C2737] rounded-[32px] overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
-                      <div className="h-1/2 relative overflow-hidden">
+                    <Card className="h-[400px] border-none rounded-[32px] shadow-sm overflow-hidden bg-slate-50 dark:bg-black/20 transition-all duration-500">
+                      <div
+                        onClick={() => router.push(`/Contest/${contest.id}`)}
+                        className="h-[200px] relative cursor-pointer overflow-hidden"
+                      >
                         <Image
                           src={(contest as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
                           alt={contest.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
                         />
-                        <div className="absolute top-4 right-4 z-10">
-                          <Chip
-                            color={
-                              contest.status?.toLowerCase() === "running"
-                                ? "success"
-                                : "primary"
-                            }
-                            className="font-black uppercase text-[10px] animate-pulse text-white"
-                          >
-                            {contest.status}
-                          </Chip>
-                        </div>
-                      </div>
-                      <CardBody className="p-7 flex flex-col justify-between">
-                        <h4 className="text-lg font-black uppercase italic leading-tight dark:text-white line-clamp-2">
-                          {contest.title}
-                        </h4>
-                        <div className="flex items-center gap-4 text-[10px] font-black uppercase text-[#A4B5C4] tracking-widest">
-                          <span className="flex items-center gap-1">
-                            <Users size={14} /> {(contest as any).participants || 0} Students
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={14} />{" "}
-                            {contest.status?.toLowerCase() === "running" 
-                              ? `Ends: ${new Date(contest.endAt).toLocaleDateString()}` 
-                              : `Starts: ${new Date(contest.startAt).toLocaleDateString()}`}
-                          </span>
-                        </div>
-                        <Button 
-                          onPress={() => {
-                            if (!currentUser) {
-                              openModal({ title: "Đăng nhập", content: <LoginModal /> });
-                              return;
-                            }
-                            router.push(`/Contest/${contest.id}/register`);
-                          }}
-                          className="w-full bg-[#071739] text-white font-black h-12 rounded-xl shadow-lg uppercase italic border-none transition-all duration-300 hover:bg-[#22C55E] hover:scale-105"
+                        <Chip
+                          className="absolute top-4 right-4 font-black uppercase text-[9px] text-white"
+                          color={contest.status?.toLowerCase() === "running" ? "success" : "primary"}
                         >
-                          Register Now <ArrowRight size={18} />
-                        </Button>
+                          {contest.status}
+                        </Chip>
+                      </div>
+                      <CardBody className="p-8 flex flex-col justify-between">
+                        <div>
+                          <h4 className="text-lg font-black uppercase italic leading-tight mb-4 line-clamp-2 dark:text-white">
+                            {contest.title}
+                          </h4>
+                          <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic tracking-widest">
+                            <span className="flex items-center gap-2">
+                              <Users size={14} className="text-[#FF5C00]" /> {(contest as any).participants || 0} Students
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <Clock size={14} className="text-[#FF5C00]" />{" "}
+                              {contest.status?.toLowerCase() === "running"
+                                ? `Ends: ${new Date(contest.endAt).toLocaleDateString()}`
+                                : `Starts: ${new Date(contest.startAt).toLocaleDateString()}`}
+                            </span>
+                          </div>
+                        </div>
+
+                        {(() => {
+                          const isRunning = contest.status?.toLowerCase() === "running";
+
+                          if (!contest.isRegistered) {
+                            if (isRunning) {
+                              return (
+                                <Button
+                                  fullWidth
+                                  disabled
+                                  className="bg-gray-400 text-white font-black h-12 rounded-xl uppercase italic mt-4 cursor-not-allowed opacity-70"
+                                >
+                                  In Progress <Clock size={18} />
+                                </Button>
+                              );
+                            }
+                            return (
+                              <Button
+                                fullWidth
+                                className="bg-[#071739] text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90"
+                                onPress={() => {
+                                  if (!currentUser) {
+                                    openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                                    return;
+                                  }
+                                  router.push(`/Contest/${contest.id}/register`);
+                                }}
+                              >
+                                Register Now <ArrowRight size={18} />
+                              </Button>
+                            );
+                          }
+
+                          return (
+                            <Button
+                              fullWidth
+                              className="bg-green-500 text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90 shadow-lg shadow-green-500/20"
+                              onPress={() => router.push(`/Contest/${contest.id}`)}
+                            >
+                              Continue <ArrowRight size={18} />
+                            </Button>
+                          );
+                        })()}
                       </CardBody>
                     </Card>
                   </SwiperSlide>

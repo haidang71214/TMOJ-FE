@@ -182,6 +182,7 @@ const ContestEndpoint = {
   UNREGISTER: `${API_PREFIX}/contests/{contestId}/unregister`,
   GET_MY_CONTESTS: `${API_PREFIX}/contests/me`,
   REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{id}`,
+  CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
 };
 
 const TeamEndpoint = {

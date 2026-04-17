@@ -22,7 +22,7 @@ import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 interface AddProblemModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  onConfirm: (selectedProblems: Problem[]) => void;
+  onConfirm: (selectedProblems: any[]) => void;
 }
 
 export const AddProblemModal = ({
@@ -34,6 +34,8 @@ export const AddProblemModal = ({
   const [searchBank, setSearchBank] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [step, setStep] = useState(1);
+  const [configs, setConfigs] = useState<Record<string, { alias: string; points: number; ordinal: number }>>({});
 
   const { data: problemBank, isLoading } = useGetProblemListQueryQuery();
 
@@ -49,20 +51,52 @@ export const AddProblemModal = ({
     });
   }, [problemBank, searchBank, filterDifficulty]);
 
-  const handleSelectProblem = (id: string) => {
+  const handleSelectProblem = (id: string, title: string) => {
     const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) newSelected.delete(id);
-    else newSelected.add(id);
+    const newConfigs = { ...configs };
+
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+      delete newConfigs[id];
+    } else {
+      newSelected.add(id);
+      newConfigs[id] = {
+        alias: "",
+        points: 100,
+        ordinal: newSelected.size
+      };
+    }
     setSelectedIds(newSelected);
+    setConfigs(newConfigs);
+  };
+
+  const updateConfig = (id: string, field: string, value: any) => {
+    setConfigs(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }));
   };
 
   const handleConfirm = () => {
     const rawData = problemBank?.data || [];
-    const selected = rawData.filter((p) => selectedIds.has(p.id));
+    const selected = rawData
+      .filter((p) => selectedIds.has(p.id))
+      .map(p => ({
+        problemId: p.id,
+        title: p.title,
+        ...configs[p.id]
+      }));
     onConfirm(selected);
     setSelectedIds(new Set());
-    onOpenChange(); // Close modal
+    setConfigs({});
+    setStep(1);
+    onOpenChange();
   };
+
+  const selectedProblemsData = useMemo(() => {
+    const rawData = problemBank?.data || [];
+    return rawData.filter((p) => selectedIds.has(p.id));
+  }, [problemBank, selectedIds]);
 
   return (
     <Modal
@@ -110,94 +144,123 @@ export const AddProblemModal = ({
             </ModalHeader>
 
             <ModalBody className="p-8">
-              <div className="flex gap-4 mb-6">
-                <Input
-                  placeholder="Search problem title..."
-                  startContent={<Search size={18} className="text-slate-400" />}
-                  value={searchBank}
-                  onValueChange={setSearchBank}
-                  classNames={{
-                    inputWrapper:
-                      "rounded-2xl bg-slate-50 dark:bg-black/20 h-12",
-                  }}
-                  className="flex-1 font-bold"
-                />
-                <Select
-                  placeholder="Difficulty"
-                  className="w-48 font-bold"
-                  selectedKeys={[filterDifficulty]}
-                  onSelectionChange={(keys) =>
-                    setFilterDifficulty(Array.from(keys)[0] as string)
-                  }
-                  classNames={{
-                    trigger: "rounded-2xl bg-slate-50 dark:bg-black/20 h-12",
-                  }}
-                >
-                  <SelectItem key="all" className="font-bold">
-                    All Levels
-                  </SelectItem>
-                  <SelectItem key="Easy" className="font-bold text-success">
-                    Easy
-                  </SelectItem>
-                  <SelectItem key="Medium" className="font-bold text-warning">
-                    Medium
-                  </SelectItem>
-                  <SelectItem key="Hard" className="font-bold text-danger">
-                    Hard
-                  </SelectItem>
-                </Select>
-              </div>
-
-              {isLoading ? (
-                <div className="flex justify-center p-20">
-                  <Spinner size="lg" color="warning" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {filteredBank.map((libProb) => (
-                    <div
-                      key={libProb.id}
-                      onClick={() => handleSelectProblem(libProb.id)}
-                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${
-                        selectedIds.has(libProb.id)
-                          ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
-                          : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
-                      }`}
+              {step === 1 ? (
+                <>
+                  <div className="flex gap-4 mb-6">
+                    <Input
+                      placeholder="Search problem title..."
+                      startContent={<Search size={18} className="text-slate-400" />}
+                      value={searchBank}
+                      onValueChange={setSearchBank}
+                      classNames={{
+                        inputWrapper: "rounded-2xl bg-slate-50 dark:bg-black/20 h-12",
+                      }}
+                      className="flex-1 font-bold"
+                    />
+                    <Select
+                      placeholder="Difficulty"
+                      className="w-48 font-bold"
+                      selectedKeys={[filterDifficulty]}
+                      onSelectionChange={(keys) => setFilterDifficulty(Array.from(keys)[0] as string)}
+                      classNames={{
+                        trigger: "rounded-2xl bg-slate-50 dark:bg-black/20 h-12",
+                      }}
                     >
-                      <div className="flex items-center gap-4">
-                        <Checkbox
-                          isSelected={selectedIds.has(libProb.id)}
-                          color="primary"
-                          classNames={{
-                            wrapper:
-                              "rounded-md after:bg-blue-600 dark:after:bg-[#22C55E]",
-                          }}
-                          onChange={() => handleSelectProblem(libProb.id)}
-                        />
-                        <div>
-                          <p
-                            className={`font-black uppercase italic transition-colors ${
-                              selectedIds.has(libProb.id)
-                                ? "text-blue-600 dark:text-[#22C55E]"
-                                : ""
+                      <SelectItem key="all" className="font-bold">All Levels</SelectItem>
+                      <SelectItem key="Easy" className="font-bold text-success">Easy</SelectItem>
+                      <SelectItem key="Medium" className="font-bold text-warning">Medium</SelectItem>
+                      <SelectItem key="Hard" className="font-bold text-danger">Hard</SelectItem>
+                    </Select>
+                  </div>
+
+                  {isLoading ? (
+                    <div className="flex justify-center p-20">
+                      <Spinner size="lg" color="warning" />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {filteredBank.map((libProb) => (
+                        <div
+                          key={libProb.id}
+                          onClick={() => handleSelectProblem(libProb.id, libProb.title)}
+                          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${selectedIds.has(libProb.id)
+                              ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
+                              : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
                             }`}
-                          >
-                            {libProb.title}
-                          </p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                            ID: #{libProb.id.substring(0, 8)}...
-                          </p>
+                        >
+                          <div className="flex items-center gap-4">
+                            <Checkbox
+                              isSelected={selectedIds.has(libProb.id)}
+                              color="primary"
+                              classNames={{
+                                wrapper: "rounded-md after:bg-blue-600 dark:after:bg-[#22C55E]",
+                              }}
+                              onChange={() => handleSelectProblem(libProb.id, libProb.title)}
+                            />
+                            <div>
+                              <p className={`font-black uppercase italic transition-colors ${selectedIds.has(libProb.id) ? "text-blue-600 dark:text-[#22C55E]" : ""}`}>
+                                {libProb.title}
+                              </p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase italic">
+                                ID: #{libProb.id.substring(0, 8)}...
+                              </p>
+                            </div>
+                          </div>
+                          <Chip size="sm" variant="flat" className="font-black uppercase text-[9px]">
+                            {libProb.difficulty}
+                          </Chip>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl flex items-center justify-between">
+                    <p className="text-xs font-black uppercase italic text-blue-600 dark:text-blue-400">
+                      Configuration for {selectedIds.size} Selected Problems
+                    </p>
+                    <Button size="sm" variant="flat" onPress={() => setStep(1)} className="font-bold uppercase text-[9px]">
+                      Change Selection
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {selectedProblemsData.map((p) => (
+                      <div key={p.id} className="p-6 bg-slate-50 dark:bg-black/20 rounded-3xl border border-slate-100 dark:border-white/5 space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-black uppercase italic text-sm text-[#FF5C00]">{p.title}</h4>
+                          <span className="text-[9px] font-bold text-slate-400">#{p.id.substring(0, 8)}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <Input
+                            label="Alias"
+                            size="sm"
+                            placeholder="e.g. A"
+                            value={configs[p.id]?.alias}
+                            onValueChange={(v) => updateConfig(p.id, "alias", v)}
+                            classNames={{ inputWrapper: "rounded-xl h-10" }}
+                          />
+                          <Input
+                            label="Points"
+                            type="number"
+                            size="sm"
+                            value={String(configs[p.id]?.points)}
+                            onValueChange={(v) => updateConfig(p.id, "points", Number(v))}
+                            classNames={{ inputWrapper: "rounded-xl h-10" }}
+                          />
+                          <Input
+                            label="Ordinal"
+                            type="number"
+                            size="sm"
+                            value={String(configs[p.id]?.ordinal)}
+                            onValueChange={(v) => updateConfig(p.id, "ordinal", Number(v))}
+                            classNames={{ inputWrapper: "rounded-xl h-10" }}
+                          />
                         </div>
                       </div>
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        className="font-black uppercase text-[9px]"
-                      >
-                        {libProb.difficulty}
-                      </Chip>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </ModalBody>
@@ -205,7 +268,7 @@ export const AddProblemModal = ({
             <ModalFooter className="border-t border-slate-100 dark:border-white/5 p-8">
               <div className="mr-auto">
                 <span className="text-xs font-black uppercase text-slate-400 italic">
-                  Selected: {selectedIds.size} Problems
+                  {selectedIds.size} Problems Ready
                 </span>
               </div>
               <Button
@@ -215,13 +278,22 @@ export const AddProblemModal = ({
               >
                 Cancel
               </Button>
-              <Button
-                className="bg-blue-600 dark:bg-[#22C55E] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
-                onPress={() => handleConfirm()}
-                isDisabled={selectedIds.size === 0}
-              >
-                Confirm & Add
-              </Button>
+              {step === 1 ? (
+                <Button
+                  className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
+                  onPress={() => setStep(2)}
+                  isDisabled={selectedIds.size === 0}
+                >
+                  Next: Configure
+                </Button>
+              ) : (
+                <Button
+                  className="bg-blue-600 dark:bg-[#22C55E] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
+                  onPress={() => handleConfirm()}
+                >
+                  Confirm & Add to Contest
+                </Button>
+              )}
             </ModalFooter>
           </>
         )}

@@ -8,10 +8,13 @@ import {
   ContestProblemsResponse,
   CreateContestRequest,
   CreateContestResponse,
+  UpdateContestResponse,
   LeaderboardResponse,
   PublishContestResponse,
+  MyContestsResponse,
   RegisterContestRequest,
   RegisterContestResponse,
+  UnregisterContestResponse,
   SubmitContestRequest,
   SubmitContestResponse,
 } from "@/types";
@@ -30,7 +33,7 @@ export const contestApi = baseApi.injectEndpoints({
     }),
 
     // 1.1 Cập nhật contest
-    updateContest: builder.mutation<CreateContestResponse, { id: string; body: CreateContestRequest }>({
+    updateContest: builder.mutation<UpdateContestResponse, { id: string; body: CreateContestRequest }>({
       query: ({ id, body }) => ({
         url: ContestEndpoint.UPDATE_CONTEST.replace("{id}", id),
         method: "PUT",
@@ -42,7 +45,7 @@ export const contestApi = baseApi.injectEndpoints({
     // 2. Danh sách contest
     getContestList: builder.query<
       ContestListResponse,
-      { page?: number; pageSize?: number; status?: string }
+      { page?: number; pageSize?: number; status?: string; search?: string; title?: string; name?: string }
     >({
       query: (params) => ({
         url: ContestEndpoint.GET_CONTEST_LIST,
@@ -138,14 +141,32 @@ export const contestApi = baseApi.injectEndpoints({
     }),
 
     // 10. Unregister contest (Endpoint 12 cũ)
-    unregisterContest: builder.mutation<any, string>({
+    unregisterContest: builder.mutation<UnregisterContestResponse, string>({
       query: (contestId) => ({
         url: ContestEndpoint.UNREGISTER.replace("{contestId}", contestId),
         method: "DELETE",
       }),
       invalidatesTags: (result, error, contestId) => [
         { type: "Contest", id: contestId },
+        "Contest",
       ],
+    }),
+    // 11. Danh sách contest của tôi
+    getMyContests: builder.query<MyContestsResponse, { status?: string }>({
+      query: (params) => ({
+        url: ContestEndpoint.GET_MY_CONTESTS,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Contest"],
+    }),
+    // 12. Xóa bài tập khỏi contest
+    removeProblemFromContest: builder.mutation<any, { contestId: string; id: string }>({
+      query: ({ contestId, id }) => ({
+        url: ContestEndpoint.REMOVE_PROBLEM_FROM_CONTEST.replace("{contestId}", contestId).replace("{id}", id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }],
     }),
   }),
 });
@@ -162,4 +183,6 @@ export const {
   useGetLeaderboardQuery,
   useRegisterContestMutation,
   useUnregisterContestMutation,
+  useGetMyContestsQuery,
+  useRemoveProblemFromContestMutation,
 } = contestApi;

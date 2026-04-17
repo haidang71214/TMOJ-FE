@@ -24,7 +24,7 @@ export interface LoginGGResponse {
   user: Users;
 }
 export interface Logout {
-  message:string
+  message: string
 }
 export enum RoleEnums {
   CLIENT = 0,
@@ -40,8 +40,8 @@ export interface Users {
   username: string;
   avatarUrl: string | null;
   role: string;
-  rollNumber:string | null,
-  memberCode:string | null,
+  rollNumber: string | null,
+  memberCode: string | null,
   status?: boolean;
 }
 
@@ -83,22 +83,22 @@ export interface ImportProblemClassRequest {
   isRequired: boolean;
 }
 export interface RegisterRequestDto {
-    firstName: string ,
+  firstName: string,
   lastName: string,
   email: string,
   password: string
 }
 
 export interface RegisterResponseDto {
-    firstName: string ,
+  firstName: string,
   lastName: string,
   email: string,
   password: string
 }
-export interface sendEmailForgotPassword{
-  email:string,
+export interface sendEmailForgotPassword {
+  email: string,
 }
-export interface resetPasswordInformation{
+export interface resetPasswordInformation {
   email: string,
   token: string,
   newPassword: string
@@ -118,7 +118,7 @@ export interface Problem {
   difficulty: "easy" | "medium" | "hard";
   statusCode: "draft" | "published";
   isActive: boolean;
-  content?:string;
+  content?: string;
   acceptancePercent: number | null;
   timeLimitMs: number;
   memoryLimitKb: number;
@@ -167,7 +167,7 @@ export interface CreateUserDto {
   age: number;
 }
 export interface ProblemTestsetResponse {
-  data:HiHi
+  data: HiHi
 }
 export interface HiHi {
   id: string;
@@ -299,15 +299,15 @@ export interface Problem {
   // acceptance?: string;
   // tags?: string[];
 }
-export interface ErrorForm{
+export interface ErrorForm {
   data: Data;
 }
-export interface Data{
-  data :MessageError;
+export interface Data {
+  data: MessageError;
 }
 
-export interface MessageError{
-  message:string;
+export interface MessageError {
+  message: string;
 }
 export interface SubmitResponse {
   submissionId: string
@@ -432,11 +432,11 @@ export interface SubjectCreateForm {
   description: string
 }
 export interface SubjectResponseForm {
- subjectId: string,
-code: string,
-name: string,
-description: string,
-isActive: boolean,
+  subjectId: string,
+  code: string,
+  name: string,
+  description: string,
+  isActive: boolean,
 }
 export interface Teacher {
   userId: string;
@@ -466,7 +466,7 @@ export interface ClassItem {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  
+
   instances: ClassInstance[];     // ← Quan trọng: một class có thể có nhiều instance (nhiều môn/semester)
 
   totalMemberCount: number;       // tổng thành viên của tất cả instances
@@ -482,7 +482,7 @@ export interface ClassResponse {
 }
 export interface CreateClassRequest {
   subjectId: string;
-  semesterId: string ;
+  semesterId: string;
   classCode?: string | null;
   teacherId?: string | null;
 }
@@ -623,7 +623,7 @@ export interface StudentSubmissionDetailResponse {
 }
 
 export interface addClassMemberRequest {
-  memberCode?: string | null; 
+  memberCode?: string | null;
   rollNumber?: string | null;
 }
 
@@ -661,7 +661,7 @@ export interface SubmitResponseV1 {
   judgeRunId: string; // Guid? → optional
   judgeJobId: string;        // Guid → string
   status: string;
-  verdictCode:string;
+  verdictCode: string;
 }
 export interface SubmitResponseV2 {
   data: SubmitResponseV1
@@ -864,14 +864,15 @@ export interface ReportDetailResponse {
 export interface ContestDto {
   id: string;
   title: string;
-  description?: string;
+  description?: string; // Tùy chọn vì trong list của user không có, nhưng response cũ có thể có
   startAt: string;
   endAt: string;
-  visibility: string;
+  visibilityCode: string; // Đổi từ visibility sang visibilityCode cho list
   allowTeams: boolean;
   status: string;
-  contestType?: string;
+  contestType: string;
   isRegistered?: boolean;
+  participants?: number; // Thêm nếu cần, từ UpcomingContests.tsx đang dùng (contest as any).participants
 }
 
 export interface ContestPagedResult {
@@ -889,6 +890,7 @@ export interface ContestListResponse {
 
 export interface ContestProblemDto {
   problemId: string;
+  problemTitle?: string;
   alias?: string;
   ordinal?: number;
   displayIndex?: number;
@@ -912,9 +914,17 @@ export interface ContestDetailDto {
   allowTeams: boolean;
   status: string;
   phase: string;
+  isPublished: boolean;
+  isFrozen: boolean;
+  freezeAt: string | null;
+  canViewProblems: boolean;
+  canViewDetail: boolean;
   canJoin: boolean;
+  isRegistered: boolean;
+  hasLeaderboard: boolean;
   startAt: string;
   endAt: string;
+  durationMinutes: number;
   problemCount: number;
   totalPoints: number;
   problems: ContestProblemDto[];
@@ -937,7 +947,20 @@ export interface CreateContestRequest {
 }
 
 export interface CreateContestResponse {
+  success: boolean;
   data: string; // contestId
+  message: string;
+}
+
+export interface UpdateContestResponse {
+  success: boolean;
+  data: boolean;
+  message: string;
+}
+
+export interface UnregisterContestResponse {
+  success: boolean;
+  data: boolean;
   message: string;
 }
 
@@ -955,6 +978,7 @@ export interface AddProblemToContestRequest extends ContestProblemDto {
 }
 
 export interface AddProblemToContestResponse {
+  success: boolean;
   data: string; // contestProblemId
   message: string;
 }
@@ -983,6 +1007,8 @@ export interface SubmitContestResponse {
 }
 
 export interface PublishContestResultDto {
+  contestId: string;
+  status: string;
   [key: string]: any;
 }
 
@@ -1156,4 +1182,10 @@ export interface DeleteEditorialResponse {
   };
   message: string | null;
   traceId: string;
+}
+
+export interface MyContestsResponse {
+  success: boolean;
+  data: ContestDto[];
+  message: string;
 }

@@ -180,15 +180,19 @@ const ContestEndpoint = {
   LEADERBOARD: `${API_PREFIX}/contests/{contestId}/leaderboard`,
   REGISTER: `${API_PREFIX}/contests/{contestId}/register`,
   UNREGISTER: `${API_PREFIX}/contests/{contestId}/unregister`,
+  DELETE_CONTEST: `${API_PREFIX}/contests/{id}`,
   GET_MY_CONTESTS: `${API_PREFIX}/contests/me`,
-  REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{id}`,
+  REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{contestProblemId}`,
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
+  EXTEND_CONTEST: `${API_PREFIX}/contests/{id}/extend`,
+  JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
 };
 
 const TeamEndpoint = {
   CREATE_TEAM: `${API_PREFIX}/teams`,
   GET_TEAM_DETAIL: `${API_PREFIX}/teams/{id}`,
   ADD_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members`,
+  DELETE_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members/{userId}`,
   JOIN_BY_CODE: `${API_PREFIX}/teams/join-by-code`,
 };
 

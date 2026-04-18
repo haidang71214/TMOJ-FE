@@ -114,9 +114,9 @@ export default function ContestProblemsPage() {
   };
 
   // Hàm xử lý xóa bài tập
-  const handleDeleteProblem = async (problemId: string, title?: string) => {
+  const handleDeleteProblem = async (contestProblemId: string, title?: string) => {
     try {
-      const res = await removeProblemFromContest({ contestId, id: problemId }).unwrap();
+      const res = await removeProblemFromContest({ contestId, contestProblemId }).unwrap();
       console.log(res);
 
       toast.success("Đã xóa bài tập khỏi contest!");
@@ -268,7 +268,7 @@ export default function ContestProblemsPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onPress={() => handleDeleteProblem(p.problemId, p.alias)}
+                        onPress={() => handleDeleteProblem(p.id!, p.alias)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
                       >
                         <Trash2 size={16} />
@@ -277,9 +277,6 @@ export default function ContestProblemsPage() {
                   </div>
                 </TableCell>
               ) : (
-                // Phải trả về một TableCell rỗng hoặc dùng mảng để khớp số lượng cột
-                // Tuy nhiên, HeroUI TableRow mapping sẽ tự bóc tách nếu chúng ta dùng đúng structure
-                // Ở đây tôi sẽ dùng mảng TableCell thủ công khớp với columns.key
                 null as any
               )}
             </TableRow>

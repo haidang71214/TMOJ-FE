@@ -54,7 +54,6 @@ export default function Home() {
   const { openModal } = useModal();
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  // Fetch real contests
   const { data: contestsData, isLoading: isContestsLoading } = useGetContestListQuery({
     page: 1,
     pageSize: 10,
@@ -76,11 +75,10 @@ export default function Home() {
       const statusLower = c.status?.toLowerCase();
       const visibility = (c.visibilityCode || c.visibility || "public").toLowerCase();
 
-      // Chỉ hiện Running/Upcoming, CÔNG KHAI (Public) và CHƯA đăng ký
+      // Chỉ hiện Running/Upcoming và CÔNG KHAI (Public)
       return (
         (statusLower === "running" || statusLower === "upcoming") &&
-        visibility === "public" &&
-        !c.isRegistered
+        visibility === "public"
       );
     });
 

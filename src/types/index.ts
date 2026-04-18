@@ -889,6 +889,7 @@ export interface ContestListResponse {
 }
 
 export interface ContestProblemDto {
+  id?: string; // contestProblemId
   problemId: string;
   problemTitle?: string;
   alias?: string;

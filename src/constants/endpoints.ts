@@ -180,7 +180,7 @@ const ContestEndpoint = {
   LEADERBOARD: `${API_PREFIX}/contests/{contestId}/leaderboard`,
   REGISTER: `${API_PREFIX}/contests/{contestId}/register`,
   UNREGISTER: `${API_PREFIX}/contests/{contestId}/unregister`,
-  DELETE_CONTEST: `${API_PREFIX}/contests/{id}`,
+  DELETE_CONTEST: `${API_PREFIX}/contests/{id}/hard-before-start`,
   GET_MY_CONTESTS: `${API_PREFIX}/contests/me`,
   REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{contestProblemId}`,
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,

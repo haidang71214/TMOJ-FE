@@ -520,7 +520,7 @@ export default function ContestListPage() {
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-600 hover:text-white transition-all rounded-lg h-9 w-9"
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 dark:hover:text-[#F31260] transition-all rounded-lg h-9 w-9"
                           onPress={() => handleDeleteContest(c.id, c.title)}
                         >
                           <Trash2 size={16} />

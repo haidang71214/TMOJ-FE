@@ -54,7 +54,6 @@ export default function UpcomingContests() {
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const { openModal } = useModal();
 
-  // 1. Fetch danh sách contest chung
   const { data: contestsData, isLoading } = useGetContestListQuery({
     page: 1,
     pageSize: 50,
@@ -100,7 +99,6 @@ export default function UpcomingContests() {
       statusLower !== "ended" &&
       statusLower !== "past" &&
       !isPast &&
-      !c.isRegistered &&
       visibility === "public"
     );
   });

@@ -50,6 +50,14 @@ export const teamApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Team"],
     }),
+    // 5. Xóa thành viên khỏi team
+    deleteTeamMember: builder.mutation<any, { teamId: string; userId: string }>({
+      query: ({ teamId, userId }) => ({
+        url: TeamEndpoint.DELETE_TEAM_MEMBER.replace("{id}", teamId).replace("{userId}", userId),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { teamId }) => [{ type: "Team", id: teamId }],
+    }),
   }),
 });
 
@@ -58,4 +66,5 @@ export const {
   useGetTeamDetailQuery,
   useAddTeamMemberMutation,
   useJoinTeamByCodeMutation,
+  useDeleteTeamMemberMutation,
 } = teamApi;

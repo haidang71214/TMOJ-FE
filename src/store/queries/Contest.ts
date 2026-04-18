@@ -47,7 +47,7 @@ export const contestApi = baseApi.injectEndpoints({
     // 2. Danh sách contest
     getContestList: builder.query<
       ContestListResponse,
-      { page?: number; pageSize?: number; status?: string; search?: string; title?: string; name?: string }
+      { page?: number; pageSize?: number; status?: string; search?: string; title?: string; name?: string; visibilityCode?: string | string[] }
     >({
       query: (params) => ({
         url: ContestEndpoint.GET_CONTEST_LIST,
@@ -163,9 +163,9 @@ export const contestApi = baseApi.injectEndpoints({
       providesTags: ["Contest"],
     }),
     // 12. Xóa bài tập khỏi contest
-    removeProblemFromContest: builder.mutation<any, { contestId: string; id: string }>({
-      query: ({ contestId, id }) => ({
-        url: ContestEndpoint.REMOVE_PROBLEM_FROM_CONTEST.replace("{contestId}", contestId).replace("{id}", id),
+    removeProblemFromContest: builder.mutation<any, { contestId: string; contestProblemId: string }>({
+      query: ({ contestId, contestProblemId }) => ({
+        url: ContestEndpoint.REMOVE_PROBLEM_FROM_CONTEST.replace("{contestId}", contestId).replace("{contestProblemId}", contestProblemId),
         method: "DELETE",
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }],
@@ -178,6 +178,35 @@ export const contestApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "Contest", id }, "Contest"],
+    }),
+    // 21. Gia hạn thời gian cuộc thi
+    extendContestTime: builder.mutation<any, { id: string; newEndAt: string }>({
+      query: ({ id, newEndAt }) => ({
+        url: ContestEndpoint.EXTEND_CONTEST.replace("{id}", id),
+        method: "PATCH",
+        body: { newEndAt },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Contest", id }, "Contest"],
+    }),
+    // 22. Xóa contest
+    deleteContest: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.DELETE_CONTEST.replace("{id}", id),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 23. Join Team in Contest by Code
+    joinContestTeamByCode: builder.mutation<
+      any,
+      { contestId: string; body: { code: string } }
+    >({
+      query: ({ contestId, body }) => ({
+        url: ContestEndpoint.JOIN_CONTEST_TEAM_BY_CODE.replace("{contestId}", contestId),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest", "Team"],
     }),
   }),
 });
@@ -197,4 +226,7 @@ export const {
   useGetMyContestsQuery,
   useRemoveProblemFromContestMutation,
   useChangeVisibilityMutation,
+  useExtendContestTimeMutation,
+  useDeleteContestMutation,
+  useJoinContestTeamByCodeMutation,
 } = contestApi;

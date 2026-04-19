@@ -55,8 +55,8 @@ export default function ContestListPage() {
   const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
     page,
     pageSize: rowsPerPage,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    visibilityCode: visibilityFilter === "all" ? ["public", "private", "hidden"] : visibilityFilter,
+    status: statusFilter === "all" ? "all" : statusFilter,
+    visibilityCode: visibilityFilter === "all" ? "all" : visibilityFilter,
     search: searchTerm || undefined,
     title: searchTerm || undefined,
     name: searchTerm || undefined,

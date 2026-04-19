@@ -36,6 +36,7 @@ import {
   Clock,
   Copy,
   Trash2,
+  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
@@ -452,6 +453,22 @@ export default function ContestListPage() {
                         </Button>
                       </Tooltip>
                     )}
+                    <Tooltip
+                      content="Manage Participants"
+                      className="font-bold text-[10px]"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onPress={() =>
+                          router.push(`/Management/Contest/${c.id}/participants`)
+                        }
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Users size={16} />
+                      </Button>
+                    </Tooltip>
                     <Tooltip
                       content="Manage Problems"
                       className="font-bold text-[10px]"

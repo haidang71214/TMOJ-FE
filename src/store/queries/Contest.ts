@@ -19,6 +19,7 @@ import {
   SubmitContestResponse,
   ChangeVisibilityRequest,
   ChangeVisibilityResponse,
+  ContestParticipantsResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -208,6 +209,14 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Contest", "Team"],
     }),
+    // 24. Lấy danh sách participants của một contest
+    getContestParticipants: builder.query<ContestParticipantsResponse, string>({
+      query: (id) => ({
+        url: ContestEndpoint.GET_CONTEST_PARTICIPANTS.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Contest", id: `participants_${id}` }],
+    }),
   }),
 });
 
@@ -229,4 +238,5 @@ export const {
   useExtendContestTimeMutation,
   useDeleteContestMutation,
   useJoinContestTeamByCodeMutation,
+  useGetContestParticipantsQuery,
 } = contestApi;

@@ -32,7 +32,8 @@ import "swiper/css/pagination";
 import {
   useGetContestListQuery,
   useGetMyContestsQuery,
-  useUnregisterContestMutation
+  useUnregisterContestMutation,
+  useGetContestParticipantsQuery
 } from "@/store/queries/Contest";
 import { ContestDto } from "@/types";
 import { useSelector } from "react-redux";
@@ -46,6 +47,11 @@ const globalRanking = [
   { rank: 3, name: "Yawn_Sean", rating: 3645, attended: 84, crown: "bronze" },
   { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
 ];
+
+const ParticipantCount = ({ contestId }: { contestId: string }) => {
+  const { data } = useGetContestParticipantsQuery(contestId);
+  return <>{data?.data?.totalUsers || 0}</>;
+};
 
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
@@ -166,7 +172,7 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
-                        {contest.participants || 0} Students
+                        <ParticipantCount contestId={contest.id} /> Students
                       </span>
                       <span className="flex gap-2 items-center">
                         <Clock size={14} className="text-[#FF5C00]" />{" "}

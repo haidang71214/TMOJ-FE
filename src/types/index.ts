@@ -1200,3 +1200,35 @@ export interface MyContestsResponse {
   data: ContestDto[];
   message: string;
 }
+
+export interface ContestParticipantMember {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  username: string;
+  rollNumber: string | null;
+}
+
+export interface ContestParticipantTeam {
+  teamId: string;
+  teamName: string;
+  isPersonal: boolean;
+  leaderId: string;
+  joinAt: string;
+  rank: number;
+  score: number;
+  solvedProblem: number;
+  members: ContestParticipantMember[];
+}
+
+export interface ContestParticipantsData {
+  totalTeams: number;
+  totalUsers: number;
+  teams: ContestParticipantTeam[];
+}
+
+export interface ContestParticipantsResponse {
+  success: boolean;
+  data: ContestParticipantsData;
+}

@@ -186,6 +186,7 @@ const ContestEndpoint = {
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
   EXTEND_CONTEST: `${API_PREFIX}/contests/{id}/extend`,
   JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
+  GET_CONTEST_PARTICIPANTS: `${API_PREFIX}/contests/{id}/participants`,
 };
 
 const TeamEndpoint = {

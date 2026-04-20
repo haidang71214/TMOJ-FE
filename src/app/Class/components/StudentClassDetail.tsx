@@ -229,7 +229,7 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
                                 <button
                                   key={p.problemId}
                                   onClick={() =>
-                                    router.push(`/Problems/${p.problemId}`)
+                                    router.push(`/Examination/${p.problemId}?classSlotId=${slot.id}`)
                                   }
                                   className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0A0F1C]/40 border border-slate-100 dark:border-white/5 hover:border-blue-600 transition-all text-left group"
                                 >

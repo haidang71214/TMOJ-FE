@@ -26,7 +26,7 @@ export const classSlotApi = baseApi.injectEndpoints({
       providesTags: ["ClassSlot"],   // ← chỉ 1 tag chung
     }),
 
-    getSlotScores: builder.query<StudentSlotScoreResponse[], { classId: string; slotId: string }>({
+    getSlotScores: builder.query<{success: boolean, data: StudentSlotScoreResponse[]}, { classId: string; slotId: string }>({
       query: ({ classId, slotId }) => ({
         url: ClassSlotEndpoint.GET_SLOT_SCORES
           .replace("{classId}", classId)

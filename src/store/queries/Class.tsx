@@ -1,4 +1,4 @@
-import { ClassEndpoint } from "@/constants/endpoints";
+import { API_PREFIX, ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import { addClassMemberRequest, DeleteClassStudentRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
@@ -172,7 +172,7 @@ deleteSlotProblems: builder.mutation<
   { instanceId: string; slotId: string; problemIds: string[] }
 >({
   query: ({ instanceId, slotId, problemIds }) => ({
-    url: `/api/v1/class-instance/${instanceId}/slots/${slotId}/problems`,
+    url: `${API_PREFIX}/class-instance/${instanceId}/slots/${slotId}/problems`,
     method: "DELETE", 
     body: problemIds,
   }),
@@ -229,7 +229,7 @@ updateClassSemester: builder.mutation<
 //aaaaaaaaaaaaaaaaaaaaaa
 joinClass: builder.mutation<void, { inviteCode: string | null }>({
   query: (data) => ({
-    url: "/api/v1/Class/join",
+    url:  `${API_PREFIX}/Class/join `, // nhớ đổi sang endpoint
     method: "POST",
     body: data,
   }),

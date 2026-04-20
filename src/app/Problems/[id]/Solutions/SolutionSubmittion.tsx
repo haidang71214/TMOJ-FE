@@ -20,6 +20,54 @@ interface SolutionSubmittionProps {
   classSlotId?: string;
 }
 
+const TEMPLATES: Record<string, string> = {
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    // Your code here
+    return 0;
+}`,
+  c: `#include <stdio.h>
+
+int main() {
+    // Your code here
+    return 0;
+}`,
+  go: `package main
+
+import "fmt"
+
+func main() {
+    // Your code here
+}`,
+  javascript: `const fs = require('fs');
+
+function main() {
+    // const input = fs.readFileSync('/dev/stdin', 'utf-8').trim();
+    // Your code here
+}
+
+main();`,
+  python: `import sys
+
+def main():
+    # input_data = sys.stdin.read()
+    # Your code here
+    pass
+
+if __name__ == '__main__':
+    main()`,
+  java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // Your code here
+    }
+}`
+};
+
 export default function SolutionSubmittion({
   editorHeight,
   problemId,
@@ -39,20 +87,7 @@ export default function SolutionSubmittion({
   const runtimes = runtimeData?.data ?? []
 
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null)
-  const [code, setCode] = useState(`class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        unordered_map<int, int> seen;
-        for (int i = 0; i < nums.size(); ++i) {
-            int complement = target - nums[i];
-            if (seen.count(complement)) {
-                return {seen[complement], i};
-            }
-            seen[nums[i]] = i;
-        }
-        return {};
-    }
-};`)
+  const [code, setCode] = useState(TEMPLATES.cpp)
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
@@ -177,10 +212,26 @@ public:
     const lower = runtimeName.toLowerCase()
     if (lower.includes("c++") || lower.includes("g++")) return "cpp"
     if (lower.includes("c ") || lower.includes("gcc")) return "c"
+    if (lower.includes("go")) return "go"
+    if (lower.includes("node") || lower.includes("javascript") || lower.includes("js")) return "javascript"
+    if (lower.includes("python")) return "python"
+    if (lower.includes("java") && !lower.includes("javascript")) return "java"
     return "cpp"
   }
 
   const editorLanguage = getLanguage(selectedRuntime?.runtimeName)
+
+  // Đổi code template khi đổi ngôn ngữ
+  // Nếu user đã sửa code thì không đè code của user
+  useEffect(() => {
+    if (!selectedRuntime) return;
+    const currentCode = code.trim();
+    const isDefaultTemplate = Object.values(TEMPLATES).some(t => t.trim() === currentCode) || currentCode === "" || currentCode.includes("class Solution {");
+    
+    if (isDefaultTemplate) {
+      setCode(TEMPLATES[editorLanguage] || TEMPLATES["cpp"]);
+    }
+  }, [editorLanguage, selectedRuntime]);
 
   // ==================== HANDLE SUBMIT ====================
 

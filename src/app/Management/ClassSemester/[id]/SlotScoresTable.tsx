@@ -26,7 +26,6 @@ interface Props {
 export default function SlotScoresTable({ classId, slot }: Props) {
   const { t, language } = useTranslation();
   const { data, isLoading } = useGetSlotScoresQuery({ classId, slotId: slot.id });
-  console.log("data", data);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
@@ -141,8 +140,7 @@ export default function SlotScoresTable({ classId, slot }: Props) {
                   </TableCell>,
 
                   ...problemColumns.map((p: any) => {
-                    const problemScoresList = student.problems || student.problemScores || student.scores || [];
-                    const problemScore = problemScoresList.find((ps: any) => ps.problemId === p.problemId || ps.problemId === p.id);
+                    const problemScore = (student.problemScores || []).find((ps: any) => ps.problemId === p.problemId);
                     
                     if (!problemScore) {
                       return (
@@ -152,29 +150,16 @@ export default function SlotScoresTable({ classId, slot }: Props) {
                       );
                     }
 
-                    const attemptsCount = problemScore.attempts ?? problemScore.submissionCount ?? 0;
-                    const isSubmitted = attemptsCount > 0 || problemScore.score !== null || problemScore.verdictCode !== null;
-
-                    if (!isSubmitted) {
-                      return (
-                        <TableCell key={`cell-${p.problemId}`} className="text-center">
-                          <span className="text-slate-400 dark:text-slate-500 text-xs italic">
-                            {language === 'vi' ? 'Chưa có' : 'Not yet'}
-                          </span>
-                        </TableCell>
-                      );
-                    }
-
                     const isAC = problemScore.verdictCode?.toLowerCase() === 'ac';
                     
                     return (
                       <TableCell key={`cell-${p.problemId}`} className="text-center">
                         <div className={`font-black text-base ${isAC ? 'text-emerald-500' : 'text-blue-500'}`}>
-                          {problemScore.score ?? 0}
+                          {problemScore.score}
                         </div>
                         <div className="text-[10px] text-slate-400 font-bold mt-0.5 flex items-center justify-center gap-1 uppercase">
                           <span className={`w-1.5 h-1.5 rounded-full ${isAC ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                          {attemptsCount} {t('class_semester.attempts') || (language === 'vi' ? 'Lần thử' : 'attempt(s)')}
+                          {problemScore.attempts} {t('class_semester.attempts') || (language === 'vi' ? 'Lần thử' : 'attempt(s)')}
                         </div>
                       </TableCell>
                     );

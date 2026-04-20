@@ -27,7 +27,7 @@ import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 import { ContestDto } from "@/types";
 import NewsFeed from "./components/NewsFeed";
-import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
+import { useGetContestListQuery, useGetMyContestsQuery, useGetContestParticipantsQuery } from "@/store/queries/Contest";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -39,6 +39,11 @@ interface NewsPost {
   author: string;
   tags: string[];
 }
+
+const ParticipantCount = ({ contestId }: { contestId: string }) => {
+  const { data } = useGetContestParticipantsQuery(contestId);
+  return <>{data?.data?.totalUsers || 0}</>;
+};
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -54,7 +59,6 @@ export default function Home() {
   const { openModal } = useModal();
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  // Fetch real contests
   const { data: contestsData, isLoading: isContestsLoading } = useGetContestListQuery({
     page: 1,
     pageSize: 10,
@@ -76,11 +80,10 @@ export default function Home() {
       const statusLower = c.status?.toLowerCase();
       const visibility = (c.visibilityCode || c.visibility || "public").toLowerCase();
 
-      // Chỉ hiện Running/Upcoming, CÔNG KHAI (Public) và CHƯA đăng ký
+      // Chỉ hiện Running/Upcoming và CÔNG KHAI (Public)
       return (
         (statusLower === "running" || statusLower === "upcoming") &&
-        visibility === "public" &&
-        !c.isRegistered
+        visibility === "public"
       );
     });
 
@@ -231,7 +234,7 @@ export default function Home() {
                           </h4>
                           <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic tracking-widest">
                             <span className="flex items-center gap-2">
-                              <Users size={14} className="text-[#FF5C00]" /> {(contest as any).participants || 0} Students
+                              <Users size={14} className="text-[#FF5C00]" /> <ParticipantCount contestId={contest.id} /> Students
                             </span>
                             <span className="flex items-center gap-2">
                               <Clock size={14} className="text-[#FF5C00]" />{" "}

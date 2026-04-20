@@ -15,7 +15,9 @@ interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
   userName?: string; // Đổi từ studentName thành userName
-  type?: "student" | "teacher" | "bookmark"; // Thêm type để phân biệt đối tượng
+  type?: "student" | "teacher" | "bookmark" | "collection"; // Thêm type để phân biệt đối tượng
+  onConfirm?: () => Promise<void> | void;
+  isLoading?: boolean;
 }
 
 export default function DeleteModal({
@@ -23,11 +25,20 @@ export default function DeleteModal({
   onOpenChange,
   userName,
   type = "student",
+  onConfirm,
+  isLoading: externalLoading,
 }: Props) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [internalDeleting, setInternalDeleting] = useState(false);
+  const isDeleting = externalLoading ?? internalDeleting;
 
   const handleDelete = async (onClose: () => void) => {
-    setIsDeleting(true);
+    if (onConfirm) {
+      await onConfirm();
+      onClose();
+      return;
+    }
+
+    setInternalDeleting(true);
 
     // Giả lập thời gian xử lý API xóa
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -45,13 +56,17 @@ export default function DeleteModal({
     } else if (type === "bookmark") {
       message = "Bookmark deleted successfully";
       desc = `The Bookmark "${userName}" has been removed.`;
+    } else if (type === "collection") {
+      message = "Collection deleted successfully";
+      desc = `The Collection "${userName}" has been removed.`;
     }
+
     toast.error(message, {
       description: desc,
       icon: <Trash2 size={16} />,
     });
 
-    setIsDeleting(false);
+    setInternalDeleting(false);
     onClose();
   };
 

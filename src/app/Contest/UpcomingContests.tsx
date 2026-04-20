@@ -9,6 +9,7 @@ import {
   Tabs,
   Tab,
   Chip,
+  useDisclosure,
   addToast,
 } from "@heroui/react";
 import Image from "next/image";
@@ -19,6 +20,8 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  Bookmark,
   Calendar,
 } from "lucide-react";
 
@@ -27,13 +30,17 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import AddToCollectionModal from "../Problems/components/AddToCollectionModal";
 import "swiper/css/pagination";
 
 import {
   useGetContestListQuery,
   useGetMyContestsQuery,
-  useUnregisterContestMutation
+  useUnregisterContestMutation,
+  useGetContestParticipantsQuery
 } from "@/store/queries/Contest";
+import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
+import { toast } from "sonner";
 import { ContestDto } from "@/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -47,14 +54,24 @@ const globalRanking = [
   { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
 ];
 
+const ParticipantCount = ({ contestId }: { contestId: string }) => {
+  const { data } = useGetContestParticipantsQuery(contestId);
+  return <>{data?.data?.totalUsers || 0}</>;
+};
+
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
   const [inviteCode, setInviteCode] = useState("");
+  const {
+    isOpen: isCollectionOpen,
+    onOpen: onOpenCollection,
+    onOpenChange: onOpenChangeCollection
+  } = useDisclosure();
+  const [selectedContestId, setSelectedContestId] = useState<string>("");
   const router = useRouter();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const { openModal } = useModal();
 
-  // 1. Fetch danh sách contest chung
   const { data: contestsData, isLoading } = useGetContestListQuery({
     page: 1,
     pageSize: 50,
@@ -63,6 +80,32 @@ export default function UpcomingContests() {
   // 2. Fetch danh sách contest của tôi (đã đăng ký)
   const { data: myContestsData } = useGetMyContestsQuery({}, { skip: !currentUser });
   const [unregisterContest] = useUnregisterContestMutation();
+
+  // API Favorites cho Contest
+  const { data: favoriteContestsData } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1000 }, { skip: !currentUser });
+  const [toggleFavorite] = useToggleContestFavoriteMutation();
+
+  const favoriteContestIds = useMemo(() => {
+    const rawData: any = favoriteContestsData;
+    const items = rawData?.data?.data?.items || rawData?.data?.data || rawData?.data?.items || rawData?.data || [];
+
+    return new Set<string>(items.map((c: any) => String(c.contestId || c.id || "")));
+  }, [favoriteContestsData]);
+
+  const handleToggleFavorite = async (e: React.MouseEvent, contestId: string) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      openModal({ title: "Đăng nhập", content: <LoginModal /> });
+      return;
+    }
+    try {
+      const res = await toggleFavorite(contestId).unwrap();
+      const isFav = res.data?.data?.isFavorited ?? res.data?.isFavorited ?? res.data?.isFavorite;
+      toast.success(isFav ? "Added to favorite contests" : "Removed from favorites");
+    } catch (error) {
+      toast.error("Failed to update favorite status");
+    }
+  };
 
   // 3. Xử lý danh sách contest đã đăng ký (an toàn)
   const myRegisteredContests = useMemo(() => {
@@ -100,7 +143,6 @@ export default function UpcomingContests() {
       statusLower !== "ended" &&
       statusLower !== "past" &&
       !isPast &&
-      !c.isRegistered &&
       visibility === "public"
     );
   });
@@ -162,13 +204,43 @@ export default function UpcomingContests() {
                 </div>
                 <CardBody className="p-8 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-lg font-black uppercase italic leading-tight mb-4 line-clamp-2">
-                      {contest.title}
-                    </h4>
+                    <div className="flex justify-between items-start mb-4 gap-4">
+                      <h4 className="text-lg font-black uppercase italic leading-tight line-clamp-2">
+                        {contest.title}
+                      </h4>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 rounded-xl hover:scale-110 active:scale-95 transition-all"
+                          onClick={(e) => handleToggleFavorite(e as any, contest.id)}
+                        >
+                          <Heart
+                            size={16}
+                            fill={favoriteContestIds.has(String(contest.id)) ? "#ef4444" : "none"}
+                            className={favoriteContestIds.has(String(contest.id)) ? "text-red-500" : "text-slate-400 dark:text-slate-500"}
+                          />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 rounded-xl hover:scale-110 active:scale-95 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContestId(String(contest.id));
+                            onOpenCollection();
+                          }}
+                        >
+                          <Bookmark size={16} className="text-slate-400 dark:text-slate-500" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
-                        {contest.participants || 0} Students
+                        <ParticipantCount contestId={contest.id} /> Students
                       </span>
                       <span className="flex gap-2 items-center">
                         <Clock size={14} className="text-[#FF5C00]" />{" "}
@@ -440,6 +512,12 @@ export default function UpcomingContests() {
           </div>
         </div>
       </div>
+
+      <AddToCollectionModal
+        isOpen={isCollectionOpen}
+        onOpenChange={onOpenChangeCollection}
+        contestId={selectedContestId}
+      />
     </div>
   );
 }

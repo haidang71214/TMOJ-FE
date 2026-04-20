@@ -35,10 +35,12 @@ import {
   RefreshCw,
   Clock,
   Copy,
+  Trash2,
+  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
-import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation } from "@/store/queries/Contest";
+import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation, useDeleteContestMutation } from "@/store/queries/Contest";
 import { ContestDto } from "@/types";
 import { toast } from "sonner";
 import { Globe, Lock as LockIcon, EyeOff } from "lucide-react";
@@ -49,11 +51,13 @@ export default function ContestListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [visibilityFilter, setVisibilityFilter] = useState("all");
 
   const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
     page,
     pageSize: rowsPerPage,
-    status: statusFilter === "all" ? undefined : statusFilter,
+    status: statusFilter === "all" ? "all" : statusFilter,
+    visibilityCode: visibilityFilter === "all" ? "all" : visibilityFilter,
     search: searchTerm || undefined,
     title: searchTerm || undefined,
     name: searchTerm || undefined,
@@ -62,6 +66,7 @@ export default function ContestListPage() {
 
   const [publishContest] = usePublishContestMutation();
   const [changeVisibility] = useChangeVisibilityMutation();
+  const [deleteContest] = useDeleteContestMutation();
 
   const handlePublishToggle = async (id: string) => {
     try {
@@ -71,13 +76,24 @@ export default function ContestListPage() {
       toast.error(error?.data?.message || "Không thể cập nhật trạng thái hiển thị");
     }
   };
-
   const handleChangeVisibility = async (id: string, visibility: string) => {
     try {
       await changeVisibility({ id, body: { visibilityCode: visibility } }).unwrap();
       toast.success(`Chuyển sang chế độ ${visibility.toUpperCase()} thành công`);
     } catch (error: any) {
       toast.error(error?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
+    }
+  };
+
+  const handleDeleteContest = async (id: string, title: string) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa cuộc thi "${title}" không? Hành động này không thể hoàn tác.`)) {
+      try {
+        await deleteContest(id).unwrap();
+        toast.success("Xóa cuộc thi thành công");
+        refetch();
+      } catch (error: any) {
+        toast.error(error?.data?.message || "Không thể xóa cuộc thi");
+      }
     }
   };
 
@@ -170,6 +186,33 @@ export default function ContestListPage() {
                 <DropdownItem key="upcoming">Upcoming</DropdownItem>
                 <DropdownItem key="ended">Ended</DropdownItem>
                 <DropdownItem key="draft">Draft</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<ChevronDown size={14} />}
+                  variant="flat"
+                  className="bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase"
+                >
+                  Visibility
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Filter Visibility"
+                closeOnSelect={false}
+                selectedKeys={new Set([visibilityFilter])}
+                selectionMode="single"
+                onSelectionChange={(keys) => {
+                  setVisibilityFilter(Array.from(keys)[0] as string);
+                  setPage(1);
+                }}
+              >
+                <DropdownItem key="all">All Visibility</DropdownItem>
+                <DropdownItem key="public">Public</DropdownItem>
+                <DropdownItem key="private">Private</DropdownItem>
+                <DropdownItem key="hidden">Hidden</DropdownItem>
               </DropdownMenu>
             </Dropdown>
             <Button
@@ -272,7 +315,6 @@ export default function ContestListPage() {
             <TableColumn>ID</TableColumn>
             <TableColumn>CONTEST TITLE</TableColumn>
             <TableColumn>RULE</TableColumn>
-            <TableColumn>TYPE</TableColumn>
             <TableColumn>STATUS</TableColumn>
             <TableColumn>VISIBLE</TableColumn>
             <TableColumn className="text-right">OPERATIONS</TableColumn>
@@ -308,28 +350,6 @@ export default function ContestListPage() {
                       }`}
                   >
                     {c.contestType || "N/A"}
-                  </Chip>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    variant="flat"
-                    size="sm"
-                    className={`font-black uppercase text-[9px] px-2 ${c.visibilityCode?.toLowerCase() === "public"
-                      ? "bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400"
-                      : c.visibilityCode?.toLowerCase() === "private"
-                        ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
-                        : "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400"
-                      }`}
-                  >
-                    <span className="text-black dark:text-white font-black italic tracking-wider flex items-center gap-2">
-                      {(() => {
-                        const vis = (c.visibilityCode || (c as any).visibility || "public").toLowerCase();
-                        if (vis === "public") return <Globe size={14} className="text-green-500" />;
-                        if (vis === "private") return <LockIcon size={14} className="text-amber-500" />;
-                        return <EyeOff size={14} className="text-slate-400" />;
-                      })()}
-                      {(c.visibilityCode || (c as any).visibility || "PUBLIC").toUpperCase()}
-                    </span>
                   </Chip>
                 </TableCell>
                 <TableCell>
@@ -434,6 +454,22 @@ export default function ContestListPage() {
                       </Tooltip>
                     )}
                     <Tooltip
+                      content="Manage Participants"
+                      className="font-bold text-[10px]"
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onPress={() =>
+                          router.push(`/Management/Contest/${c.id}/participants`)
+                        }
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                      >
+                        <Users size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip
                       content="Manage Problems"
                       className="font-bold text-[10px]"
                     >
@@ -491,6 +527,23 @@ export default function ContestListPage() {
                         <Download size={16} />
                       </Button>
                     </Tooltip>
+                    {(c.status?.toLowerCase() === "upcoming" || c.status?.toLowerCase() === "draft") && (
+                      <Tooltip
+                        content="Delete Contest"
+                        className="font-bold text-[10px]"
+                        color="danger"
+                      >
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 dark:hover:text-[#F31260] transition-all rounded-lg h-9 w-9"
+                          onPress={() => handleDeleteContest(c.id, c.title)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

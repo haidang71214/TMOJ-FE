@@ -185,15 +185,20 @@ const ContestEndpoint = {
   LEADERBOARD: `${API_PREFIX}/contests/{contestId}/leaderboard`,
   REGISTER: `${API_PREFIX}/contests/{contestId}/register`,
   UNREGISTER: `${API_PREFIX}/contests/{contestId}/unregister`,
+  DELETE_CONTEST: `${API_PREFIX}/contests/{id}/hard-before-start`,
   GET_MY_CONTESTS: `${API_PREFIX}/contests/me`,
-  REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{id}`,
+  REMOVE_PROBLEM_FROM_CONTEST: `${API_PREFIX}/contests/{contestId}/problems/{contestProblemId}`,
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
+  EXTEND_CONTEST: `${API_PREFIX}/contests/{id}/extend`,
+  JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
+  GET_CONTEST_PARTICIPANTS: `${API_PREFIX}/contests/{id}/participants`,
 };
 
 const TeamEndpoint = {
   CREATE_TEAM: `${API_PREFIX}/teams`,
   GET_TEAM_DETAIL: `${API_PREFIX}/teams/{id}`,
   ADD_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members`,
+  DELETE_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members/{userId}`,
   JOIN_BY_CODE: `${API_PREFIX}/teams/join-by-code`,
 };
 
@@ -203,6 +208,31 @@ const ProblemEditorialEndpoint = {
   GET_EDITORIAL_BY_ID: `${API_PREFIX}/problem-editorials/{id}`,
   UPDATE_EDITORIAL: `${API_PREFIX}/problem-editorials/{id}`,
   DELETE_EDITORIAL: `${API_PREFIX}/problem-editorials/{id}`,
+};
+
+const FavoriteEndpoint = {
+  TOGGLE_PROBLEM: `${API_PREFIX}/favorites/problems/{problemId}/toggle`,
+  TOGGLE_CONTEST: `${API_PREFIX}/favorites/contests/{contestId}/toggle`,
+  CHECK: `${API_PREFIX}/favorites/check`,
+  GET_PROBLEMS: `${API_PREFIX}/favorites/problems`,
+  GET_CONTESTS: `${API_PREFIX}/favorites/contests`,
+};
+
+const CollectionEndpoint = {
+  CREATE_COLLECTION: `${API_PREFIX}/favorites/collections`,
+  UPDATE_COLLECTION: `${API_PREFIX}/favorites/collections/{id}`,
+  DELETE_COLLECTION: `${API_PREFIX}/favorites/collections/{id}`,
+  GET_COLLECTIONS: `${API_PREFIX}/favorites/collections`,
+  GET_COLLECTION_DETAIL: `${API_PREFIX}/favorites/collections/{id}`,
+
+  ADD_PROBLEM: `${API_PREFIX}/collections/{id}/problems`,
+  ADD_CONTEST: `${API_PREFIX}/collections/{id}/contests`,
+  DELETE_ITEM: `${API_PREFIX}/collections/{id}/items/{itemId}`,
+  REORDER_ITEMS: `${API_PREFIX}/collections/{id}/reorder`,
+
+  GET_PUBLIC: `${API_PREFIX}/collections/public`,
+  GET_USER_COLLECTIONS: `${API_PREFIX}/users/{userId}/collections`,
+  COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
 };
 
 export {
@@ -223,5 +253,7 @@ export {
   ReportEndpoint,
   ContestEndpoint,
   TeamEndpoint,
-  ProblemEditorialEndpoint
+  ProblemEditorialEndpoint,
+  FavoriteEndpoint,
+  CollectionEndpoint
 };

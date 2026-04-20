@@ -104,10 +104,10 @@ export default function RequestProblemForm() {
           formData.append("TagIds", tagId);
         });
       }
-      
-      const problem = await createProblemStudent(formData).unwrap();  
+
+      const problem = await createProblemStudent(formData).unwrap();
       setCreatedProblemId(problem.data.id);
-      
+
       try {
         const ts = await createTestSet({
           id: problem.data.id,
@@ -128,9 +128,9 @@ export default function RequestProblemForm() {
 
   const handleUploadTestCase = async (): Promise<boolean> => {
     if (!createdProblemId || !createdTestSetId) return false;
-    if (!zipFile) { 
-      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.select_zip') || (language === 'vi' ? "Vui lòng chọn file zip" : "Please select a zip file"), color: "danger" }); 
-      return false; 
+    if (!zipFile) {
+      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.select_zip') || (language === 'vi' ? "Vui lòng chọn file zip" : "Please select a zip file"), color: "danger" });
+      return false;
     }
 
     try {
@@ -161,15 +161,15 @@ export default function RequestProblemForm() {
 
   const handleFinish = async () => {
     if (zipFile) {
-       const success = await handleUploadTestCase();
-       if (!success) return; 
+      const success = await handleUploadTestCase();
+      if (!success) return;
     } else {
-       if (uploadedCases.length === 0) {
-          addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.must_upload_testcase') || (language === 'vi' ? "Bạn phải tải lên ít nhất một file TestCase zip trước khi hoàn tất." : "You must upload at least one TestCase zip file before finishing."), color: "danger" });
-          return;
-       }
+      if (uploadedCases.length === 0) {
+        addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.must_upload_testcase') || (language === 'vi' ? "Bạn phải tải lên ít nhất một file TestCase zip trước khi hoàn tất." : "You must upload at least one TestCase zip file before finishing."), color: "danger" });
+        return;
+      }
     }
-    
+
     addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.problem_created_success') || (language === 'vi' ? "Yêu cầu tạo bài tập thành công!" : "Problem requested successfully!"), color: "success" });
     router.push(`/Problems/${createdProblemId}`);
   };
@@ -183,30 +183,30 @@ export default function RequestProblemForm() {
       { label: t('problem_create.step_testcases') || "TestCases", description: t('problem_create.step_testcases_desc') || "Upload zip file with test cases" },
     ];
     return (
-    <div className="flex items-center gap-0 mb-2">
-      {STEPS.map((s, i) => (
-        <React.Fragment key={i}>
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all
+      <div className="flex items-center gap-0 mb-2">
+        {STEPS.map((s, i) => (
+          <React.Fragment key={i}>
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all
                 ${i < step ? "bg-[#22C55E] text-white" : i === step ? "bg-[#071739] text-white" : "bg-slate-100 dark:bg-white/10 text-slate-400"}`}
-            >
-              {i < step ? <CheckCircle size={14} /> : i + 1}
-            </div>
-            <div className="hidden sm:block">
-              <div className={`text-[10px] font-black uppercase tracking-widest ${i === step ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>
-                {s.label}
+              >
+                {i < step ? <CheckCircle size={14} /> : i + 1}
               </div>
-              <div className="text-[9px] text-slate-400">{s.description}</div>
+              <div className="hidden sm:block">
+                <div className={`text-[10px] font-black uppercase tracking-widest ${i === step ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>
+                  {s.label}
+                </div>
+                <div className="text-[9px] text-slate-400">{s.description}</div>
+              </div>
             </div>
-          </div>
-          {i < STEPS.length - 1 && (
-            <div className={`flex-1 h-px mx-4 ${i < step ? "bg-[#22C55E]" : "bg-slate-200 dark:bg-white/10"}`} />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
+            {i < STEPS.length - 1 && (
+              <div className={`flex-1 h-px mx-4 ${i < step ? "bg-[#22C55E]" : "bg-slate-200 dark:bg-white/10"}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    );
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -240,13 +240,13 @@ export default function RequestProblemForm() {
       {step === 0 && (
         <div className="bg-white dark:bg-[#282E3A] rounded-[3rem] p-12 shadow-2xl space-y-12 border border-transparent dark:border-[#474F5D]/30">
           <Input
-              label={
-    <div className="flex items-center gap-1">
-      {t('problem_create.problem_title') || "Title"}
-      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
-    </div>
-  } 
-  placeholder={t('problem_create.slug_placeholder') || "Ex: Two Sum"}
+            label={
+              <div className="flex items-center gap-1">
+                {t('problem_create.problem_title') || "Title"}
+                <RequiredStar rules={[t('common.required_field') || "Required field"]} />
+              </div>
+            }
+            placeholder={t('problem_create.slug_placeholder') || "Ex: Two Sum"}
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className="animate-fade-in-up"
@@ -254,13 +254,13 @@ export default function RequestProblemForm() {
           />
 
           <Input
-             label={
-    <div className="flex items-center gap-1">
-      {t('problem_create.slug') || "slug"}
-      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
-    </div>
-  } 
-    placeholder={t('problem_create.slug_placeholder') || "Ex: two-sum-problem"}
+            label={
+              <div className="flex items-center gap-1">
+                {t('problem_create.slug') || "slug"}
+                <RequiredStar rules={[t('common.required_field') || "Required field"]} />
+              </div>
+            }
+            placeholder={t('problem_create.slug_placeholder') || "Ex: two-sum-problem"}
             value={form.slug}
             onChange={(e) => setForm({ ...form, slug: e.target.value })}
             className="animate-fade-in-up"
@@ -270,12 +270,12 @@ export default function RequestProblemForm() {
           <Divider className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '250ms' }} />
 
           <Textarea
-                      
-  label={
-    <div className="flex items-center gap-1">
-      {t('problem_create.description') || "Description (Markdown)"}
-    </div>
-  }
+
+            label={
+              <div className="flex items-center gap-1">
+                {t('problem_create.description') || "Description (Markdown)"}
+              </div>
+            }
             value={form.descriptionMd}
             onChange={(e) => setForm({ ...form, descriptionMd: e.target.value })}
             minRows={4}
@@ -336,12 +336,12 @@ export default function RequestProblemForm() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '400ms' }}>
             <Input
-             label={
-    <div className="flex items-center gap-1">
-      {t('problem_create.time_limit') || "Time Limit (ms)"}
-      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
-    </div>
-  }
+              label={
+                <div className="flex items-center gap-1">
+                  {t('problem_create.time_limit') || "Time Limit (ms)"}
+                  <RequiredStar rules={[t('common.required_field') || "Required field"]} />
+                </div>
+              }
               type="number"
               value={form.timeLimitMs.toString()}
               onChange={(e) => setForm({ ...form, timeLimitMs: Number(e.target.value) })}
@@ -349,11 +349,11 @@ export default function RequestProblemForm() {
 
             <Input
               label={
-    <div className="flex items-center gap-1">
-      {t('problem_create.memory_limit') || "Memory Limit (MB)"}
-      <RequiredStar rules={[t('common.required_field') || "Required field"]} />
-    </div>
-  }
+                <div className="flex items-center gap-1">
+                  {t('problem_create.memory_limit') || "Memory Limit (MB)"}
+                  <RequiredStar rules={[t('common.required_field') || "Required field"]} />
+                </div>
+              }
               type="number"
               value={(form.memoryLimitKb / 1024).toString()}
               onChange={(e) => setForm({ ...form, memoryLimitKb: Number(e.target.value) * 1024 })}
@@ -372,9 +372,9 @@ export default function RequestProblemForm() {
                 setForm({ ...form, difficulty: value });
               }}
             >
-              <SelectItem key="easy">{t('problem_management.easy') || "Easy"}</SelectItem>
-              <SelectItem key="medium">{t('problem_management.medium') || "Medium"}</SelectItem>
-              <SelectItem key="hard">{t('problem_management.hard') || "Hard"}</SelectItem>
+              <SelectItem key="easy" textValue={t('problem_management.easy') || "Easy"}>{t('problem_management.easy') || "Easy"}</SelectItem>
+              <SelectItem key="medium" textValue={t('problem_management.medium') || "Medium"}>{t('problem_management.medium') || "Medium"}</SelectItem>
+              <SelectItem key="hard" textValue={t('problem_management.hard') || "Hard"}>{t('problem_management.hard') || "Hard"}</SelectItem>
             </Select>
 
             <Select
@@ -387,7 +387,7 @@ export default function RequestProblemForm() {
               selectedKeys={["draft"]}
               isDisabled
             >
-              <SelectItem key="draft">Draft</SelectItem>
+              <SelectItem key="draft" textValue="Draft">Draft</SelectItem>
             </Select>
           </div>
 

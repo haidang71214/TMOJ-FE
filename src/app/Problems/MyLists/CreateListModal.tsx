@@ -12,23 +12,22 @@ import {
   Textarea,
   Checkbox,
 } from "@heroui/react";
-import { toast } from "sonner"; // Đảm bảo đã cài đặt sonner
+import { toast } from "sonner";
+import { useCreateCollectionMutation, useUpdateCollectionMutation } from "@/store/queries/collections";
+import { CollectionItem } from "@/types";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
-  editData?: {
-    id: string;
-    title: string;
-    isPrivate: boolean;
-    description?: string;
-  } | null;
+  onClose?: () => void;
+  editData?: CollectionItem | null;
   isEdit: boolean;
 }
 
 export default function CreateListModal({
   isOpen,
   onOpenChange,
+  onClose: onParentClose,
   editData,
   isEdit,
 }: Props) {
@@ -36,11 +35,14 @@ export default function CreateListModal({
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
+  const [createCollection, { isLoading: isCreating }] = useCreateCollectionMutation();
+  const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
+
   useEffect(() => {
     if (isEdit && editData) {
-      setTitle(editData.title);
+      setTitle(editData.name);
       setDescription(editData.description || "");
-      setIsPrivate(editData.isPrivate);
+      setIsPrivate(!editData.isVisibility);
     } else {
       setTitle("");
       setDescription("");
@@ -49,22 +51,33 @@ export default function CreateListModal({
   }, [isEdit, editData, isOpen]);
 
   // Hàm xử lý khi nhấn Lưu hoặc Tạo
-  const handleAction = (onClose: () => void) => {
-    // Giả lập xử lý lưu dữ liệu ở đây
-
-    if (isEdit) {
-      toast.success("Bookmark updated!", {
-        description: `Collection "${title}" has been updated successfully.`,
-        style: { fontWeight: "bold", fontStyle: "italic" },
-      });
-    } else {
-      toast.success("New collection created!", {
-        description: `"${title}" is ready for your problems.`,
-        style: { fontWeight: "bold", fontStyle: "italic" },
-      });
+  const handleAction = async (onClose: () => void) => {
+    try {
+      if (isEdit && editData) {
+        await updateCollection({
+          id: editData.id,
+          body: {
+            name: title,
+            description,
+            isVisibility: !isPrivate,
+          }
+        }).unwrap();
+        toast.success("Bookmark updated!");
+      } else {
+        await createCollection({
+          name: title,
+          description,
+          type: "bookmark",
+          isVisibility: !isPrivate,
+        }).unwrap();
+        toast.success("New collection created!");
+      }
+      
+      onClose();
+      if (onParentClose) onParentClose();
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Something went wrong.");
     }
-
-    onClose();
   };
 
   return (
@@ -103,7 +116,6 @@ export default function CreateListModal({
                   onValueChange={setTitle}
                   maxLength={30}
                   classNames={{
-                    // SỬA MÀU: Nền trắng ở Light mode, xanh đậm ở Dark mode. Focus sẽ đổi màu border.
                     inputWrapper: [
                       "bg-slate-100 dark:bg-[#071739]",
                       "hover:bg-slate-200 dark:hover:bg-[#071739]/80",
@@ -179,13 +191,17 @@ export default function CreateListModal({
             <ModalFooter className="gap-4">
               <Button
                 variant="light"
-                onPress={onClose}
+                onPress={() => {
+                  onClose();
+                  if (onParentClose) onParentClose();
+                }}
                 className="font-black text-slate-500 dark:text-slate-400 hover:text-[#071739] hover:dark:text-white uppercase italic text-xs tracking-wider"
               >
                 Cancel
               </Button>
               <Button
                 onPress={() => handleAction(onClose)}
+                isLoading={isCreating || isUpdating}
                 className="font-[1000] text-white italic uppercase text-xs px-10 h-12 rounded-2xl bg-[#ff8904] shadow-[0_10px_30px_rgba(255,137,4,0.3)] hover:brightness-110 active:scale-95 transition-all"
                 isDisabled={!title}
               >

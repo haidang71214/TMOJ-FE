@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { 
-  Users, User, Shield, Info, CheckCircle2, 
+import {
+  Users, User, Shield, Info, CheckCircle2,
   ArrowRight, Plus, X, Laptop, Award,
   Clock, Calendar, Hash, UserPlus, Copy
 } from "lucide-react";
-import { 
-  Button, Card, CardBody, Input, 
+import {
+  Button, Card, CardBody, Input,
   RadioGroup, Radio, Divider, Chip,
   Avatar, AvatarGroup, Tabs, Tab
 } from "@heroui/react";
 import { toast } from "sonner";
-import { useGetContestDetailQuery, useRegisterContestMutation } from "@/store/queries/Contest";
-import { useCreateTeamMutation, useJoinTeamByCodeMutation, useGetTeamDetailQuery, useAddTeamMemberMutation } from "@/store/queries/Team";
+import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation } from "@/store/queries/Contest";
+import { useCreateTeamMutation, useGetTeamDetailQuery, useAddTeamMemberMutation, useDeleteTeamMemberMutation } from "@/store/queries/Team";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -33,7 +33,7 @@ export default function ContestRegistrationPage() {
   const [teamAvatarUrl, setTeamAvatarUrl] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [memberIds, setMemberIds] = useState<string[]>([]); // Synced with teamDetail
-  const [newMemberId, setNewMemberId] = useState(""); 
+  const [newMemberId, setNewMemberId] = useState("");
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const [teamInviteCode, setTeamInviteCode] = useState<string | null>(null);
 
@@ -42,9 +42,10 @@ export default function ContestRegistrationPage() {
   console.log("contestResult", contestResult);
   const [registerContest, { isLoading: isRegistering }] = useRegisterContestMutation();
   const [createTeam, { isLoading: isCreatingTeam }] = useCreateTeamMutation();
-  const [joinTeamByCode, { isLoading: isJoiningByCode }] = useJoinTeamByCodeMutation();
+  const [joinContestTeamByCode, { isLoading: isJoiningByCode }] = useJoinContestTeamByCodeMutation();
   const [addTeamMember, { isLoading: isAddingMember }] = useAddTeamMemberMutation();
-  
+  const [deleteTeamMember, { isLoading: isDeletingMember }] = useDeleteTeamMemberMutation();
+
   const { data: teamDetail, refetch: refetchTeam } = useGetTeamDetailQuery(createdTeamId || "", {
     skip: !createdTeamId
   });
@@ -102,9 +103,9 @@ export default function ContestRegistrationPage() {
       return;
     }
     try {
-      const result = await createTeam({ 
+      const result = await createTeam({
         teamName: teamName.trim(),
-        avatarUrl: teamAvatarUrl.trim() || "" 
+        avatarUrl: teamAvatarUrl.trim() || ""
       }).unwrap();
       setCreatedTeamId(result.data.teamId);
       console.log("result", result.data);
@@ -122,9 +123,9 @@ export default function ContestRegistrationPage() {
       return;
     }
     try {
-      await addTeamMember({ 
-        teamId: createdTeamId, 
-        userId: newMemberId.trim() 
+      await addTeamMember({
+        teamId: createdTeamId,
+        userId: newMemberId.trim()
       }).unwrap();
       setNewMemberId("");
       toast.success("Member added to team!");
@@ -134,13 +135,28 @@ export default function ContestRegistrationPage() {
     }
   };
 
+  const handleRemoveMember = async (userId: string) => {
+    if (!createdTeamId) return;
+    if (userId === teamDetail?.data?.leaderId) {
+      toast.error("Cannot remove the leader from the team!");
+      return;
+    }
+    try {
+      await deleteTeamMember({ teamId: createdTeamId, userId }).unwrap();
+      toast.success("Member removed from team!");
+      refetchTeam();
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to remove member.");
+    }
+  };
+
   const handleJoinByCode = async () => {
     if (!inviteCode.trim()) {
       toast.error("Invite code is required!");
       return;
     }
     try {
-      await joinTeamByCode({ code: inviteCode.trim() }).unwrap();
+      await joinContestTeamByCode({ contestId, body: { code: inviteCode.trim() } }).unwrap();
       toast.success("Joined team! The leader will register for the contest.");
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to join team.");
@@ -157,15 +173,15 @@ export default function ContestRegistrationPage() {
         return;
       }
     } else if (regMode === "create_team") {
-      if (count !== 3 && count !== 5) {
-        toast.error(`Team registration requires 3 or 5 members. Current: ${count}`);
+      if (count !== 3) {
+        toast.error(`Team registration requires exactly 3 members. Current: ${count}`);
         return;
       }
     }
 
     try {
-      const finalTeamName = regMode === "create_team" 
-        ? (teamDetail?.data?.teamName || teamName) 
+      const finalTeamName = regMode === "create_team"
+        ? (teamDetail?.data?.teamName || teamName)
         : null;
 
       // Normalize IDs: trimmed, lowercase and unique
@@ -173,7 +189,7 @@ export default function ContestRegistrationPage() {
 
       // Ensure Leader ID is at the first position for team registration
       const leaderIdToUse = (teamDetail?.data?.leaderId || currentUser?.userId || "").toLowerCase();
-      const sortedMemberIds = regMode === "create_team" 
+      const sortedMemberIds = regMode === "create_team"
         ? [leaderIdToUse, ...normalizedIds.filter(id => id !== leaderIdToUse)].filter(Boolean) as string[]
         : normalizedIds;
 
@@ -203,8 +219,8 @@ export default function ContestRegistrationPage() {
       toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");
     }
   };
-   
-   
+
+
 
   if (isContestLoading) {
     return <div className="min-h-screen flex items-center justify-center font-[1000] italic text-4xl uppercase animate-pulse">Loading Contest Info...</div>;
@@ -218,11 +234,11 @@ export default function ContestRegistrationPage() {
     <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] pb-20 transition-colors duration-500">
       {/* 1. BANNER SECTION */}
       <div className="relative h-[450px] w-full overflow-hidden">
-          <img
-            src={(contestData as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
-            alt={contestData.title}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
+        <img
+          src={(contestData as any).image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070"}
+          alt={contestData.title}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#F0F2F5] dark:from-[#0A0F1C] via-black/50 to-transparent" />
 
         <div className="container mx-auto relative h-full flex flex-col justify-end p-10 text-white pb-32">
@@ -238,7 +254,7 @@ export default function ContestRegistrationPage() {
                 {contestData.contestType === 'acm' ? 'ACM Format' : (contestData.contestType || "Standard")}
               </Chip>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-[1000] italic uppercase leading-[0.9] tracking-tighter">
               {contestData.title}
             </h1>
@@ -258,7 +274,7 @@ export default function ContestRegistrationPage() {
                   <p className="font-black italic uppercase text-sm leading-none">{new Date(contestData.startAt).toLocaleString()}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-lg flex items-center justify-center border border-white/20">
                   <Clock className="w-5 h-5 text-[#FF5C00]" />
@@ -285,18 +301,18 @@ export default function ContestRegistrationPage() {
       {/* 2. REGISTRATION FORM SECTION */}
       <div className="container mx-auto -mt-24 relative z-10 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* LEFT: FORM SIDE */}
           <div className="lg:col-span-8">
             <Card className="rounded-[2.5rem] border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] overflow-hidden">
               <CardBody className="p-0">
                 <div className="grid grid-cols-1 md:grid-cols-12">
-                  
+
                   {/* Form Sidebar Info */}
                   <div className="md:col-span-4 bg-[#071739] p-10 text-white space-y-10">
                     <div>
                       <h3 className="text-2xl font-[1000] italic uppercase leading-none mb-4">
-                        Reg<br/><span className="text-[#FF5C00]">Process</span>
+                        Reg<br /><span className="text-[#FF5C00]">Process</span>
                       </h3>
                       <p className="text-gray-400 text-xs font-semibold uppercase leading-relaxed">
                         Complete all information to secure your spot in this championship.
@@ -338,10 +354,10 @@ export default function ContestRegistrationPage() {
                   {/* Actual Form Fields */}
                   <div className="md:col-span-8 p-10 dark:bg-[#1e293b]">
                     <div className="space-y-10">
-                      
+
                       {/* Step 1: Mode Selection */}
                       <div className="space-y-6 animate-in fade-in duration-500">
-                        <RadioGroup 
+                        <RadioGroup
                           label={<span className="text-xs font-black italic uppercase text-gray-400">Section 01: Participation Mode</span>}
                           value={regMode}
                           onValueChange={setRegMode}
@@ -417,7 +433,7 @@ export default function ContestRegistrationPage() {
                         {regMode === "create_team" && (
                           <div className="space-y-6">
                             <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Setup Your Team</span>
-                            
+
                             {!createdTeamId ? (
                               <div className="space-y-4 animate-in slide-in-from-bottom-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,7 +464,7 @@ export default function ContestRegistrationPage() {
                                     }}
                                   />
                                 </div>
-                                <Button 
+                                <Button
                                   fullWidth
                                   className="h-16 bg-[#071739] text-white font-black italic uppercase rounded-2xl text-lg shadow-xl shadow-[#071739]/20"
                                   onPress={handleCreateTeam}
@@ -467,10 +483,10 @@ export default function ContestRegistrationPage() {
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{teamName}</p>
                                       <div className="flex items-center gap-2 mt-1">
                                         <p className="text-sm font-black italic text-green-600/70 uppercase tracking-tighter">Invite Code: {teamInviteCode}</p>
-                                        <Button 
-                                          isIconOnly 
-                                          size="sm" 
-                                          variant="light" 
+                                        <Button
+                                          isIconOnly
+                                          size="sm"
+                                          variant="light"
                                           className="text-green-600 h-6 w-6 min-w-0"
                                           onPress={handleCopyInviteCode}
                                         >
@@ -505,7 +521,7 @@ export default function ContestRegistrationPage() {
                                       }}
                                       startContent={<UserPlus size={18} className="text-[#FF5C00]" />}
                                     />
-                                    <Button 
+                                    <Button
                                       className="h-14 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-8"
                                       onPress={handleAddMember}
                                       isLoading={isAddingMember}
@@ -524,7 +540,7 @@ export default function ContestRegistrationPage() {
                                       return (
                                         <div key={m.userId} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
                                           <div className="flex items-center gap-4">
-                                            <Avatar 
+                                            <Avatar
                                               src={m.avatarUrl || m.user?.avatarUrl || undefined}
                                               name={fullName}
                                               className="w-10 h-10 border-2 border-[#071739]"
@@ -538,28 +554,44 @@ export default function ContestRegistrationPage() {
                                               </p>
                                             </div>
                                           </div>
-                                          {m.userId === teamDetail.data.leaderId ? (
-                                            <Chip size="sm" className="bg-[#FF5C00] text-white text-[8px] font-black italic uppercase px-2 h-5 border-none">Leader</Chip>
-                                          ) : (
-                                            <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
-                                          )}
+                                          <div className="flex items-center gap-2">
+                                            {m.userId === teamDetail.data.leaderId ? (
+                                              <Chip size="sm" className="bg-[#FF5C00] text-white text-[8px] font-black italic uppercase px-2 h-5 border-none">Leader</Chip>
+                                            ) : (
+                                              <div className="flex items-center gap-2">
+                                                <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
+                                                <Button
+                                                  isIconOnly
+                                                  size="sm"
+                                                  variant="flat"
+                                                  color="danger"
+                                                  className="h-7 w-7 min-w-0 rounded-lg group-hover:bg-danger group-hover:text-white transition-all shadow-sm"
+                                                  onPress={() => handleRemoveMember(m.userId)}
+                                                  isLoading={isDeletingMember}
+                                                >
+                                                  <X size={14} />
+                                                </Button>
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
                                       );
                                     })}
                                   </div>
 
-                                  {memberIds.length === 4 && (
+                                  {memberIds.length === 2 && (
                                     <div className="p-4 bg-orange-500/10 border-2 border-dashed border-orange-500/30 rounded-2xl animate-pulse">
                                       <p className="text-[10px] font-black text-orange-600 uppercase italic text-center">
-                                        ⚠️ Warning: Current team size is 4. You must add 1 more to make it 5, or stay at 3 to register!
+                                        ⚠️ Warning: Current team size is 2. You must add 1 more to make it 3 to register!
+
                                       </p>
                                     </div>
                                   )}
 
                                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 mt-2">
                                     <p className="text-[10px] text-gray-500 font-bold uppercase italic leading-relaxed">
-                                      * Important: Every member must be added to the team system before you can register for the contest. 
-                                      You need a total of <span className="text-[#FF5C00]">3 or 5 members</span>.
+                                      * Important: Every member must be added to the team system before you can register for the contest.
+                                      You need exactly <span className="text-[#FF5C00]">3 members</span>.
                                     </p>
                                   </div>
                                 </div>
@@ -586,7 +618,7 @@ export default function ContestRegistrationPage() {
                                   input: "font-[1000] uppercase italic text-lg tracking-widest"
                                 }}
                               />
-                              <Button 
+                              <Button
                                 className="h-14 mt-6 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-10 shadow-lg shadow-[#FF5C00]/20"
                                 onPress={handleJoinByCode}
                                 isLoading={isJoiningByCode}

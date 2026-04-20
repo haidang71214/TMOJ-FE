@@ -11,6 +11,7 @@ import {
 } from "@heroui/react";
 import { Timer, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useExtendContestTimeMutation } from "@/store/queries/Contest";
 
 interface Props {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export default function ExtendTimeModal({
   contest,
 }: Props) {
   const [minutes, setMinutes] = useState("30");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [extendContestTime, { isLoading: isUpdating }] = useExtendContestTimeMutation();
 
   // Giả lập thời gian cũ (Nếu contest không có currentEndTime thì lấy ngay bây giờ)
   const currentEndTime = useMemo(() => {
@@ -54,24 +55,29 @@ export default function ExtendTimeModal({
   };
 
   const handleExtend = async (onClose: () => void) => {
+    if (!contest?.id) return;
     const mins = parseInt(minutes);
     if (isNaN(mins) || mins <= 0) {
       toast.error("Please enter a valid number of minutes.");
       return;
     }
 
-    setIsUpdating(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      await extendContestTime({
+        id: contest.id,
+        newEndAt: newEndTime.toISOString(),
+      }).unwrap();
 
-    toast.success("Time extended successfully!", {
-      description: `Contest #${contest?.id} will now end at ${formatTime(
-        newEndTime
-      )}`,
-      style: { fontWeight: "bold", fontStyle: "italic" },
-    });
-
-    setIsUpdating(false);
-    onClose();
+      toast.success("Time extended successfully!", {
+        description: `Contest "${contest.title}" will now end at ${formatTime(
+          newEndTime
+        )}`,
+        style: { fontWeight: "bold", fontStyle: "italic" },
+      });
+      onClose();
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to extend contest time.");
+    }
   };
 
   const quickOptions = ["15", "30", "60", "120"];

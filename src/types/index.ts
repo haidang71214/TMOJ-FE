@@ -889,6 +889,7 @@ export interface ContestListResponse {
 }
 
 export interface ContestProblemDto {
+  id?: string; // contestProblemId
   problemId: string;
   problemTitle?: string;
   alias?: string;
@@ -1198,4 +1199,90 @@ export interface MyContestsResponse {
   success: boolean;
   data: ContestDto[];
   message: string;
+}
+
+export interface ContestParticipantMember {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  username: string;
+  rollNumber: string | null;
+}
+
+export interface ContestParticipantTeam {
+  teamId: string;
+  teamName: string;
+  isPersonal: boolean;
+  leaderId: string;
+  joinAt: string;
+  rank: number;
+  score: number;
+  solvedProblem: number;
+  members: ContestParticipantMember[];
+}
+
+export interface ContestParticipantsData {
+  totalTeams: number;
+  totalUsers: number;
+  teams: ContestParticipantTeam[];
+}
+
+export interface ContestParticipantsResponse {
+  success: boolean;
+  data: ContestParticipantsData;
+}
+
+// ── Favorites & Collections API Definitions ───────────────────────
+
+export interface FavoriteToggleResponse {
+  data: any;
+  isFavorite?: boolean;
+  message: string | null;
+  success: boolean;
+}
+
+export interface FavoriteCheckResponse {
+  data: any;
+  isFavorite?: boolean;
+  success: boolean;
+}
+
+export interface CollectionItem {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  isVisibility: boolean;
+  updatedAt: string;
+  createdAt: string;
+  items?: any[];
+}
+
+export interface CollectionResponse {
+  data: CollectionItem[];
+  message?: string;
+  totalCount?: number;
+}
+
+export interface CollectionDetailResponse {
+  data: CollectionItem;
+  message?: string;
+}
+
+export interface CreateCollectionRequest {
+  name: string;
+  description: string;
+  type: string;
+  isVisibility: boolean;
+}
+
+export interface UpdateCollectionRequest {
+  name: string;
+  description: string;
+  isVisibility: boolean;
+}
+
+export interface ReorderCollectionRequest {
+  items: { itemId: string; orderIndex: number }[];
 }

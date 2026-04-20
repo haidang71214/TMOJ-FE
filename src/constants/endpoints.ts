@@ -205,6 +205,31 @@ const ProblemEditorialEndpoint = {
   DELETE_EDITORIAL: `${API_PREFIX}/problem-editorials/{id}`,
 };
 
+const FavoriteEndpoint = {
+  TOGGLE_PROBLEM: `${API_PREFIX}/favorites/problems/{problemId}/toggle`,
+  TOGGLE_CONTEST: `${API_PREFIX}/favorites/contests/{contestId}/toggle`,
+  CHECK: `${API_PREFIX}/favorites/check`,
+  GET_PROBLEMS: `${API_PREFIX}/favorites/problems`,
+  GET_CONTESTS: `${API_PREFIX}/favorites/contests`,
+};
+
+const CollectionEndpoint = {
+  CREATE_COLLECTION: `${API_PREFIX}/favorites/collections`,
+  UPDATE_COLLECTION: `${API_PREFIX}/favorites/collections/{id}`,
+  DELETE_COLLECTION: `${API_PREFIX}/favorites/collections/{id}`,
+  GET_COLLECTIONS: `${API_PREFIX}/favorites/collections`,
+  GET_COLLECTION_DETAIL: `${API_PREFIX}/favorites/collections/{id}`,
+
+  ADD_PROBLEM: `${API_PREFIX}/collections/{id}/problems`,
+  ADD_CONTEST: `${API_PREFIX}/collections/{id}/contests`,
+  DELETE_ITEM: `${API_PREFIX}/collections/{id}/items/{itemId}`,
+  REORDER_ITEMS: `${API_PREFIX}/collections/{id}/reorder`,
+
+  GET_PUBLIC: `${API_PREFIX}/collections/public`,
+  GET_USER_COLLECTIONS: `${API_PREFIX}/users/{userId}/collections`,
+  COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -223,5 +248,7 @@ export {
   ReportEndpoint,
   ContestEndpoint,
   TeamEndpoint,
-  ProblemEditorialEndpoint
+  ProblemEditorialEndpoint,
+  FavoriteEndpoint,
+  CollectionEndpoint
 };

@@ -1,6 +1,6 @@
 "use client";
 import "./hehe.css";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Sidebar from "../Sidebar";
 import { QuestBanners } from "./QuestBanners";
 
@@ -16,34 +16,40 @@ import {
 } from "lucide-react";
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { Pagination } from "@heroui/react";
+import { useGetFavoriteProblemsQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
+import { toast } from "sonner";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // State cho Like (trái tim)
-  const [likedProblems, setLikedProblems] = useState<Set<string>>(new Set());
+  // API cho Like (trái tim)
+  const { data: favoriteData } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 1000 });
+  const [toggleFavorite] = useToggleProblemFavoriteMutation();
 
-  const toggleLike = (problemId: string) => {
-    setLikedProblems((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(problemId)) {
-        newSet.delete(problemId);
-      } else {
-        newSet.add(problemId);
-      }
-      return newSet;
-    });
+  const likedProblems = useMemo(() => {
+    const rawData: any = favoriteData?.data;
+    const items = rawData?.data?.items || rawData?.items || (Array.isArray(rawData) ? rawData : []);
+
+    return new Set<string>(items.map((p: any) => String(p.id || p.problemId || "")));
+  }, [favoriteData]);
+
+  const toggleLike = async (problemId: string) => {
+    try {
+      await toggleFavorite(problemId).unwrap();
+    } catch (error) {
+      toast.error("Failed to update favorite status");
+    }
   };
 
   const [page, setPage] = useState(1);
-  
+
   React.useEffect(() => {
     setPage(1);
   }, [searchQuery]);
 
   const { data: problemResponse, isLoading } = useGetProblemListPublicQuery({
-    page: page, 
+    page: page,
     pageSize: 10,
     search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined
   });
@@ -91,11 +97,10 @@ export default function LibraryPage() {
                   <Button
                     key={t}
                     size="sm"
-                    className={`text-[12px] rounded-xl h-10 px-5 font-black uppercase tracking-widest transition-all ${
-                      i === 0
-                        ? "bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] shadow-lg shadow-[#FFB800]/20"
-                        : "bg-white dark:bg-[#1C2737] text-gray-500 dark:text-[#98A2B3] hover:bg-gray-100 dark:hover:bg-[#344054] hover:text-[#071739] dark:hover:text-white border border-transparent dark:border-[#344054]/50"
-                    }`}
+                    className={`text-[12px] rounded-xl h-10 px-5 font-black uppercase tracking-widest transition-all ${i === 0
+                      ? "bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] shadow-lg shadow-[#FFB800]/20"
+                      : "bg-white dark:bg-[#1C2737] text-gray-500 dark:text-[#98A2B3] hover:bg-gray-100 dark:hover:bg-[#344054] hover:text-[#071739] dark:hover:text-white border border-transparent dark:border-[#344054]/50"
+                      }`}
                   >
                     {t}
                   </Button>

@@ -13,7 +13,7 @@ import { Discussion } from "@/app/components/Discussion";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useCheckFavoriteQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
-import AddProblemToCollectionModal from "../../components/AddProblemToCollectionModal";
+import AddToCollectionModal from "../../components/AddToCollectionModal";
 import { toast } from "sonner";
 
 // Types
@@ -62,10 +62,12 @@ export default function DescriptionTab() {
   } = useDisclosure();
 
   const rawFav: any = checkData;
-  const isFavorited =
-    rawFav?.data?.data?.isFavorite || rawFav?.data?.data?.isFavorited ||
-    rawFav?.data?.isFavorite || rawFav?.data?.isFavorited ||
-    rawFav?.isFavorite || rawFav?.isFavorited;
+  const isFavorited = Boolean(
+    rawFav?.data?.data?.isFavorited ??
+    rawFav?.data?.isFavorited ??
+    rawFav?.data?.data?.isFavorite ??
+    rawFav?.data?.isFavorite
+  );
 
   const handleToggleFavorite = async () => {
     if (!userData) {
@@ -73,7 +75,8 @@ export default function DescriptionTab() {
       return;
     }
     try {
-      await toggleFavorite(id).unwrap();
+      const res = await toggleFavorite(id).unwrap();
+      toast.success(res.data?.isFavorite ? "Added to favorites" : "Removed from favorites");
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to update favorite status");
     }
@@ -260,7 +263,7 @@ export default function DescriptionTab() {
       <Discussion problemId={id} currentUserId={userData?.userId} />
 
       {/* MODALS */}
-      <AddProblemToCollectionModal
+      <AddToCollectionModal
         isOpen={isAddOpen}
         onOpenChange={onOpenChangeAdd}
         problemId={id}

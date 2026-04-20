@@ -1236,12 +1236,16 @@ export interface ContestParticipantsResponse {
 // ── Favorites & Collections API Definitions ───────────────────────
 
 export interface FavoriteToggleResponse {
-  message: string;
-  isFavorite: boolean;
+  data: any;
+  isFavorite?: boolean;
+  message: string | null;
+  success: boolean;
 }
 
 export interface FavoriteCheckResponse {
-  isFavorite: boolean;
+  data: any;
+  isFavorite?: boolean;
+  success: boolean;
 }
 
 export interface CollectionItem {

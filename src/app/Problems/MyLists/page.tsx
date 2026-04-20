@@ -270,36 +270,42 @@ export default function MyListsPage() {
             >
               <DropdownItem
                 key="newest"
+                textValue="Newest First"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Newest First
               </DropdownItem>
               <DropdownItem
                 key="oldest"
+                textValue="Oldest First"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Oldest First
               </DropdownItem>
               <DropdownItem
                 key="abc"
+                textValue="Alphabetical (A - Z)"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Alphabetical (A - Z)
               </DropdownItem>
               <DropdownItem
                 key="zyx"
+                textValue="Alphabetical (Z - A)"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Alphabetical (Z - A)
               </DropdownItem>
               <DropdownItem
                 key="count-desc"
+                textValue="Most Problems"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Most Problems
               </DropdownItem>
               <DropdownItem
                 key="count-asc"
+                textValue="Least Problems"
                 className="font-bold uppercase italic text-[10px]"
               >
                 Least Problems

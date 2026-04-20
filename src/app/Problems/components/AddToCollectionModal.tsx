@@ -14,22 +14,30 @@ import {
 } from "@heroui/react";
 import { Bookmark, Plus, Notebook, Lock, Globe, Heart } from "lucide-react";
 import { toast } from "sonner";
-import { useGetCollectionsQuery, useAddProblemToCollectionMutation } from "@/store/queries/collections";
+import {
+  useGetCollectionsQuery,
+  useAddProblemToCollectionMutation,
+  useAddContestToCollectionMutation
+} from "@/store/queries/collections";
 import CreateListModal from "../MyLists/CreateListModal";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
-  problemId: string;
+  problemId?: string;
+  contestId?: string;
 }
 
-export default function AddProblemToCollectionModal({
+export default function AddToCollectionModal({
   isOpen,
   onOpenChange,
   problemId,
+  contestId,
 }: Props) {
   const { data: collectionsResponse, isLoading } = useGetCollectionsQuery();
-  const [addProblemToCollection, { isLoading: isAdding }] = useAddProblemToCollectionMutation();
+  const [addProblemToCollection, { isLoading: isAddingProblem }] = useAddProblemToCollectionMutation();
+  const [addContestToCollection, { isLoading: isAddingContest }] = useAddContestToCollectionMutation();
+
   const {
     isOpen: isCreateOpen,
     onOpen: onOpenCreate,
@@ -43,13 +51,22 @@ export default function AddProblemToCollectionModal({
 
   const handleAdd = async (collectionId: string, collectionName: string) => {
     try {
-      await addProblemToCollection({ id: collectionId, problemId }).unwrap();
-      toast.success(`Added to "${collectionName}"`);
+      if (problemId) {
+        await addProblemToCollection({ id: collectionId, problemId }).unwrap();
+      } else if (contestId) {
+        await addContestToCollection({ id: collectionId, contestId }).unwrap();
+      } else {
+        return;
+      }
+
+      toast.success(`Added ${problemId ? "problem" : "contest"} to "${collectionName}"`);
       onOpenChange(); // Close modal on success
     } catch (err: any) {
       toast.error(err?.data?.message || `Failed to add to "${collectionName}"`);
     }
   };
+
+  const typeLabel = problemId ? "problem" : "contest";
 
   return (
     <>
@@ -80,7 +97,7 @@ export default function AddProblemToCollectionModal({
                       Add to <span className="text-[#FF5C00]">Collection</span>
                     </h2>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
-                      Choose a list to bookmark this problem
+                      Choose a list to bookmark this {typeLabel}
                     </p>
                   </div>
                 </div>
@@ -144,7 +161,7 @@ export default function AddProblemToCollectionModal({
                             {col.name}
                           </span>
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">
-                            {col.items?.length || 0} Questions
+                            {col.items?.length || 0} Items
                           </span>
                         </div>
                       </ListboxItem>

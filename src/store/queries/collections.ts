@@ -57,7 +57,7 @@ export const collectionApi = baseApi.injectEndpoints({
         method: "POST",
         body: { problemId },
       }),
-      invalidatesTags: ["CollectionDetail"],
+      invalidatesTags: ["CollectionDetail", "Favorites"],
     }),
     addContestToCollection: builder.mutation<{ message: string }, { id: string; contestId: string }>({
       query: ({ id, contestId }) => ({
@@ -65,14 +65,14 @@ export const collectionApi = baseApi.injectEndpoints({
         method: "POST",
         body: { contestId },
       }),
-      invalidatesTags: ["CollectionDetail"],
+      invalidatesTags: ["CollectionDetail", "Favorites"],
     }),
     deleteCollectionItem: builder.mutation<{ message: string }, { id: string; itemId: string }>({
       query: ({ id, itemId }) => ({
         url: CollectionEndpoint.DELETE_ITEM.replace("{id}", id).replace("{itemId}", itemId),
         method: "DELETE",
       }),
-      invalidatesTags: ["CollectionDetail"],
+      invalidatesTags: ["CollectionDetail", "Favorites"],
     }),
     reorderCollectionItems: builder.mutation<{ message: string }, { id: string; body: ReorderCollectionRequest }>({
       query: ({ id, body }) => ({

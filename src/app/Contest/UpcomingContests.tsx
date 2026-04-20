@@ -9,6 +9,7 @@ import {
   Tabs,
   Tab,
   Chip,
+  useDisclosure,
   addToast,
 } from "@heroui/react";
 import Image from "next/image";
@@ -19,8 +20,9 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Calendar,
   Heart,
+  Bookmark,
+  Calendar,
 } from "lucide-react";
 
 // Swiper Components
@@ -28,6 +30,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import AddToCollectionModal from "../Problems/components/AddToCollectionModal";
 import "swiper/css/pagination";
 
 import {
@@ -59,6 +62,12 @@ const ParticipantCount = ({ contestId }: { contestId: string }) => {
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
   const [inviteCode, setInviteCode] = useState("");
+  const {
+    isOpen: isCollectionOpen,
+    onOpen: onOpenCollection,
+    onOpenChange: onOpenChangeCollection
+  } = useDisclosure();
+  const [selectedContestId, setSelectedContestId] = useState<string>("");
   const router = useRouter();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const { openModal } = useModal();
@@ -77,10 +86,10 @@ export default function UpcomingContests() {
   const [toggleFavorite] = useToggleContestFavoriteMutation();
 
   const favoriteContestIds = useMemo(() => {
-    const rawData: any = favoriteContestsData?.data;
-    const items = rawData?.data?.items || rawData?.items || (Array.isArray(rawData) ? rawData : []);
+    const rawData: any = favoriteContestsData;
+    const items = rawData?.data?.data?.items || rawData?.data?.data || rawData?.data?.items || rawData?.data || [];
 
-    return new Set<string>(items.map((c: any) => String(c.id || c.contestId || "")));
+    return new Set<string>(items.map((c: any) => String(c.contestId || c.id || "")));
   }, [favoriteContestsData]);
 
   const handleToggleFavorite = async (e: React.MouseEvent, contestId: string) => {
@@ -90,7 +99,9 @@ export default function UpcomingContests() {
       return;
     }
     try {
-      await toggleFavorite(contestId).unwrap();
+      const res = await toggleFavorite(contestId).unwrap();
+      const isFav = res.data?.data?.isFavorited ?? res.data?.isFavorited ?? res.data?.isFavorite;
+      toast.success(isFav ? "Added to favorite contests" : "Removed from favorites");
     } catch (error) {
       toast.error("Failed to update favorite status");
     }
@@ -190,24 +201,42 @@ export default function UpcomingContests() {
                   >
                     {contest.status}
                   </Chip>
-                  <Button
-                    isIconOnly
-                    variant="flat"
-                    className="absolute top-4 left-4 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl text-white border border-white/20 hover:scale-110 active:scale-95 transition-all"
-                    onPress={(e) => handleToggleFavorite(e as any, contest.id)}
-                  >
-                    <Heart
-                      size={20}
-                      fill={favoriteContestIds.has(String(contest.id)) ? "white" : "none"}
-                      className={favoriteContestIds.has(String(contest.id)) ? "text-white" : "text-white"}
-                    />
-                  </Button>
                 </div>
                 <CardBody className="p-8 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-lg font-black uppercase italic leading-tight mb-4 line-clamp-2">
-                      {contest.title}
-                    </h4>
+                    <div className="flex justify-between items-start mb-4 gap-4">
+                      <h4 className="text-lg font-black uppercase italic leading-tight line-clamp-2">
+                        {contest.title}
+                      </h4>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 rounded-xl hover:scale-110 active:scale-95 transition-all"
+                          onClick={(e) => handleToggleFavorite(e as any, contest.id)}
+                        >
+                          <Heart
+                            size={16}
+                            fill={favoriteContestIds.has(String(contest.id)) ? "#ef4444" : "none"}
+                            className={favoriteContestIds.has(String(contest.id)) ? "text-red-500" : "text-slate-400 dark:text-slate-500"}
+                          />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-slate-100 dark:bg-white/5 rounded-xl hover:scale-110 active:scale-95 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContestId(String(contest.id));
+                            onOpenCollection();
+                          }}
+                        >
+                          <Bookmark size={16} className="text-slate-400 dark:text-slate-500" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
@@ -483,6 +512,12 @@ export default function UpcomingContests() {
           </div>
         </div>
       </div>
+
+      <AddToCollectionModal
+        isOpen={isCollectionOpen}
+        onOpenChange={onOpenChangeCollection}
+        contestId={selectedContestId}
+      />
     </div>
   );
 }

@@ -40,9 +40,9 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Reorder } from "framer-motion";
-import ProblemsSidebar from "../../Sidebar";
+import ProblemsSidebar from "@/app/Problems/Sidebar";
 import { ListControls } from "../ListControls";
-import AddQuestionsToCollectionModal from "../../components/AddQuestionsToCollectionModal";
+import AddQuestionsToCollectionModal from "@/app/Problems/components/AddQuestionsToCollectionModal";
 import { toast } from "sonner";
 import { useGetCollectionDetailQuery, useDeleteCollectionItemMutation, useUpdateCollectionMutation, useDeleteCollectionMutation, useReorderCollectionItemsMutation } from "@/store/queries/collections";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
@@ -234,6 +234,29 @@ export default function MyListDetailPage() {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      // If collection is private, make it public first
+      if (!isVisible && currentId !== "Favorite") {
+        await updateCollection({
+          id: currentId,
+          body: {
+            name: listTitle,
+            description: listDesc,
+            isVisibility: true
+          }
+        }).unwrap();
+        setIsVisible(true);
+        toast.info(language === 'vi' ? "Đã chuyển bộ sưu tập sang công khai để chia sẻ" : "Collection made public for sharing");
+      }
+
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success(language === 'vi' ? "Đã sao chép liên kết vào bộ nhớ tạm!" : "Link copied to clipboard!");
+    } catch (err: any) {
+      toast.error(err?.data?.message || (language === 'vi' ? "Không thể chia sẻ danh sách" : "Failed to share list"));
+    }
+  };
+
 
   return (
     <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans flex relative overflow-hidden transition-colors duration-500">
@@ -307,10 +330,7 @@ export default function MyListDetailPage() {
                     isIconOnly
                     variant="flat"
                     className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 h-11 w-11 rounded-xl shadow-sm hover:border-[#FF5C00] dark:hover:border-[#FF5C00] transition-all"
-                    onPress={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast.success("Link copied to clipboard!");
-                    }}
+                    onPress={handleShare}
                   >
                     <Share2 size={18} className="text-slate-500 dark:text-slate-400 group-hover:text-[#FF5C00]" />
                   </Button>
@@ -328,6 +348,7 @@ export default function MyListDetailPage() {
                   <DropdownMenu aria-label="List Actions">
                     <DropdownItem
                       key="edit"
+                      textValue="Edit list info"
                       startContent={<Pencil size={16} />}
                       onPress={editModal.onOpen}
                     >
@@ -335,6 +356,7 @@ export default function MyListDetailPage() {
                     </DropdownItem>
                     <DropdownItem
                       key="reset"
+                      textValue="Reset progress"
                       startContent={<RotateCcw size={16} />}
                       onPress={resetProgressModal.onOpen}
                     >
@@ -342,6 +364,7 @@ export default function MyListDetailPage() {
                     </DropdownItem>
                     <DropdownItem
                       key="delete"
+                      textValue="Delete collection"
                       className="text-danger"
                       color="danger"
                       startContent={<Trash2 size={16} />}
@@ -407,7 +430,7 @@ export default function MyListDetailPage() {
                   const isProblem = !!item.problemId;
                   const title = item.problemTitle || item.contestTitle || item.name || item.title || "Untitled";
                   const targetId = item.problemId || item.contestId || item.id;
-                  const route = isProblem ? `/Problems/${targetId}` : `/Contests/${targetId}`;
+                  const route = isProblem ? `/Problems/${targetId}` : `/Contest/${targetId}`;
 
                   if (idx === 0) console.log("First item sample:", item);
 
@@ -477,30 +500,35 @@ export default function MyListDetailPage() {
                             >
                               <DropdownItem
                                 key="move-top"
+                                textValue="Move to Top"
                                 startContent={<ArrowUpToLine size={16} />}
                               >
                                 {t("workspace.move_to_top") || "Move to Top"}
                               </DropdownItem>
                               <DropdownItem
                                 key="move-up"
+                                textValue="Move Up"
                                 startContent={<ChevronUp size={16} />}
                               >
                                 {t("workspace.move_up") || "Move Up"}
                               </DropdownItem>
                               <DropdownItem
                                 key="move-down"
+                                textValue="Move Down"
                                 startContent={<ChevronDown size={16} />}
                               >
                                 {t("workspace.move_down") || "Move Down"}
                               </DropdownItem>
                               <DropdownItem
                                 key="move-bot"
+                                textValue="Move to Bottom"
                                 startContent={<ArrowDownToLine size={16} />}
                               >
                                 {t("workspace.move_to_bottom") || "Move to Bottom"}
                               </DropdownItem>
                               <DropdownItem
                                 key="delete"
+                                textValue="Remove from list"
                                 className="text-danger"
                                 color="danger"
                                 startContent={<Trash2 size={16} />}

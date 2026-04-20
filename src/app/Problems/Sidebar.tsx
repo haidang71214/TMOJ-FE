@@ -27,6 +27,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import CreateListModal from "./MyLists/CreateListModal";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useGetCollectionsQuery } from "@/store/queries/collections";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProblemsSidebar() {
@@ -36,40 +37,25 @@ export default function ProblemsSidebar() {
   const { data: user } = useGetUserInformationQuery();
   const { t } = useTranslation();
 
-  const myLists = [
-    {
-      id: "Favorite",
-      title: "Favorite",
-      isPrivate: true,
-      icon: <Heart size={20} />,
-    },
-    {
-      id: "HocDoi",
-      title: "HocDoi",
-      isPrivate: false,
-      icon: <Bookmark size={20} />,
-    },
-    {
-      id: "Graph-Tips",
-      title: "Graph Tips",
-      isPrivate: true,
-      icon: <Bookmark size={20} />,
-    },
-    {
-      id: "DP-Study",
-      title: "DP Study",
-      isPrivate: false,
-      icon: <Bookmark size={20} />,
-    },
-  ];
+  const { data: collectionsResponse } = useGetCollectionsQuery();
+  const rawCollections: any = collectionsResponse?.data;
+  const collections = Array.isArray(rawCollections)
+    ? rawCollections
+    : rawCollections?.data || rawCollections?.items || [];
+
+  const myLists = collections.map((col: any) => ({
+    id: col.id,
+    title: col.name,
+    isPrivate: !col.isVisibility,
+    icon: col.type?.toLowerCase() === 'heart' ? <Heart size={20} /> : <Bookmark size={20} />,
+  }));
 
   const getItemClasses = (key: string) => {
     const isActive = pathname.includes(key);
-    return `h-12 rounded-2xl px-4 transition-all mb-1 ${
-      isActive
-        ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black shadow-lg shadow-black/20 dark:shadow-orange-500/40"
-        : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-[#071739]"
-    }`;
+    return `h-12 rounded-2xl px-4 transition-all mb-1 ${isActive
+      ? "bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black shadow-lg shadow-black/20 dark:shadow-orange-500/40"
+      : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#FF5C00] dark:hover:text-[#071739]"
+      }`;
   };
 
   return (
@@ -198,8 +184,9 @@ export default function ProblemsSidebar() {
           aria-label="My Bookmarks"
           onAction={(key) => router.push(`/Problems/MyLists/${String(key)}`)}
           className="p-0 gap-1"
+          emptyContent={null}
         >
-          {myLists.map((list) => (
+          {myLists.map((list: any) => (
             <ListboxItem
               key={list.id}
               startContent={list.icon}

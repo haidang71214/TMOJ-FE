@@ -1232,3 +1232,53 @@ export interface ContestParticipantsResponse {
   success: boolean;
   data: ContestParticipantsData;
 }
+
+// ── Favorites & Collections API Definitions ───────────────────────
+
+export interface FavoriteToggleResponse {
+  message: string;
+  isFavorite: boolean;
+}
+
+export interface FavoriteCheckResponse {
+  isFavorite: boolean;
+}
+
+export interface CollectionItem {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  isVisibility: boolean;
+  updatedAt: string;
+  createdAt: string;
+  items?: any[];
+}
+
+export interface CollectionResponse {
+  data: CollectionItem[];
+  message?: string;
+  totalCount?: number;
+}
+
+export interface CollectionDetailResponse {
+  data: CollectionItem;
+  message?: string;
+}
+
+export interface CreateCollectionRequest {
+  name: string;
+  description: string;
+  type: string;
+  isVisibility: boolean;
+}
+
+export interface UpdateCollectionRequest {
+  name: string;
+  description: string;
+  isVisibility: boolean;
+}
+
+export interface ReorderCollectionRequest {
+  items: { itemId: string; orderIndex: number }[];
+}

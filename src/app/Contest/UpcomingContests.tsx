@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
+  Heart,
 } from "lucide-react";
 
 // Swiper Components
@@ -35,6 +36,8 @@ import {
   useUnregisterContestMutation,
   useGetContestParticipantsQuery
 } from "@/store/queries/Contest";
+import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
+import { toast } from "sonner";
 import { ContestDto } from "@/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -68,6 +71,30 @@ export default function UpcomingContests() {
   // 2. Fetch danh sách contest của tôi (đã đăng ký)
   const { data: myContestsData } = useGetMyContestsQuery({}, { skip: !currentUser });
   const [unregisterContest] = useUnregisterContestMutation();
+
+  // API Favorites cho Contest
+  const { data: favoriteContestsData } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1000 }, { skip: !currentUser });
+  const [toggleFavorite] = useToggleContestFavoriteMutation();
+
+  const favoriteContestIds = useMemo(() => {
+    const rawData: any = favoriteContestsData?.data;
+    const items = rawData?.data?.items || rawData?.items || (Array.isArray(rawData) ? rawData : []);
+
+    return new Set<string>(items.map((c: any) => String(c.id || c.contestId || "")));
+  }, [favoriteContestsData]);
+
+  const handleToggleFavorite = async (e: React.MouseEvent, contestId: string) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      openModal({ title: "Đăng nhập", content: <LoginModal /> });
+      return;
+    }
+    try {
+      await toggleFavorite(contestId).unwrap();
+    } catch (error) {
+      toast.error("Failed to update favorite status");
+    }
+  };
 
   // 3. Xử lý danh sách contest đã đăng ký (an toàn)
   const myRegisteredContests = useMemo(() => {
@@ -163,6 +190,18 @@ export default function UpcomingContests() {
                   >
                     {contest.status}
                   </Chip>
+                  <Button
+                    isIconOnly
+                    variant="flat"
+                    className="absolute top-4 left-4 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl text-white border border-white/20 hover:scale-110 active:scale-95 transition-all"
+                    onPress={(e) => handleToggleFavorite(e as any, contest.id)}
+                  >
+                    <Heart
+                      size={20}
+                      fill={favoriteContestIds.has(String(contest.id)) ? "white" : "none"}
+                      className={favoriteContestIds.has(String(contest.id)) ? "text-white" : "text-white"}
+                    />
+                  </Button>
                 </div>
                 <CardBody className="p-8 flex flex-col justify-between">
                   <div>

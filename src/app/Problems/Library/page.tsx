@@ -28,15 +28,18 @@ export default function LibraryPage() {
   const [toggleFavorite] = useToggleProblemFavoriteMutation();
 
   const likedProblems = useMemo(() => {
-    const rawData: any = favoriteData?.data;
-    const items = rawData?.data?.items || rawData?.items || (Array.isArray(rawData) ? rawData : []);
+    const rawData: any = favoriteData;
+    // Chọc vào 2 lớp data nếu cần (dựa trên JSON thực tế)
+    const favoriteList = rawData?.data?.data?.items || rawData?.data?.data || rawData?.data?.items || rawData?.data || [];
 
-    return new Set<string>(items.map((p: any) => String(p.id || p.problemId || "")));
+    return new Set<string>(favoriteList.map((p: any) => String(p.problemId || p.id || "")));
   }, [favoriteData]);
 
   const toggleLike = async (problemId: string) => {
     try {
-      await toggleFavorite(problemId).unwrap();
+      const res = await toggleFavorite(problemId).unwrap();
+      const isFav = res.data?.data?.isFavorited ?? res.data?.isFavorited ?? res.data?.isFavorite;
+      toast.success(isFav ? "Added to favorite problems" : "Removed from favorites");
     } catch (error) {
       toast.error("Failed to update favorite status");
     }

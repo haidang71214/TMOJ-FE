@@ -1,6 +1,6 @@
-const API_PREFIX = "api/v1";
+export const API_PREFIX = "api/v1";
 // ví dụ về những cái endpoint
-const API_LON = "api/v2";
+export const API_LON = "api/v2";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
@@ -55,10 +55,13 @@ const ProblemListEndpoint = {
   GET_LIST_PUBLIC_PROBLEM: `${API_LON}/Problems/public`,
   GET_DETAIL_PUBLIC_PROBLEM: `${API_PREFIX}/Problems/{id}`,
 }
+// phần này nhớ tách biệt 2 cái, và kiểm soát cờ cho 2 cái khác nhau để update vào state.
 const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
   GET_SUBMITTION: `${API_LON}/submissions/{submissionId}`,
-  GET_SUBMISSIONS_LIST_BY_PROBLEM: `${API_LON}/submissions/{problemId}/submissionslist`
+  GET_SUBMISSIONS_LIST_BY_PROBLEM: `${API_LON}/submissions/{problemId}/submissionslist`,
+// tách biệt ở đây
+  
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
@@ -124,7 +127,9 @@ const ClassSlotEndpoint = {
 
   UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/due-date`,
   PUBLISH_SLOT: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/publish`,
+  // sửa lại cái này, thêm 1 số trường
   GET_SLOT_SCORES: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/scores`,
+  // là chi tiết lần nạp bài của user đó.
   GET_USER_SUBMISSION: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/submissions/{userId}`,
 };
 const NotificationEndpoint = {

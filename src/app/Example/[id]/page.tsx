@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   AlignLeft,
   BookOpen,
@@ -83,7 +83,6 @@ function useResize(
 // ─────────────────────────────────────────────────────────────────────────
 export default function ProblemDetailsPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const problemId = params.id as string;
   const { t, language } = useTranslation();
   

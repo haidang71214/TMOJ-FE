@@ -588,15 +588,15 @@ export interface StudentSlotScoreResponse {
   userId: string;
   displayName?: string;
   avatarUrl?: string;
-  problemScores: ProblemScoreEntry[];
+  problems: ProblemScoreEntry[];
   totalScore: number;
   solvedCount: number;
 }export interface ProblemScoreEntry {
   problemId: string;
-  problemTitle?: string;
+  title?: string;
   verdictCode?: string;
   score?: number;
-  attempts: number;
+  submissionCount: number;
   lastSubmittedAt?: string;
 
 }

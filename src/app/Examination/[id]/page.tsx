@@ -82,9 +82,10 @@ function useResize(
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function ProblemDetailsPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const problemId = params.id as string;
+    const params = useParams();
+    const searchParams = useSearchParams();
+    const problemId = params.id as string;
+    const classSlotId = searchParams.get("classSlotId") || undefined;
   const { t, language } = useTranslation();
   
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
@@ -192,6 +193,7 @@ export default function ProblemDetailsPage() {
 <SolutionSubmittion
   editorHeight={editorHeight}
   problemId={problemId}
+    classSlotId={classSlotId}
   onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
 />
 

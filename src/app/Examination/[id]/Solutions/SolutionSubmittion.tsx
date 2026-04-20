@@ -27,7 +27,7 @@ export default function SolutionSubmittion({
   classSlotId,
 }: SolutionSubmittionProps) {
   const { t, language } = useTranslation();
-  
+  console.log("classSlotId", classSlotId);
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
 
@@ -364,19 +364,6 @@ public:
 
         <button
           disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
-          onClick={handleRun}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
-            isLoggedIn && selectedRuntimeId && !isSubmitting
-              ? "bg-gray-200/50 hover:bg-gray-200 dark:bg-[#202E42] dark:hover:bg-[#2a3b55] text-slate-700 dark:text-slate-200"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          <Play size={12} className="fill-current" />
-          {t("solution.run") || (language === "vi" ? "Chạy thử" : "Run")}
-        </button>
-
-        <button
-          disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleSubmit}
           className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
             isLoggedIn && selectedRuntimeId && !isSubmitting
@@ -385,7 +372,7 @@ public:
           }`}
         >
           <Upload size={12} />
-          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Submit")}
+          {t("solution.submit") || (language === "vi" ? "Run test" : "Run test")}
         </button>
 
         {classSlotId && (
@@ -399,7 +386,7 @@ public:
             }`}
           >
             <Upload size={12} />
-            examination in slot
+            Submmit examination
           </button>
         )}
       </div>

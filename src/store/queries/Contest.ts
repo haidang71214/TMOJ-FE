@@ -20,6 +20,8 @@ import {
   ChangeVisibilityRequest,
   ChangeVisibilityResponse,
   ContestParticipantsResponse,
+  JoinContestByCodeRequest,
+  MyTeamResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -217,6 +219,23 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: "Contest", id: `participants_${id}` }],
     }),
+    // 25. Join Contest by Code
+    joinContestByCode: builder.mutation<any, JoinContestByCodeRequest>({
+      query: (body) => ({
+        url: ContestEndpoint.JOIN_CONTEST_BY_CODE,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest", "Team"],
+    }),
+    // 26. Lấy team của tôi trong contest
+    getMyTeamInContest: builder.query<MyTeamResponse, string>({
+      query: (id) => ({
+        url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Team", id: `myTeam_${id}` }],
+    }),
   }),
 });
 
@@ -239,4 +258,6 @@ export const {
   useDeleteContestMutation,
   useJoinContestTeamByCodeMutation,
   useGetContestParticipantsQuery,
+  useJoinContestByCodeMutation,
+  useGetMyTeamInContestQuery,
 } = contestApi;

@@ -1081,6 +1081,7 @@ export interface TeamMember {
 export interface TeamDetail {
   id: string;
   teamName: string;
+  avatarUrl?: string | null;
   leaderId: string;
   teamSize: number;
   isPersonal: boolean;
@@ -1123,6 +1124,16 @@ export interface RegisterContestResponse {
   data: string; // Registration ID
   message: string;
   traceId: string | null;
+}
+
+export interface JoinContestByCodeRequest {
+  inviteCode: string;
+}
+
+export interface MyTeamResponse {
+  success: boolean;
+  data: TeamDetail | null;
+  message: string;
 }
 export interface StudentNotYet {
   avatarUrl: string | null;

@@ -37,7 +37,8 @@ import {
   useGetContestListQuery,
   useGetMyContestsQuery,
   useUnregisterContestMutation,
-  useGetContestParticipantsQuery
+  useGetContestParticipantsQuery,
+  useJoinContestByCodeMutation
 } from "@/store/queries/Contest";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
 import { toast } from "sonner";
@@ -80,6 +81,7 @@ export default function UpcomingContests() {
   // 2. Fetch danh sách contest của tôi (đã đăng ký)
   const { data: myContestsData } = useGetMyContestsQuery({}, { skip: !currentUser });
   const [unregisterContest] = useUnregisterContestMutation();
+  const [joinContestByCode, { isLoading: isJoining }] = useJoinContestByCodeMutation();
 
   // API Favorites cho Contest
   const { data: favoriteContestsData } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1000 }, { skip: !currentUser });
@@ -158,6 +160,22 @@ export default function UpcomingContests() {
     const statusLower = c.status?.toLowerCase();
     return statusLower === "ended" || statusLower === "past" || isPast;
   });
+
+  const handleJoinByCode = async () => {
+    if (!inviteCode.trim()) {
+      toast.error("Invite code is required!");
+      return;
+    }
+    try {
+      const res = await joinContestByCode({ inviteCode: inviteCode.trim() }).unwrap();
+      toast.success(res.message || "Joined contest successfully!");
+      setInviteCode("");
+      // Refresh my contests list to reflect the new registration
+      setSelectedTab("my");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to join contest. Check your code.");
+    }
+  };
 
   if (isLoading) {
     return <div className="text-center py-20 font-black italic uppercase">Loading Contests...</div>;
@@ -476,6 +494,8 @@ export default function UpcomingContests() {
               />
               <Button
                 fullWidth
+                isLoading={isJoining}
+                onPress={handleJoinByCode}
                 className="bg-[#071739] text-white font-black rounded-2xl uppercase italic transition-all duration-300 hover:bg-[#00FF41] hover:text-[#071739]"
               >
                 Join

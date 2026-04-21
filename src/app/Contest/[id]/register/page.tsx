@@ -13,7 +13,7 @@ import {
   Avatar, AvatarGroup, Tabs, Tab
 } from "@heroui/react";
 import { toast } from "sonner";
-import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation } from "@/store/queries/Contest";
+import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation, useGetMyTeamInContestQuery, useJoinContestByCodeMutation } from "@/store/queries/Contest";
 import { useCreateTeamMutation, useGetTeamDetailQuery, useAddTeamMemberMutation, useDeleteTeamMemberMutation } from "@/store/queries/Team";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -42,12 +42,18 @@ export default function ContestRegistrationPage() {
   console.log("contestResult", contestResult);
   const [registerContest, { isLoading: isRegistering }] = useRegisterContestMutation();
   const [createTeam, { isLoading: isCreatingTeam }] = useCreateTeamMutation();
-  const [joinContestTeamByCode, { isLoading: isJoiningByCode }] = useJoinContestTeamByCodeMutation();
+  const [joinContestTeamByCode, { isLoading: isJoiningTeamByCode }] = useJoinContestTeamByCodeMutation();
+  const [joinContestByCode, { isLoading: isJoiningContestByCode }] = useJoinContestByCodeMutation();
   const [addTeamMember, { isLoading: isAddingMember }] = useAddTeamMemberMutation();
   const [deleteTeamMember, { isLoading: isDeletingMember }] = useDeleteTeamMemberMutation();
 
+  // Load existing team state in this contest
+  const { data: myTeamResult, isLoading: isMyTeamLoading } = useGetMyTeamInContestQuery(contestId);
+  const myTeamInContest = myTeamResult?.data;
+
   const { data: teamDetail, refetch: refetchTeam } = useGetTeamDetailQuery(createdTeamId || "", {
-    skip: !createdTeamId
+    skip: !createdTeamId,
+    pollingInterval: createdTeamId ? 5000 : 0, // Auto-update for leader when members join
   });
 
   useEffect(() => {
@@ -62,8 +68,18 @@ export default function ContestRegistrationPage() {
   const contestData = contestResult?.data;
   const allowTeams = contestData?.allowTeams ?? true;
 
-  // Logic kiểm tra thời hạn đăng ký (8 tiếng trước khi bắt đầu)
   const isRegExpired = contestData ? (new Date(contestData.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000) : false;
+
+  // Restore state if user is already in a team
+  useEffect(() => {
+    if (myTeamInContest) {
+      console.log("♻️ Restoring state from current team:", myTeamInContest);
+      setCreatedTeamId(myTeamInContest.id);
+      setTeamInviteCode(myTeamInContest.inviteCode);
+      setTeamName(myTeamInContest.teamName);
+      setRegMode(myTeamInContest.isPersonal ? "individual" : "create_team");
+    }
+  }, [myTeamInContest]);
 
   // Auto-set Solo mode if contest doesn't allow teams
   useEffect(() => {
@@ -81,8 +97,11 @@ export default function ContestRegistrationPage() {
       }
     } else if (regMode === "create_team" && teamDetail?.data?.members) {
       setMemberIds(teamDetail.data.members.map(m => m.userId));
+    } else if (myTeamInContest?.members) {
+      // For members who joined via code
+      setMemberIds(myTeamInContest.members.map(m => m.userId));
     }
-  }, [teamDetail, regMode, currentUser]);
+  }, [teamDetail, regMode, currentUser, myTeamInContest]);
 
   // Auth Guard
   useEffect(() => {
@@ -95,8 +114,22 @@ export default function ContestRegistrationPage() {
 
   const handleCopyInviteCode = () => {
     if (teamInviteCode) {
-      navigator.clipboard.writeText(teamInviteCode);
-      toast.success("Mã mời đã được sao chép!");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(teamInviteCode);
+        toast.success("Mã mời đã được sao chép!");
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = teamInviteCode;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success("Mã mời đã được sao chép!");
+        } catch (err) {
+          toast.error("Không thể sao chép tự động. Vui lòng sao chép thủ công.");
+        }
+        document.body.removeChild(textArea);
+      }
     }
   };
 
@@ -158,11 +191,22 @@ export default function ContestRegistrationPage() {
       toast.error("Invite code is required!");
       return;
     }
+    const code = inviteCode.trim();
     try {
-      await joinContestTeamByCode({ contestId, body: { code: inviteCode.trim() } }).unwrap();
-      toast.success("Joined team! The leader will register for the contest.");
+      // First try to join contest (assuming it might be a general contest invite)
+      try {
+        await joinContestByCode({ inviteCode: code }).unwrap();
+        toast.success("Joined contest successfully!");
+      } catch (err) {
+        // If it fails, it might be a specific team invite code
+        await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
+        toast.success("Joined team! The leader will register for the contest.");
+      }
+
+      // Clear code and state will be recovered by myTeamResult
+      setInviteCode("");
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to join team.");
+      toast.error(error?.data?.message || "Invalid invite code or failed to join.");
     }
   };
 
@@ -505,7 +549,7 @@ export default function ContestRegistrationPage() {
 
                                 <div className="space-y-4">
                                   <div className="flex justify-between items-end">
-                                    <p className="text-xs font-black uppercase text-gray-400">Add Team Members ({memberIds.length}/5)</p>
+                                    <p className="text-xs font-black uppercase text-gray-400">Add Team Members ({memberIds.length}/3)</p>
                                     <Chip size="sm" variant="dot" color={memberIds.length < 3 ? "warning" : "success"} className="font-black italic text-[9px] uppercase">
                                       {memberIds.length < 3 ? "Needs more" : "Ready to register"}
                                     </Chip>
@@ -528,7 +572,7 @@ export default function ContestRegistrationPage() {
                                       className="h-14 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-8"
                                       onPress={handleAddMember}
                                       isLoading={isAddingMember}
-                                      isDisabled={memberIds.length >= 5}
+                                      isDisabled={memberIds.length >= 3}
                                     >
                                       Add
                                     </Button>
@@ -605,7 +649,7 @@ export default function ContestRegistrationPage() {
 
                         {regMode === "join_code" && (
                           <div className="space-y-6">
-                            <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Join Existing Team</span>
+                            <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Join Existing Team / Contest</span>
                             <div className="flex gap-4">
                               <Input
                                 label="ENTER INVITE CODE"
@@ -624,14 +668,42 @@ export default function ContestRegistrationPage() {
                               <Button
                                 className="h-14 mt-6 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-10 shadow-lg shadow-[#FF5C00]/20"
                                 onPress={handleJoinByCode}
-                                isLoading={isJoiningByCode}
+                                isLoading={isJoiningTeamByCode || isJoiningContestByCode}
                               >
-                                Join Team
+                                Join Now
                               </Button>
                             </div>
+
+                            {myTeamInContest && !myTeamInContest.isPersonal && (
+                              <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] animate-in zoom-in-95">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <Avatar src={myTeamInContest.avatarUrl || undefined} name={myTeamInContest.teamName} size="lg" className="border-2 border-green-500" />
+                                    <div>
+                                      <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">You Joined Team</p>
+                                      <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{myTeamInContest.teamName}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase">Leader: {myTeamInContest.members.find(m => m.userId === myTeamInContest.leaderId)?.displayName || "Team Leader"}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Chip color="success" variant="solid" className="font-black italic border-none text-white">READY</Chip>
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                  <AvatarGroup max={5} size="sm" isBordered>
+                                    {myTeamInContest.members.map(m => (
+                                      <Avatar key={m.userId} src={m.avatarUrl || undefined} name={m.displayName} />
+                                    ))}
+                                  </AvatarGroup>
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase self-center italic">Leader will handle the registration.</p>
+                                </div>
+                              </div>
+                            )}
+
                             <div className="p-6 rounded-2xl bg-gray-100 dark:bg-gray-800/50 border-2 border-dashed border-gray-300">
                               <p className="text-[11px] font-black uppercase text-gray-500 leading-relaxed text-center">
-                                Once you join a team, the team leader will be responsible for registering the entire team for the contest.
+                                Once you join a team or contest, the system will prepare your participant profile.
+                                Team leaders are responsible for final contest registration.
                               </p>
                             </div>
                           </div>
@@ -686,7 +758,7 @@ export default function ContestRegistrationPage() {
                       fullWidth
                       size="lg"
                       isLoading={isRegistering}
-                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length !== 3 && memberIds.length !== 5)) || isRegExpired}
+                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && memberIds.length !== 3) || isRegExpired}
                       className={`font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-lg transition-all ${isRegExpired ? "bg-gray-500 text-gray-300" : "bg-[#071739] text-white shadow-[#071739]/40 hover:scale-[1.02] active:scale-95"}`}
                       onPress={handleRegister}
                     >
@@ -710,7 +782,7 @@ export default function ContestRegistrationPage() {
               <ul className="space-y-4">
                 {[
                   "Solo: Exactly 1 player",
-                  "Team: Exactly 3 or 5 members",
+                  "Team: Exactly 3 members",
                   "Leader handles registration",
                   "Verified IDs required",
                   "Registration deadline: 8h before start"

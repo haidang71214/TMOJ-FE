@@ -60,8 +60,8 @@ const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
   GET_SUBMITTION: `${API_LON}/submissions/{submissionId}`,
   GET_SUBMISSIONS_LIST_BY_PROBLEM: `${API_LON}/submissions/{problemId}/submissionslist`,
-// tách biệt ở đây
-  
+  // tách biệt ở đây
+
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
@@ -191,7 +191,9 @@ const ContestEndpoint = {
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
   EXTEND_CONTEST: `${API_PREFIX}/contests/{id}/extend`,
   JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
+  JOIN_CONTEST_BY_CODE: `${API_PREFIX}/contests/join-by-code`,
   GET_CONTEST_PARTICIPANTS: `${API_PREFIX}/contests/{id}/participants`,
+  GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
 };
 
 const TeamEndpoint = {

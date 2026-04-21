@@ -138,46 +138,48 @@ export default function ProblemsSidebar() {
             />
           </div>
 
-          <Dropdown
-            placement="bottom-end"
-            classNames={{
-              content:
-                "dark:bg-[#1C2737] border dark:border-white/5 rounded-2xl min-w-[160px]",
-            }}
-          >
-            <DropdownTrigger>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="rounded-full w-6 h-6 hover:bg-slate-100 dark:hover:bg-white/10"
-              >
-                <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              aria-label="Actions"
-              onAction={(key) => {
-                if (key === "new-list") onOpen();
+          {user && (
+            <Dropdown
+              placement="bottom-end"
+              classNames={{
+                content:
+                  "dark:bg-[#1C2737] border dark:border-white/5 rounded-2xl min-w-[160px]",
               }}
-              className="p-1"
             >
-              <DropdownItem
-                key="new-list"
-                startContent={<Plus size={16} />}
-                className="rounded-xl text-xs font-bold dark:text-white"
+              <DropdownTrigger>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  className="rounded-full w-6 h-6 hover:bg-slate-100 dark:hover:bg-white/10"
+                >
+                  <Plus size={16} className="text-[#FF5C00]" strokeWidth={3} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="Actions"
+                onAction={(key) => {
+                  if (key === "new-list") onOpen();
+                }}
+                className="p-1"
               >
-                New Bookmark
-              </DropdownItem>
-              <DropdownItem
-                key="new-smart-list"
-                startContent={<Sparkles size={16} />}
-                className="text-blue-600 dark:text-[#00FF41] rounded-xl text-xs font-bold"
-              >
-                Smart Bookmark
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+                <DropdownItem
+                  key="new-list"
+                  startContent={<Plus size={16} />}
+                  className="rounded-xl text-xs font-bold dark:text-white"
+                >
+                  New Bookmark
+                </DropdownItem>
+                <DropdownItem
+                  key="new-smart-list"
+                  startContent={<Sparkles size={16} />}
+                  className="text-blue-600 dark:text-[#00FF41] rounded-xl text-xs font-bold"
+                >
+                  Smart Bookmark
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          )}
         </div>
 
         <Listbox

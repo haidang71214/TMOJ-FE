@@ -91,6 +91,10 @@ export default function ContestDetailPage() {
                             <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span>
                             <span>This contest <strong className="font-semibold text-slate-800 dark:text-slate-200">has no limit</strong> on the number of submissions.</span>
                           </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-red-500 dark:text-red-400 mt-1.5 text-[8px]">◆</span>
+                            <span className="text-red-600 dark:text-red-400 font-bold uppercase text-[13px]">Registration deadline: 8 hours before start.</span>
+                          </li>
                         </ul>
                       </div>
 

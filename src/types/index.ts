@@ -870,6 +870,8 @@ export interface ContestDto {
   visibilityCode: string; // Đổi từ visibility sang visibilityCode cho list
   allowTeams: boolean;
   status: string;
+  totalTeams?: number;
+  totalMembers?: number;
   contestType: string;
   isRegistered?: boolean;
   participants?: number; // Thêm nếu cần, từ UpcomingContests.tsx đang dùng (contest as any).participants
@@ -1088,6 +1090,13 @@ export interface ScoreboardResponseDTO {
   lastUpdated: string;
 }
 
+export interface ScoreboardResponse {
+  success: boolean;
+  data: ScoreboardResponseDTO;
+  message: string;
+  traceId: string | null;
+}
+
 // ── Team API Definitions ───────────────────────
 
 export interface CreateTeamRequest {
@@ -1117,15 +1126,21 @@ export interface TeamMember {
 }
 
 export interface TeamDetail {
-  id: string;
+  id?: string;
+  teamId: string;
+  contestId: string;
   teamName: string;
   avatarUrl?: string | null;
   leaderId: string;
   teamSize: number;
+  memberCount: number;
   isPersonal: boolean;
   inviteCode: string;
-  createdAt: string;
+  joinedAt: string;
+  createdAt?: string;
   members: TeamMember[];
+  rank: number | null;
+  score: number | null;
 }
 
 export interface TeamDetailResponse {

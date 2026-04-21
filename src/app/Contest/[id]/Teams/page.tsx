@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import {
   Users, User, Search, HelpCircle, UserPlus, Clock,
-  MapPin, Shield, Star, Crown, Mail, Copy
+  MapPin, Shield, Star, Mail, Copy
 } from "lucide-react";
 import {
   Table, TableHeader, TableColumn, TableBody,
@@ -186,9 +186,10 @@ export default function TeamsPage() {
                           <h2 className="text-3xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
                             {myTeamData.data.isPersonal ? (currentUser?.displayName || currentUser?.username || myTeamData.data.teamName) : myTeamData.data.teamName}
                           </h2>
-                          <div className="flex items-center justify-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">{currentUser?.email}</p>
+                          <div className="flex items-center justify-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest pt-2">
                             <Clock className="w-3.5 h-3.5" />
-                            Registered {new Date(myTeamData.data.createdAt).toLocaleDateString()}
+                            Registered {new Date(myTeamData.data.joinedAt || myTeamData.data.createdAt || Date.now()).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -234,20 +235,15 @@ export default function TeamsPage() {
 
                         <div className="relative">
                           <Avatar
-                            src={member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
+                            src={member.userId === currentUser?.userId ? (currentUser?.avatarUrl || `https://api.dicebear.com/7.x/open-peeps/svg?seed=${currentUser?.username}`) : (member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`)}
                             className="w-16 h-16 rounded-[22px] shadow-lg ring-4 ring-slate-50 dark:ring-slate-900 group-hover:ring-blue-500/20 transition-all"
                           />
-                          {member.userId === myTeamData.data?.leaderId && (
-                            <div className="absolute -top-2 -right-2 bg-warning p-1.5 rounded-xl shadow-lg text-white ring-2 ring-white dark:ring-[#1e293b]">
-                              <Crown size={12} />
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex flex-col flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 overflow-hidden">
                             <span className="font-[1000] text-slate-900 dark:text-white text-xl tracking-tighter leading-tight truncate">
-                              {member.displayName}
+                              {member.userId === currentUser?.userId ? (currentUser?.displayName || currentUser?.username) : member.displayName}
                             </span>
                           </div>
                           <span className="text-slate-400 text-xs font-black uppercase italic tracking-wider flex items-center gap-2">
@@ -260,11 +256,7 @@ export default function TeamsPage() {
                           <div className="mt-4 flex items-center gap-3">
                             <div className="flex items-center gap-1.5 text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
                               <Mail className="w-3 h-3 text-blue-500" />
-                              <span className="text-[10px] font-bold truncate max-w-[120px]">{member.email}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
-                              <Shield className="w-3 h-3 text-emerald-500" />
-                              <span className="text-[10px] font-bold">{member.userId === myTeamData.data?.leaderId ? "Leader" : "Member"}</span>
+                              <span className="text-[10px] font-bold truncate max-w-[120px]">{member.userId === currentUser?.userId ? currentUser?.email : member.email}</span>
                             </div>
                           </div>
                         </div>

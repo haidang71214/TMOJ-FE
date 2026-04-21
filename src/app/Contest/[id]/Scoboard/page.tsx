@@ -1,83 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Trophy, RefreshCcw, Download, Clock, ShieldCheck, Lock 
+import React, { useState, useEffect } from "react";
+import {
+  Trophy, RefreshCcw, Download, Clock, ShieldCheck, Lock, Search, HelpCircle
 } from "lucide-react";
-import { 
-  Button, Table, TableHeader, TableColumn, TableBody, 
-  TableRow, TableCell, Avatar, Tooltip 
+import {
+  Button, Table, TableHeader, TableColumn, TableBody,
+  TableRow, TableCell, Avatar, Tooltip, Spinner
 } from "@heroui/react";
-import type { ScoreboardResponseDTO, ProblemAttemptDTO } from "./dto";
-
-const mockData: ScoreboardResponseDTO = {
-  contestId: "1",
-  contestName: "ICPC 2023 vòng Regional",
-  status: "running",
-  frozen: false,
-  problems: [
-    { id: "A", title: "Area Query", solvedCount: 12, totalAttempts: 45},
-    { id: "B", title: "Backbone Network", solvedCount: 4, totalAttempts: 32},
-    { id: "C", title: "Coloring Polygon", solvedCount: 0, totalAttempts: 15},
-    { id: "D", title: "Distinctive Number", solvedCount: 18, totalAttempts: 25},
-    { id: "E", title: "Even Paths", solvedCount: 1, totalAttempts: 8 },
-  ],
-  rows: [
-    {
-      rank: 1, userId: "u1", username: "FPTU_Win", fullname: "Đội FPTU 1",
-      totalSolved: 4, totalPenalty: 345,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 15 },
-        { problemId: "B", isSolved: true, isFirstBlood: false, attemptsCount: 3, penaltyTime: 120 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 4 },
-        { problemId: "D", isSolved: true, isFirstBlood: false, attemptsCount: 1, penaltyTime: 40 },
-        { problemId: "E", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 130 },
-      ]
-    },
-    {
-      rank: 2, userId: "u2", username: "HCMUS_Alpha", fullname: "Đội KHTN",
-      totalSolved: 3, totalPenalty: 210,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 25 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 5 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "D", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 12 },
-        { problemId: "E", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 153 },
-      ]
-    },
-    {
-      rank: 3, userId: "u3", username: "haidang71214", fullname: "Hải Đăng",
-      totalSolved: 2, totalPenalty: 85,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 1, penaltyTime: 35 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 2, pendingCount: 1 },
-        { problemId: "D", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 30 },
-        { problemId: "E", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-      ]
-    },
-    {
-      rank: 4, userId: "u4", username: "HUST_Avengers", fullname: "Đội Bách Khoa",
-      totalSolved: 1, totalPenalty: 60,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 3, penaltyTime: 20 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 1 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "D", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "E", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-      ]
-    }
-  ],
-  lastUpdated: "2026-03-21T10:23:32+07:00"
-};
+import {
+  useGetScoreboardQuery,
+  useFreezeContestMutation,
+  useUnfreezeContestMutation
+} from "@/store/queries/Contest";
+import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { UserRole } from "@/types";
+import { toast } from "sonner";
+import ContestHeader from "../components/ContestHeader";
+import type { ScoreboardResponseDTO, ProblemAttemptDTO, ScoreboardRowDTO } from "./dto";
 
 export default function ScoreboardPage() {
-  const [data] = useState<ScoreboardResponseDTO>(mockData);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const params = useParams();
+  const contestId = params.id as string;
+
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const role = currentUser?.role?.toLowerCase();
+  const isAdminOrManager = role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.TEACHER;
+
+  const { data: scoreboardData, isLoading, refetch, isFetching } = useGetScoreboardQuery(contestId);
+  const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
+  const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
+
+  const data = scoreboardData;
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
+    refetch();
+  };
+
+  const handleFreezeToggle = async () => {
+    if (!data) return;
+    try {
+      if (data.frozen) {
+        await unfreezeContest(contestId).unwrap();
+        toast.success("Đã mở băng bảng xếp hạng!");
+      } else {
+        await freezeContest(contestId).unwrap();
+        toast.success("Đã đóng băng bảng xếp hạng!");
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Thao tác thất bại");
+    }
   };
 
   const renderProblemCell = (attempt: ProblemAttemptDTO | undefined) => {
@@ -115,14 +89,28 @@ export default function ScoreboardPage() {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="w-full h-[80vh] flex flex-col items-center justify-center gap-4">
+        <Spinner size="lg" color="primary" />
+        <p className="text-slate-500 font-medium italic animate-pulse">Đang tải bảng xếp hạng...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="p-20 text-center font-bold">Không tìm thấy dữ liệu bảng xếp hạng.</div>;
+  }
+
   return (
-    <div className="w-full pb-20 text-slate-800 dark:text-slate-200">
+    <div className="w-full pb-20 text-slate-800 dark:text-slate-200 animate-in fade-in duration-500">
+      <ContestHeader contestId={contestId} />
 
       {/* SCOREBOARD TOOLBAR */}
       <div className="bg-white dark:bg-[#1e293b]/70 border-b border-slate-200 dark:border-slate-800 py-4 shadow-sm relative z-10 transition-all">
         <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
+
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 text-[#F26F21] font-semibold text-lg">
                 <Trophy className="w-5 h-5" />
@@ -147,16 +135,16 @@ export default function ScoreboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button 
-                variant="flat" 
+              <Button
+                variant="flat"
                 color="default"
                 className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium h-9"
-                startContent={<RefreshCcw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />}
+                startContent={<RefreshCcw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />}
                 onClick={handleRefresh}
               >
                 Refresh
               </Button>
-              <Button 
+              <Button
                 className="bg-[#F26F21] hover:bg-[#d95b16] text-white font-medium shadow-sm shadow-[#F26F21]/20 h-9"
                 startContent={<Download className="w-4 h-4" />}
                 radius="sm"
@@ -172,8 +160,8 @@ export default function ScoreboardPage() {
       {/* SCOREBOARD TABLE */}
       <div className="w-full max-w-[1500px] mx-auto mt-6 px-4 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/80 overflow-x-auto overflow-y-hidden">
-          <Table 
-            aria-label="Scoreboard table" 
+          <Table
+            aria-label="Scoreboard table"
             removeWrapper
             classNames={{
               base: "min-w-max",
@@ -191,10 +179,10 @@ export default function ScoreboardPage() {
             ]}>
               {(column) => (
                 <TableColumn key={column.key} className={
-                  column.key === "rank" ? "w-[60px]" : 
-                  column.key === "participant" ? "w-[280px] !text-left pl-6" : 
-                  column.key === "total" ? "w-[80px]" : 
-                  "w-[70px] px-2"
+                  column.key === "rank" ? "w-[60px]" :
+                    column.key === "participant" ? "w-[280px] !text-left pl-6" :
+                      column.key === "total" ? "w-[80px]" :
+                        "w-[70px] px-2"
                 }>
                   {column.isProblem && 'data' in column && column.data ? (
                     <Tooltip content={column.data.title} placement="top" className="text-xs">
@@ -208,8 +196,8 @@ export default function ScoreboardPage() {
               )}
             </TableHeader>
 
-            <TableBody items={data.rows}>
-              {(row) => (
+            <TableBody items={data.rows || []} emptyContent="No rankings found.">
+              {(row: ScoreboardRowDTO) => (
                 <TableRow key={row.userId}>
                   {(columnKey) => {
                     if (columnKey === "rank") {
@@ -225,10 +213,10 @@ export default function ScoreboardPage() {
                       return (
                         <TableCell>
                           <div className="flex items-center gap-3 w-full h-full px-6 min-h-[50px]">
-                            <Avatar 
-                              name={row.username.charAt(0)} 
-                              src={row.avatarUrl} 
-                              size="sm" 
+                            <Avatar
+                              name={row.username.charAt(0)}
+                              src={row.avatarUrl}
+                              size="sm"
                               className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 w-8 h-8 text-xs"
                             />
                             <div className="flex flex-col">

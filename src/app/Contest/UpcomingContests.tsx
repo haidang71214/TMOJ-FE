@@ -170,8 +170,14 @@ export default function UpcomingContests() {
       const res = await joinContestByCode({ inviteCode: inviteCode.trim() }).unwrap();
       toast.success(res.message || "Joined contest successfully!");
       setInviteCode("");
-      // Refresh my contests list to reflect the new registration
-      setSelectedTab("my");
+
+      // Redirect to the contest page
+      const targetId = res?.data?.contestId || res?.data?.id || res?.data;
+      if (targetId && typeof targetId === 'string') {
+        router.push(`/Contest/${targetId}`);
+      } else {
+        setSelectedTab("my");
+      }
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to join contest. Check your code.");
     }

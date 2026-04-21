@@ -193,6 +193,9 @@ const ContestEndpoint = {
   JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
   JOIN_CONTEST_BY_CODE: `${API_PREFIX}/contests/join-by-code`,
   GET_CONTEST_PARTICIPANTS: `${API_PREFIX}/contests/{id}/participants`,
+  GET_SCOREBOARD: `${API_PREFIX}/contests/{id}/scoreboard`,
+  FREEZE_CONTEST: `${API_PREFIX}/contests/{id}/freeze`,
+  UNFREEZE_CONTEST: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
 };
 

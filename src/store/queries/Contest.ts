@@ -22,6 +22,7 @@ import {
   ContestParticipantsResponse,
   JoinContestByCodeRequest,
   MyTeamResponse,
+  ScoreboardResponseDTO,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -234,7 +235,31 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Team", id: `myTeam_${id}` }],
+      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }],
+    }),
+    // 27. Lấy Scoreboard
+    getScoreboard: builder.query<ScoreboardResponseDTO, string>({
+      query: (id) => ({
+        url: ContestEndpoint.GET_SCOREBOARD.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Contest", id: `scoreboard_${id}` }],
+    }),
+    // 28. Freeze Contest
+    freezeContest: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.FREEZE_CONTEST.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
+    }),
+    // 29. Unfreeze Contest
+    unfreezeContest: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.UNFREEZE_CONTEST.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
   }),
 });
@@ -260,4 +285,7 @@ export const {
   useGetContestParticipantsQuery,
   useJoinContestByCodeMutation,
   useGetMyTeamInContestQuery,
+  useGetScoreboardQuery,
+  useFreezeContestMutation,
+  useUnfreezeContestMutation,
 } = contestApi;

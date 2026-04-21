@@ -2,282 +2,272 @@
 
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
-import { 
-  Trophy, Search, Filter, HelpCircle 
+import {
+  Users, Search, HelpCircle, UserPlus, Clock,
+  MapPin, Shield, Star, Crown, Mail, Copy
 } from "lucide-react";
-import { 
-  Table, TableHeader, TableColumn, TableBody, 
-  TableRow, TableCell, Avatar, Tooltip, Input, Checkbox
+import {
+  Table, TableHeader, TableColumn, TableBody,
+  TableRow, TableCell, Avatar, Tooltip, Input, Button, Spinner,
+  Card, CardBody, Chip
 } from "@heroui/react";
-import type { ScoreboardResponseDTO, ProblemAttemptDTO } from "../Scoboard/dto";
-
-const mockData: ScoreboardResponseDTO = {
-  contestId: "1",
-  contestName: "ICPC 2023 Regional",
-  status: "running",
-  frozen: false,
-  problems: [
-    { id: "A", title: "Area Query", solvedCount: 12, totalAttempts: 45 },
-    { id: "B", title: "Backbone Network", solvedCount: 4, totalAttempts: 32 },
-    { id: "C", title: "Coloring Polygon", solvedCount: 0, totalAttempts: 15 },
-    { id: "D", title: "Distinctive Number", solvedCount: 18, totalAttempts: 25 },
-    { id: "E", title: "Even Paths", solvedCount: 1, totalAttempts: 8 },
-  ],
-  rows: [
-    {
-      rank: 1, userId: "u1", username: "FPTU_Win", fullname: "FPTU Team 1",
-      totalSolved: 4, totalPenalty: 345,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 15 },
-        { problemId: "B", isSolved: true, isFirstBlood: false, attemptsCount: 3, penaltyTime: 120 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 4 },
-        { problemId: "D", isSolved: true, isFirstBlood: false, attemptsCount: 1, penaltyTime: 40 },
-        { problemId: "E", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 130 },
-      ]
-    },
-    {
-      rank: 2, userId: "u2", username: "HCMUS_Alpha", fullname: "HCMUS Team",
-      totalSolved: 3, totalPenalty: 210,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 25 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 5 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "D", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 12 },
-        { problemId: "E", isSolved: true, isFirstBlood: true, attemptsCount: 1, penaltyTime: 153 },
-      ]
-    },
-    {
-      rank: 3, userId: "u3", username: "haidang71214", fullname: "Hai Dang",
-      totalSolved: 2, totalPenalty: 85,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 1, penaltyTime: 35 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 2, pendingCount: 1 },
-        { problemId: "D", isSolved: true, isFirstBlood: false, attemptsCount: 2, penaltyTime: 30 },
-        { problemId: "E", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-      ]
-    },
-    {
-      rank: 4, userId: "u4", username: "HUST_Avengers", fullname: "HUST Team",
-      totalSolved: 1, totalPenalty: 60,
-      problems: [
-        { problemId: "A", isSolved: true, isFirstBlood: false, attemptsCount: 3, penaltyTime: 20 },
-        { problemId: "B", isSolved: false, isFirstBlood: false, attemptsCount: 1 },
-        { problemId: "C", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "D", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-        { problemId: "E", isSolved: false, isFirstBlood: false, attemptsCount: 0 },
-      ]
-    }
-  ],
-  lastUpdated: new Date().toISOString()
-};
+import {
+  useGetMyTeamInContestQuery,
+  useGetContestParticipantsQuery,
+  useGetContestDetailQuery
+} from "@/store/queries/Contest";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { UserRole } from "@/types";
+import { toast } from "sonner";
+import ContestHeader from "../components/ContestHeader";
 
 export default function TeamsPage() {
   const params = useParams();
   const contestId = params.id as string;
-  const [data] = useState<ScoreboardResponseDTO>(mockData);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showOrg, setShowOrg] = useState(false);
 
-  // Filter rows
-  let filteredRows = data.rows;
-  if (searchQuery.trim() !== "") {
-    filteredRows = data.rows.filter(r => 
-      r.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (r.fullname && r.fullname.toLowerCase().includes(searchQuery.toLowerCase()))
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const role = currentUser?.role?.toLowerCase();
+  const isAdminOrAuthorized = role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.TEACHER;
+
+  // Requests
+  const { data: myTeamData, isLoading: isLoadingMyTeam } = useGetMyTeamInContestQuery(contestId, {
+    skip: isAdminOrAuthorized
+  });
+  const { data: participantsData, isLoading: isLoadingParticipants } = useGetContestParticipantsQuery(contestId, {
+    skip: !isAdminOrAuthorized
+  });
+  const { data: contestData } = useGetContestDetailQuery(contestId);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isLoading = isAdminOrAuthorized ? isLoadingParticipants : isLoadingMyTeam;
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <ContestHeader contestId={contestId} />
+        <div className="w-full h-[60vh] flex flex-col items-center justify-center gap-4">
+          <Spinner size="lg" color="primary" />
+          <p className="text-slate-500 font-medium animate-pulse italic">Đang tải dữ liệu đội thi...</p>
+        </div>
+      </div>
     );
   }
 
-  const renderProblemCell = (attempt: ProblemAttemptDTO | undefined) => {
-    if (!attempt || (attempt.attemptsCount === 0 && !attempt.pendingCount)) {
-      return <div className="w-full h-full min-h-[50px]"></div>;
-    }
-
-    if (attempt.isSolved) {
-      const classes = attempt.isFirstBlood
-        ? "bg-[#10b981] text-white shadow-inner"
-        : "bg-emerald-400 text-white dark:bg-emerald-500/20";
-      return (
-        <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 rounded-sm ${classes}`}>
-          <span className="font-bold text-[14px]">
-            {attempt.attemptsCount > 1 ? `+${attempt.attemptsCount - 1}` : "+"}
-          </span>
-          <span className="text-[11px] opacity-90">{attempt.penaltyTime}</span>
-        </div>
-      );
-    }
-
-    if (attempt.pendingCount && attempt.pendingCount > 0) {
-      return (
-        <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 bg-indigo-500 text-white dark:bg-indigo-500/40 rounded-sm">
-          <span className="font-bold text-[14px] animate-pulse">?</span>
-          <span className="text-[11px] opacity-80">{attempt.attemptsCount} + {attempt.pendingCount}</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 bg-rose-400 text-white dark:bg-rose-500/20 rounded-sm">
-        <span className="font-bold text-[14px]">-{attempt.attemptsCount}</span>
-      </div>
-    );
-  };
-
   return (
     <div className="w-full text-slate-800 dark:text-slate-200 pb-20">
+      <ContestHeader contestId={contestId} />
 
-      {/* TEAMS CONTENT */}
-      <div className="w-full max-w-[1500px] mx-auto mt-6 px-4 sm:px-6 lg:px-8 space-y-6">
-        
-        {/* Filters and Search Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between w-full">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <Input 
-              classNames={{
-                base: "max-w-[300px]",
-                inputWrapper: "bg-white dark:bg-[#1e293b] border border-slate-300 dark:border-slate-700 shadow-sm rounded-md h-10",
-                input: "text-[14px]"
-              }}
-              placeholder="Search participant..."
-              startContent={<Search className="w-4 h-4 text-slate-400" />}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      {/* MAIN CONTENT AREA */}
+      <div className="w-full max-w-[1500px] mx-auto mt-6 px-4 sm:px-6 lg:px-8">
 
-            <Checkbox 
-              isSelected={showOrg}
-              onValueChange={setShowOrg}
-              classNames={{
-                label: "text-[14px] text-slate-700 dark:text-slate-300 font-medium"
-              }}
-              color="primary"
-            >
-              Show name/organization
-            </Checkbox>
-          </div>
-
-          <Tooltip 
-            content={
-              <div className="w-[180px] bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 rounded-md shadow-lg overflow-hidden text-[13px] font-medium text-center">
-                <div className="bg-[#18181b] text-white py-2 font-semibold">Cell Color</div>
-                <div className="bg-[#10b981] text-white py-2 border-b border-white/20">First Blood</div>
-                <div className="bg-emerald-400 text-white dark:bg-emerald-500/20 py-2 border-b border-white/20">Solved</div>
-                <div className="bg-rose-400 text-white dark:bg-rose-500/20 py-2 border-b border-white/20">Attempted, Incorrect</div>
-                <div className="bg-indigo-500 text-white dark:bg-indigo-500/40 py-2 border-b border-slate-200 dark:border-slate-700">Attempted, Pending</div>
-                <div className="bg-white dark:bg-[#1e293b] text-slate-500 py-2">Unattempted</div>
+        {isAdminOrAuthorized ? (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">
+                  <Users className="w-6 h-6 text-blue-600" />
+                  Contest Participants
+                </h2>
+                <p className="text-slate-500 text-sm mt-1">Danh sách tất cả các đội thi và thí sinh tham gia.</p>
               </div>
-            }
-            classNames={{
-              base: "p-0 bg-transparent shadow-none",
-              content: "p-0 bg-transparent outline-none overflow-hidden"
-            }}
-            placement="bottom-end"
-            delay={100}
-          >
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-              <HelpCircle className="w-4 h-4" />
-              <span className="text-[13px] font-medium">Legend</span>
-            </button>
-          </Tooltip>
-        </div>
 
-        {/* SCOREBOARD TABLE */}
-        <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-sm border border-slate-200 dark:border-slate-800/80 overflow-x-auto overflow-y-hidden">
-          <Table 
-            aria-label="Teams table" 
-            removeWrapper
-            classNames={{
-              base: "min-w-max",
-              table: "min-w-max border-collapse",
-              th: "bg-[#18181b] dark:bg-[#0f172a] text-white dark:text-slate-300 font-semibold text-[13px] tracking-wider py-4 first:rounded-none last:rounded-none border-b border-r border-slate-700 dark:border-slate-800 last:border-r-0 text-center whitespace-nowrap",
-              td: "p-0 border-b border-r border-slate-200 dark:border-slate-800/50 last:border-r-0 text-sm align-middle h-full",
-              tr: "hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group",
-            }}
-          >
-            <TableHeader columns={[
-              { key: "rank", label: "Rank", isProblem: false },
-              { key: "participant", label: "Username" + (showOrg ? " / Orgs" : ""), isProblem: false },
-              { key: "total", label: "Score", isProblem: false },
-              { key: "penalty", label: "Penalty", isProblem: false },
-              ...data.problems.map(p => ({ key: p.id, label: p.id, isProblem: true as const, data: p }))
-            ]}>
-              {(column) => (
-                <TableColumn key={column.key} className={
-                  column.key === "rank" ? "w-[60px]" : 
-                  column.key === "participant" ? "w-[280px] !text-left pl-6" : 
-                  column.key === "total" || column.key === "penalty" ? "w-[80px]" : 
-                  "w-[70px] px-2 font-bold text-[16px]"
-                }>
-                  {column.label}
-                </TableColumn>
-              )}
-            </TableHeader>
+              <Input
+                classNames={{
+                  base: "max-w-[300px]",
+                  inputWrapper: "bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl h-11",
+                }}
+                placeholder="Search teams or users..."
+                startContent={<Search className="w-4 h-4 text-slate-400" />}
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+              />
+            </div>
 
-            <TableBody>
-              {/* Data Rows */}
-              {filteredRows.map((row) => (
-                <TableRow key={row.userId}>
-                  {[
-                    "rank", "participant", "total", "penalty",
-                    ...data.problems.map(p => p.id)
-                  ].map((columnKey) => {
-                    if (columnKey === "rank") {
-                      return (
-                        <TableCell key={columnKey}>
-                          <div className="flex justify-center items-center w-full h-full min-h-[50px]">
-                            <span className="font-medium text-[15px]">{row.rank}</span>
-                          </div>
-                        </TableCell>
-                      );
-                    }
-                    if (columnKey === "participant") {
-                      return (
-                        <TableCell key={columnKey}>
-                          <div className="flex items-center gap-3 w-full h-full px-6 min-h-[50px]">
-                            {showOrg && (
-                                <Avatar 
-                                name={row.username.charAt(0)} 
-                                size="sm" 
-                                className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 w-7 h-7 text-xs"
-                                />
-                            )}
+            <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800/80 overflow-hidden">
+              <Table
+                aria-label="Participants table"
+                removeWrapper
+                classNames={{
+                  th: "bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest py-5 border-b border-slate-100 dark:border-slate-800",
+                  td: "py-4 border-b border-slate-50 dark:border-slate-800/50",
+                  tr: "hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                }}
+              >
+                <TableHeader>
+                  <TableColumn className="pl-8">TEAM NAME</TableColumn>
+                  <TableColumn>MEMBERS</TableColumn>
+                  <TableColumn>JOIN DATE</TableColumn>
+                  <TableColumn className="text-center pr-8">RANK</TableColumn>
+                </TableHeader>
+                <TableBody emptyContent="No participants found.">
+                  {(participantsData?.data.teams || [])
+                    .filter(t => t.teamName.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((team) => (
+                      <TableRow key={team.teamId}>
+                        <TableCell className="pl-8">
+                          <div className="flex items-center gap-4">
+                            <Avatar
+                              src={team.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${team.teamName}`}
+                              className="w-10 h-10 rounded-xl"
+                            />
                             <div className="flex flex-col">
-                              <span className="font-semibold text-[#185adb] dark:text-sky-400 text-[14.5px] cursor-pointer hover:underline">
-                                {showOrg ? (row.fullname || row.username) : row.username}
+                              <span className="font-bold text-slate-900 dark:text-white capitalize leading-none mb-1">{team.teamName}</span>
+                              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-tighter">
+                                {team.isPersonal ? "Solo Participant" : `Team • ${team.members.length} Members`}
                               </span>
                             </div>
                           </div>
                         </TableCell>
-                      );
-                    }
-                    if (columnKey === "total") {
-                      return (
-                        <TableCell key={columnKey}>
-                          <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px]">
-                            <span className="font-bold text-[15px] text-slate-800 dark:text-slate-200">{row.totalSolved}</span>
+                        <TableCell>
+                          <div className="flex -space-x-2">
+                            {team.members.map((m) => (
+                              <Tooltip key={m.userId} content={m.displayName} placement="top">
+                                <Avatar
+                                  src={m.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.username}`}
+                                  className="w-8 h-8 border-2 border-white dark:border-[#1e293b]"
+                                />
+                              </Tooltip>
+                            ))}
                           </div>
                         </TableCell>
-                      );
-                    }
-                    if (columnKey === "penalty") {
-                      return (
-                        <TableCell key={columnKey}>
-                          <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px]">
-                            <span className="text-[14px] text-slate-500 font-medium">{row.totalPenalty}</span>
-                          </div>
+                        <TableCell>
+                          <span className="text-sm font-medium text-slate-500">
+                            {team.joinAt ? new Date(team.joinAt).toLocaleDateString() : "N/A"}
+                          </span>
                         </TableCell>
-                      );
-                    }
-                    const attempt = row.problems.find((ap) => ap.problemId === columnKey);
-                    return <TableCell key={columnKey}>{renderProblemCell(attempt)}</TableCell>;
-                  })}
-                </TableRow>
-              ))}
+                        <TableCell className="text-center pr-8">
+                          <Chip
+                            variant="flat"
+                            color="primary"
+                            className="font-bold"
+                            size="sm"
+                          >
+                            #{team.rank || "-"}
+                          </Chip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            {myTeamData?.data ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Team Card */}
+                <div className="lg:col-span-1">
+                  <div className="bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm space-y-6 relative overflow-hidden h-fit">
+                    <div className="absolute top-0 right-0 p-4">
+                      <Chip className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 font-black uppercase italic text-[10px]" size="sm">
+                        MY TEAM
+                      </Chip>
+                    </div>
 
-            </TableBody>
-          </Table>
-        </div>
+                    <div className="flex flex-col items-center text-center space-y-4 pt-4">
+                      <Avatar
+                        src={myTeamData.data.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${myTeamData.data.teamName}`}
+                        className="w-24 h-24 rounded-[32px] shadow-xl border-4 border-white dark:border-slate-800"
+                      />
+                      <div>
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                          {myTeamData.data.teamName}
+                        </h2>
+                        <div className="mt-2 flex items-center justify-center gap-2 text-slate-400 text-xs font-medium uppercase tracking-widest">
+                          <Clock className="w-3.5 h-3.5" />
+                          Joined {new Date(myTeamData.data.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Status</p>
+                        <p className="text-emerald-500 font-bold text-sm uppercase italic">Confirmed</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Members</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-sm italic tracking-tighter">
+                          {myTeamData.data?.members.length} / {myTeamData.data?.teamSize}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Invite Code</p>
+                      <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                        <span className="font-mono font-bold text-lg text-slate-900 dark:text-white tracking-widest pl-2">
+                          {myTeamData.data?.inviteCode}
+                        </span>
+                        <Button size="sm" isIconOnly variant="light"
+                          onClick={() => {
+                            if (myTeamData.data?.inviteCode) {
+                              navigator.clipboard.writeText(myTeamData.data.inviteCode);
+                              toast.success("Mã mời đã được sao chép!");
+                            }
+                          }}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Members List */}
+                <div className="lg:col-span-2 space-y-6">
+                  <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">
+                    <Users className="w-6 h-6 text-blue-600" />
+                    Team Roster
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {myTeamData.data.members.map((member) => (
+                      <div key={member.userId} className="group bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all flex items-center gap-4 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/[0.02] rounded-bl-full pointer-events-none group-hover:bg-blue-500/[0.05] transition-colors"></div>
+                        <Avatar
+                          src={member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
+                          className="w-14 h-14 rounded-2xl shadow-md"
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight leading-tight">
+                            {member.displayName}
+                          </span>
+                          <span className="text-slate-400 text-xs font-medium">@{member.username}</span>
+                          <div className="mt-2">
+                            {member.userId === myTeamData.data?.leaderId ? (
+                              <Chip color="warning" variant="flat" size="sm" className="text-[9px] font-black uppercase italic" startContent={<Crown className="w-3 h-3" />}>Leader</Chip>
+                            ) : (
+                              <Chip color="default" variant="flat" size="sm" className="text-[9px] font-black uppercase italic">Member</Chip>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
+                <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-blue-600 dark:text-sky-400">
+                  <Users className="w-10 h-10" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">You are not in a team</h2>
+                  <p className="text-slate-500 font-medium max-w-sm mx-auto">Bạn chưa đăng ký tham gia đội nào cho cuộc thi này. Hãy quay lại trang thông tin để đăng ký.</p>
+                </div>
+                <Button
+                  as="a"
+                  href={`/Contest/${contestId}`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 px-8 shadow-lg shadow-blue-600/20"
+                >
+                  QUAY LẠI TRANG THÔNG TIN
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

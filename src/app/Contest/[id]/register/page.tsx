@@ -195,12 +195,15 @@ export default function ContestRegistrationPage() {
     try {
       // First try to join contest (assuming it might be a general contest invite)
       try {
-        await joinContestByCode({ inviteCode: code }).unwrap();
+        const res = await joinContestByCode({ inviteCode: code }).unwrap();
         toast.success("Joined contest successfully!");
+        const targetId = res?.data?.contestId || res?.data?.id || res?.data || contestId;
+        router.push(`/Contest/${targetId}`);
       } catch (err) {
         // If it fails, it might be a specific team invite code
         await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
         toast.success("Joined team! The leader will register for the contest.");
+        router.push(`/Contest/${contestId}`);
       }
 
       // Clear code and state will be recovered by myTeamResult

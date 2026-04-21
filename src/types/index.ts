@@ -1050,6 +1050,44 @@ export interface LeaderboardResponse {
   teams: LeaderboardTeam[];
 }
 
+export interface ProblemAttemptDTO {
+  problemId: string;
+  isSolved: boolean;
+  isFirstBlood: boolean;
+  attemptsCount: number;
+  penaltyTime?: number;
+  pendingCount?: number;
+}
+
+export interface ScoreboardRowDTO {
+  rank: number;
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  fullname?: string;
+  totalSolved: number;
+  totalPenalty: number;
+  problems: ProblemAttemptDTO[];
+}
+
+export interface ContestProblemHeaderDTO {
+  id: string;
+  title: string;
+  balloonColor?: string;
+  solvedCount: number;
+  totalAttempts: number;
+}
+
+export interface ScoreboardResponseDTO {
+  contestId: string;
+  contestName: string;
+  status: "upcoming" | "running" | "ended";
+  frozen: boolean;
+  problems: ContestProblemHeaderDTO[];
+  rows: ScoreboardRowDTO[];
+  lastUpdated: string;
+}
+
 // ── Team API Definitions ───────────────────────
 
 export interface CreateTeamRequest {
@@ -1224,6 +1262,7 @@ export interface ContestParticipantMember {
 export interface ContestParticipantTeam {
   teamId: string;
   teamName: string;
+  avatarUrl?: string | null;
   isPersonal: boolean;
   leaderId: string;
   joinAt: string;

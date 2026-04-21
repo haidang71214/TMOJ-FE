@@ -16,6 +16,7 @@ import {
   Tab,
   Spinner,
 } from "@heroui/react";
+import { useEffect } from "react";
 import {
   Search,
   Plus,
@@ -30,6 +31,7 @@ import {
   Copy,
   Users,
 } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import CreateListModal from "./CreateListModal";
 import DeleteModal from "./../../components/DeleteModal";
 import {
@@ -40,6 +42,9 @@ import {
   useCopyCollectionMutation
 } from "@/store/queries/collections";
 import { useGetFavoriteProblemsQuery, useGetFavoriteContestsQuery } from "@/store/queries/favorites";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "@/app/Modal/LoginModal";
 import { toast } from "sonner";
 import { CollectionItem } from "@/types";
 
@@ -47,6 +52,7 @@ export default function MyListsPage() {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const deleteModal = useDisclosure();
+  const { language } = useTranslation();
 
   const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -57,19 +63,38 @@ export default function MyListsPage() {
   const [page, setPage] = useState(1);
   const [explorePage, setExplorePage] = useState(1);
   const rowsPerPage = 5;
+  const { openModal } = useModal();
 
-  const { data: collectionsResponse, isLoading } = useGetCollectionsQuery();
+  const { data: user, isLoading: isUserLoading, isError: isUserError } = useGetUserInformationQuery();
+  const { data: collectionsResponse, isLoading } = useGetCollectionsQuery(undefined, {
+    skip: !user && !isUserLoading && !isUserError
+  });
   const { data: publicCollectionsResponse, isLoading: isPublicLoading } = useGetPublicCollectionsQuery({
     page: explorePage,
     pageSize: rowsPerPage,
     search: activeTab === "explore" ? searchQuery : undefined
   }, { skip: activeTab !== "explore" });
-  const { data: favoriteProblems } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 1 });
-  const { data: favoriteContests } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1 });
 
   const [deleteCollection, { isLoading: isDeleting }] = useDeleteCollectionMutation();
   const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
   const [copyCollection, { isLoading: isCopying }] = useCopyCollectionMutation();
+
+  useEffect(() => {
+    // Nếu đã load xong mà không có user hoặc gặp lỗi profile (chưa login)
+    if (!isUserLoading && (!user || isUserError)) {
+      if (activeTab === "my") {
+        setActiveTab("explore");
+      }
+
+      const timer = setTimeout(() => {
+        openModal({
+          title: language === 'vi' ? "Đăng nhập" : "Sign In",
+          content: <LoginModal />
+        });
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user, isUserLoading, isUserError, activeTab, openModal, language]);
 
   const rawCollections: any = collectionsResponse?.data;
   const collectionsData = Array.isArray(rawCollections)

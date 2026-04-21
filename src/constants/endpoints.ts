@@ -14,6 +14,8 @@ const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,
   UPDATE_INFOMATION: `${API_PREFIX}/users/profile`,
   UPDATE_ME: `${API_PREFIX}/User/me`,
+  UPDATE_AVATAR: `${API_PREFIX}/User/me/avatar`,
+  DELETE_AVATAR: `${API_PREFIX}/User/me/avatar`,
 }
 const AdminUserEndPoint = {
   GET_LIST_USER: `${API_PREFIX}/User/list-all`, // bệt đuôi api vô

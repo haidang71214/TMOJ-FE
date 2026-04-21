@@ -75,6 +75,9 @@ export default function MyListsPage() {
     search: activeTab === "explore" ? searchQuery : undefined
   }, { skip: activeTab !== "explore" });
 
+  const { data: favProblemsResponse, isLoading: favProblemsLoading } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 100 }, { skip: !user });
+  const { data: favContestsResponse, isLoading: favContestsLoading } = useGetFavoriteContestsQuery({ page: 1, pageSize: 100 }, { skip: !user });
+
   const [deleteCollection, { isLoading: isDeleting }] = useDeleteCollectionMutation();
   const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
   const [copyCollection, { isLoading: isCopying }] = useCopyCollectionMutation();
@@ -104,6 +107,36 @@ export default function MyListsPage() {
   // FILTER & SORT LOGIC
   const processedData = useMemo(() => {
     let result = [...collectionsData];
+
+    // Thêm các mục Favorites vào danh sách "cá nhân" nếu đang ở tab "my"
+    if (activeTab === "my" && !searchQuery) {
+      if (favProblemsResponse?.data?.length) {
+        result.unshift({
+          id: "fav-problems",
+          name: "Favorite Problems",
+          description: "All problems you have liked",
+          isVisibility: false,
+          type: "problem_favorite",
+          itemsCount: favProblemsResponse?.data?.length,
+          updatedAt: new Date().toISOString(),
+          isSpecial: true,
+          route: "/Problems/MyLists/favorites/problems"
+        } as any);
+      }
+      if (favContestsResponse?.data?.length) {
+        result.unshift({
+          id: "fav-contests",
+          name: "Favorite Contests",
+          description: "All contests you have liked",
+          isVisibility: false,
+          type: "heart",
+          itemsCount: favContestsResponse?.data?.length,
+          updatedAt: new Date().toISOString(),
+          isSpecial: true,
+          route: "/Problems/MyLists/favorites/contests"
+        } as any);
+      }
+    }
 
     // 1. Filter
     if (searchQuery) {

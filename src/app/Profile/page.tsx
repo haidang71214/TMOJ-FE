@@ -29,6 +29,8 @@ import {
   Flame,
   Lock,
   Mail,
+  MessageSquare,
+  MoreVertical,
   Presentation,
   Star,
   User,
@@ -668,14 +670,15 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </Tab>
-              <Tab key="solutions" title="Solutions">
-                <div className="p-10 text-center text-slate-400 italic font-black uppercase text-xs">
-                  No solutions published yet.
-                </div>
-              </Tab>
-              <Tab key="discuss" title="Discuss">
-                <div className="p-10 text-center text-slate-400 italic font-black uppercase text-xs">
-                  No discussions yet.
+              <Tab key="discussion" title="Discussion">
+                <div className="p-12 text-center space-y-4">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                    <MessageSquare size={32} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-black uppercase italic text-slate-400">No discussions participated yet</p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Start a discussion on a problem page to see it here</p>
+                  </div>
                 </div>
               </Tab>
             </Tabs>

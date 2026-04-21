@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  Users, Search, HelpCircle, UserPlus, Clock,
+  Users, User, Search, HelpCircle, UserPlus, Clock,
   MapPin, Shield, Star, Crown, Mail, Copy
 } from "lucide-react";
 import {
@@ -156,91 +156,116 @@ export default function TeamsPage() {
         ) : (
           <div className="space-y-8 animate-in fade-in duration-500">
             {myTeamData?.data ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* Team Card */}
                 <div className="lg:col-span-1">
-                  <div className="bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm space-y-6 relative overflow-hidden h-fit">
-                    <div className="absolute top-0 right-0 p-4">
-                      <Chip className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 font-black uppercase italic text-[10px]" size="sm">
-                        MY TEAM
-                      </Chip>
-                    </div>
+                  <Card className="bg-white dark:bg-[#1e293b] rounded-[2.5rem] border-none shadow-2xl relative overflow-hidden h-fit group/card">
+                    {/* Background decoration */}
+                    <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl group-hover/card:bg-blue-600/20 transition-all duration-700"></div>
 
-                    <div className="flex flex-col items-center text-center space-y-4 pt-4">
-                      <Avatar
-                        src={myTeamData.data.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${myTeamData.data.teamName}`}
-                        className="w-24 h-24 rounded-[32px] shadow-xl border-4 border-white dark:border-slate-800"
-                      />
-                      <div>
-                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
-                          {myTeamData.data.teamName}
-                        </h2>
-                        <div className="mt-2 flex items-center justify-center gap-2 text-slate-400 text-xs font-medium uppercase tracking-widest">
-                          <Clock className="w-3.5 h-3.5" />
-                          Joined {new Date(myTeamData.data.createdAt).toLocaleDateString()}
+                    <CardBody className="p-8 space-y-8 relative z-10">
+                      <div className="flex flex-col items-center text-center space-y-6 pt-4">
+                        <div className="relative">
+                          <Avatar
+                            src={myTeamData.data.isPersonal ? (currentUser?.avatarUrl || `https://api.dicebear.com/7.x/open-peeps/svg?seed=${currentUser?.username}`) : (myTeamData.data.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${myTeamData.data.teamName}`)}
+                            className="w-32 h-32 rounded-[38px] shadow-2xl border-4 border-white dark:border-slate-800 transition-transform group-hover/card:scale-105 duration-500"
+                          />
+                          <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-2xl shadow-lg ring-4 ring-white dark:ring-[#1e293b]">
+                            {myTeamData.data.isPersonal ? <User size={18} /> : <Users size={18} />}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Chip
+                            className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 font-black uppercase italic text-[10px] tracking-widest px-3"
+                            size="sm"
+                            variant="flat"
+                          >
+                            {myTeamData.data.isPersonal ? "Solo Participant" : "Team Entry"}
+                          </Chip>
+                          <h2 className="text-3xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                            {myTeamData.data.isPersonal ? (currentUser?.displayName || currentUser?.username || myTeamData.data.teamName) : myTeamData.data.teamName}
+                          </h2>
+                          <div className="flex items-center justify-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                            <Clock className="w-3.5 h-3.5" />
+                            Registered {new Date(myTeamData.data.createdAt).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
-                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Status</p>
-                        <p className="text-emerald-500 font-bold text-sm uppercase italic">Confirmed</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 flex flex-col items-center">
+                          <p className="text-[9px] font-black uppercase text-slate-400 mb-1 tracking-tighter">Team Size</p>
+                          <p className="text-[#FF5C00] font-[1000] text-xl uppercase italic">{myTeamData.data.members.length} / {myTeamData.data.teamSize}</p>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 flex flex-col items-center">
+                          <p className="text-[9px] font-black uppercase text-slate-400 mb-1 tracking-tighter">Status</p>
+                          <p className="text-emerald-500 font-[1000] text-sm uppercase italic">Confirmed</p>
+                        </div>
                       </div>
-                      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
-                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Members</p>
-                        <p className="text-slate-900 dark:text-white font-bold text-sm italic tracking-tighter">
-                          {myTeamData.data?.members.length} / {myTeamData.data?.teamSize}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Invite Code</p>
-                      <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                        <span className="font-mono font-bold text-lg text-slate-900 dark:text-white tracking-widest pl-2">
-                          {myTeamData.data?.inviteCode}
-                        </span>
-                        <Button size="sm" isIconOnly variant="light"
-                          onClick={() => {
-                            if (myTeamData.data?.inviteCode) {
-                              navigator.clipboard.writeText(myTeamData.data.inviteCode);
-                              toast.success("Mã mời đã được sao chép!");
-                            }
-                          }}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                    </CardBody>
+                  </Card>
                 </div>
 
                 {/* Members List */}
-                <div className="lg:col-span-2 space-y-6">
-                  <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">
-                    <Users className="w-6 h-6 text-blue-600" />
-                    Team Roster
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-4">
+                      <div className="p-3 bg-blue-600 rounded-[1.2rem] text-white shadow-xl shadow-blue-600/20">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      Team Roster
+                    </h3>
+                    <Chip variant="dot" color="primary" className="font-black uppercase italic text-[10px]">
+                      {myTeamData.data.members.length} Active Members
+                    </Chip>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {myTeamData.data.members.map((member) => (
-                      <div key={member.userId} className="group bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all flex items-center gap-4 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/[0.02] rounded-bl-full pointer-events-none group-hover:bg-blue-500/[0.05] transition-colors"></div>
-                        <Avatar
-                          src={member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
-                          className="w-14 h-14 rounded-2xl shadow-md"
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight leading-tight">
-                            {member.displayName}
-                          </span>
-                          <span className="text-slate-400 text-xs font-medium">@{member.username}</span>
-                          <div className="mt-2">
-                            {member.userId === myTeamData.data?.leaderId ? (
-                              <Chip color="warning" variant="flat" size="sm" className="text-[9px] font-black uppercase italic" startContent={<Crown className="w-3 h-3" />}>Leader</Chip>
-                            ) : (
-                              <Chip color="default" variant="flat" size="sm" className="text-[9px] font-black uppercase italic">Member</Chip>
+                      <div
+                        key={member.userId}
+                        className={`group bg-white dark:bg-[#1e293b] p-6 rounded-[2.5rem] border hover:shadow-2xl transition-all flex items-center gap-5 relative overflow-hidden ${member.userId === currentUser?.userId
+                          ? "border-blue-500 shadow-xl shadow-blue-500/10 dark:border-blue-600"
+                          : "border-slate-200 dark:border-slate-800 hover:border-blue-500/50"
+                          }`}
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/[0.03] rounded-bl-full pointer-events-none group-hover:bg-blue-600/[0.08] transition-colors duration-500"></div>
+
+                        <div className="relative">
+                          <Avatar
+                            src={member.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`}
+                            className="w-16 h-16 rounded-[22px] shadow-lg ring-4 ring-slate-50 dark:ring-slate-900 group-hover:ring-blue-500/20 transition-all"
+                          />
+                          {member.userId === myTeamData.data?.leaderId && (
+                            <div className="absolute -top-2 -right-2 bg-warning p-1.5 rounded-xl shadow-lg text-white ring-2 ring-white dark:ring-[#1e293b]">
+                              <Crown size={12} />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 overflow-hidden">
+                            <span className="font-[1000] text-slate-900 dark:text-white text-xl tracking-tighter leading-tight truncate">
+                              {member.displayName}
+                            </span>
+                          </div>
+                          <span className="text-slate-400 text-xs font-black uppercase italic tracking-wider flex items-center gap-2">
+                            @{member.username}
+                            {member.userId === currentUser?.userId && (
+                              <Chip size="sm" variant="flat" color="secondary" className="h-4 text-[7px] font-black uppercase">You</Chip>
                             )}
+                          </span>
+
+                          <div className="mt-4 flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                              <Mail className="w-3 h-3 text-blue-500" />
+                              <span className="text-[10px] font-bold truncate max-w-[120px]">{member.email}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                              <Shield className="w-3 h-3 text-emerald-500" />
+                              <span className="text-[10px] font-bold">{member.userId === myTeamData.data?.leaderId ? "Leader" : "Member"}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

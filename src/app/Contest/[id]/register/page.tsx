@@ -62,6 +62,9 @@ export default function ContestRegistrationPage() {
   const contestData = contestResult?.data;
   const allowTeams = contestData?.allowTeams ?? true;
 
+  // Logic kiểm tra thời hạn đăng ký (8 tiếng trước khi bắt đầu)
+  const isRegExpired = contestData ? (new Date(contestData.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000) : false;
+
   // Auto-set Solo mode if contest doesn't allow teams
   useEffect(() => {
     if (contestData && !allowTeams) {
@@ -683,11 +686,11 @@ export default function ContestRegistrationPage() {
                       fullWidth
                       size="lg"
                       isLoading={isRegistering}
-                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length !== 3 && memberIds.length !== 5))}
-                      className="bg-[#071739] text-white font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-[0_15px_40px_rgba(7,23,57,0.4)] hover:scale-[1.02] active:scale-95 transition-all"
+                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length !== 3 && memberIds.length !== 5)) || isRegExpired}
+                      className={`font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-lg transition-all ${isRegExpired ? "bg-gray-500 text-gray-300" : "bg-[#071739] text-white shadow-[#071739]/40 hover:scale-[1.02] active:scale-95"}`}
                       onPress={handleRegister}
                     >
-                      Confirm Registration
+                      {isRegExpired ? "Registration Closed" : "Confirm Registration"}
                     </Button>
                   )}
                   {regMode === "join_code" && (
@@ -709,7 +712,8 @@ export default function ContestRegistrationPage() {
                   "Solo: Exactly 1 player",
                   "Team: Exactly 3 or 5 members",
                   "Leader handles registration",
-                  "Verified IDs required"
+                  "Verified IDs required",
+                  "Registration deadline: 8h before start"
                 ].map((rule, i) => (
                   <li key={i} className="flex gap-3 items-center text-[11px] font-black italic uppercase text-gray-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
@@ -718,9 +722,15 @@ export default function ContestRegistrationPage() {
                 ))}
               </ul>
               <Divider />
-              <div className="flex items-center gap-4 text-gray-400">
-                <Info size={16} />
-                <p className="text-[10px] font-black italic uppercase">Registration changes lock 2h before start.</p>
+              <div className="flex flex-col gap-2 pt-2">
+                <div className="flex items-center gap-4 text-gray-400">
+                  <Info size={16} />
+                  <p className="text-[10px] font-black italic uppercase">Registration changes lock 2h before start.</p>
+                </div>
+                <div className="flex items-center gap-4 text-red-500/80">
+                  <Clock size={16} />
+                  <p className="text-[10px] font-black italic uppercase">Registration closes 8h before start.</p>
+                </div>
               </div>
             </div>
           </div>

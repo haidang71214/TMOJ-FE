@@ -261,19 +261,25 @@ export default function Home() {
                               );
                             }
                             return (
-                              <Button
-                                fullWidth
-                                className="bg-[#071739] text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90"
-                                onPress={() => {
-                                  if (!currentUser) {
-                                    openModal({ title: "Đăng nhập", content: <LoginModal /> });
-                                    return;
-                                  }
-                                  router.push(`/Contest/${contest.id}/register`);
-                                }}
-                              >
-                                Register Now <ArrowRight size={18} />
-                              </Button>
+                              (() => {
+                                const isRegExpired = new Date(contest.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000;
+                                return (
+                                  <Button
+                                    fullWidth
+                                    isDisabled={isRegExpired}
+                                    className={`font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 ${isRegExpired ? "bg-gray-400 text-white cursor-not-allowed opacity-70" : "bg-[#071739] text-white hover:opacity-90 shadow-lg"}`}
+                                    onPress={() => {
+                                      if (!currentUser) {
+                                        openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                                        return;
+                                      }
+                                      router.push(`/Contest/${contest.id}/register`);
+                                    }}
+                                  >
+                                    {isRegExpired ? "Registration Closed" : "Register Now"} <ArrowRight size={18} />
+                                  </Button>
+                                );
+                              })()
                             );
                           }
 

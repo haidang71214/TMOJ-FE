@@ -1257,12 +1257,28 @@ export interface CollectionItem {
   updatedAt: string;
   createdAt: string;
   items?: any[];
+  totalItems: number;
+  problemCount: number;
+  contestCount: number;
+  solvedProblems: number;
+  owner?: {
+    userId: string;
+    userName: string;
+    displayName: string;
+    avatarUrl: string | null;
+  };
 }
 
 export interface CollectionResponse {
   data: CollectionItem[];
   message?: string;
   totalCount?: number;
+  meta?: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
 }
 
 export interface CollectionDetailResponse {

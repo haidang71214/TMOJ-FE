@@ -37,7 +37,6 @@ import {
   useGetContestListQuery,
   useGetMyContestsQuery,
   useUnregisterContestMutation,
-  useGetContestParticipantsQuery,
   useJoinContestByCodeMutation
 } from "@/store/queries/Contest";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
@@ -55,10 +54,7 @@ const globalRanking = [
   { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
 ];
 
-const ParticipantCount = ({ contestId }: { contestId: string }) => {
-  const { data } = useGetContestParticipantsQuery(contestId);
-  return <>{data?.data?.totalUsers || 0}</>;
-};
+
 
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
@@ -264,7 +260,7 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
-                        <ParticipantCount contestId={contest.id} /> Students
+                        {contest.totalMembers || 0} Students
                       </span>
                       <span className="flex gap-2 items-center">
                         <Clock size={14} className="text-[#FF5C00]" />{" "}

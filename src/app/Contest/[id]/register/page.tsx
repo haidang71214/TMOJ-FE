@@ -74,7 +74,7 @@ export default function ContestRegistrationPage() {
   useEffect(() => {
     if (myTeamInContest) {
       console.log("♻️ Restoring state from current team:", myTeamInContest);
-      setCreatedTeamId(myTeamInContest.id);
+      setCreatedTeamId(myTeamInContest.teamId || myTeamInContest.id || null);
       setTeamInviteCode(myTeamInContest.inviteCode);
       setTeamName(myTeamInContest.teamName);
       setRegMode(myTeamInContest.isPersonal ? "individual" : "create_team");
@@ -223,8 +223,8 @@ export default function ContestRegistrationPage() {
         return;
       }
     } else if (regMode === "create_team") {
-      if (count !== 3) {
-        toast.error(`Team registration requires exactly 3 members. Current: ${count}`);
+      if (count < 1 || count > 3) {
+        toast.error(`Team registration requires 1 to 3 members. Current: ${count}`);
         return;
       }
     }
@@ -553,8 +553,8 @@ export default function ContestRegistrationPage() {
                                 <div className="space-y-4">
                                   <div className="flex justify-between items-end">
                                     <p className="text-xs font-black uppercase text-gray-400">Add Team Members ({memberIds.length}/3)</p>
-                                    <Chip size="sm" variant="dot" color={memberIds.length < 3 ? "warning" : "success"} className="font-black italic text-[9px] uppercase">
-                                      {memberIds.length < 3 ? "Needs more" : "Ready to register"}
+                                    < Chip size="sm" variant="dot" color={memberIds.length < 1 ? "warning" : "success"} className="font-black italic text-[9px] uppercase">
+                                      {memberIds.length < 1 ? "Needs members" : "Ready to register"}
                                     </Chip>
                                   </div>
 
@@ -597,17 +597,15 @@ export default function ContestRegistrationPage() {
                                             />
                                             <div className="text-left">
                                               <p className="text-xs font-black uppercase italic leading-none truncate max-w-[200px]">
-                                                {fullName}
+                                                {m.userId === currentUser?.userId ? (currentUser?.displayName || currentUser?.username) : fullName}
                                               </p>
                                               <p className="text-[9px] text-gray-400 font-bold lowercase truncate max-w-[200px]">
-                                                {emailDisplay}
+                                                {m.userId === currentUser?.userId ? currentUser?.email : emailDisplay}
                                               </p>
                                             </div>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                            {m.userId === teamDetail.data.leaderId ? (
-                                              <Chip size="sm" className="bg-[#FF5C00] text-white text-[8px] font-black italic uppercase px-2 h-5 border-none">Leader</Chip>
-                                            ) : (
+                                            {m.userId !== teamDetail.data.leaderId && (
                                               <div className="flex items-center gap-2">
                                                 <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
                                                 <Button
@@ -629,19 +627,12 @@ export default function ContestRegistrationPage() {
                                     })}
                                   </div>
 
-                                  {memberIds.length === 2 && (
-                                    <div className="p-4 bg-orange-500/10 border-2 border-dashed border-orange-500/30 rounded-2xl animate-pulse">
-                                      <p className="text-[10px] font-black text-orange-600 uppercase italic text-center">
-                                        ⚠️ Warning: Current team size is 2. You must add 1 more to make it 3 to register!
 
-                                      </p>
-                                    </div>
-                                  )}
 
                                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 mt-2">
                                     <p className="text-[10px] text-gray-500 font-bold uppercase italic leading-relaxed">
                                       * Important: Every member must be added to the team system before you can register for the contest.
-                                      You need exactly <span className="text-[#FF5C00]">3 members</span>.
+                                      You can register with <span className="text-[#FF5C00]">up to 3 members</span>.
                                     </p>
                                   </div>
                                 </div>
@@ -761,7 +752,7 @@ export default function ContestRegistrationPage() {
                       fullWidth
                       size="lg"
                       isLoading={isRegistering}
-                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && memberIds.length !== 3) || isRegExpired}
+                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length < 1 || memberIds.length > 3)) || isRegExpired}
                       className={`font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-lg transition-all ${isRegExpired ? "bg-gray-500 text-gray-300" : "bg-[#071739] text-white shadow-[#071739]/40 hover:scale-[1.02] active:scale-95"}`}
                       onPress={handleRegister}
                     >
@@ -785,7 +776,7 @@ export default function ContestRegistrationPage() {
               <ul className="space-y-4">
                 {[
                   "Solo: Exactly 1 player",
-                  "Team: Exactly 3 members",
+                  "Team: 1 to 3 members",
                   "Leader handles registration",
                   "Verified IDs required",
                   "Registration deadline: 8h before start"

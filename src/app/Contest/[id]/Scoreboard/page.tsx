@@ -33,7 +33,7 @@ export default function ScoreboardPage() {
   const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
   const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
 
-  const data = scoreboardData;
+  const data = scoreboardData?.data;
 
   const handleRefresh = () => {
     refetch();
@@ -175,7 +175,7 @@ export default function ScoreboardPage() {
               { key: "rank", label: "Rank", isProblem: false },
               { key: "participant", label: "Participant / Team", isProblem: false },
               { key: "total", label: "Total", isProblem: false },
-              ...data.problems.map(p => ({ key: p.id, isProblem: true as const, data: p }))
+              ...(data?.problems || []).map(p => ({ key: p.id, isProblem: true as const, data: p }))
             ]}>
               {(column) => (
                 <TableColumn key={column.key} className={

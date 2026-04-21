@@ -23,6 +23,7 @@ import {
   JoinContestByCodeRequest,
   MyTeamResponse,
   ScoreboardResponseDTO,
+  ScoreboardResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -238,7 +239,7 @@ export const contestApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }],
     }),
     // 27. Lấy Scoreboard
-    getScoreboard: builder.query<ScoreboardResponseDTO, string>({
+    getScoreboard: builder.query<ScoreboardResponse, string>({
       query: (id) => ({
         url: ContestEndpoint.GET_SCOREBOARD.replace("{id}", id),
         method: "GET",

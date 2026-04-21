@@ -45,6 +45,21 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    updateAvatar: builder.mutation<void, FormData>({
+      query: (body) => ({
+        url: userProfileEndpoint.UPDATE_AVATAR,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    deleteAvatar: builder.mutation<void, void>({
+      query: () => ({
+        url: userProfileEndpoint.DELETE_AVATAR,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -54,4 +69,6 @@ export const {
   useGetUserInformationQuery,
   useGetUserManualMutation,
   useUpdateMeMutation,
+  useUpdateAvatarMutation,
+  useDeleteAvatarMutation,
 } = userApi;

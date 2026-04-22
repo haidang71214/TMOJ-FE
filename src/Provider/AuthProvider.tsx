@@ -19,7 +19,7 @@ export default function AuthProvider({ children }: Readonly<AuthProviderProps>) 
     if (token && user) {
       dispatch(loginFromToken(user));
     }
-    dispatch(setHydrated(true)); 
+    dispatch(setHydrated(true));
   }, [dispatch]);
 
   return <>{children}</>;

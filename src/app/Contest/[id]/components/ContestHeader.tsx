@@ -39,6 +39,8 @@ export default function ContestHeader({ contestId, title: initialTitle }: Contes
     selectedTab = "stats";
   } else if (pathname.includes("/Submissions")) {
     selectedTab = "submissions";
+  } else if (pathname.includes("/Teams") || pathname.includes("/register")) {
+    selectedTab = "teams";
   }
 
   return (

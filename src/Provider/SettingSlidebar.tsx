@@ -6,10 +6,8 @@ import clsx from "clsx";
 import { User, Settings, Shield, Bell, FlaskConical } from "lucide-react";
 
 const items = [
-  { label: "Basic Info", href: "/settings", icon: User },
+  { label: "Profile", href: "/Profile", icon: User },
   { label: "Account", href: "/Settings/Account", icon: Settings },
-  { label: "Lab", href: "/settings/lab", icon: FlaskConical },
-  { label: "Privacy", href: "/settings/privacy", icon: Shield },
   { label: "Notifications", href: "/Notifications", icon: Bell },
 ];
 

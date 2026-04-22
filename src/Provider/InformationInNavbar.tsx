@@ -34,58 +34,58 @@ import { useTranslation } from "@/hooks/useTranslation";
 export default function InformationInNavbar() {
   const router = useRouter();
   const { t } = useTranslation();
-    // 🔥 Lấy user trực tiếp từ RTK Query
+  // 🔥 Lấy user trực tiếp từ RTK Query
   const { data: user } = useGetUserInformationQuery();
   const handleLink = (link: string) => router.push(link);
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
- const handleLogout = async () => {
-  try {
-    const host = window.location.host;
-    const is_admin = host.startsWith("admin.");
-    dispatch(baseApi.util.resetApiState());
-    webStorageClient.logout();
-    addToast({ title: "Logout successful!", color: "success" });
-    if (is_admin) {
-      // nếu đang ở admin subdomain → chuyển về domain chính
-      window.location.href = `${PAGE_URL}logout`; 
-          await logout().unwrap();
-    } else {
-      router.push("/");
-      await logout().unwrap();
+  const handleLogout = async () => {
+    try {
+      const host = window.location.host;
+      const is_admin = host.startsWith("admin.");
+      dispatch(baseApi.util.resetApiState());
+      webStorageClient.logout();
+      addToast({ title: "Logout successful!", color: "success" });
+      if (is_admin) {
+        // nếu đang ở admin subdomain → chuyển về domain chính
+        window.location.href = `${PAGE_URL}logout`;
+        await logout().unwrap();
+      } else {
+        router.push("/");
+        await logout().unwrap();
+      }
+
+    } catch {
+      addToast({ title: "Logout Success", color: "danger" });
+    }
+  };
+  const checkadminpage = () => {
+    if (user?.role !== "admin") {
+      return null;
     }
 
-  } catch {
-    addToast({ title: "Logout Success", color: "danger" });
-  }
-};
-const checkadminpage = () => {
-   if (user?.role !== "admin") {
-    return null;
-  } 
-  
-  const isAdminPage =
-    typeof window !== "undefined" &&
-    (window.location.hostname.includes("admin") ||
-      window.location.pathname.startsWith("/admin"));
+    const isAdminPage =
+      typeof window !== "undefined" &&
+      (window.location.hostname.includes("admin") ||
+        window.location.pathname.startsWith("/admin"));
 
-  return (
-    <DropdownItem
-      key="admin"
-      startContent={<Sparkles size={18} />}
-      onClick={() => {
-        if (isAdminPage) {
-          console.log("backhome");
-          router.push(`${PAGE_URL}`);
-        } else {
-          router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`);
-        }
-      }}
-    >
-      {isAdminPage ? "Back Home" : "Admin Panel"}
-    </DropdownItem>
-  );
-};
+    return (
+      <DropdownItem
+        key="admin"
+        startContent={<Sparkles size={18} />}
+        onClick={() => {
+          if (isAdminPage) {
+            console.log("backhome");
+            router.push(`${PAGE_URL}`);
+          } else {
+            router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`);
+          }
+        }}
+      >
+        {isAdminPage ? "Back Home" : "Admin Panel"}
+      </DropdownItem>
+    );
+  };
 
   return (
     <NavbarItem>
@@ -99,18 +99,18 @@ const checkadminpage = () => {
               as="button"
               avatarProps={{
                 size: "sm",
-                src: user?.avatarUrl || "https://i.pravatar.cc/150?u=default",
+                src: user?.avatarUrl ? `${user.avatarUrl}?t=${new Date().getTime()}` : "https://i.pravatar.cc/150?u=default",
                 className:
                   "border-2 border-white/80 dark:border-[#071739]/80 shadow-md",
               }}
               name=""
             />
             <span className="text-[11px] font-black tracking-tight text-[#071739] dark:text-[#FFB800]">
-              {user?.firstName +" " + user?.lastName}
+              {user?.firstName + " " + user?.lastName}
             </span>
           </div>
         </DropdownTrigger>
-     
+
         <DropdownMenu
           aria-label="User Menu"
           className="dark:text-[#F9FAFB] text-[#071739] py-2"
@@ -118,7 +118,7 @@ const checkadminpage = () => {
             base: "gap-3 rounded-xl data-[hover=true]:bg-[#A68868]/10 dark:data-[hover=true]:bg-[#FFB800]/15 transition-colors",
           }}
         >
-  {checkadminpage()}
+          {checkadminpage()}
           <DropdownItem
             key="mylists"
             startContent={
@@ -183,7 +183,7 @@ const checkadminpage = () => {
                 className="text-[#A68868] dark:text-[#FFB800]"
               />
             }
-             className="animate-fade-in-left"
+            className="animate-fade-in-left"
             style={{ animationFillMode: 'both', animationDelay: '250ms' }}
             onClick={() => handleLink("/New-features")}
           >
@@ -219,7 +219,7 @@ const checkadminpage = () => {
           >
             {t('setting') || "Setting"}
           </DropdownItem>
-          
+
           <DropdownItem
             key="profile"
             startContent={

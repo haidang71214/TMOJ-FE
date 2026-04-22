@@ -37,6 +37,7 @@ import {
   Zap,
   Camera,
   Trash2,
+  Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
@@ -194,7 +195,7 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="relative group/avatar">
                   <Avatar
-                    src={avatarUrl || undefined}
+                    src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
                     name={displayName || username}
                     className={`w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
                       }`}
@@ -285,8 +286,8 @@ export default function ProfilePage() {
                   Basic Info
                 </h2>
               </div>
-              <Button isIconOnly size="sm" variant="light" onClick={() => setIsEditProfileOpen(true)} className="text-[#FF5C00]">
-                <Edit3 size={14} />
+              <Button isIconOnly size="sm" variant="light" onClick={() => router.push("/Settings")} className="text-[#FF5C00]">
+                <Settings size={14} />
               </Button>
             </CardHeader>
 

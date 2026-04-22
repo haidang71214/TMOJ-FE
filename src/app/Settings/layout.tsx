@@ -2,12 +2,22 @@
 import SettingsSidebar from "@/Provider/SettingSlidebar";
 import Image from "next/image";
 import { Card, CardBody } from "@heroui/react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+
+  const displayName = currentUser?.displayName || currentUser?.username || "Guest User";
+  const displayId = currentUser?.userId || "N/A";
+  const avatarUrl = currentUser?.avatarUrl
+    ? `${currentUser.avatarUrl}?t=${new Date().getTime()}`
+    : "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop";
+
   return (
     <div className="min-h-screen bg-background relative custom-scrollbar">
       {/* ===== HEADER LAYER (NAVY BASE) ===== */}
@@ -20,7 +30,7 @@ export default function SettingsLayout({
           <div className="relative group">
             <div className="relative w-32 h-32 rounded-[2rem] overflow-hidden border-4 border-[#FF5C00] shadow-2xl transition-all group-hover:scale-105 duration-300">
               <Image
-                src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop"
+                src={avatarUrl}
                 alt="avatar"
                 fill
                 className="object-cover"
@@ -33,7 +43,7 @@ export default function SettingsLayout({
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="text-5xl font-[1000] italic uppercase tracking-tighter text-white leading-none">
-                Đăng <span className="text-[#FF5C00]">Hải</span>
+                {displayName}
               </h1>
               {/* PRO MEMBER Badge - Đã đổi sang màu Xanh Lá */}
               <div className="bg-[#00FF41]/10 backdrop-blur-md px-3 py-1 rounded-lg border border-[#00FF41]/20">
@@ -45,7 +55,7 @@ export default function SettingsLayout({
 
             <div className="flex flex-col gap-1">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] italic">
-                LeetCode ID: <span className="text-white">yMXnOfMOzd</span>
+                TMOJ ID: <span className="text-white">{displayId}</span>
               </p>
             </div>
           </div>

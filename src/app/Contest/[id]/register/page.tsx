@@ -30,7 +30,8 @@ export default function ContestRegistrationPage() {
   // Form State
   const [regMode, setRegMode] = useState("individual"); // individual, create_team, join_code
   const [teamName, setTeamName] = useState("");
-  const [teamAvatarUrl, setTeamAvatarUrl] = useState("");
+  const [teamAvatarFile, setTeamAvatarFile] = useState<File | null>(null);
+  const [teamAvatarPreview, setTeamAvatarPreview] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState("");
   const [memberIds, setMemberIds] = useState<string[]>([]); // Synced with teamDetail
   const [newMemberId, setNewMemberId] = useState("");
@@ -133,6 +134,18 @@ export default function ContestRegistrationPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setTeamAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTeamAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateTeam = async () => {
     if (teamName.trim().length < 3) {
       toast.error("Team name must be at least 3 characters!");
@@ -141,7 +154,7 @@ export default function ContestRegistrationPage() {
     try {
       const result = await createTeam({
         teamName: teamName.trim(),
-        avatarUrl: teamAvatarUrl.trim() || ""
+        avatarUrl: teamAvatarPreview || ""
       }).unwrap();
       setCreatedTeamId(result.data.teamId);
       console.log("result", result.data);
@@ -500,19 +513,34 @@ export default function ContestRegistrationPage() {
                                       input: "font-black uppercase italic text-sm"
                                     }}
                                   />
-                                  <Input
-                                    label="TEAM AVATAR URL (OPTIONAL)"
-                                    value={teamAvatarUrl}
-                                    onValueChange={setTeamAvatarUrl}
-                                    placeholder="https://example.com/avatar.png"
-                                    variant="bordered"
-                                    labelPlacement="outside"
-                                    classNames={{
-                                      inputWrapper: "h-14 rounded-2xl border-2 hover:border-[#FF5C00] transition-colors",
-                                      label: "font-black italic uppercase text-[10px] pl-2 mb-2",
-                                      input: "font-black italic text-sm"
-                                    }}
-                                  />
+                                  <div className="flex flex-col gap-2">
+                                    <label className="font-black italic uppercase text-[10px] pl-2">
+                                      TEAM AVATAR (OPTIONAL)
+                                    </label>
+                                    <div className="flex items-center gap-4 h-14 px-4 bg-white dark:bg-[#1C2737] rounded-2xl border-2 border-dashed border-[#FF5C00]/20 hover:border-[#FF5C00]/50 transition-all cursor-pointer relative overflow-hidden group">
+                                      {teamAvatarPreview ? (
+                                        <Avatar src={teamAvatarPreview} size="sm" className="border-2 border-[#FF5C00]" />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-[#FF5C00]/10 flex items-center justify-center border-2 border-dashed border-[#FF5C00]/30 group-hover:bg-[#FF5C00]/20 transition-all">
+                                          <Plus className="text-[#FF5C00]" size={16} />
+                                        </div>
+                                      )}
+                                      <div className="flex-1">
+                                        <p className="text-[10px] font-black uppercase italic leading-none mb-0.5 truncate">
+                                          {teamAvatarFile ? teamAvatarFile.name : "Click to upload image"}
+                                        </p>
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase">
+                                          PNG, JPG, WEBP (Max 2MB)
+                                        </p>
+                                      </div>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
                                 <Button
                                   fullWidth
@@ -527,7 +555,7 @@ export default function ContestRegistrationPage() {
                               <div className="space-y-6">
                                 <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] flex justify-between items-center animate-in zoom-in-95">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={teamAvatarUrl} name={teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar src={teamAvatarPreview || undefined} name={teamName} size="lg" className="border-2 border-green-500" />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Team ID: {createdTeamId.slice(0, 8)}...</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{teamName}</p>

@@ -47,7 +47,7 @@ const TeamMemberItem = ({
     <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
       <div className="flex items-center gap-4">
         <Avatar
-          src={avatarUrl}
+          src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
           name={fullName}
           className="w-10 h-10 border-2 border-[#071739]"
         />
@@ -433,9 +433,9 @@ export default function ContestRegistrationPage() {
 
               <div className="flex items-center gap-3">
                 <AvatarGroup isBordered max={3} size="sm" className="opacity-80">
-                  <Avatar src="https://i.pravatar.cc/150?u=a042581f4e29026024d" />
-                  <Avatar src="https://i.pravatar.cc/150?u=a04258a2462d826712d" />
-                  <Avatar src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a042581f4e29026024d&t=${new Date().getTime()}`} />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a04258a2462d826712d&t=${new Date().getTime()}`} />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a042581f4e29026704d&t=${new Date().getTime()}`} />
                 </AvatarGroup>
                 <p className="font-black italic uppercase text-xs">{(contestData as any).participants}</p>
               </div>
@@ -567,7 +567,7 @@ export default function ContestRegistrationPage() {
                           <div className="space-y-4">
                             <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Solo Registration</span>
                             <div className="p-6 bg-content1 rounded-2xl border-2 border-dashed border-[#FF5C00]/20 flex items-center gap-4">
-                              <Avatar src={currentUser?.avatarUrl || undefined} name={currentUser?.displayName || currentUser?.username} size="lg" isBordered color="warning" />
+                              <Avatar src={currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : undefined} name={currentUser?.displayName || currentUser?.username} size="lg" isBordered color="warning" />
                               <div>
                                 <p className="text-sm font-black italic uppercase">{currentUser?.displayName || currentUser?.username}</p>
                                 <p className="text-[10px] text-gray-500 font-bold uppercase">{currentUser?.email}</p>
@@ -638,7 +638,7 @@ export default function ContestRegistrationPage() {
                               <div className="space-y-6">
                                 <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] flex justify-between items-center animate-in zoom-in-95">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={teamAvatarPreview || undefined} name={teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar src={teamAvatarPreview ? teamAvatarPreview : (teamDetail?.data?.avatarUrl ? `${teamDetail.data.avatarUrl}?t=${new Date().getTime()}` : undefined)} name={teamName} size="lg" className="border-2 border-green-500" />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Team ID: {createdTeamId.slice(0, 8)}...</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{teamName}</p>
@@ -695,7 +695,7 @@ export default function ContestRegistrationPage() {
                                   {newMemberId.trim().length >= 5 && foundUser && !memberIds.includes(foundUser.userId) && (
                                     <div className="p-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-[#FF5C00]/30 animate-in fade-in zoom-in-95 transition-all">
                                       <div className="flex items-center gap-3">
-                                        <Avatar src={foundUser.avatarUrl || undefined} name={foundUser.displayName} size="sm" className="border-2 border-[#FF5C00]" />
+                                        <Avatar src={foundUser.avatarUrl ? `${foundUser.avatarUrl}?t=${new Date().getTime()}` : undefined} name={foundUser.displayName} size="sm" className="border-2 border-[#FF5C00]" />
                                         <div className="text-left">
                                           <p className="text-[10px] font-black uppercase italic leading-none">{foundUser.displayName}</p>
                                           <p className="text-[8px] text-gray-500 font-bold lowercase">{foundUser.email}</p>
@@ -781,7 +781,7 @@ export default function ContestRegistrationPage() {
                               <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] animate-in zoom-in-95">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={myTeamInContest.avatarUrl || undefined} name={myTeamInContest.teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar src={myTeamInContest.avatarUrl ? `${myTeamInContest.avatarUrl}?t=${new Date().getTime()}` : undefined} name={myTeamInContest.teamName} size="lg" className="border-2 border-green-500" />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">You Joined Team</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{myTeamInContest.teamName}</p>
@@ -795,7 +795,7 @@ export default function ContestRegistrationPage() {
                                 <div className="mt-4 flex gap-2">
                                   <AvatarGroup max={5} size="sm" isBordered>
                                     {myTeamInContest.members.map(m => (
-                                      <Avatar key={m.userId} src={m.avatarUrl || undefined} name={m.displayName} />
+                                      <Avatar key={m.userId} src={m.avatarUrl ? `${m.avatarUrl}?t=${new Date().getTime()}` : undefined} name={m.displayName} />
                                     ))}
                                   </AvatarGroup>
                                   <p className="text-[10px] font-bold text-gray-500 uppercase self-center italic">Leader will handle the registration.</p>
@@ -805,8 +805,9 @@ export default function ContestRegistrationPage() {
 
                             <div className="p-6 rounded-2xl bg-gray-100 dark:bg-gray-800/50 border-2 border-dashed border-gray-300">
                               <p className="text-[11px] font-black uppercase text-gray-500 leading-relaxed text-center">
-                                Once you join a team or contest, the system will prepare your participant profile.
-                                Team leaders are responsible for final contest registration.
+                                Join a team or contest to create your profile.
+                                <br />
+                                Team leaders complete the registration.
                               </p>
                             </div>
                           </div>

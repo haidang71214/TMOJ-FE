@@ -88,27 +88,31 @@ export default function ContestHeader({ contestId, title: initialTitle }: Contes
                 />
               )}
 
-              <Tab
-                key="leaderboard"
-                href={`/Contest/${contestId}/Scoreboard`}
-                title={
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-[18px] h-[18px]" />
-                    <span>Scoreboard</span>
-                  </div>
-                }
-              />
+              {currentUser && (
+                <>
+                  <Tab
+                    key="leaderboard"
+                    href={`/Contest/${contestId}/Scoreboard`}
+                    title={
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-[18px] h-[18px]" />
+                        <span>Scoreboard</span>
+                      </div>
+                    }
+                  />
 
-              <Tab
-                key="teams"
-                href={`/Contest/${contestId}/Teams`}
-                title={
-                  <div className="flex items-center gap-2">
-                    <Users className="w-[18px] h-[18px]" />
-                    <span>{isStudent ? "My Team" : "Participants"}</span>
-                  </div>
-                }
-              />
+                  <Tab
+                    key="teams"
+                    href={`/Contest/${contestId}/Teams`}
+                    title={
+                      <div className="flex items-center gap-2">
+                        <Users className="w-[18px] h-[18px]" />
+                        <span>{isStudent ? "My Team" : "Participants"}</span>
+                      </div>
+                    }
+                  />
+                </>
+              )}
 
               {isAdminOrTeacher && (
                 <Tab

@@ -7,19 +7,19 @@ import { CreateUserRequest, CreateUserResponse, ImportUsersResponse, UpdateUserR
 export const userApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-     getUserList: builder.query< {data :Users[]}, void>({ // query 
+    getUserList: builder.query<{ data: Users[] }, void>({ // query 
       query: () => ({
         url: AdminUserEndPoint.GET_LIST_USER,
         method: "GET",
       }),
-      providesTags: ["User"], 
+      providesTags: ["User"],
     }),
-    getUserRole : builder.query<{data :Users[]}, {roleName:string}>({
-      query: ({roleName}) => ({
-        url: AdminUserEndPoint.GET_USER_ROLE.replace("{roleName}",roleName),
+    getUserRole: builder.query<{ data: Users[] }, { roleName: string }>({
+      query: ({ roleName }) => ({
+        url: AdminUserEndPoint.GET_USER_ROLE.replace("{roleName}", roleName),
         method: "GET",
       }),
-      providesTags: ["User"], 
+      providesTags: ["User"],
     }),
     createUser: builder.mutation<CreateUserResponse, CreateUserRequest>({
       query: (body) => ({
@@ -119,8 +119,26 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+
+    getUserById: builder.query<{ data: Users }, string>({
+      query: (id) => ({
+        url: AdminUserEndPoint.GET_DETAIL_USER.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+
+    searchUsers: builder.query<{ data: Users[] }, { search: string }>({
+      query: ({ search }) => ({
+        url: AdminUserEndPoint.GET_LIST_USER,
+        method: "GET",
+        params: { search },
+      }),
+      providesTags: ["User"],
+    }),
+
   }),
-  
+
 });
 
 
@@ -138,4 +156,7 @@ export const {
   useGetTeacherByIdQuery,
   useAssignRoleMutation,
   useUpdateUserMutation,
+  useGetUserByIdQuery,
+  useSearchUsersQuery,
 } = userApi;
+

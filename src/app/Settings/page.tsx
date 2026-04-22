@@ -1,22 +1,50 @@
 "use client";
 import React from "react";
 import { Card, CardBody, Button, Switch } from "@heroui/react";
-import { Edit3, User, Briefcase, Code2, Bell } from "lucide-react";
+import { Edit3, User, Briefcase, Code2, Bell, Check, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useState } from "react";
+import { useUpdateMeMutation } from "@/store/queries/usersProfile";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const [updateMe, { isLoading: isUpdating }] = useUpdateMeMutation();
+
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [tempValue, setTempValue] = useState("");
+
   const basicInfo = [
-    ["Name", "Đăng Hải"],
-    ["Gender", "Not provided"],
-    ["Location", "Your location"],
-    ["Birthday", "Your birthday"],
-    ["Summary", "Tell us about yourself"],
-    ["Website", "Your blog, portfolio, etc."],
-    ["Github", "Your Github username or url"],
-    ["LinkedIn", "Your Linkedin username or url"],
-    ["X (Twitter)", "Your X username or url"],
+    { key: "displayName", label: "Display Name", value: currentUser?.displayName || "Not set" },
+    { key: "firstName", label: "First Name", value: currentUser?.firstName || "Not set" },
+    { key: "lastName", label: "Last Name", value: currentUser?.lastName || "Not set" },
+    { key: "email", label: "Email", value: currentUser?.email || "Not set", readOnly: true },
+    { key: "github", label: "Github", value: "Your Github username or url" }, // Giả định trường này chưa có trong user type
   ];
 
-  const experienceInfo = ["Work", "Education"];
+  const handleEdit = (key: string, value: string) => {
+    setEditingField(key);
+    setTempValue(value === "Not set" ? "" : value);
+  };
+
+  const handleCancel = () => {
+    setEditingField(null);
+    setTempValue("");
+  };
+
+  const handleSave = async (key: string) => {
+    try {
+      await updateMe({
+        [key]: tempValue
+      }).unwrap();
+      toast.success(`${key} updated successfully!`);
+      setEditingField(null);
+    } catch (error: any) {
+      toast.error(error?.data?.message || `Failed to update ${key}`);
+    }
+  };
+
 
   return (
     <div className="flex flex-col gap-8 pb-10 p-2">
@@ -40,91 +68,77 @@ export default function SettingsPage() {
         </div>
         <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] shadow-sm overflow-hidden">
           <CardBody className="p-0 divide-y divide-slate-100 dark:divide-white/5">
-            {basicInfo.map(([label, value]) => (
+            {basicInfo.map((info) => (
               <div
-                key={label}
+                key={info.key}
                 className="flex items-center justify-between py-5 px-8 group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
                 <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
-                  {label}
+                  {info.label}
                 </span>
-                <span className="text-sm font-bold flex-1 text-[#071739] dark:text-slate-300 italic group-hover:text-[#FF5C00] transition-colors">
-                  {value}
-                </span>
-                <Button
-                  size="sm"
-                  variant="flat"
-                  startContent={<Edit3 size={14} />}
-                  className="font-black uppercase text-[9px] tracking-widest bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-[#00FF41] hover:text-[#071739] transition-all"
-                >
-                  Edit
-                </Button>
+
+                <div className="flex-1 flex items-center gap-4">
+                  {editingField === info.key ? (
+                    <input
+                      autoFocus
+                      className="bg-transparent border-b-2 border-[#FF5C00] text-sm font-bold text-[#071739] dark:text-slate-300 italic outline-none w-full max-w-md"
+                      value={tempValue}
+                      onChange={(e) => setTempValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSave(info.key);
+                        if (e.key === "Escape") handleCancel();
+                      }}
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-[#071739] dark:text-slate-300 italic group-hover:text-[#FF5C00] transition-colors">
+                      {info.value}
+                    </span>
+                  )}
+                </div>
+
+                {!info.readOnly && (
+                  <div className="flex items-center gap-2">
+                    {editingField === info.key ? (
+                      <>
+                        <Button
+                          size="sm"
+                          isIconOnly
+                          variant="flat"
+                          onPress={() => handleSave(info.key)}
+                          isLoading={isUpdating}
+                          className="bg-[#00FF41]/10 text-[#00FF41] rounded-xl hover:bg-[#00FF41] hover:text-[#071739]"
+                        >
+                          <Check size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          isIconOnly
+                          variant="flat"
+                          onPress={handleCancel}
+                          className="bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white"
+                        >
+                          <X size={16} />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        startContent={<Edit3 size={14} />}
+                        onPress={() => handleEdit(info.key, info.value)}
+                        className="font-black uppercase text-[9px] tracking-widest bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-[#00FF41] hover:text-[#071739] transition-all"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </CardBody>
         </Card>
       </section>
 
-      {/* EXPERIENCE SECTION */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-3 px-2">
-          <Briefcase size={20} className="text-[#FF5C00]" />
-          <h2 className="text-xl font-[1000] italic uppercase tracking-tight text-[#071739] dark:text-white">
-            Experience
-          </h2>
-        </div>
-        <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] shadow-sm overflow-hidden">
-          <CardBody className="p-0 divide-y divide-slate-100 dark:divide-white/5">
-            {experienceInfo.map((item) => (
-              <div
-                key={item}
-                className="flex items-center justify-between py-6 px-8 group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
-                <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
-                  {item}
-                </span>
-                <span className="text-sm font-bold flex-1 text-slate-400 italic">
-                  Add a {item.toLowerCase()}...
-                </span>
-                <Button
-                  size="sm"
-                  variant="flat"
-                  className="font-black uppercase text-[9px] tracking-widest bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-[#00FF41] hover:text-[#071739] transition-all"
-                >
-                  Add
-                </Button>
-              </div>
-            ))}
-          </CardBody>
-        </Card>
-      </section>
-
-      {/* SKILLS SECTION */}
-      <section className="space-y-4 pb-10">
-        <div className="flex items-center gap-3 px-2">
-          <Code2 size={20} className="text-[#FF5C00]" />
-          <h2 className="text-xl font-[1000] italic uppercase tracking-tight text-[#071739] dark:text-white">
-            Skills
-          </h2>
-        </div>
-        <Card className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] shadow-sm">
-          <CardBody className="py-6 px-8 flex flex-row items-center justify-between">
-            <span className="text-[10px] font-[1000] uppercase italic text-slate-400 tracking-widest w-40">
-              Technical Skills
-            </span>
-            <span className="text-sm font-bold flex-1 text-slate-400 italic">
-              Share your expertise...
-            </span>
-            <Button
-              size="sm"
-              variant="flat"
-              className="font-black uppercase text-[9px] tracking-widest bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-[#00FF41] hover:text-[#071739] transition-all"
-            >
-              Edit
-            </Button>
-          </CardBody>
-        </Card>
-      </section>
       {/* NOTIFICATION PREFERENCES SECTION */}
       <section className="space-y-4 pb-10">
         <div className="flex items-center gap-3 px-2">

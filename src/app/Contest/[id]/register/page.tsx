@@ -15,10 +15,74 @@ import {
 import { toast } from "sonner";
 import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation, useGetMyTeamInContestQuery, useJoinContestByCodeMutation } from "@/store/queries/Contest";
 import { useCreateTeamMutation, useGetTeamDetailQuery, useAddTeamMemberMutation, useDeleteTeamMemberMutation } from "@/store/queries/Team";
+import { useGetUserByIdQuery, useSearchUsersQuery } from "@/store/queries/user";
+
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
+
+const TeamMemberItem = ({
+  m,
+  leaderId,
+  currentUser,
+  onRemove,
+  isDeleting
+}: {
+  m: any,
+  leaderId: string,
+  currentUser: any,
+  onRemove: (id: string) => void,
+  isDeleting: boolean
+}) => {
+  const { data: userResult } = useGetUserByIdQuery(m.userId);
+  const user = userResult?.data;
+
+  // Priority: fetched user > member info > fallbacks
+  const fullName = user?.displayName || m.displayName || m.user?.displayName || m.userName || (m.firstName || m.lastName ? `${m.firstName || ""} ${m.lastName || ""}`.trim() : null) || m.username || m.user?.username || `Member ${m.userId?.slice(0, 4) || "????"}`;
+  const emailDisplay = user?.email || m.email || m.user?.email || "Email not public";
+  const avatarUrl = user?.avatarUrl || m.avatarUrl || m.user?.avatarUrl || undefined;
+
+  return (
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
+      <div className="flex items-center gap-4">
+        <Avatar
+          src={avatarUrl}
+          name={fullName}
+          className="w-10 h-10 border-2 border-[#071739]"
+        />
+        <div className="text-left">
+          <p className="text-xs font-black uppercase italic leading-none truncate max-w-[200px]">
+            {m.userId === currentUser?.userId ? (currentUser?.displayName || currentUser?.username) : fullName}
+          </p>
+          <p className="text-[9px] text-gray-400 font-bold lowercase truncate max-w-[200px]">
+            {m.userId === currentUser?.userId ? currentUser?.email : emailDisplay}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {m.userId !== leaderId ? (
+          <div className="flex items-center gap-2">
+            <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              color="danger"
+              className="h-7 w-7 min-w-0 rounded-lg group-hover:bg-danger group-hover:text-white transition-all shadow-sm"
+              onPress={() => onRemove(m.userId)}
+              isLoading={isDeleting}
+            >
+              <X size={14} />
+            </Button>
+          </div>
+        ) : (
+          <div className="text-[9px] font-black italic text-[#FF5C00] uppercase">Team Leader</div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function ContestRegistrationPage() {
   const params = useParams();
@@ -47,6 +111,23 @@ export default function ContestRegistrationPage() {
   const [joinContestByCode, { isLoading: isJoiningContestByCode }] = useJoinContestByCodeMutation();
   const [addTeamMember, { isLoading: isAddingMember }] = useAddTeamMemberMutation();
   const [deleteTeamMember, { isLoading: isDeletingMember }] = useDeleteTeamMemberMutation();
+
+  // Fetch info for the user being added
+  const isEmail = newMemberId.includes("@");
+  const { data: idUserResult, isFetching: isSearchingById } = useGetUserByIdQuery(newMemberId.trim(), {
+    skip: isEmail || newMemberId.trim().length < 5,
+  });
+
+  const { data: searchResult, isFetching: isSearchingBySearch } = useSearchUsersQuery({ search: newMemberId.trim() }, {
+    skip: !isEmail || newMemberId.trim().length < 5,
+  });
+
+  const foundUser = isEmail
+    ? searchResult?.data?.find(u => u.email.toLowerCase() === newMemberId.trim().toLowerCase())
+    : idUserResult?.data;
+
+  const isSearchingUser = isSearchingById || isSearchingBySearch;
+
 
   // Load existing team state in this contest
   const { data: myTeamResult, isLoading: isMyTeamLoading } = useGetMyTeamInContestQuery(contestId);
@@ -171,10 +252,12 @@ export default function ContestRegistrationPage() {
       toast.error("Please enter a User ID to add.");
       return;
     }
+    const targetUserId = foundUser?.userId || newMemberId.trim();
+
     try {
       await addTeamMember({
         teamId: createdTeamId,
-        userId: newMemberId.trim()
+        userId: targetUserId
       }).unwrap();
       setNewMemberId("");
       toast.success("Member added to team!");
@@ -590,7 +673,7 @@ export default function ContestRegistrationPage() {
                                     <Input
                                       value={newMemberId}
                                       onValueChange={setNewMemberId}
-                                      placeholder="ENTER USER ID (UUID)"
+                                      placeholder="ENTER EMAIL OR USER ID"
                                       variant="bordered"
                                       className="flex-1"
                                       classNames={{
@@ -603,57 +686,55 @@ export default function ContestRegistrationPage() {
                                       className="h-14 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-8"
                                       onPress={handleAddMember}
                                       isLoading={isAddingMember}
-                                      isDisabled={memberIds.length >= 3}
+                                      isDisabled={memberIds.length >= 3 || (isEmail && !foundUser)}
                                     >
                                       Add
                                     </Button>
                                   </div>
 
-                                  <div className="grid grid-cols-1 gap-3 pt-4">
-                                    {teamDetail?.data?.members?.map((m: any, index: number) => {
-                                      // Priority: displayName > userName > (firstName + lastName) > username > Member ID
-                                      const fullName = m.displayName || m.user?.displayName || m.userName || (m.firstName || m.lastName ? `${m.firstName || ""} ${m.lastName || ""}`.trim() : null) || m.username || m.user?.username || `Member ${m.userId?.slice(0, 4) || "????"}`;
-                                      const emailDisplay = m.email || m.user?.email || "Email not public";
-
-                                      return (
-                                        <div key={m.userId} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
-                                          <div className="flex items-center gap-4">
-                                            <Avatar
-                                              src={m.avatarUrl || m.user?.avatarUrl || undefined}
-                                              name={fullName}
-                                              className="w-10 h-10 border-2 border-[#071739]"
-                                            />
-                                            <div className="text-left">
-                                              <p className="text-xs font-black uppercase italic leading-none truncate max-w-[200px]">
-                                                {m.userId === currentUser?.userId ? (currentUser?.displayName || currentUser?.username) : fullName}
-                                              </p>
-                                              <p className="text-[9px] text-gray-400 font-bold lowercase truncate max-w-[200px]">
-                                                {m.userId === currentUser?.userId ? currentUser?.email : emailDisplay}
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            {m.userId !== teamDetail.data.leaderId && (
-                                              <div className="flex items-center gap-2">
-                                                <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
-                                                <Button
-                                                  isIconOnly
-                                                  size="sm"
-                                                  variant="flat"
-                                                  color="danger"
-                                                  className="h-7 w-7 min-w-0 rounded-lg group-hover:bg-danger group-hover:text-white transition-all shadow-sm"
-                                                  onPress={() => handleRemoveMember(m.userId)}
-                                                  isLoading={isDeletingMember}
-                                                >
-                                                  <X size={14} />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
+                                  {newMemberId.trim().length >= 5 && foundUser && !memberIds.includes(foundUser.userId) && (
+                                    <div className="p-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-[#FF5C00]/30 animate-in fade-in zoom-in-95 transition-all">
+                                      <div className="flex items-center gap-3">
+                                        <Avatar src={foundUser.avatarUrl || undefined} name={foundUser.displayName} size="sm" className="border-2 border-[#FF5C00]" />
+                                        <div className="text-left">
+                                          <p className="text-[10px] font-black uppercase italic leading-none">{foundUser.displayName}</p>
+                                          <p className="text-[8px] text-gray-500 font-bold lowercase">{foundUser.email}</p>
                                         </div>
-                                      );
-                                    })}
+                                        {isSearchingUser ? (
+                                          <div className="ml-auto animate-spin h-4 w-4 border-2 border-[#FF5C00] border-t-transparent rounded-full" />
+                                        ) : (
+                                          <div className="ml-auto flex items-center gap-2">
+                                            <Chip size="sm" color="success" variant="flat" className="text-[8px] font-black italic">USER FOUND</Chip>
+                                            <Button
+                                              size="sm"
+                                              color="success"
+                                              variant="shadow"
+                                              className="font-black italic uppercase text-[10px] rounded-xl h-8 px-4"
+                                              onPress={handleAddMember}
+                                              isLoading={isAddingMember}
+                                            >
+                                              Add Now
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+
+                                  <div className="grid grid-cols-1 gap-3 pt-4">
+                                    {teamDetail?.data?.members?.map((m: any) => (
+                                      <TeamMemberItem
+                                        key={m.userId}
+                                        m={m}
+                                        leaderId={teamDetail.data.leaderId}
+                                        currentUser={currentUser}
+                                        onRemove={handleRemoveMember}
+                                        isDeleting={isDeletingMember}
+                                      />
+                                    ))}
                                   </div>
+
 
 
 

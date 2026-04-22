@@ -69,6 +69,11 @@ export default function GlobalProblemListPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
+  // Tự động reset về trang 1 khi bộ lọc thay đổi
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchQuery, filterDifficulty, filterStatus]);
+
   // ── RTK Query ───────────────────────────────────────────────
   const {
     data: apiResponse,
@@ -79,7 +84,7 @@ export default function GlobalProblemListPage() {
   } = useGetProblemListQueryQuery();
   console.log(apiResponse);
   const [updateDifficulty, { isLoading: isUpdatingDifficulty }] = useUpdateProblemDifficultyMutation();
-  
+
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {
     try {
       await updateDifficulty({ problemId, difficulty }).unwrap();
@@ -160,20 +165,20 @@ export default function GlobalProblemListPage() {
 
   const filteredProblems = useMemo(() => {
     let filtered = [...allProblems];
-    
+
     // Search
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter((p) => 
+      filtered = filtered.filter((p) =>
         p.title.toLowerCase().includes(q)
       );
     }
-    
+
     // Filter
     if (filterDifficulty && filterDifficulty !== "all") {
       filtered = filtered.filter((p) => p.difficulty?.toLowerCase() === filterDifficulty.toLowerCase());
     }
-    
+
     if (filterStatus && filterStatus !== "all") {
       if (filterStatus === "published") {
         filtered = filtered.filter((p) => p.access);
@@ -181,21 +186,21 @@ export default function GlobalProblemListPage() {
         filtered = filtered.filter((p) => !p.access);
       }
     }
-    
+
     // Sort
     if (sortBy === "title") {
-      filtered.sort((a,b) => a.title.localeCompare(b.title));
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === "ac") {
-      filtered.sort((a,b) => {
+      filtered.sort((a, b) => {
         const acA = parseFloat(a.acRate) || 0;
         const acB = parseFloat(b.acRate) || 0;
         return acB - acA;
       });
     }
     // newest can just remain default
-    
+
     return filtered;
-  }, [allProblems, searchQuery, filterDifficulty, sortBy]);
+  }, [allProblems, searchQuery, filterDifficulty, filterStatus, sortBy]);
 
   const totalItems = filteredProblems.length;
   const pages = Math.ceil(totalItems / rowsPerPage) || 1;
@@ -279,8 +284,8 @@ export default function GlobalProblemListPage() {
               {t('problem_management.sort_by') || "Sort By"}
             </Button>
           </DropdownTrigger>
-          <DropdownMenu 
-            aria-label="Sort Options" 
+          <DropdownMenu
+            aria-label="Sort Options"
             className="font-bold uppercase text-[10px]"
             selectionMode="single"
             selectedKeys={new Set([sortBy])}
@@ -428,23 +433,22 @@ export default function GlobalProblemListPage() {
                       <Chip
                         variant="flat"
                         size="sm"
-                        className={`cursor-pointer font-black uppercase text-[9px] px-2 hover:opacity-80 transition-opacity ${
-                          p.difficulty === "EASY"
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : p.difficulty === "MEDIUM"
+                        className={`cursor-pointer font-black uppercase text-[9px] px-2 hover:opacity-80 transition-opacity ${p.difficulty === "EASY"
+                          ? "bg-emerald-500/10 text-emerald-500"
+                          : p.difficulty === "MEDIUM"
                             ? "bg-amber-500/10 text-amber-500"
                             : p.difficulty === "HARD"
-                            ? "bg-rose-500/10 text-rose-500"
-                            : "bg-default/10 text-default-500"
-                        }`}
+                              ? "bg-rose-500/10 text-rose-500"
+                              : "bg-default/10 text-default-500"
+                          }`}
                       >
                         {p.difficulty === "EASY" ? (t('problem_management.easy') || "EASY") :
-                         p.difficulty === "MEDIUM" ? (t('problem_management.medium') || "MEDIUM") :
-                         p.difficulty === "HARD" ? (t('problem_management.hard') || "HARD") :
-                         p.difficulty}
+                          p.difficulty === "MEDIUM" ? (t('problem_management.medium') || "MEDIUM") :
+                            p.difficulty === "HARD" ? (t('problem_management.hard') || "HARD") :
+                              p.difficulty}
                       </Chip>
                     </DropdownTrigger>
-                    <DropdownMenu 
+                    <DropdownMenu
                       aria-label="Change Difficulty"
                       onAction={(key) => handleDifficultyChange(p.id, String(key))}
                       className="font-bold text-[10px] uppercase tracking-wider"

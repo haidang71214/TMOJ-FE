@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import {
   Users, User, Search, HelpCircle, UserPlus, Clock,
-  MapPin, Shield, Star, Mail, Copy, Crown
+  MapPin, Shield, Star, Mail, Copy, Crown, Camera
 } from "lucide-react";
 import {
   Table, TableHeader, TableColumn, TableBody,
@@ -16,6 +16,7 @@ import {
   useGetContestParticipantsQuery,
   useGetContestDetailQuery
 } from "@/store/queries/Contest";
+import { useUpdateTeamAvatarMutation } from "@/store/queries/Team";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { UserRole } from "@/types";
@@ -43,6 +44,36 @@ export default function TeamsPage() {
 
   const isLoading = isAdminOrAuthorized ? isLoadingParticipants : isLoadingMyTeam;
   const myTeam = myTeamData?.data;
+
+  const [updateTeamAvatar, { isLoading: isUpdatingAvatar }] = useUpdateTeamAvatarMutation();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    if (myTeam?.leaderId === currentUser?.userId) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !myTeam) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+      try {
+        await updateTeamAvatar({
+          teamId: myTeam.teamId,
+          avatarUrl: base64String
+        }).unwrap();
+        toast.success("Team avatar updated successfully!");
+      } catch (error) {
+        toast.error("Failed to update team avatar");
+        console.error(error);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (isLoading) {
     return (
@@ -110,7 +141,11 @@ export default function TeamsPage() {
                         <TableCell className="pl-8">
                           <div className="flex items-center gap-4">
                             <Avatar
-                              src={team.avatarUrl ? `${team.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/identicon/svg?seed=${team.teamName}`}
+                              src={(() => {
+                                const url = team.teamAvatarUrl || team.avatarUrl;
+                                if (!url) return `https://api.dicebear.com/7.x/identicon/svg?seed=${team.teamName}`;
+                                return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                              })()}
                               className="w-10 h-10 rounded-xl"
                             />
                             <div className="flex flex-col">
@@ -166,16 +201,40 @@ export default function TeamsPage() {
 
                     <CardBody className="p-8 space-y-8 relative z-10">
                       <div className="flex flex-col items-center text-center space-y-6 pt-4">
-                        <div className="relative">
+                        <div
+                          className={`relative ${myTeam.leaderId === currentUser?.userId ? "cursor-pointer group/avatar" : ""}`}
+                          onClick={handleAvatarClick}
+                        >
                           <Avatar
                             src={myTeam.isPersonal
-                              ? (currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/open-peeps/svg?seed=${currentUser?.username}`)
-                              : (myTeam.avatarUrl ? `${myTeam.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/identicon/svg?seed=${myTeam.teamName}`)}
+                              ? (currentUser?.avatarUrl ? (currentUser.avatarUrl.startsWith("http") ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : currentUser.avatarUrl) : `https://api.dicebear.com/7.x/open-peeps/svg?seed=${currentUser?.username}`)
+                              : (() => {
+                                const url = myTeam.teamAvatarUrl || myTeam.avatarUrl;
+                                if (!url) return `https://api.dicebear.com/7.x/identicon/svg?seed=${myTeam.teamName}`;
+                                return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                              })()}
                             className="w-32 h-32 rounded-[38px] shadow-2xl border-4 border-white dark:border-slate-800 transition-transform group-hover/card:scale-105 duration-500"
                           />
+                          {myTeam.leaderId === currentUser?.userId && (
+                            <div className="absolute inset-0 bg-black/40 rounded-[38px] flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
+                              <Camera className="text-white w-8 h-8" />
+                            </div>
+                          )}
                           <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-2xl shadow-lg ring-4 ring-white dark:ring-[#1e293b]">
                             {myTeam.isPersonal ? <User size={18} /> : <Users size={18} />}
                           </div>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                          />
+                          {isUpdatingAvatar && (
+                            <div className="absolute inset-0 bg-white/50 dark:bg-black/50 rounded-[38px] flex items-center justify-center z-20">
+                              <Spinner size="sm" />
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">

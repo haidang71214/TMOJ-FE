@@ -1131,6 +1131,7 @@ export interface TeamDetail {
   contestId: string;
   teamName: string;
   avatarUrl?: string | null;
+  teamAvatarUrl?: string | null;
   leaderId: string;
   teamSize: number;
   memberCount: number;
@@ -1278,6 +1279,7 @@ export interface ContestParticipantTeam {
   teamId: string;
   teamName: string;
   avatarUrl?: string | null;
+  teamAvatarUrl?: string | null;
   isPersonal: boolean;
   leaderId: string;
   joinAt: string;

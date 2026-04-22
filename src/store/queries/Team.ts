@@ -58,6 +58,15 @@ export const teamApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { teamId }) => [{ type: "Team", id: teamId }],
     }),
+    // 6. Cập nhật avatar team
+    updateTeamAvatar: builder.mutation<any, { teamId: string; avatarUrl: string }>({
+      query: ({ teamId, avatarUrl }) => ({
+        url: TeamEndpoint.UPDATE_AVATAR.replace("{id}", teamId),
+        method: "PUT",
+        body: { avatarUrl },
+      }),
+      invalidatesTags: (result, error, { teamId }) => [{ type: "Team", id: teamId }, "Team"],
+    }),
   }),
 });
 
@@ -67,4 +76,5 @@ export const {
   useAddTeamMemberMutation,
   useJoinTeamByCodeMutation,
   useDeleteTeamMemberMutation,
+  useUpdateTeamAvatarMutation,
 } = teamApi;

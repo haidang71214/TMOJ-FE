@@ -6,32 +6,37 @@ import { QuestBanners } from "./QuestBanners";
 
 import { ProblemsTable } from "./ProblemsTable";
 import { CalendarSidebar } from "./CalendarSidebar";
-import { Input, Button, Progress } from "@heroui/react";
+import { Input, Button, Progress, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
 import {
   Search,
   Filter,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { Pagination } from "@heroui/react";
 import { useGetFavoriteProblemsQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
+import { useGetTagsQuery } from "@/store/queries/Tags";
 import { toast } from "sonner";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
   // API cho Like (trái tim)
   const { data: favoriteData } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 1000 });
   const [toggleFavorite] = useToggleProblemFavoriteMutation();
 
+  // API cho Tags
+  const { data: tags } = useGetTagsQuery();
+
   const likedProblems = useMemo(() => {
     const rawData: any = favoriteData;
-    // Chọc vào 2 lớp data nếu cần (dựa trên JSON thực tế)
     const favoriteList = rawData?.data?.data?.items || rawData?.data?.data || rawData?.data?.items || rawData?.data || [];
-
     return new Set<string>(favoriteList.map((p: any) => String(p.problemId || p.id || "")));
   }, [favoriteData]);
 
@@ -49,16 +54,62 @@ export default function LibraryPage() {
 
   React.useEffect(() => {
     setPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedDifficulty, selectedTagId]);
+
+  const [sortBy, setSortBy] = useState<string>("title");
+  const [sortOrder, setSortOrder] = useState<string>("asc");
 
   const { data: problemResponse, isLoading } = useGetProblemListPublicQuery({
     page: page,
     pageSize: 10,
-    search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined
+    search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined,
+    difficulty: selectedDifficulty,
+    tags: selectedTagId || undefined,
+    sortBy: sortBy,
+    sortOrder: sortOrder
   });
-  const problems = problemResponse?.data || [];
+
+  const rawProblems = problemResponse?.data || [];
   const totalPages = problemResponse?.pagination?.totalPages || 1;
   const totalCount = problemResponse?.pagination?.totalCount || 0;
+
+  // Client-side sorting as a fallback/enhancement for the current page
+  const problems = useMemo(() => {
+    let result = [...rawProblems];
+    if (sortBy === "title") {
+      result.sort((a, b) => sortOrder === "asc" ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
+    } else if (sortBy === "acceptancePercent") {
+      result.sort((a, b) => {
+        const valA = a.acceptancePercent || 0;
+        const valB = b.acceptancePercent || 0;
+        return sortOrder === "asc" ? valA - valB : valB - valA;
+      });
+    } else if (sortBy === "createdAt") {
+      result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+    }
+    return result;
+  }, [rawProblems, sortBy, sortOrder]);
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedDifficulty("All");
+    setSelectedTagId(null);
+    setSortBy("title");
+    setSortOrder("asc");
+  };
+
+  const hasActiveFilters = searchQuery !== "" || selectedDifficulty !== "All" || selectedTagId !== null || sortBy !== "title" || sortOrder !== "asc";
+
+  const getSortLabel = () => {
+    if (sortBy === "title") return sortOrder === "asc" ? "Title (A-Z)" : "Title (Z-A)";
+    if (sortBy === "acceptancePercent") return "AC Rate";
+    return "Sort";
+  };
+
   return (
     <div className="min-h-screen bg-[#CDD5DB] dark:bg-[#101828] font-sans text-[#071739] dark:text-[#F9FAFB] flex relative transition-colors duration-500 ">
       {/* SIDEBAR TRÁI */}
@@ -89,30 +140,34 @@ export default function LibraryPage() {
 
               {/* TOPIC BUTTONS */}
               <div className="flex items-center gap-2 py-2 overflow-x-auto no-scrollbar">
-                {[
-                  "All Topics",
-                  "Algorithms",
-                  "Database",
-                  "Shell",
-                  "Concurrency",
-                  "JavaScript",
-                ].map((t, i) => (
+                <Button
+                  size="sm"
+                  onPress={() => setSelectedTagId(null)}
+                  className={`text-[12px] rounded-xl h-10 px-5 font-black uppercase tracking-widest transition-all ${selectedTagId === null
+                    ? "bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] shadow-lg shadow-[#FFB800]/20"
+                    : "bg-white dark:bg-[#1C2737] text-gray-500 dark:text-[#98A2B3] hover:bg-gray-100 dark:hover:bg-[#344054] hover:text-[#071739] dark:hover:text-white border border-transparent dark:border-[#344054]/50"
+                    }`}
+                >
+                  All Topics
+                </Button>
+                {tags?.map((tag) => (
                   <Button
-                    key={t}
+                    key={tag.id}
                     size="sm"
-                    className={`text-[12px] rounded-xl h-10 px-5 font-black uppercase tracking-widest transition-all ${i === 0
+                    onPress={() => setSelectedTagId(tag.id)}
+                    className={`text-[12px] rounded-xl h-10 px-5 font-black uppercase tracking-widest transition-all ${selectedTagId === tag.id
                       ? "bg-[#071739] dark:bg-[#FFB800] text-white dark:text-[#101828] shadow-lg shadow-[#FFB800]/20"
                       : "bg-white dark:bg-[#1C2737] text-gray-500 dark:text-[#98A2B3] hover:bg-gray-100 dark:hover:bg-[#344054] hover:text-[#071739] dark:hover:text-white border border-transparent dark:border-[#344054]/50"
                       }`}
                   >
-                    {t}
+                    {tag.name}
                   </Button>
                 ))}
               </div>
 
               {/* FILTER & SEARCH ROW */}
               <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex gap-3 w-full md:w-auto">
+                <div className="flex flex-wrap gap-3 w-full md:w-auto">
                   <Input
                     placeholder="Search questions..."
                     startContent={<Search size={18} className="text-gray-400 dark:text-[#667085]" />}
@@ -126,18 +181,70 @@ export default function LibraryPage() {
                     value={searchQuery}
                     onValueChange={setSearchQuery}
                   />
-                  <Button
-                    isIconOnly
-                    className="bg-white dark:bg-[#1C2737] text-[#4B6382] dark:text-white rounded-2xl h-12 w-12 shadow-sm border border-transparent dark:border-[#344054]"
-                  >
-                    <Filter size={20} />
-                  </Button>
-                  <Button
-                    className="bg-white dark:bg-[#1C2737] font-black uppercase text-[10px] tracking-widest text-[#4B6382] dark:text-white px-6 rounded-2xl h-12 shadow-sm border border-transparent dark:border-[#344054]"
-                    startContent={<ArrowUpDown size={16} />}
-                  >
-                    Sort
-                  </Button>
+
+                  {/* DIFFICULTY DROPDOWN */}
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button
+                        className="bg-white dark:bg-[#1C2737] text-[#4B6382] dark:text-white rounded-2xl h-12 px-4 shadow-sm border border-transparent dark:border-[#344054]"
+                        startContent={<Filter size={18} />}
+                      >
+                        {selectedDifficulty === "All" ? "Difficulty" : (selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1))}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Filter Difficulty"
+                      variant="flat"
+                      disallowEmptySelection
+                      selectionMode="single"
+                      selectedKeys={new Set([selectedDifficulty])}
+                      onSelectionChange={(keys: any) => setSelectedDifficulty(Array.from(keys)[0] as string)}
+                    >
+                      <DropdownItem key="All">All Difficulties</DropdownItem>
+                      <DropdownItem key="easy" className="text-green-500 font-bold">Easy</DropdownItem>
+                      <DropdownItem key="medium" className="text-yellow-500 font-bold">Medium</DropdownItem>
+                      <DropdownItem key="hard" className="text-red-500 font-bold">Hard</DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button
+                        className="bg-white dark:bg-[#1C2737] font-black uppercase text-[10px] tracking-widest text-[#4B6382] dark:text-white px-6 rounded-2xl h-12 shadow-sm border border-transparent dark:border-[#344054]"
+                        startContent={<ArrowUpDown size={16} />}
+                      >
+                        {getSortLabel()}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Sort options"
+                      variant="flat"
+                      disallowEmptySelection
+                      selectionMode="single"
+                      onAction={(key) => {
+                        const k = String(key);
+                        if (k === "title_az") { setSortBy("title"); setSortOrder("asc"); }
+                        else if (k === "title_za") { setSortBy("title"); setSortOrder("desc"); }
+                        else if (k === "ac_rate") { setSortBy("acceptancePercent"); setSortOrder("desc"); }
+                      }}
+                    >
+                      <DropdownItem key="title_az">Title (A-Z)</DropdownItem>
+                      <DropdownItem key="title_za">Title (Z-A)</DropdownItem>
+                      <DropdownItem key="ac_rate">AC Rate</DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+
+                  {hasActiveFilters && (
+                    <Button
+                      variant="light"
+                      color="danger"
+                      className="font-black uppercase text-[10px] tracking-widest px-4 rounded-2xl h-12"
+                      onPress={resetFilters}
+                      startContent={<X size={16} />}
+                    >
+                      Reset
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0 bg-white/40 dark:bg-[#1C2737]/30 p-4 rounded-2xl border border-[#A4B5C4]/10">
@@ -167,7 +274,7 @@ export default function LibraryPage() {
                 ) : problems.length > 0 ? (
                   <div className="flex flex-col gap-4">
                     <ProblemsTable
-                      key={searchQuery}
+                      key={`${searchQuery}-${selectedDifficulty}-${selectedTagId}`}
                       problems={problems}
                       likedProblems={likedProblems}
                       toggleLike={toggleLike}
@@ -186,8 +293,13 @@ export default function LibraryPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium">
-                    No problems found.
+                  <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium flex-col gap-2">
+                    <p>No problems found.</p>
+                    {hasActiveFilters && (
+                      <Button size="sm" variant="flat" color="warning" onPress={resetFilters}>
+                        Clear filters
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

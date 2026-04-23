@@ -50,7 +50,15 @@ import {
 import { useGetCollectionsQuery } from "@/store/queries/collections";
 import { useGetFavoriteProblemsQuery, useGetFavoriteContestsQuery } from "@/store/queries/favorites";
 import { useGetStudentByIdQuery, useGetTeacherByIdQuery } from "@/store/queries/user";
+import {
+  useGetGamificationMeQuery,
+  useGetBadgesQuery,
+  useGetBadgeProgressQuery,
+  useGetStreakQuery,
+  useGetGamificationHistoryQuery
+} from "@/store/queries/gamification";
 import EditProfileModal from "./EditProfileModal";
+import GamificationOverview from "./components/GamificationOverview";
 import { toast } from "sonner";
 
 // --- INTERFACES ---
@@ -91,6 +99,19 @@ export default function ProfilePage() {
   const { data: favProblemsResponse, isLoading: favProblemsLoading } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 10 });
   const { data: favContestsResponse, isLoading: favContestsLoading } = useGetFavoriteContestsQuery({ page: 1, pageSize: 10 });
 
+  // ── Gamification ──
+  const { data: gMeResponse } = useGetGamificationMeQuery();
+  const { data: gBadgesResponse } = useGetBadgesQuery();
+  const { data: gProgressResponse } = useGetBadgeProgressQuery();
+  const { data: gStreakResponse } = useGetStreakQuery();
+  const { data: gHistoryResponse } = useGetGamificationHistoryQuery();
+
+  const gMe = gMeResponse?.data;
+  const gStreak = gStreakResponse?.data;
+  const gBadges = gBadgesResponse?.data || [];
+  const gProgress = gProgressResponse?.data || [];
+  const gHistory = gHistoryResponse?.data || [];
+
   const userId = meData?.userId ?? "";
   const role = meData?.role ?? "";
 
@@ -123,20 +144,15 @@ export default function ProfilePage() {
 
   const difficultyData: DifficultyStat[] = useMemo(
     () => [
-      { label: "Easy", solved: 120, total: 922, color: "text-[#00FF41]", variant: "success" },
-      { label: "Med", solved: 95, total: 1986, color: "text-blue-500", variant: "primary" },
-      { label: "Hard", solved: 11, total: 900, color: "text-[#FF5C00]", variant: "warning" },
+      { label: "Easy", solved: gMe?.easySolved ?? 120, total: gMe?.easyTotal ?? 922, color: "text-[#00FF41]", variant: "success" },
+      { label: "Med", solved: gMe?.mediumSolved ?? 95, total: gMe?.mediumTotal ?? 1986, color: "text-blue-500", variant: "primary" },
+      { label: "Hard", solved: gMe?.hardSolved ?? 11, total: gMe?.hardTotal ?? 900, color: "text-[#FF5C00]", variant: "warning" },
     ],
-    []
+    [gMe]
   );
 
-  const badges: BadgeItem[] = [
-    { id: "1", name: "Logic Master Lvl 4", date: "Jan 2024", isLocked: false, color: "#00FF41" },
-    { id: "2", name: "50 Days Streak", date: "Dec 2023", isLocked: false, color: "#FF5C00" },
-    { id: "3", name: "Top 100 Weekly", date: "Nov 2023", isLocked: false, color: "#2563eb" },
-    { id: "4", name: "Bug Hunter", date: "Locked", isLocked: true, color: "#94a3b8" },
-    { id: "5", name: "Algorithm Knight", date: "Locked", isLocked: true, color: "#94a3b8" },
-  ];
+  const SOLVED_COUNT = gMe?.solvedProblems ?? 0;
+  const TOTAL_COUNT = 3808;
 
   const userCollections = useMemo(() => {
     const raw = collectionsResponse?.data;
@@ -147,9 +163,6 @@ export default function ProfilePage() {
 
   const favoriteProblems = favProblemsResponse?.data ?? [];
   const favoriteContests = favContestsResponse?.data ?? [];
-
-  const SOLVED_COUNT = 226;
-  const TOTAL_COUNT = 3808;
 
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -483,15 +496,24 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center gap-3 border border-slate-100 dark:border-none relative group">
+              <div className="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center gap-3 border border-slate-100 dark:border-none relative group min-h-[240px]">
                 <Award size={48} className="text-[#FF5C00]" />
                 <p className="text-[10px] font-[1000] uppercase italic text-slate-500 tracking-widest">
                   Achievement
                 </p>
-                <p className="text-base font-black italic uppercase leading-tight text-[#071739] dark:text-white">
-                  Logic Master <br />
-                  <span className="text-[#00FF41]">Level 4</span>
-                </p>
+                {gBadges.length > 0 ? (
+                  <>
+                    <p className="text-base font-black italic uppercase leading-tight text-[#071739] dark:text-white">
+                      {gBadges[0].name} <br />
+                      <span className="text-[#00FF41] text-[10px]">{gBadges[0].awardedAt}</span>
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm font-black italic uppercase text-slate-400">
+                    No Badges <br />
+                    <span className="text-[10px]">Keep grinding!</span>
+                  </p>
+                )}
                 <Button
                   size="sm"
                   variant="light"
@@ -513,24 +535,59 @@ export default function ProfilePage() {
                 </h2>
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase italic">
-                Streak: 12 Days 🔥
+                Streak: {gStreak?.currentStreak ?? 0} Days 🔥
               </p>
             </CardHeader>
             <CardBody className="px-10 pb-10">
-              <div className="grid grid-cols-53 gap-2 overflow-x-auto pb-2">
-                {Array.from({ length: 371 }).map((_, i) => {
-                  const pseudo = ((i * 9301 + 49297) % 233280) / 233280;
-                  let bg = "bg-slate-100 dark:bg-white/5";
-                  if (pseudo > 0.85) bg = "bg-[#00FF41]";
-                  else if (pseudo > 0.6) bg = "bg-[#00FF41]/60";
-                  else if (pseudo > 0.3) bg = "bg-[#00FF41]/30";
-                  return (
-                    <div
-                      key={i}
-                      className={`w-3.5 h-3.5 rounded-sm shrink-0 hover:scale-125 transition-transform cursor-pointer ${bg}`}
-                    />
-                  );
-                })}
+              <div className="flex flex-col gap-2">
+                {/* Month Labels */}
+                <div className="grid grid-cols-53 gap-2 text-[8px] font-black uppercase italic text-slate-400">
+                  {Array.from({ length: 53 }).map((_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - (52 - i) * 7);
+                    // Hiển thị tên tháng nếu là cột đầu tiên của tháng đó
+                    const isFirstColumnOfMonth = date.getDate() <= 7;
+                    return (
+                      <div key={i} className="h-3">
+                        {isFirstColumnOfMonth ? date.toLocaleString("en-US", { month: "short" }) : ""}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Activity Grid */}
+                <div className="grid grid-cols-53 gap-2 overflow-x-auto pb-2">
+                  {Array.from({ length: 371 }).map((_, i) => {
+                    const today = new Date();
+                    const dateAtI = new Date();
+                    dateAtI.setDate(today.getDate() - (370 - i));
+
+                    const lastActive = gStreak?.lastActiveDate ? new Date(gStreak.lastActiveDate) : new Date();
+                    const diffDays = Math.floor((lastActive.getTime() - dateAtI.getTime()) / (1000 * 3600 * 24));
+
+                    let bg = "bg-slate-100 dark:bg-white/5";
+
+                    // Nếu ngày này nằm trong chuỗi Streak hiện tại
+                    if (gStreak && diffDays >= 0 && diffDays < gStreak.currentStreak) {
+                      bg = "bg-[#00FF41]";
+                    }
+                    // Nếu ngày này có trong lịch sử nhận thưởng (gHistory)
+                    else if (gHistory.some(h => {
+                      const hDate = new Date(h.time);
+                      return hDate.toDateString() === dateAtI.toDateString();
+                    })) {
+                      bg = "bg-[#00FF41]/40";
+                    }
+
+                    return (
+                      <div
+                        key={i}
+                        title={dateAtI.toDateString()}
+                        className={`w-3.5 h-3.5 rounded-sm shrink-0 hover:scale-125 transition-transform cursor-pointer ${bg}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </CardBody>
           </Card>
@@ -586,6 +643,34 @@ export default function ProfilePage() {
                   >
                     View All Activity →
                   </Button>
+                </div>
+              </Tab>
+              <Tab key="achievements" title="Achievements">
+                <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
+                  {gHistory.length > 0 ? (
+                    gHistory.map((h, i) => (
+                      <div key={i} className="py-6 flex justify-between items-center group">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-[#FF5C00]">
+                            {h.type === "badge" ? <Award size={20} /> : <Star size={20} />}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-base font-black uppercase italic text-[#071739] dark:text-white leading-none">
+                              {h.name}
+                            </p>
+                            <p className="text-[9px] font-black uppercase italic text-slate-400">
+                              Earned {h.type}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase italic text-slate-400">
+                          {h.time}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-10 text-center text-slate-400 italic uppercase font-black text-[10px] tracking-widest">No achievements yet. Keep grinding!</div>
+                  )}
                 </div>
               </Tab>
               {/* KHÔI PHỤC CÁC TAB BỊ THIẾU */}
@@ -715,36 +800,51 @@ export default function ProfilePage() {
               </ModalHeader>
               <ModalBody className="py-10">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                  {badges.map((badge) => (
+                  {/* Achieved Badges */}
+                  {gBadges.map((badge) => (
                     <div
-                      key={badge.id}
-                      className={`p-6 rounded-4xl border-2 flex flex-col items-center gap-4 transition-all relative overflow-hidden group ${badge.isLocked
-                        ? "border-slate-100 dark:border-white/5 grayscale opacity-60"
-                        : "border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg"
-                        }`}
+                      key={badge.badgeId}
+                      className="p-6 rounded-4xl border-2 border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg flex flex-col items-center gap-4 relative overflow-hidden group"
                     >
-                      {badge.isLocked && (
-                        <Lock
-                          size={16}
-                          className="absolute top-4 right-4 text-slate-400"
-                        />
-                      )}
-                      <div
-                        className={`p-4 rounded-full bg-white dark:bg-black/20 shadow-inner transition-transform group-hover:scale-110 duration-500`}
-                      >
-                        <Star
-                          size={32}
-                          style={{ color: badge.color }}
-                          strokeWidth={3}
-                        />
+                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner transition-transform group-hover:scale-110 duration-500">
+                        <Star size={32} className="text-[#FF5C00] fill-current" strokeWidth={3} />
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-[1000] uppercase italic text-[#071739] dark:text-white leading-tight">
                           {badge.name}
                         </p>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                          {badge.date}
+                          {badge.awardedAt}
                         </p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Progress Badges */}
+                  {gProgress.map((p, i) => (
+                    <div
+                      key={i}
+                      className="p-6 rounded-4xl border-2 border-slate-100 dark:border-white/5 grayscale opacity-60 flex flex-col items-center gap-4 relative overflow-hidden group"
+                    >
+                      <Lock size={16} className="absolute top-4 right-4 text-slate-400" />
+                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner">
+                        <Star size={32} className="text-slate-300" strokeWidth={3} />
+                      </div>
+                      <div className="text-center w-full">
+                        <p className="text-sm font-[1000] uppercase italic text-[#071739] dark:text-white leading-tight">
+                          {p.badge}
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          <Progress
+                            size="sm"
+                            value={(p.progress / p.target) * 100}
+                            color="warning"
+                            className="h-1.5"
+                          />
+                          <p className="text-[8px] font-black text-slate-400 uppercase italic">
+                            {p.progress}/{p.target}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}

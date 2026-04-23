@@ -1,8 +1,14 @@
 export interface UserGamification {
-  exp: number;
-  level: number;
-  streak: number;
-  coins: number;
+  currentStreak: number;
+  longestStreak: number;
+  solvedProblems: number;
+  easySolved: number;
+  easyTotal: number;
+  mediumSolved: number;
+  mediumTotal: number;
+  hardSolved: number;
+  hardTotal: number;
+  badges: Badge[];
 }
 
 export interface Badge {
@@ -20,10 +26,11 @@ export interface BadgeProgress {
 export interface StreakInfo {
   currentStreak: number;
   longestStreak: number;
+  lastActiveDate: string;
 }
 
 export interface GamificationHistory {
-  type: "badge" | "reward" | string;
+  type: string;
   name: string;
   time: string;
 }
@@ -38,7 +45,19 @@ export interface CreateBadgeRuleRequest {
 
 export interface LeaderboardEntry {
   userId: string;
+  displayName: string;
+  solvedCount: number;
+  avatarUrl: string | null;
   value: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  type: string;
+  total: number;
+  top: number;
+  items: LeaderboardEntry[];
+  me: LeaderboardEntry | null;
 }
 
 export interface AdminBadge {

@@ -249,6 +249,13 @@ const StudyPlanEndpoint = {
   CREATE_PROBLEM_INPLAN:`${API_PREFIX}/study-plans/problem/in-plan`,
   GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
+const GamificationEndpoint = {
+  ME: `${API_PREFIX}/gamification/me`,
+  BADGES: `${API_PREFIX}/gamification/badges`,
+  PROGRESS: `${API_PREFIX}/gamification/badges/progress`,
+  STREAK: `${API_PREFIX}/gamification/streak`,
+  HISTORY: `${API_PREFIX}/gamification/history`,
+  LEADERBOARD: `${API_PREFIX}/gamification/leaderboard`,
 };
 
 const AdminGamificationEndpoint = {
@@ -280,5 +287,6 @@ export {
   FavoriteEndpoint,
   CollectionEndpoint,
   StudyPlanEndpoint,
+  GamificationEndpoint,
   AdminGamificationEndpoint
 };

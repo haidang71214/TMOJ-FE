@@ -33,6 +33,10 @@ import {
 import DepositModal from "../components/DeposiModal";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation"; // Import useSearchParams
+import { useGetWalletBalanceQuery, useGetWalletTransactionsQuery } from "@/store/queries/wallet";
+import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
+import { useGetStreakQuery } from "@/store/queries/gamification";
+import { WalletTransaction, PaymentHistoryItem } from "@/types";
 
 interface MissionItem {
   id: number;
@@ -229,7 +233,6 @@ const MISSIONS = {
   ],
 };
 
-// Tạo một component con để sử dụng useSearchParams (vì Next.js yêu cầu bọc Suspense khi dùng hook này)
 function CoinShopContent() {
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
@@ -238,6 +241,11 @@ function CoinShopContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
+
+  const { data: balanceData, isLoading: isBalanceLoading } = useGetWalletBalanceQuery();
+  const { data: walletTransactionsData, isLoading: isWalletLoading } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
+  const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
+  const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const MissionCard = ({ mission }: { mission: MissionItem }) => (
@@ -326,7 +334,7 @@ function CoinShopContent() {
       </div>
 
       {/* TOP STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
           <CardBody className="p-6 space-y-3">
             <div className="flex items-center gap-2">
@@ -336,33 +344,8 @@ function CoinShopContent() {
               </p>
             </div>
             <p className="text-4xl font-[1000] text-[#FFB800] italic leading-none">
-              {WALLET_DATA.coins.toLocaleString()}
+              {isBalanceLoading ? "..." : (balanceData?.data?.balance ?? 0).toLocaleString()}
             </p>
-          </CardBody>
-        </Card>
-
-        <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
-          <CardBody className="p-6 space-y-3">
-            <div className="flex justify-between items-center text-purple-500">
-              <div className="flex items-center gap-2">
-                <Trophy size={18} />
-                <p className="text-[10px] font-black text-slate-400 uppercase italic tracking-widest">
-                  Level {WALLET_DATA.level}
-                </p>
-              </div>
-              <span className="text-[9px] font-black">
-                {WALLET_DATA.exp}/{WALLET_DATA.expNext} EXP
-              </span>
-            </div>
-            <Progress
-              size="sm"
-              value={(WALLET_DATA.exp / WALLET_DATA.expNext) * 100}
-              classNames={{
-                indicator: "bg-purple-500",
-                track: "bg-slate-100 dark:bg-white/10",
-              }}
-              className="h-1.5"
-            />
           </CardBody>
         </Card>
 
@@ -375,7 +358,7 @@ function CoinShopContent() {
               </p>
             </div>
             <p className="text-4xl font-[1000] text-[#FF5C00] italic leading-none">
-              {WALLET_DATA.currentStreak} DAYS
+              {isStreakLoading ? "..." : `${streakData?.data?.currentStreak ?? 0} DAYS`}
             </p>
           </CardBody>
         </Card>
@@ -576,46 +559,51 @@ function CoinShopContent() {
           }
         >
           <div className="mt-6 space-y-4 pb-8">
-            {EARNINGS_HISTORY.map((h) => (
-              <Card
-                key={h.id}
-                className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden group hover:border-l-4 hover:border-blue-600 dark:hover:border-[#00FF41] transition-all"
-              >
-                <CardBody className="flex flex-row items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
-                        h.isStreak
-                          ? "bg-orange-500/10 text-[#FF5C00]"
-                          : "bg-emerald-500/10 text-[#00FF41]"
-                      }`}
-                    >
-                      {h.isStreak ? (
-                        <CalendarDays size={20} strokeWidth={3} />
-                      ) : (
-                        <ArrowUpRight size={20} strokeWidth={3} />
-                      )}
+            {isWalletLoading ? (
+              <p className="text-center py-10 font-bold italic text-slate-400">Loading history...</p>
+            ) : walletTransactionsData?.data && walletTransactionsData.data.length > 0 ? (
+              walletTransactionsData.data.map((h: WalletTransaction, index: number) => (
+                <Card
+                  key={index}
+                  className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden group hover:border-l-4 hover:border-blue-600 dark:hover:border-[#00FF41] transition-all"
+                >
+                  <CardBody className="flex flex-row items-center justify-between p-4">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${h.direction === "in"
+                          ? "bg-emerald-500/10 text-[#00FF41]"
+                          : "bg-orange-500/10 text-[#FF5C00]"
+                          }`}
+                      >
+                        {h.direction === "in" ? (
+                          <ArrowUpRight size={20} strokeWidth={3} />
+                        ) : (
+                          <ArrowDownRight size={20} strokeWidth={3} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-black uppercase italic text-sm leading-none group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
+                          {h.type === "deposit" ? "Coin Deposit" : h.type === "withdraw" ? "Coin Withdrawal" : h.type}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
+                          Status: {h.status}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-black uppercase italic text-sm leading-none group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
-                        {h.reason} {h.isStreak && "🔥"}
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
-                        {h.time}
+                    <div className="text-right">
+                      <p className={`${h.direction === "in" ? "text-[#00FF41]" : "text-red-500"} font-[1000] italic text-lg leading-none`}>
+                        {h.direction === "in" ? "+" : "-"}{h.amount.toLocaleString()} Coins
                       </p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[#FFB800] font-[1000] italic text-lg leading-none">
-                      +{h.amount} Coins
-                    </p>
-                    <p className="text-blue-500 dark:text-blue-400 font-black italic text-[9px] uppercase mt-1">
-                      +{h.exp} EXP
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
+                  </CardBody>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <History size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">No transaction history found</p>
+              </div>
+            )}
           </div>
         </Tab>
 
@@ -625,45 +613,54 @@ function CoinShopContent() {
           title={
             <div className="flex items-center gap-2">
               <ShoppingBasket size={18} />
-              <span>My Orders</span>
+              <span>Payment History</span>
             </div>
           }
         >
           <div className="mt-6 space-y-4 pb-8">
-            {PURCHASE_HISTORY.map((p) => (
-              <Card
-                key={p.id}
-                className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl group hover:border-l-4 hover:border-blue-600 dark:hover:border-red-500 transition-all"
-              >
-                <CardBody className="flex flex-row items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center transition-transform group-hover:scale-110">
-                      <ArrowDownRight size={20} strokeWidth={3} />
+            {isPaymentLoading ? (
+              <p className="text-center py-10 font-bold italic text-slate-400">Loading payments...</p>
+            ) : paymentHistoryData?.data?.data && paymentHistoryData.data.data.length > 0 ? (
+              paymentHistoryData.data.data.map((p: PaymentHistoryItem) => (
+                <Card
+                  key={p.paymentId}
+                  className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl group hover:border-l-4 hover:border-blue-600 dark:hover:border-[#00FF41] transition-all"
+                >
+                  <CardBody className="flex flex-row items-center justify-between p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <ShoppingBag size={20} strokeWidth={3} />
+                      </div>
+                      <div>
+                        <p className="font-black uppercase italic text-sm leading-none group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
+                          Deposit via {p.paymentMethod.toUpperCase()}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
+                          {new Date(p.createdAt).toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-black uppercase italic text-sm leading-none group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
-                        {p.item}
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
-                        {p.time}
-                      </p>
+                    <div className="flex items-center gap-6">
+                      <span className="text-[#FFB800] font-[1000] italic text-lg">
+                        {p.amount.toLocaleString()} VND
+                      </span>
+                      <Chip
+                        variant="flat"
+                        color={p.status === "paid" ? "success" : p.status === "pending" ? "warning" : "danger"}
+                        className="font-black uppercase italic text-[9px] rounded-lg h-7 border-none"
+                      >
+                        {p.status}
+                      </Chip>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-slate-500 dark:text-slate-300 font-[1000] italic text-lg">
-                      -{p.amount.toLocaleString()}
-                    </span>
-                    <Chip
-                      variant="flat"
-                      color={p.status === "Delivering" ? "warning" : "success"}
-                      className="font-black uppercase italic text-[9px] rounded-lg h-7 border-none"
-                    >
-                      {p.status}
-                    </Chip>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
+                  </CardBody>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <ShoppingBag size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">No payment history found</p>
+              </div>
+            )}
           </div>
         </Tab>
       </Tabs>

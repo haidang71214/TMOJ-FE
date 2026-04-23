@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { UserRole } from "@/types";
 
-import { useGetContestDetailQuery } from "@/store/queries/Contest";
+import { useGetContestDetailQuery, useGetMyTeamInContestQuery } from "@/store/queries/Contest";
 import ContestHeader from "./components/ContestHeader";
 
 export default function ContestDetailPage() {
@@ -25,6 +25,11 @@ export default function ContestDetailPage() {
   const contestId = params.id as string;
 
   const { data: contestData, isLoading } = useGetContestDetailQuery(contestId);
+  const { data: myTeamResult } = useGetMyTeamInContestQuery(contestId, {
+    skip: !contestId,
+  });
+  const isRegistered = contestData?.data?.isRegistered || !!myTeamResult?.data;
+
   const [selectedTab] = useState("info");
   const [copied, setCopied] = useState(false);
 
@@ -152,18 +157,18 @@ export default function ContestDetailPage() {
                         </div>
                       )}
 
-                      {contest?.status?.toLowerCase() === "upcoming" && !contest?.isRegistered && (
+                      {contest?.status?.toLowerCase() === "upcoming" && !isRegistered && !isAdminOrTeacher && (
                         <Button
                           color="primary"
                           variant="shadow"
-                          className="font-black italic uppercase px-8 h-12 text-md"
+                          className="font-black italic uppercase px-8 h-12 text-md shadow-[0_10px_20px_rgba(0,111,238,0.2)]"
                           onPress={() => router.push(`/Contest/${contestId}/register`)}
                         >
                           Register Now
                         </Button>
                       )}
 
-                      {contest?.isRegistered && (
+                      {(isRegistered || (contest?.isRegistered && !isAdminOrTeacher)) && (
                         <div className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-800/50 font-black italic uppercase text-sm">
                           Registered
                         </div>

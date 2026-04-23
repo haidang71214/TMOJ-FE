@@ -16,6 +16,8 @@ const userProfileEndpoint = {
   UPDATE_ME: `${API_PREFIX}/User/me`,
   UPDATE_AVATAR: `${API_PREFIX}/User/me/avatar`,
   DELETE_AVATAR: `${API_PREFIX}/User/me/avatar`,
+  GET_ALL_USERS: `${API_PREFIX}/User`,
+  GET_USER_BY_EMAIL: `${API_PREFIX}/User/email/{email}`,
 }
 const AdminUserEndPoint = {
   GET_LIST_USER: `${API_PREFIX}/User/list-all`, // bệt đuôi api vô
@@ -236,14 +238,14 @@ const CollectionEndpoint = {
   GET_COLLECTIONS: `${API_PREFIX}/favorites/collections`,
   GET_COLLECTION_DETAIL: `${API_PREFIX}/favorites/collections/{id}`,
 
-  ADD_PROBLEM: `${API_PREFIX}/collections/{id}/problems`,
-  ADD_CONTEST: `${API_PREFIX}/collections/{id}/contests`,
-  DELETE_ITEM: `${API_PREFIX}/collections/{id}/items/{itemId}`,
-  REORDER_ITEMS: `${API_PREFIX}/collections/{id}/reorder`,
+  ADD_PROBLEM: `${API_PREFIX}/favorites/collections/{id}/problems`,
+  ADD_CONTEST: `${API_PREFIX}/favorites/collections/{id}/contests`,
+  DELETE_ITEM: `${API_PREFIX}/favorites/collections/{id}/items/{itemId}`,
+  REORDER_ITEMS: `${API_PREFIX}/favorites/collections/{id}/reorder`,
 
-  GET_PUBLIC: `${API_PREFIX}/collections/public`,
+  GET_PUBLIC: `${API_PREFIX}/favorites/collections/public`,
   GET_USER_COLLECTIONS: `${API_PREFIX}/users/{userId}/collections`,
-  COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
+  COPY_COLLECTION: `${API_PREFIX}/favorites/collections/{id}/copy`,
 };
 
 const StudyPlanEndpoint = {
@@ -275,6 +277,20 @@ const ProblemTemplateEndPoint = {
   GET_TEMPLATES: `${API_LON}/ProblemTemplates/{problemId}/templates`,
   UPDATE_TEMPLATE: `${API_LON}/ProblemTemplates/templates/{codeTemplateId}`,
 }
+const PaymentEndpoint = {
+  VNPAY_CREATE: `${API_PREFIX}/payments/vnpay`,
+  VNPAY_CALLBACK: `${API_PREFIX}/payments/vnpay/callback`,
+  VNPAY_RETURN: `${API_PREFIX}/payments/vnpay/return`,
+  GET_BY_ID: `${API_PREFIX}/payments/{id}`,
+  CONVERSION_RATE: `${API_PREFIX}/payments/conversion-rate`,
+  HISTORY_ME: `${API_PREFIX}/payments/history/me`,
+  HISTORY_ADMIN: `${API_PREFIX}/payments/history/admin`,
+};
+
+const WalletEndpoint = {
+  BALANCE: `${API_PREFIX}/wallet`,
+  TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
+};
 
 export {
   ProblemTemplateEndPoint,
@@ -300,5 +316,7 @@ export {
   CollectionEndpoint,
   StudyPlanEndpoint,
   GamificationEndpoint,
-  AdminGamificationEndpoint
+  AdminGamificationEndpoint,
+  PaymentEndpoint,
+  WalletEndpoint
 };

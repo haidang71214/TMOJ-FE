@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation, useGetMyTeamInContestQuery, useJoinContestByCodeMutation } from "@/store/queries/Contest";
 import { useCreateTeamMutation, useGetTeamDetailQuery, useAddTeamMemberMutation, useDeleteTeamMemberMutation } from "@/store/queries/Team";
-import { useGetUserByIdQuery, useSearchUsersQuery } from "@/store/queries/user";
+import { useGetUserByIdQuery, useSearchUsersQuery, useGetUserByEmailQuery } from "@/store/queries/user";
 
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -114,19 +114,17 @@ export default function ContestRegistrationPage() {
 
   // Fetch info for the user being added
   const isEmail = newMemberId.includes("@");
+
+  const { data: emailUserResult, isFetching: isSearchingByEmail } = useGetUserByEmailQuery(newMemberId.trim(), {
+    skip: !isEmail || !newMemberId.trim().includes(".") || newMemberId.trim().length < 5,
+  });
+
   const { data: idUserResult, isFetching: isSearchingById } = useGetUserByIdQuery(newMemberId.trim(), {
     skip: isEmail || newMemberId.trim().length < 5,
   });
 
-  const { data: searchResult, isFetching: isSearchingBySearch } = useSearchUsersQuery({ search: newMemberId.trim() }, {
-    skip: !isEmail || newMemberId.trim().length < 5,
-  });
-
-  const foundUser = isEmail
-    ? searchResult?.data?.find(u => u.email.toLowerCase() === newMemberId.trim().toLowerCase())
-    : idUserResult?.data;
-
-  const isSearchingUser = isSearchingById || isSearchingBySearch;
+  const foundUser = isEmail ? emailUserResult?.data : idUserResult?.data;
+  const isSearchingUser = isSearchingById || isSearchingByEmail;
 
 
   // Load existing team state in this contest
@@ -289,20 +287,31 @@ export default function ContestRegistrationPage() {
     }
     const code = inviteCode.trim();
     try {
-      // First try to join contest (assuming it might be a general contest invite)
-      try {
+      if (code.length === 8) {
+        // Team invite code (8 chars)
+        await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
+        toast.success("Joined team! The leader will register for the contest.");
+        router.push(`/Contest/${contestId}`);
+      } else if (code.length === 10) {
+        // Contest invite code (10 chars)
         const res = await joinContestByCode({ inviteCode: code }).unwrap();
         toast.success("Joined contest successfully!");
         const targetId = res?.data?.contestId || res?.data?.id || res?.data || contestId;
         router.push(`/Contest/${targetId}`);
-      } catch (err) {
-        // If it fails, it might be a specific team invite code
-        await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
-        toast.success("Joined team! The leader will register for the contest.");
-        router.push(`/Contest/${contestId}`);
+      } else {
+        // Fallback or attempt general join
+        try {
+          const res = await joinContestByCode({ inviteCode: code }).unwrap();
+          toast.success("Joined successfully!");
+          const targetId = res?.data?.contestId || res?.data?.id || res?.data || contestId;
+          router.push(`/Contest/${targetId}`);
+        } catch (err) {
+          await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
+          toast.success("Joined team!");
+          router.push(`/Contest/${contestId}`);
+        }
       }
 
-      // Clear code and state will be recovered by myTeamResult
       setInviteCode("");
     } catch (error: any) {
       toast.error(error?.data?.message || "Invalid invite code or failed to join.");
@@ -678,28 +687,18 @@ export default function ContestRegistrationPage() {
                                     </Chip>
                                   </div>
 
-                                  <div className="flex gap-3">
-                                    <Input
-                                      value={newMemberId}
-                                      onValueChange={setNewMemberId}
-                                      placeholder="ENTER EMAIL OR USER ID"
-                                      variant="bordered"
-                                      className="flex-1"
-                                      classNames={{
-                                        inputWrapper: "h-14 rounded-2xl border-2",
-                                        input: "font-bold text-xs"
-                                      }}
-                                      startContent={<UserPlus size={18} className="text-[#FF5C00]" />}
-                                    />
-                                    <Button
-                                      className="h-14 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-8"
-                                      onPress={handleAddMember}
-                                      isLoading={isAddingMember}
-                                      isDisabled={memberIds.length >= 3 || (isEmail && !foundUser)}
-                                    >
-                                      Add
-                                    </Button>
-                                  </div>
+                                  <Input
+                                    value={newMemberId}
+                                    onValueChange={setNewMemberId}
+                                    placeholder="ENTER EMAIL OR USER ID"
+                                    variant="bordered"
+                                    className="w-full"
+                                    classNames={{
+                                      inputWrapper: "h-14 rounded-2xl border-2",
+                                      input: "font-bold text-xs"
+                                    }}
+                                    startContent={isSearchingUser ? <div className="animate-spin h-5 w-5 border-2 border-[#FF5C00] border-t-transparent rounded-full" /> : <UserPlus size={18} className="text-[#FF5C00]" />}
+                                  />
 
                                   {newMemberId.trim().length >= 5 && foundUser && !memberIds.includes(foundUser.userId) && (
                                     <div className="p-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-[#FF5C00]/30 animate-in fade-in zoom-in-95 transition-all">

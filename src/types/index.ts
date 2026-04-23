@@ -1505,3 +1505,86 @@ export interface CreateVirtualProblemRequest {
   title?: string;
   visibilityCode?: string;
 }
+// ── Payment & Wallet API Definitions ───────────────────────
+
+export interface CreateVNPayPaymentRequest {
+  amount: number;
+  returnUrl?: string;
+}
+
+export interface CreateVNPayPaymentResponse {
+  data: {
+    paymentId: string;
+    paymentUrl: string;
+  };
+}
+
+export interface VNPayCallbackResponse {
+  paymentId: string;
+  status: string;
+  walletUpdated: boolean;
+  transactionCreated: boolean;
+}
+
+export interface PaymentDetail {
+  paymentId: string;
+  userId: string;
+  status: string;
+  amount: number;
+  paymentMethod: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export interface PaymentResponse {
+  data: PaymentDetail;
+}
+
+export interface ConversionRateResponse {
+  data: {
+    rate: number;
+  };
+}
+
+export interface WalletBalanceResponse {
+  data: {
+    balance: number;
+  };
+}
+
+export interface WalletTransaction {
+  type: "deposit" | "withdraw";
+  amount: number;
+  direction: "in" | "out";
+  status: "pending" | "completed" | "failed" | "reversed";
+}
+
+export interface WalletTransactionsResponse {
+  data: WalletTransaction[];
+}
+
+export interface PaymentHistoryItem {
+  paymentId: string;
+  userId: string;
+  status: string;
+  amount: number;
+  paymentMethod: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export interface PaymentHistoryResponse {
+  data: {
+    data: PaymentHistoryItem[];
+    pagination: {
+      totalItems: number;
+      totalPages: number;
+      page: number;
+      pageSize: number;
+    };
+    message: string;
+    traceId: string;
+  };
+  message: string | null;
+  traceId: string;
+}

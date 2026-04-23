@@ -64,7 +64,7 @@ type Props = {
 
 export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode }: Props) {
   const router = useRouter();
-  const classId = id;
+  const semesterId = id;
 
   const [publishSlot] = usePublishClassSlotMutation();
   const [deleteProblems] = useDeleteSlotProblemsMutation();
@@ -86,27 +86,27 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
     setMounted(true);
   }, []);
 
-  const { data: classData } = useGetClassDetailQuery({ id: classId });
-  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(classId);
+  const { data: classData } = useGetClassDetailQuery({ id: semesterId });
+  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId);
 
   const slots = slotData?.data ?? [];
   console.log(classData);
   const openCreateSlotModal = () => {
     openModal({
-      content: <CreateSlotForm classId={classId} />,
+      content: <CreateSlotForm semesterId={semesterId} />,
     });
   };
 
   const openAddProblemModal = (slotId: string) => {
     openModal({
-      content: <AddProblemToSlotForm slotId={slotId} instanceId={classId} />,
+      content: <AddProblemToSlotForm slotId={slotId} semesterId={semesterId} />,
     });
   };
 
   const handleDeleteProblem = async (slotId: string, problemId: string) => {
     try {
       await deleteProblems({
-        instanceId: classId,
+        semesterId,
         slotId,
         problemIds: [problemId],
       }).unwrap();
@@ -126,7 +126,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
 
   const handleExportTemplate = async () => {
     try {
-      const blob = await exportTemplate({ classSemesterId: classId }).unwrap();
+      const blob = await exportTemplate({ classSemesterId: semesterId }).unwrap();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -143,7 +143,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
 
   const handleExportList = async () => {
     try {
-      const blob = await exportStudents({ classSemesterId: classId }).unwrap();
+      const blob = await exportStudents({ classSemesterId: semesterId }).unwrap();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -166,7 +166,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
       const formData = new FormData();
       formData.append("file", file);
       
-      const res = await importStudents({ classSemesterId: classId, data: formData }).unwrap();
+      const res = await importStudents({ classSemesterId: semesterId, data: formData }).unwrap();
       addToast({
         title: "Import Success",
         description: `Processed: ${res?.totalProcessed || 0}, Success: ${res?.successCount || 0}, Failed: ${res?.failedCount || 0}`,
@@ -255,7 +255,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
               startContent={<Plus size={16} strokeWidth={2.5} />}
               size="md"
               color="warning"
-              onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
+              onPress={() => openModal({ content: <AddStudentModal semesterId={semesterId} /> })}
               className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
             >
               ADD STUDENT
@@ -275,7 +275,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
         {/* RIGHT: INVITE CODE CARD */}
         <div className="flex lg:justify-end">
           <InviteCodeCard 
-            classSemesterId={classId} 
+            classSemesterId={semesterId} 
             classCode={nameClass || "Unknown"} 
             semesterCode={semesterCode || ""} 
           />
@@ -343,7 +343,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                             openModal({
                               content: (
                                 <UpdateDueDateModal
-                                  classId={classId}
+                                  semesterId={semesterId}
                                   slotId={slot.id}
                                   dueAt={slot.dueAt}
                                   closeAt={slot.closeAt}
@@ -359,7 +359,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          onPress={() => publishSlot({ classId, slotId: slot.id })}
+                          onPress={() => publishSlot({ semesterId, slotId: slot.id })}
                         >
                           {slot.isPublished ? (
                             <Eye className="text-emerald-500" size={18} />
@@ -406,7 +406,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                                     title: "Update Problems in Slot",
                                     content: (
                                       <UpdateProblemIntoSlot
-                                        instanceId={classId}
+                                        semesterId={semesterId}
                                         slotId={slot.id}
                                         problems={
                                           slot.problems?.map((p) => ({
@@ -519,7 +519,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                         </div>
                           </Tab>
                           <Tab key="scores" title="Student Scores & Results">
-                            <SlotScoresTable classId={classId} slot={slot} />
+                            <SlotScoresTable semesterId={semesterId} slot={slot} />
                           </Tab>
                         </Tabs>
                       </div>
@@ -538,7 +538,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
         </Tab>
 
         <Tab key="members" title="Members">
-          <ClassMembersPage classId={classId} />
+          <ClassMembersPage classSemesterId={semesterId} />
         </Tab>
       </Tabs>
     </div>

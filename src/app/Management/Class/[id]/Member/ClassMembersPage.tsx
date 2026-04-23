@@ -29,20 +29,20 @@ import { useModal } from "@/Provider/ModalProvider";
 import StudentDetailModal from "./StudentDetailModal";
 
 export default function ClassMembersPage({
-  classId,
+  classSemesterId,
 }: {
-  classId: string;
+  classSemesterId: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const { openModal } = useModal();
-  
+
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentClassSemesterMutation();
 
   const handleDelete = async (studentId: string) => {
     try {
-      await deleteStudent({ classSemesterId: classId, studentId }).unwrap();
+      await deleteStudent({ classSemesterId, studentId }).unwrap();
       addToast({ title: "Student removed", color: "success" });
     } catch {
       addToast({ title: "Failed to remove student", color: "danger" });
@@ -54,8 +54,8 @@ export default function ClassMembersPage({
   useEffect(() => {
     setMounted(true);
   }, []);
-  
-  const { data, isLoading } = useGetClassMembersQuery({ id: classId });
+
+  const { data, isLoading } = useGetClassMembersQuery({ classSemesterId });
   
   const members = data?.data ?? [];
 

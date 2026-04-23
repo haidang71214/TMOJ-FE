@@ -12,24 +12,24 @@ import {
   StudentSlotScoreResponse,
   StudentSubmissionDetailResponse,
 } from "@/types";
-// mấy cái này đổi thành class-instance
+// mấy cái này đổi thành class-semester
 export const classSlotApi = baseApi.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
     // ── Queries ────────────────────────────────────────────────
 
     getClassSlots: builder.query<{data :ClassSlotResponse[]}, string>({
-      query: (classId) => ({
-        url: ClassSlotEndpoint.GET_CLASS_SLOTS.replace("{classId}", classId),
+      query: (semesterId) => ({
+        url: ClassSlotEndpoint.GET_CLASS_SLOTS.replace("{semesterId}", semesterId),
         method: "GET",
       }),
       providesTags: ["ClassSlot"],   // ← chỉ 1 tag chung
     }),
 
-    getSlotScores: builder.query<{success: boolean, data: StudentSlotScoreResponse[]}, { classId: string; slotId: string }>({
-      query: ({ classId, slotId }) => ({
+    getSlotScores: builder.query<{success: boolean, data: StudentSlotScoreResponse[]}, { semesterId: string; slotId: string }>({
+      query: ({ semesterId, slotId }) => ({
         url: ClassSlotEndpoint.GET_SLOT_SCORES
-          .replace("{classId}", classId)
+          .replace("{semesterId}", semesterId)
           .replace("{slotId}", slotId),
         method: "GET",
       }),
@@ -38,11 +38,11 @@ export const classSlotApi = baseApi.injectEndpoints({
 
     getUserSubmissionInSlot: builder.query<
       StudentSubmissionDetailResponse[],
-      { classId: string; slotId: string; userId: string }
+      { semesterId: string; slotId: string; userId: string }
     >({
-      query: ({ classId, slotId, userId }) => ({
+      query: ({ semesterId, slotId, userId }) => ({
         url: ClassSlotEndpoint.GET_USER_SUBMISSION
-          .replace("{classId}", classId)
+          .replace("{semesterId}", semesterId)
           .replace("{slotId}", slotId)
           .replace("{userId}", userId),
         method: "GET",
@@ -50,14 +50,24 @@ export const classSlotApi = baseApi.injectEndpoints({
       providesTags: ["ClassSlot"],   // ← chung
     }),
 
+    getSlotRankings: builder.query<any, { semesterId: string; slotId: string }>({
+      query: ({ semesterId, slotId }) => ({
+        url: ClassSlotEndpoint.GET_SLOT_RANKINGS
+          .replace("{semesterId}", semesterId)
+          .replace("{slotId}", slotId),
+        method: "GET",
+      }),
+      providesTags: ["ClassSlot"],
+    }),
+
     // ── Mutations ──────────────────────────────────────────────
 
     createClassSlot: builder.mutation<
       ClassSlotResponse,
-      { classId: string; data: CreateClassSlotRequest }
+      { semesterId: string; data: CreateClassSlotRequest }
     >({
-      query: ({ classId, data }) => ({
-        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{instanceId}", classId),
+      query: ({ semesterId, data }) => ({
+        url: ClassSlotEndpoint.CREATE_CLASS_SLOT.replace("{semesterId}", semesterId),
         method: "POST",
         body: data,
       }),
@@ -65,24 +75,39 @@ export const classSlotApi = baseApi.injectEndpoints({
     }),
 
     updateClassSlot: builder.mutation<
-      ClassSlotResponse,
-      { classId: string; slotId: string; data: UpdateClassSlotRequest }
+      void,
+      { semesterId: string; slotId: string; data: UpdateClassSlotRequest }
     >({
-      query: ({ classId, slotId, data }) => ({
-        url: `${ClassSlotEndpoint.GET_CLASS_SLOTS.replace("{classId}", classId)}/${slotId}`,
-        method: "PATCH",
+      query: ({ semesterId, slotId, data }) => ({
+        url: ClassSlotEndpoint.UPDATE_SLOT
+          .replace("{semesterId}", semesterId)
+          .replace("{slotId}", slotId),
+        method: "PUT",
         body: data,
+      }),
+      invalidatesTags: ["ClassSlot"],
+    }),
+
+    deleteClassSlot: builder.mutation<
+      void,
+      { semesterId: string; slotId: string }
+    >({
+      query: ({ semesterId, slotId }) => ({
+        url: ClassSlotEndpoint.DELETE_SLOT
+          .replace("{semesterId}", semesterId)
+          .replace("{slotId}", slotId),
+        method: "DELETE",
       }),
       invalidatesTags: ["ClassSlot"],
     }),
 
     setSlotDueDate: builder.mutation<
       ClassSlotResponse,
-      { classId: string; slotId: string; data: SetDueDateRequest }
+      { semesterId: string; slotId: string; data: SetDueDateRequest }
     >({
-      query: ({ classId, slotId, data }) => ({
+      query: ({ semesterId, slotId, data }) => ({
         url: ClassSlotEndpoint.UPDATE_SLOT_DUE_DATE
-          .replace("{classId}", classId)
+          .replace("{semesterId}", semesterId)
           .replace("{slotId}", slotId),
         method: "PUT",
         body: data,
@@ -92,11 +117,11 @@ export const classSlotApi = baseApi.injectEndpoints({
 
     publishClassSlot: builder.mutation<
       ClassSlotResponse,
-      { classId: string; slotId: string }
+      { semesterId: string; slotId: string }
     >({
-      query: ({ classId, slotId }) => ({
+      query: ({ semesterId, slotId }) => ({
         url: ClassSlotEndpoint.PUBLISH_SLOT
-          .replace("{classId}", classId)
+          .replace("{semesterId}", semesterId)
           .replace("{slotId}", slotId),
         method: "PUT",
       }),
@@ -108,8 +133,10 @@ export const {
    useGetClassSlotsQuery,
   useGetSlotScoresQuery,
   useGetUserSubmissionInSlotQuery,
+  useGetSlotRankingsQuery,
   useCreateClassSlotMutation,
   useUpdateClassSlotMutation,
+  useDeleteClassSlotMutation,
   useSetSlotDueDateMutation,
   usePublishClassSlotMutation,
 } = classSlotApi

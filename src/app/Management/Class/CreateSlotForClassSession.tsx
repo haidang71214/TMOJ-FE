@@ -25,7 +25,7 @@ import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface CreateSlotFormProps {
-  classId: string;
+  semesterId: string;
 }
 
 interface SelectedProblem {
@@ -35,11 +35,11 @@ interface SelectedProblem {
   isRequired: boolean;
 }
 
-export default function CreateSlotForma({ classId }: CreateSlotFormProps) {
+export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
   const { t } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
-  console.log("classId", classId);
+  console.log("semesterId", semesterId);
   
   const [slotNo, setSlotNo] = useState<number>(1);
   const [title, setTitle] = useState("");
@@ -118,7 +118,7 @@ export default function CreateSlotForma({ classId }: CreateSlotFormProps) {
       })),
     };
 
-    await createSlot({ classId, data: payload }).unwrap();
+    await createSlot({ semesterId, data: payload }).unwrap();
 
     closeModal();   // đóng modal trước
     toast.success(t("slot.createSuccess") || "Class slot created successfully!");

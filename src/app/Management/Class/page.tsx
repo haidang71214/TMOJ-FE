@@ -115,9 +115,9 @@ export default function ClassListPage() {
     return `${semester.name}`.trim();
   };
 
-  const openCreateSlotModal = (classId: string) => {
+  const openCreateSlotModal = (semesterId: string) => {
     openModal({
-      content: <CreateSlotForm classId={classId} />,
+      content: <CreateSlotForm semesterId={semesterId} />,
     });
   };
   const filter = ()=> {

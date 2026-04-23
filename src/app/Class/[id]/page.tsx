@@ -9,7 +9,7 @@ import TeacherClassDetail from "../components/TeacherClassDetail";
 
 export default function ClassDetailPageWrapper() {
   const params = useParams();
-  const classId = params?.id as string;
+  const semesterId = params?.id as string;
   const [mounted, setMounted] = useState(false);
   const { data: userProfile, isLoading } = useGetUserInformationQuery();
 
@@ -31,12 +31,12 @@ export default function ClassDetailPageWrapper() {
 
   // "teacher" or "admin" gets the full management view
   if (role === "teacher" || role === "admin" || role === "manager") {
-    return <TeacherClassDetail classId={classId} />;
+    return <TeacherClassDetail semesterId={semesterId} />;
   }
 
   // "student" gets the standard learning path
   if (role === "student") {
-    return <StudentClassDetail classId={classId} />;
+    return <StudentClassDetail semesterId={semesterId} />;
   }
 
   // Fallback if role is undefined or unrecognized

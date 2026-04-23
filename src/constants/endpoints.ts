@@ -89,17 +89,13 @@ const ClassEndpoint = {
   GET_INVITE_CODE: `${API_PREFIX}/Class/{classSemesterId}/invite-code`,
   CREATE_INVITE_CODE: `${API_PREFIX}/Class/{classSemesterId}/invite-code`,
   DELETE_INVITE_CODE: `${API_PREFIX}/Class/{classSemesterId}/invite-code`,
-  GET_CLASS_MEMBERS: `${API_PREFIX}/Class/{id}/students`, // đang làm
-
-  ADD_CLASS_MEMBERS: `${API_PREFIX}/Class/{classSemesterId}/students/manual`, // add student vào 
-  POST_CLASS_MEMBERS: `${API_PREFIX}/Class/{id}/members/{userId}`,
-  DELETE_CLASS_MEMBERS: `${API_PREFIX}/Class/{id}/members/{userId}`,
+  GET_CLASS_MEMBERS: `${API_PREFIX}/Class/{classSemesterId}/students`,
+  ADD_CLASS_MEMBERS: `${API_PREFIX}/Class/{classSemesterId}/students/manual`,
   DELETE_STUDENT_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/{studentId}`,
-  JOIN_CLASS_BY_INVITECODE: `${API_PREFIX}/Class/join`, // chưa làm
-  OUTOF_CLASS: `${API_PREFIX}/Class/{id}/members/me`,
-  EXPORT_CLASS: `${API_PREFIX}/Class/{id}/report/export`, // đang sửa
+  JOIN_CLASS_BY_INVITECODE: `${API_PREFIX}/Class/join`,
+  EXPORT_CLASS: `${API_PREFIX}/Class/{classSemesterId}/report/export`,
   EXPORT_TEMPLATE_CLASS: `${API_PREFIX}/Class/export/template`,
-  IMPORT_PROBLEM_CLASS: `${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
+  IMPORT_PROBLEM_CLASS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/problems`,
 
 
   GET_STUDENTS_IMPORT_TEMPLATE: `${API_PREFIX}/Class/{classSemesterId}/students/import/template`,
@@ -109,8 +105,8 @@ const ClassEndpoint = {
   IMPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/import`,
   EXPORT_STUDENTS_CLASS_SEMESTER: `${API_PREFIX}/Class/{classSemesterId}/students/export`,
 
-  UPDATE_SLOT_PROBLEMS: `${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
-  DELETE_SLOT_PROBLEMS: `${API_PREFIX}/class-instance/{instanceId}/slots/{slotId}/problems`,
+  UPDATE_SLOT_PROBLEMS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/problems`,
+  DELETE_SLOT_PROBLEMS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/problems`,
   GET_MY_CLASSES_STUDENT: `${API_PREFIX}/Class/my-classes/student`,
   GET_MY_CLASSES_TEACHER: `${API_PREFIX}/Class/my-classes/teacher`,
   STUDENT_NOT_YET: `${API_PREFIX}/Class/{classSemesterId}/students/available`
@@ -127,15 +123,16 @@ const SemesterEndpoint = {
   EXPORT_SEMESTER: `${API_PREFIX}/Semester/export`,
 };
 const ClassSlotEndpoint = {
-  GET_CLASS_SLOTS: `${API_PREFIX}/class-instance/{classId}/slots`, // đang sửa
-  CREATE_CLASS_SLOT: `${API_PREFIX}/class-instance/{instanceId}/slots`,
+  GET_CLASS_SLOTS: `${API_PREFIX}/class-semester/{semesterId}/slots`,
+  CREATE_CLASS_SLOT: `${API_PREFIX}/class-semester/{semesterId}/slots`,
+  UPDATE_SLOT: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}`,
+  DELETE_SLOT: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}`,
 
-  UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/due-date`,
-  PUBLISH_SLOT: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/publish`,
-  // sửa lại cái này, thêm 1 số trường
-  GET_SLOT_SCORES: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/scores`,
-  // là chi tiết lần nạp bài của user đó.
-  GET_USER_SUBMISSION: `${API_PREFIX}/class-instance/{classId}/slots/{slotId}/submissions/{userId}`,
+  UPDATE_SLOT_DUE_DATE: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/due-date`,
+  PUBLISH_SLOT: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/publish`,
+  GET_SLOT_SCORES: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/scores`,
+  GET_USER_SUBMISSION: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/submissions/{userId}`,
+  GET_SLOT_RANKINGS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/rankings`,
 };
 const NotificationEndpoint = {
   CREATE_NOTIFICATION: `${API_PREFIX}/notification`,

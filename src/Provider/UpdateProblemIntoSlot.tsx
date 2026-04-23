@@ -15,7 +15,7 @@ import { useDeleteSlotProblemsMutation, useUpdateSlotProblemsMutation } from "@/
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface Props {
-  instanceId: string;
+  semesterId: string;
   slotId: string;
   problems: ProblemItem[];
 }
@@ -25,7 +25,7 @@ interface ProblemItem extends UpdateSlotProblemRequest {
 }
 
 export default function UpdateProblemIntoSlot({
-  instanceId,
+  semesterId,
   slotId,
   problems,
 }: Props) {
@@ -81,7 +81,7 @@ export default function UpdateProblemIntoSlot({
 
     try {
       await deleteProblems({
-        instanceId,
+        semesterId,
         slotId,
         problemIds: [problemId],
       }).unwrap();
@@ -111,7 +111,7 @@ export default function UpdateProblemIntoSlot({
     
     try {
       await updateProblems({
-        instanceId,
+        semesterId,
         slotId,
         data: items.map(({ title, ...rest }) => rest),
       }).unwrap();

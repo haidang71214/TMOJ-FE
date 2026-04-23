@@ -16,10 +16,10 @@ import { useGetStudentsNotYetQuery } from "@/store/queries/Class";
 import { Users, ErrorForm } from "@/types";
 
 interface Props {
-  classId: string;
+  semesterId: string;
 }
 
-export default function AddStudentModal({ classId }: Props) {
+export default function AddStudentModal({ semesterId }: Props) {
   const { closeModal } = useModal();
 
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
@@ -30,7 +30,7 @@ export default function AddStudentModal({ classId }: Props) {
 
   const { data: studentResponse, isLoading: studentLoading } = useGetStudentsNotYetQuery(
     {
-      classSemesterId: classId,
+      classSemesterId: semesterId,
       search: search.trim() || undefined,
     },
     {
@@ -87,7 +87,7 @@ export default function AddStudentModal({ classId }: Props) {
 
     try {
       await addMember({
-        id: classId,
+        classSemesterId: semesterId,
         data: {
           memberCode: selectedUser.memberCode ?? null,
           rollNumber: selectedUser.rollNumber ?? null,

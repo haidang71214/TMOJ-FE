@@ -19,21 +19,39 @@ import { RootState } from "@/store";
 import { UserRole } from "@/types";
 import { toast } from "sonner";
 import ContestHeader from "../components/ContestHeader";
-import type { ScoreboardResponseDTO, ProblemAttemptDTO, ScoreboardRowDTO } from "./dto";
+import type { ScoreboardResponseDTO, ProblemAttemptDTO, ScoreboardRowDTO, ACMProblemAttemptDTO, IOIProblemAttemptDTO, ACMScoreboardRowDTO, IOIScoreboardRowDTO } from "./dto";
 
 export default function ScoreboardPage() {
   const params = useParams();
   const contestId = params.id as string;
+  const [pollingInterval, setPollingInterval] = useState<number | undefined>(undefined);
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const role = currentUser?.role?.toLowerCase();
   const isAdminOrManager = role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.TEACHER;
 
-  const { data: scoreboardData, isLoading, refetch, isFetching } = useGetScoreboardQuery(contestId);
+  const { data: scoreboardData, isLoading, refetch, isFetching } = useGetScoreboardQuery(contestId, {
+    pollingInterval: pollingInterval,
+    skipPollingIfUnfocused: true,
+  });
   const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
   const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
 
-  const data = scoreboardData?.data;
+  const data = scoreboardData?.data as ScoreboardResponseDTO | undefined;
+
+  // Auto-polling mỗi 10s cho ACM/IOI contests trong kỳ thi running
+  useEffect(() => {
+    if (!data) return;
+
+    const isRunning = data.status === "running";
+    const isFrozen = data.frozen;
+
+    if (isRunning && !isFrozen) {
+      setPollingInterval(10 * 1000); // 10 seconds
+    } else {
+      setPollingInterval(undefined);
+    }
+  }, [data?.scoringMode, data?.status, data?.frozen]);
 
   const handleRefresh = () => {
     refetch();
@@ -54,8 +72,8 @@ export default function ScoreboardPage() {
     }
   };
 
-  const renderProblemCell = (attempt: ProblemAttemptDTO | undefined) => {
-    if (!attempt || (attempt.attemptsCount === 0 && !attempt.pendingCount)) {
+  const renderACMProblemCell = (attempt: ACMProblemAttemptDTO | undefined) => {
+    if (!attempt || attempt.attemptsCount === 0) {
       return <div className="w-full h-full min-h-[50px]"></div>;
     }
 
@@ -73,18 +91,28 @@ export default function ScoreboardPage() {
       );
     }
 
-    if (attempt.pendingCount && attempt.pendingCount > 0) {
-      return (
-        <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 rounded">
-          <span className="font-bold text-[14px] animate-pulse">?</span>
-          <span className="text-[11px] opacity-80">{attempt.attemptsCount} + {attempt.pendingCount}</span>
-        </div>
-      );
-    }
-
     return (
       <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 rounded">
         <span className="font-bold text-[14px]">-{attempt.attemptsCount}</span>
+      </div>
+    );
+  };
+
+  const renderIOIProblemCell = (attempt: IOIProblemAttemptDTO | undefined) => {
+    if (!attempt || attempt.attemptsCount === 0) {
+      return <div className="w-full h-full min-h-[50px]"></div>;
+    }
+
+    const scoreColor = attempt.score === 100
+      ? "bg-[#10b981] text-white shadow-inner"
+      : attempt.score > 0
+        ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400"
+        : "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400";
+
+    return (
+      <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 rounded ${scoreColor}`}>
+        <span className="font-bold text-[14px]">{attempt.score}</span>
+        <span className="text-[10px] opacity-80">{attempt.attemptsCount}x</span>
       </div>
     );
   };
@@ -228,17 +256,37 @@ export default function ScoreboardPage() {
                       );
                     }
                     if (columnKey === "total") {
+                      const isIoi = data.scoringMode === "ioi";
+                      let totalValue = 0;
+                      let totalSolved = 0;
+
+                      if (isIoi) {
+                        const ioiRow = row as IOIScoreboardRowDTO;
+                        totalValue = ioiRow.totalScore;
+                      } else {
+                        const acmRow = row as ACMScoreboardRowDTO;
+                        totalValue = acmRow.totalPenalty;
+                        totalSolved = acmRow.totalSolved;
+                      }
+
+                      const label = isIoi ? "Score" : "Penalty";
                       return (
                         <TableCell>
                           <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px] bg-slate-50/50 dark:bg-[#0f172a]/30">
-                            <span className="font-bold text-[15px] text-slate-800 dark:text-slate-200">{row.totalSolved}</span>
-                            <span className="text-[11px] text-slate-500 font-medium">{row.totalPenalty}</span>
+                            {!isIoi && <span className="font-bold text-[15px] text-slate-800 dark:text-slate-200">{totalSolved}</span>}
+                            <span className="text-[10px] text-slate-400 font-medium">{label}: {totalValue}</span>
                           </div>
                         </TableCell>
                       );
                     }
+
                     const attempt = row.problems.find((ap) => ap.problemId === columnKey);
-                    return <TableCell>{renderProblemCell(attempt)}</TableCell>;
+                    const isIoi = data.scoringMode === "ioi";
+                    if (isIoi) {
+                      return <TableCell>{renderIOIProblemCell(attempt as IOIProblemAttemptDTO)}</TableCell>;
+                    } else {
+                      return <TableCell>{renderACMProblemCell(attempt as ACMProblemAttemptDTO)}</TableCell>;
+                    }
                   }}
                 </TableRow>
               )}

@@ -25,7 +25,7 @@ import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface CreateSlotFormProps {
-  classId: string;
+  semesterId: string;
 }
 
 interface SelectedProblem {
@@ -34,12 +34,12 @@ interface SelectedProblem {
   points: number;
   isRequired: boolean;
 }
-// này đổi thành class semester id
-export default function CreateSlotForm({ classId }: CreateSlotFormProps) {
+
+export default function CreateSlotForm({ semesterId }: CreateSlotFormProps) {
   const { t } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
-  console.log("classId", classId);
+  console.log("semesterId", semesterId);
   
   const [page, setPage] = useState(1);
   const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListPublicQuery({ page, pageSize: 5 });
@@ -99,7 +99,7 @@ const [closeAt, setCloseAt] = useState<string>("");
         })),
       };
 
-      await createSlot({ classId, data: payload }).unwrap();
+      await createSlot({ semesterId, data: payload }).unwrap();
 
       toast.success(t("slot.createSuccess") || "Class slot created successfully!");
       closeModal();

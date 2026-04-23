@@ -37,13 +37,9 @@ export default function StudentSubmissionsModal({
   studentName
 }: Props) {
   const { data, isLoading } = useGetUserSubmissionInSlotQuery(
-    { classId, slotId, userId },
+    { semesterId: classId, slotId, userId },
     { skip: !isOpen || !userId }
   );
-  console.log("userId", userId);
-  console.log("classId", classId);
-  console.log("slotId", slotId);
-  console.log("data", data);
   const submissions = (data as any)?.data || [];
 
   return (

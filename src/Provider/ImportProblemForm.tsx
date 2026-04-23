@@ -20,7 +20,7 @@ import { useModal } from "./ModalProvider";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface Props {
-  instanceId: string;
+  semesterId: string;
   slotId: string;
 }
 
@@ -37,7 +37,7 @@ interface SelectedProblem {
   isRequired: boolean;
 }
 
-export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
+export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
   const { t } = useTranslation();
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [search, setSearch] = useState("");
@@ -123,7 +123,7 @@ export default function AddProblemToSlotForm({ instanceId, slotId }: Props) {
 
     try {
       await importProblems({
-        instanceId,
+        semesterId,
         slotId,
         data: payload,
       }).unwrap();

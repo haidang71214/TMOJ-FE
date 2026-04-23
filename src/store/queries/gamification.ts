@@ -9,8 +9,10 @@ import {
   LeaderboardEntry,
   AdminBadge,
   AdminBadgeRule,
+  CreateBadgeRequest,
   CreateBadgeRuleRequest,
-  LeaderboardResponse
+  LeaderboardResponse,
+  DailyActivity
 } from "@/types/gamification";
 
 export const gamificationApi = baseApi.injectEndpoints({
@@ -40,13 +42,21 @@ export const gamificationApi = baseApi.injectEndpoints({
       query: ({ type }) => `${GamificationEndpoint.LEADERBOARD}?type=${type}`,
       providesTags: ["Gamification"],
     }),
-
-    // ADMIN APIs
-    getAdminBadges: builder.query<{ data: AdminBadge[] }, void>({
-      query: () => AdminGamificationEndpoint.BADGES,
+    getDailyActivities: builder.query<{ data: DailyActivity[] }, void>({
+      query: () => GamificationEndpoint.DAILY_ACTIVITIES,
       providesTags: ["Gamification"],
     }),
-    createBadge: builder.mutation<{ data: { id: string } }, { name: string; code: string }>({
+
+    // ADMIN APIs
+    getAdminBadges: builder.query<AdminBadge[], void>({
+      query: () => AdminGamificationEndpoint.BADGES,
+      transformResponse: (response: any) => {
+        if (response && response.data) return response.data;
+        return response || [];
+      },
+      providesTags: ["Gamification"],
+    }),
+    createBadge: builder.mutation<{ id: string }, CreateBadgeRequest>({
       query: (body) => ({
         url: AdminGamificationEndpoint.BADGES,
         method: "POST",
@@ -54,11 +64,11 @@ export const gamificationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Gamification"],
     }),
-    updateBadge: builder.mutation<{ data: void }, { id: string; name: string; code: string }>({
-      query: ({ id, ...body }) => ({
+    updateBadge: builder.mutation<void, { id: string; dto: CreateBadgeRequest['dto'] }>({
+      query: ({ id, dto }) => ({
         url: AdminGamificationEndpoint.BADGE_ID.replace("{id}", id),
         method: "PUT",
-        body,
+        body: { dto },
       }),
       invalidatesTags: ["Gamification"],
     }),
@@ -70,8 +80,12 @@ export const gamificationApi = baseApi.injectEndpoints({
       invalidatesTags: ["Gamification"],
     }),
 
-    getAdminBadgeRules: builder.query<{ data: AdminBadgeRule[] }, void>({
+    getAdminBadgeRules: builder.query<AdminBadgeRule[], void>({
       query: () => AdminGamificationEndpoint.BADGE_RULES,
+      transformResponse: (response: any) => {
+        if (response && response.data) return response.data;
+        return response || [];
+      },
       providesTags: ["Gamification"],
     }),
     createBadgeRule: builder.mutation<{ data: { id: string } }, CreateBadgeRuleRequest>({
@@ -107,6 +121,7 @@ export const {
   useGetStreakQuery,
   useGetGamificationHistoryQuery,
   useGetLeaderboardQuery,
+  useGetDailyActivitiesQuery,
   useGetAdminBadgesQuery,
   useCreateBadgeMutation,
   useUpdateBadgeMutation,

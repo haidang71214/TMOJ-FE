@@ -234,14 +234,14 @@ const CollectionEndpoint = {
   GET_COLLECTIONS: `${API_PREFIX}/favorites/collections`,
   GET_COLLECTION_DETAIL: `${API_PREFIX}/favorites/collections/{id}`,
 
-  ADD_PROBLEM: `${API_PREFIX}/collections/{id}/problems`,
-  ADD_CONTEST: `${API_PREFIX}/collections/{id}/contests`,
-  DELETE_ITEM: `${API_PREFIX}/collections/{id}/items/{itemId}`,
-  REORDER_ITEMS: `${API_PREFIX}/collections/{id}/reorder`,
+  ADD_PROBLEM: `${API_PREFIX}/favorites/collections/{id}/problems`,
+  ADD_CONTEST: `${API_PREFIX}/favorites/collections/{id}/contests`,
+  DELETE_ITEM: `${API_PREFIX}/favorites/collections/{id}/items/{itemId}`,
+  REORDER_ITEMS: `${API_PREFIX}/favorites/collections/{id}/reorder`,
 
-  GET_PUBLIC: `${API_PREFIX}/collections/public`,
+  GET_PUBLIC: `${API_PREFIX}/favorites/collections/public`,
   GET_USER_COLLECTIONS: `${API_PREFIX}/users/{userId}/collections`,
-  COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
+  COPY_COLLECTION: `${API_PREFIX}/favorites/collections/{id}/copy`,
 };
 
 const StudyPlanEndpoint = {

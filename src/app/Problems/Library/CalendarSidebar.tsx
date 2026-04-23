@@ -2,15 +2,18 @@
 import React, { useState } from "react";
 import { Card, CardBody, Button, Chip } from "@heroui/react";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
+import { useGetStreakQuery, useGetGamificationHistoryQuery } from "@/store/queries/gamification";
 
 export const CalendarSidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Dữ liệu mẫu
-  const solvedDays = [5, 12, 18, 19, 22];
-  const streakDays = [27, 28, 29, 30];
-  const currentStreak = streakDays.length;
+  // ── Gamification API ──
+  const { data: gStreakResponse } = useGetStreakQuery();
+  const { data: gHistoryResponse } = useGetGamificationHistoryQuery();
 
+  const gStreak = gStreakResponse?.data;
+  const gHistory = gHistoryResponse?.data || [];
+  const currentStreak = gStreak?.currentStreak ?? 0;
 
   const changeMonth = (offset: number) =>
     setCurrentDate(
@@ -83,24 +86,41 @@ export const CalendarSidebar = () => {
 
             {days.map((day) => {
               const now = new Date();
+              const cellDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
               const isToday =
                 day === now.getDate() &&
                 currentDate.getMonth() === now.getMonth() &&
                 currentDate.getFullYear() === now.getFullYear();
 
-              const isStreak = streakDays.includes(day);
-              const isSolved = solvedDays.includes(day);
+              // Tính toán streak
+              let isStreak = false;
+              if (gStreak?.lastActiveDate) {
+                const lastActive = new Date(gStreak.lastActiveDate);
+                const diffDays = Math.floor((lastActive.getTime() - cellDate.getTime()) / (1000 * 3600 * 24));
+                if (diffDays >= 0 && diffDays < gStreak.currentStreak) {
+                  isStreak = true;
+                }
+              }
+
+              // Tính toán solved (dựa trên history)
+              const isSolved = gHistory.some(h => {
+                const hDate = new Date(h.time);
+                return hDate.toDateString() === cellDate.toDateString();
+              });
+
               return (
                 <div
                   key={day}
                   className="relative flex flex-col items-center justify-center group"
                 >
                   <div
-                    className={`h-8 w-8 flex items-center justify-center rounded-full text-[11px] cursor-pointer font-bold transition-all ${
-                      isToday
-                        ? "bg-[#071739] dark:bg-[#E3C39D] text-[#E3C39D] dark:text-[#101828] shadow-lg z-10 scale-110"
+                    className={`h-8 w-8 flex items-center justify-center rounded-full text-[11px] cursor-pointer font-bold transition-all ${isToday
+                      ? "bg-[#071739] dark:bg-[#E3C39D] text-[#E3C39D] dark:text-[#101828] shadow-lg z-10 scale-110"
+                      : isStreak
+                        ? "bg-orange-500/10 text-orange-500"
                         : "hover:bg-gray-100 dark:hover:bg-[#101828] text-gray-600 dark:text-[#F1F5F9]"
-                    }`}
+                      }`}
                   >
                     {day}
                   </div>
@@ -108,9 +128,8 @@ export const CalendarSidebar = () => {
                   {/* Chấm Cam cho Streak */}
                   {isStreak && (
                     <div
-                      className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] ${
-                        isToday ? "dark:bg-[#101828]" : ""
-                      }`}
+                      className={`absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] ${isToday ? "dark:bg-[#101828]" : ""
+                        }`}
                     >
                       {isToday && (
                         <span className="absolute inset-0 rounded-full bg-orange-400 animate-ping opacity-75"></span>
@@ -122,8 +141,6 @@ export const CalendarSidebar = () => {
                   {isSolved && !isStreak && (
                     <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.4)]"></div>
                   )}
-
-                
                 </div>
               );
             })}

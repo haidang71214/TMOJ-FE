@@ -1,4 +1,4 @@
-import { AdminGamificationEndpoint } from "@/constants/endpoints";
+import { AdminGamificationEndpoint, GamificationEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
   UserGamification,
@@ -9,34 +9,35 @@ import {
   LeaderboardEntry,
   AdminBadge,
   AdminBadgeRule,
-  CreateBadgeRuleRequest
+  CreateBadgeRuleRequest,
+  LeaderboardResponse
 } from "@/types/gamification";
 
 export const gamificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // USER APIs
     getGamificationMe: builder.query<{ data: UserGamification }, void>({
-      query: () => "/api/v1/gamification/me",
+      query: () => GamificationEndpoint.ME,
       providesTags: ["Gamification"],
     }),
     getBadges: builder.query<{ data: Badge[] }, void>({
-      query: () => "/api/v1/gamification/badges",
+      query: () => GamificationEndpoint.BADGES,
       providesTags: ["Gamification"],
     }),
     getBadgeProgress: builder.query<{ data: BadgeProgress[] }, void>({
-      query: () => "/api/v1/gamification/badges/progress",
+      query: () => GamificationEndpoint.PROGRESS,
       providesTags: ["Gamification"],
     }),
     getStreak: builder.query<{ data: StreakInfo }, void>({
-      query: () => "/api/v1/gamification/streak",
+      query: () => GamificationEndpoint.STREAK,
       providesTags: ["Gamification"],
     }),
     getGamificationHistory: builder.query<{ data: GamificationHistory[] }, void>({
-      query: () => "/api/v1/gamification/history",
+      query: () => GamificationEndpoint.HISTORY,
       providesTags: ["Gamification"],
     }),
-    getLeaderboard: builder.query<{ data: LeaderboardEntry[] }, { type: "exp" | "streak" | "badge" }>({
-      query: ({ type }) => `/api/v1/gamification/leaderboard?type=${type}`,
+    getLeaderboard: builder.query<{ data: LeaderboardResponse }, { type: "exp" | "streak" | "badge" }>({
+      query: ({ type }) => `${GamificationEndpoint.LEADERBOARD}?type=${type}`,
       providesTags: ["Gamification"],
     }),
 

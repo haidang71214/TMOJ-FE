@@ -141,7 +141,7 @@ export interface CreateProblemDraftRequest {
   displayIndex?: number;
   timeLimitMs: number;
   memoryLimitKb: number;
-  problemMode : "amateur" | "pro"
+  problemMode: "amateur" | "pro"
 }
 export interface ProblemDraft {
   id: string;                    // UUID dạng string
@@ -916,6 +916,7 @@ export interface ContestDetailDto {
   visibility: string;
   contestType: string;
   allowTeams: boolean;
+  inviteCode?: string;
   status: string;
   phase: string;
   isPublished: boolean;
@@ -1430,4 +1431,4 @@ export interface ApiPagedResponse<T> {
   traceId: string | null;
 }
 
-export interface ProblemBankListResponse extends ApiPagedResponse<ProblemBankListItemDto> {}
+export interface ProblemBankListResponse extends ApiPagedResponse<ProblemBankListItemDto> { }

@@ -8,8 +8,13 @@ import {
 } from "lucide-react";
 import {
   Table, TableHeader, TableColumn, TableBody,
-  TableRow, TableCell, Card, CardBody, Divider
+  TableRow, TableCell, Card, CardBody, Divider, Button
 } from "@heroui/react";
+import { Copy, Check } from "lucide-react";
+import { addToast } from "@heroui/toast";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { UserRole } from "@/types";
 
 import { useGetContestDetailQuery } from "@/store/queries/Contest";
 import ContestHeader from "./components/ContestHeader";
@@ -21,6 +26,11 @@ export default function ContestDetailPage() {
 
   const { data: contestData, isLoading } = useGetContestDetailQuery(contestId);
   const [selectedTab] = useState("info");
+  const [copied, setCopied] = useState(false);
+
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const role = currentUser?.role?.toLowerCase();
+  const isAdminOrTeacher = role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.TEACHER;
 
   if (isLoading) {
     return <div className="text-center py-20 font-black italic uppercase">Loading Contest Details...</div>;
@@ -28,6 +38,59 @@ export default function ContestDetailPage() {
 
   const contest = contestData?.data;
   const problems = contest?.problems || [];
+
+  const handleCopyCode = (code: string) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(() => {
+        setCopied(true);
+        addToast({
+          title: "Invite Code Copied!",
+          description: "Code has been copied to your clipboard.",
+          color: "success"
+        });
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(err => {
+        console.error("Failed to copy using navigator.clipboard: ", err);
+        fallbackCopyTextToClipboard(code);
+      });
+    } else {
+      fallbackCopyTextToClipboard(code);
+    }
+  };
+
+  const fallbackCopyTextToClipboard = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Ensure textarea is not visible
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        setCopied(true);
+        addToast({
+          title: "Invite Code Copied!",
+          description: "Code has been copied to your clipboard (fallback).",
+          color: "success"
+        });
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error("Fallback: Oops, unable to copy", err);
+    }
+
+    document.body.removeChild(textArea);
+  };
+
+  const showInviteCode = contest?.status?.toLowerCase() === "upcoming" && contest?.inviteCode && (
+    contest.visibility?.toLowerCase() === "public" || isAdminOrTeacher
+  );
 
   return (
     <div className="w-full">
@@ -49,22 +112,63 @@ export default function ContestDetailPage() {
                 <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-8 flex flex-col items-start gap-6 shadow-sm relative overflow-hidden">
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-600 to-sky-400"></div>
 
-                  <div className="space-y-4 w-full">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h1 className="text-3xl sm:text-4xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white">
-                        {contest?.title}
-                      </h1>
-                      <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 rounded-full text-xs font-black uppercase italic">
-                        <Clock className="w-3 h-3" />
-                        {contest?.status}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h1 className="text-3xl sm:text-4xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white">
+                          {contest?.title}
+                        </h1>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 rounded-full text-xs font-black uppercase italic">
+                          <Clock className="w-3 h-3" />
+                          {contest?.status}
+                        </div>
                       </div>
+
+                      {contest?.description && (
+                        <p className="text-slate-600 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-4xl border-l-4 border-slate-200 dark:border-slate-700 pl-6 italic">
+                          {contest.description}
+                        </p>
+                      )}
                     </div>
 
-                    {contest?.description && (
-                      <p className="text-slate-600 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-4xl border-l-4 border-slate-200 dark:border-slate-700 pl-6 italic">
-                        {contest.description}
-                      </p>
-                    )}
+                    <div className="flex flex-wrap items-center gap-4 self-start md:self-center">
+                      {showInviteCode && (
+                        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 shadow-sm">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase text-slate-400 leading-none mb-1">Invite Code</span>
+                            <span className="text-lg font-mono font-black text-blue-600 dark:text-sky-400 tracking-wider">
+                              {contest.inviteCode}
+                            </span>
+                          </div>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            className="bg-white dark:bg-slate-700 shadow-sm ml-2"
+                            onPress={() => handleCopyCode(contest.inviteCode!)}
+                          >
+                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-slate-600 dark:text-slate-300" />}
+                          </Button>
+                        </div>
+                      )}
+
+                      {contest?.status?.toLowerCase() === "upcoming" && !contest?.isRegistered && (
+                        <Button
+                          color="primary"
+                          variant="shadow"
+                          className="font-black italic uppercase px-8 h-12 text-md"
+                          onPress={() => router.push(`/Contest/${contestId}/register`)}
+                        >
+                          Register Now
+                        </Button>
+                      )}
+
+                      {contest?.isRegistered && (
+                        <div className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-800/50 font-black italic uppercase text-sm">
+                          Registered
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <Divider className="bg-slate-100 dark:bg-slate-800" />

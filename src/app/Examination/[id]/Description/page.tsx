@@ -46,7 +46,7 @@ export default function DescriptionTab() {
   );
   console.log("aaaa",response);
   
-  const problem = response?.data as Problem | undefined;
+  const problem = response as Problem | undefined;
 
   if (isLoading) {
     return (

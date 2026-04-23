@@ -117,84 +117,78 @@ export default function ClassMembersPage({
       )}
 
       {/* MEMBER LIST + PAGINATION — min-h để tránh layout shift */}
-      <div className="min-h-[520px] flex flex-col">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+      <div className="min-h-[600px] flex flex-col">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredMembers
             .slice((page - 1) * rowsPerPage, page * rowsPerPage)
             .map((member: ClassMemberResponse) => (
               <Card
                 key={member.userId}
-                className="bg-white dark:bg-[#111827] rounded-[1.5rem] border border-transparent hover:border-[#FF5C00]/40 transition-all shadow-sm"
+                className="group bg-white dark:bg-[#111827] rounded-3xl border border-slate-100 dark:border-white/5 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 overflow-hidden"
               >
-                <CardBody className="flex flex-row items-center justify-between p-5">
+                <CardBody className="p-4 flex flex-col gap-5">
+                  {/* TOP SECTION: AVATAR & INFO */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Avatar
+                        src={member.avatarUrl || undefined}
+                        name={member.displayName}
+                        size="lg"
+                        className="w-14 h-14 ring-2 ring-orange-500/20 group-hover:ring-orange-500 transition-all duration-300"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-[#111827] rounded-full shadow-sm" />
+                    </div>
 
-                  {/* LEFT */}
-                  <div className="flex items-center gap-4">
-                  {member.avatarUrl ? <Avatar
-                      src={member?.avatarUrl}
-                      name={member.displayName}
-                      size="lg"
-                      className="ring-2 ring-white dark:ring-black"
-                    />: 
-                    <Avatar
-                      name={member.displayName}
-                      size="lg"
-                      className="ring-2 ring-white dark:ring-black"
-                    />
-                  }
-                  
-
-                    <div className="flex flex-col">
-
-                      <p className="font-black uppercase italic text-sm">
+                    <div className="flex flex-col min-w-0">
+                      <p className="font-bold text-slate-900 dark:text-white truncate text-[15px] group-hover:text-orange-500 transition-colors">
                         {member.displayName}
                       </p>
-
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
-                        <Mail size={12} />
-                        {member.email}
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <Mail size={12} className="shrink-0" />
+                        <span className="text-xs truncate font-medium">{member.email}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* RIGHT */}
-                  <div className="flex items-center gap-2">
+                  {/* BOTTOM SECTION: BADGES & ACTIONS */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-white/5">
+                    <Chip
+                      startContent={<User size={12} />}
+                      size="sm"
+                      variant="flat"
+                      color="warning"
+                      className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400"
+                    >
+                      Student
+                    </Chip>
 
-                 
-                      <Chip
-                        startContent={<User size={12} />}
-                        size="sm"
-                        variant="flat"
-                        className="font-black uppercase text-[10px]"
-                      >
-                        Student
-                      </Chip>
-                      <Tooltip content="View Details" color="primary">
+                    <div className="flex items-center gap-1">
+                      <Tooltip content="View Details" closeDelay={0}>
                         <Button
                           isIconOnly
                           size="sm"
-                          variant="flat"
-                          color="primary"
-                          className="ml-2"
+                          variant="light"
+                          radius="full"
+                          className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
                           onPress={() => openModal({ content: <StudentDetailModal studentId={member.userId} /> })}
                         >
-                          <Info size={16} />
+                          <Info size={18} />
                         </Button>
                       </Tooltip>
 
-                      <Tooltip content="Remove" color="danger">
+                      <Tooltip content="Remove from class" color="danger" closeDelay={0}>
                         <Button
                           isIconOnly
                           size="sm"
-                          variant="flat"
-                          color="danger"
-                          className="ml-1"
+                          variant="light"
+                          radius="full"
+                          className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
                           onPress={() => handleDelete(member.userId)}
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </Button>
                       </Tooltip>
-
+                    </div>
                   </div>
                 </CardBody>
               </Card>
@@ -217,4 +211,4 @@ export default function ClassMembersPage({
       </div>
     </div>
   );
-}
+}

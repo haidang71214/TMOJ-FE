@@ -35,7 +35,7 @@ export default function EditProblem({ problemId, onCancel, onFinish }: EditProbl
   const { t, language } = useTranslation();
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id: problemId });
-  const problemData = detailData?.data as any;
+  const problemData = detailData as any;
 
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();

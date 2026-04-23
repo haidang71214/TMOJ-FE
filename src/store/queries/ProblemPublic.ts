@@ -30,11 +30,12 @@ export const problemPublicApi = baseApi.injectEndpoints({
       }),
       providesTags: ["ProblemList"],
     }),
-    getDetailProblemPublic: builder.query<{ data: Problem }, { id: string }>({
+    getDetailProblemPublic: builder.query<Problem, { id: string }>({
       query: ({ id }) => ({
         url: ProblemListEndpoint.GET_DETAIL_PUBLIC_PROBLEM.replace("{id}", id),
         method: "GET",
       }),
+      transformResponse: (response: { data: Problem }) => response.data,
       providesTags: ["ProblemList"],
     }),
   }),

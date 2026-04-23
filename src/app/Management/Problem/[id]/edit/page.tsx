@@ -37,7 +37,7 @@ export default function GlobalProblemEditPage({
   const id = unwrappedParams.id;
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
-  const problemData = detailData?.data as any;
+  const problemData = detailData as any;
   console.log(problemData);
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();

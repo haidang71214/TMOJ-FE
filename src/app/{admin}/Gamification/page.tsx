@@ -43,7 +43,7 @@ import {
   useUpdateBadgeRuleMutation,
   useDeleteBadgeRuleMutation
 } from "@/store/queries/gamification";
-import { Badge, BadgeRule } from "@/types/gamification";
+import { AdminBadge, AdminBadgeRule } from "@/types/gamification";
 import { addToast } from "@heroui/toast";
 
 import {
@@ -68,19 +68,19 @@ import {
 //   created_at: string;
 // }
 
-const MOCK_BADGES: Badge[] = [
-  { id: "1", name: "First Blood", badge_code: "first_blood", badge_category: "contest", badge_level: 1, is_repeatable: false, description: "Giải quyết problem đầu tiên trong contest", awarded_count: 342 },
-  { id: "2", name: "7-Day Streak", badge_code: "streak_7", badge_category: "streak", badge_level: 1, is_repeatable: true, description: "Hoạt động liên tục 7 ngày", awarded_count: 128 },
-  { id: "3", name: "Master Solver", badge_code: "master_100", badge_category: "problem", badge_level: 3, is_repeatable: false, description: "Giải ≥100 problems", awarded_count: 45 },
-  { id: "4", name: "Course Finisher", badge_code: "course_done", badge_category: "course", badge_level: 2, is_repeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awarded_count: 512 },
-  { id: "5", name: "Top 10 Global", badge_code: "top_10", badge_category: "contest", badge_level: 5, is_repeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awarded_count: 10 },
-  { id: "6", name: "Code Reviewer", badge_code: "reviewer", badge_category: "problem", badge_level: 2, is_repeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awarded_count: 88 },
+const MOCK_BADGES: AdminBadge[] = [
+  { id: "1", name: "First Blood", code: "first_blood", category: "contest", level: 1, isRepeatable: false, description: "Giải quyết problem đầu tiên trong contest", awardedCount: 342 },
+  { id: "2", name: "7-Day Streak", code: "streak_7", category: "streak", level: 1, isRepeatable: true, description: "Hoạt động liên tục 7 ngày", awardedCount: 128 },
+  { id: "3", name: "Master Solver", code: "master_100", category: "problem", level: 3, isRepeatable: false, description: "Giải ≥100 problems", awardedCount: 45 },
+  { id: "4", name: "Course Finisher", code: "course_done", category: "course", level: 2, isRepeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awardedCount: 512 },
+  { id: "5", name: "Top 10 Global", code: "top_10", category: "contest", level: 5, isRepeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awardedCount: 10 },
+  { id: "6", name: "Code Reviewer", code: "reviewer", category: "problem", level: 2, isRepeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awardedCount: 88 },
 ];
 
-const MOCK_RULES: BadgeRule[] = [
-  { id: "r1", badge_id: "1", badge_name: "First Blood", rule_type: "solved", target_entity: "contest", target_value: 1, is_active: true },
-  { id: "r2", badge_id: "2", badge_name: "7-Day Streak", rule_type: "streak_days", target_entity: "streak", target_value: 7, is_active: true },
-  { id: "r3", badge_id: "3", badge_name: "Master Solver", rule_type: "solved", target_entity: "problem", target_value: 100, is_active: true },
+const MOCK_RULES: AdminBadgeRule[] = [
+  { id: "r1", badgeId: "1", badgeName: "First Blood", ruleType: "solved", targetEntity: "contest", targetValue: 1, isActive: true },
+  { id: "r2", badgeId: "2", badgeName: "7-Day Streak", ruleType: "streak_days", targetEntity: "streak", targetValue: 7, isActive: true },
+  { id: "r3", badgeId: "3", badgeName: "Master Solver", ruleType: "solved", targetEntity: "problem", targetValue: 100, isActive: true },
 ];
 
 const MOCK_ACHIEVEMENTS_CHART = [
@@ -114,7 +114,7 @@ export default function GamificationManagementPage() {
 
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
   const [isEditRuleModalOpen, setIsEditRuleModalOpen] = useState(false);
-  const [selectedRule, setSelectedRule] = useState<BadgeRule | null>(null);
+  const [selectedRule, setSelectedRule] = useState<AdminBadgeRule | null>(null);
 
   // State cho form create badge
   const [newBadgeName, setNewBadgeName] = useState("");
@@ -131,12 +131,12 @@ export default function GamificationManagementPage() {
   const [editTargetValue, setEditTargetValue] = useState(0);
   const [editIsActive, setEditIsActive] = useState(true);
 
-  const openEditRuleModal = (rule: BadgeRule) => {
+  const openEditRuleModal = (rule: AdminBadgeRule) => {
     setSelectedRule(rule);
-    setEditRuleType(rule.rule_type);
-    setEditTargetEntity(rule.target_entity);
-    setEditTargetValue(rule.target_value);
-    setEditIsActive(rule.is_active);
+    setEditRuleType(rule.ruleType);
+    setEditTargetEntity(rule.targetEntity);
+    setEditTargetValue(rule.targetValue);
+    setEditIsActive(rule.isActive);
     setIsEditRuleModalOpen(true);
   };
 
@@ -173,10 +173,12 @@ export default function GamificationManagementPage() {
       await updateBadgeRule({
         id: selectedRule.id,
         ruleType: editRuleType,
+        targetEntity: editTargetEntity,
         targetValue: editTargetValue,
+        isActive: editIsActive,
       }).unwrap();
 
-      addToast({ title: `Đã cập nhật tiêu chí cho badge "${selectedRule.badge_name}"`, color: "success" });
+      addToast({ title: `Đã cập nhật tiêu chí cho badge "${selectedRule.badgeName}"`, color: "success" });
       setIsEditRuleModalOpen(false);
       setSelectedRule(null);
     } catch (error) {
@@ -309,31 +311,44 @@ export default function GamificationManagementPage() {
                   isLoading={isLoadingBadges}
                 >
                   {badges.map((b) => (
-
                     <TableRow key={b.id}>
                       <TableCell>
-                        {b.icon_url ? (
-                          <Image src={b.icon_url} alt="" className="w-10 h-10 rounded-lg" />
+                        {b.iconUrl ? (
+                          <Image
+                            src={b.iconUrl}
+                            alt={b.name}
+                            width={32}
+                            height={32}
+                            className="rounded-lg"
+                          />
                         ) : (
-                          <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-                            <Trophy size={20} />
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <Trophy size={16} className="text-slate-400" />
                           </div>
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="font-bold">{b.name}</div>
-                        <div className="text-xs text-slate-500">{b.badge_code}</div>
+                        <div>
+                          <p className="font-bold text-sm">{b.name}</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-black">{b.code}</p>
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <Chip variant="flat" color="primary">{b.badge_category}</Chip>
-                      </TableCell>
-                      <TableCell>Lv {b.badge_level}</TableCell>
-                      <TableCell>
-                        <Chip color={b.is_repeatable ? "success" : "default"}>
-                          {b.is_repeatable ? "Yes" : "No"}
+                        <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px]">
+                          {b.category}
                         </Chip>
                       </TableCell>
-                      <TableCell>{b.awarded_count.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <span className="font-black italic text-xs">Lv {b.level}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Chip color={b.isRepeatable ? "success" : "default"}>
+                          {b.isRepeatable ? "Yes" : "No"}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-black italic">{b.awardedCount}</span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button isIconOnly size="sm">
@@ -342,7 +357,6 @@ export default function GamificationManagementPage() {
                           <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteBadge(b.id)}>
                             <Trash2 size={16} />
                           </Button>
-
                         </div>
                       </TableCell>
                     </TableRow>
@@ -373,22 +387,33 @@ export default function GamificationManagementPage() {
                   isLoading={isLoadingRules}
                 >
                   {rules.map((r) => (
-
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.badge_name}</TableCell>
+                      <TableCell className="font-medium">{r.badgeName}</TableCell>
                       <TableCell>
-                        <Chip variant="flat">{r.rule_type}</Chip>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold uppercase">{r.ruleType}</span>
+                          <span className="text-[10px] text-slate-400">{r.targetEntity}</span>
+                        </div>
                       </TableCell>
-                      <TableCell>{r.target_entity}</TableCell>
-                      <TableCell>{r.target_value}</TableCell>
+                      <TableCell className="font-black italic text-orange-500">
+                        {r.targetValue}
+                      </TableCell>
                       <TableCell>
-                        <Switch isSelected={r.is_active} size="sm" />
+                        <Chip
+                          size="sm"
+                          variant="dot"
+                          color={r.isActive ? "success" : "default"}
+                          className="font-black italic uppercase text-[9px]"
+                        >
+                          {r.isActive ? "Active" : "Inactive"}
+                        </Chip>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
                             isIconOnly
                             size="sm"
+                            variant="flat"
                             onPress={() => openEditRuleModal(r)}
                           >
                             <Pencil size={16} />
@@ -396,7 +421,6 @@ export default function GamificationManagementPage() {
                           <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteRule(r.id)}>
                             <Trash2 size={16} />
                           </Button>
-
                         </div>
                       </TableCell>
                     </TableRow>
@@ -459,7 +483,7 @@ export default function GamificationManagementPage() {
           {(onClose) => (
             <>
               <ModalHeader className="text-xl font-black uppercase">
-                Update Criteria for <span className="text-[#FF5C00]">{selectedRule?.badge_name}</span>
+                Update Criteria for <span className="text-[#FF5C00]">{selectedRule?.badgeName}</span>
               </ModalHeader>
               <ModalBody className="space-y-6">
                 <Select
@@ -469,7 +493,7 @@ export default function GamificationManagementPage() {
                 >
                   <SelectItem key="rank">Rank (Xếp hạng)</SelectItem>
                   <SelectItem key="streak_days">Streak Days (Chuỗi ngày)</SelectItem>
-                  <SelectItem key="solved_count">Solved Count (Số problem giải)</SelectItem>
+                  <SelectItem key="solved">Solved Count (Số problem giải)</SelectItem>
                   <SelectItem key="complete_contest">Complete Contest (Tham gia Contest)</SelectItem>
                 </Select>
 
@@ -515,6 +539,6 @@ export default function GamificationManagementPage() {
           )}
         </ModalContent>
       </Modal>
-    </div>
+    </div >
   );
 }

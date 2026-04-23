@@ -35,6 +35,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation"; // Import useSearchParams
 import { useGetWalletBalanceQuery, useGetWalletTransactionsQuery } from "@/store/queries/wallet";
 import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
+import { useGetStreakQuery } from "@/store/queries/gamification";
 import { WalletTransaction, PaymentHistoryItem } from "@/types";
 
 interface MissionItem {
@@ -244,6 +245,7 @@ function CoinShopContent() {
   const { data: balanceData, isLoading: isBalanceLoading } = useGetWalletBalanceQuery();
   const { data: walletTransactionsData, isLoading: isWalletLoading } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
   const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
+  const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const MissionCard = ({ mission }: { mission: MissionItem }) => (
@@ -332,7 +334,7 @@ function CoinShopContent() {
       </div>
 
       {/* TOP STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
           <CardBody className="p-6 space-y-3">
             <div className="flex items-center gap-2">
@@ -349,31 +351,6 @@ function CoinShopContent() {
 
         <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
           <CardBody className="p-6 space-y-3">
-            <div className="flex justify-between items-center text-purple-500">
-              <div className="flex items-center gap-2">
-                <Trophy size={18} />
-                <p className="text-[10px] font-black text-slate-400 uppercase italic tracking-widest">
-                  Level {WALLET_DATA.level}
-                </p>
-              </div>
-              <span className="text-[9px] font-black">
-                {WALLET_DATA.exp}/{WALLET_DATA.expNext} EXP
-              </span>
-            </div>
-            <Progress
-              size="sm"
-              value={(WALLET_DATA.exp / WALLET_DATA.expNext) * 100}
-              classNames={{
-                indicator: "bg-purple-500",
-                track: "bg-slate-100 dark:bg-white/10",
-              }}
-              className="h-1.5"
-            />
-          </CardBody>
-        </Card>
-
-        <Card className="shadow-sm border-none rounded-xl bg-white dark:bg-[#111c35]">
-          <CardBody className="p-6 space-y-3">
             <div className="flex items-center gap-2 text-[#FF5C00]">
               <Flame size={18} />
               <p className="text-[10px] font-black text-slate-400 uppercase italic tracking-widest">
@@ -381,7 +358,7 @@ function CoinShopContent() {
               </p>
             </div>
             <p className="text-4xl font-[1000] text-[#FF5C00] italic leading-none">
-              {WALLET_DATA.currentStreak} DAYS
+              {isStreakLoading ? "..." : `${streakData?.data?.currentStreak ?? 0} DAYS`}
             </p>
           </CardBody>
         </Card>

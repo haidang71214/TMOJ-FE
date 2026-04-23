@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Avatar,
   Button,
   Card,
   CardBody,
@@ -38,6 +39,7 @@ import { useState } from "react";
 import {
   useGetAdminBadgesQuery,
   useCreateBadgeMutation,
+  useUpdateBadgeMutation,
   useDeleteBadgeMutation,
   useGetAdminBadgeRulesQuery,
   useCreateBadgeRuleMutation,
@@ -70,12 +72,12 @@ import {
 // }
 
 const MOCK_BADGES: AdminBadge[] = [
-  { id: "1", name: "First Blood", code: "first_blood", category: "contest", level: 1, isRepeatable: false, description: "Giải quyết problem đầu tiên trong contest", awardedCount: 342 },
-  { id: "2", name: "7-Day Streak", code: "streak_7", category: "streak", level: 1, isRepeatable: true, description: "Hoạt động liên tục 7 ngày", awardedCount: 128 },
-  { id: "3", name: "Master Solver", code: "master_100", category: "problem", level: 3, isRepeatable: false, description: "Giải ≥100 problems", awardedCount: 45 },
-  { id: "4", name: "Course Finisher", code: "course_done", category: "course", level: 2, isRepeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awardedCount: 512 },
-  { id: "5", name: "Top 10 Global", code: "top_10", category: "contest", level: 5, isRepeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awardedCount: 10 },
-  { id: "6", name: "Code Reviewer", code: "reviewer", category: "problem", level: 2, isRepeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awardedCount: 88 },
+  { badgeId: "1", name: "First Blood", badgeCode: "first_blood", badgeCategory: "contest", badgeLevel: 1, isRepeatable: false, description: "Giải quyết problem đầu tiên trong contest", iconUrl: "" },
+  { badgeId: "2", name: "7-Day Streak", badgeCode: "streak_7", badgeCategory: "streak", badgeLevel: 1, isRepeatable: true, description: "Hoạt động liên tục 7 ngày", iconUrl: "" },
+  { badgeId: "3", name: "Master Solver", badgeCode: "master_100", badgeCategory: "problem", badgeLevel: 3, isRepeatable: false, description: "Giải ≥100 problems", iconUrl: "" },
+  { badgeId: "4", name: "Course Finisher", badgeCode: "course_done", badgeCategory: "course", badgeLevel: 2, isRepeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", iconUrl: "" },
+  { badgeId: "5", name: "Top 10 Global", badgeCode: "top_10", badgeCategory: "contest", badgeLevel: 5, isRepeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", iconUrl: "" },
+  { badgeId: "6", name: "Code Reviewer", badgeCode: "reviewer", badgeCategory: "problem", badgeLevel: 2, isRepeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", iconUrl: "" },
 ];
 
 const MOCK_RULES: AdminBadgeRule[] = [
@@ -106,13 +108,14 @@ export default function GamificationManagementPage() {
   const { data: rulesData, isLoading: isLoadingRules } = useGetAdminBadgeRulesQuery();
 
   const [createBadge] = useCreateBadgeMutation();
+  const [updateBadge] = useUpdateBadgeMutation();
   const [deleteBadge] = useDeleteBadgeMutation();
   const [createBadgeRule] = useCreateBadgeRuleMutation();
   const [updateBadgeRule] = useUpdateBadgeRuleMutation();
   const [deleteBadgeRule] = useDeleteBadgeRuleMutation();
 
-  const badges = badgesData?.data || [];
-  const rules = rulesData?.data || [];
+  const badges = badgesData || [];
+  const rules = rulesData || [];
 
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
   const [isCreateRuleModalOpen, setIsCreateRuleModalOpen] = useState(false);
@@ -122,6 +125,11 @@ export default function GamificationManagementPage() {
   // State cho form create badge
   const [newBadgeName, setNewBadgeName] = useState("");
   const [newBadgeCode, setNewBadgeCode] = useState("");
+  const [newBadgeDescription, setNewBadgeDescription] = useState("");
+  const [newBadgeIconUrl, setNewBadgeIconUrl] = useState("");
+  const [newBadgeCategory, setNewBadgeCategory] = useState("problem");
+  const [newBadgeLevel, setNewBadgeLevel] = useState(1);
+  const [newBadgeIsRepeatable, setNewBadgeIsRepeatable] = useState(false);
 
   // State cho form create rule
   const [newRuleBadgeId, setNewRuleBadgeId] = useState("");
@@ -135,6 +143,28 @@ export default function GamificationManagementPage() {
   const [editTargetEntity, setEditTargetEntity] = useState("");
   const [editTargetValue, setEditTargetValue] = useState(0);
   const [editIsActive, setEditIsActive] = useState(true);
+  const [isEditBadgeOpen, setIsEditBadgeOpen] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<AdminBadge | null>(null);
+
+  const [editBadgeName, setEditBadgeName] = useState("");
+  const [editBadgeCode, setEditBadgeCode] = useState("");
+  const [editBadgeDescription, setEditBadgeDescription] = useState("");
+  const [editBadgeIconUrl, setEditBadgeIconUrl] = useState("");
+  const [editBadgeCategory, setEditBadgeCategory] = useState("problem");
+  const [editBadgeLevel, setEditBadgeLevel] = useState(1);
+  const [editBadgeIsRepeatable, setEditBadgeIsRepeatable] = useState(true);
+
+  const openEditBadgeModal = (badge: AdminBadge) => {
+    setSelectedBadge(badge);
+    setEditBadgeName(badge.name);
+    setEditBadgeCode(badge.badgeCode);
+    setEditBadgeDescription(badge.description);
+    setEditBadgeIconUrl(badge.iconUrl);
+    setEditBadgeCategory(badge.badgeCategory);
+    setEditBadgeLevel(badge.badgeLevel);
+    setEditBadgeIsRepeatable(badge.isRepeatable);
+    setIsEditBadgeOpen(true);
+  };
 
   const openEditRuleModal = (rule: AdminBadgeRule) => {
     setSelectedRule(rule);
@@ -148,16 +178,48 @@ export default function GamificationManagementPage() {
   const handleCreateBadge = async () => {
     try {
       await createBadge({
-        name: newBadgeName,
-        code: newBadgeCode,
+        dto: {
+          name: newBadgeName,
+          iconUrl: newBadgeIconUrl,
+          description: newBadgeDescription,
+          badgeCode: newBadgeCode,
+          badgeCategory: newBadgeCategory,
+          badgeLevel: newBadgeLevel,
+          isRepeatable: newBadgeIsRepeatable,
+        }
       }).unwrap();
       addToast({ title: "Tạo badge thành công!", color: "success" });
       setIsCreateBadgeOpen(false);
       // Reset form
       setNewBadgeName("");
       setNewBadgeCode("");
+      setNewBadgeDescription("");
+      setNewBadgeIconUrl("");
+      setNewBadgeCategory("problem");
+      setNewBadgeLevel(1);
+      setNewBadgeIsRepeatable(false);
     } catch (error) {
       addToast({ title: "Lỗi khi tạo badge", color: "danger" });
+    }
+  };
+
+  const handleUpdateBadge = async () => {
+    if (!selectedBadge) return;
+    try {
+      await updateBadge({
+        id: selectedBadge.badgeId,
+        name: editBadgeName,
+        iconUrl: editBadgeIconUrl,
+        description: editBadgeDescription,
+        badgeCode: editBadgeCode,
+        badgeCategory: editBadgeCategory,
+        badgeLevel: editBadgeLevel,
+        isRepeatable: editBadgeIsRepeatable,
+      }).unwrap();
+      addToast({ title: "Cập nhật badge thành công!", color: "success" });
+      setIsEditBadgeOpen(false);
+    } catch (error) {
+      addToast({ title: "Lỗi khi cập nhật badge", color: "danger" });
     }
   };
 
@@ -323,65 +385,56 @@ export default function GamificationManagementPage() {
                   <TableColumn>CATEGORY</TableColumn>
                   <TableColumn>LEVEL</TableColumn>
                   <TableColumn>REPEAT</TableColumn>
-                  <TableColumn>AWARDED</TableColumn>
+                  <TableColumn>CREATED AT</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody
+                  items={badges}
                   emptyContent={isLoadingBadges ? "Đang tải..." : "Không có badge nào"}
                   loadingContent={<div className="p-4">Đang tải dữ liệu...</div>}
                   isLoading={isLoadingBadges}
                 >
-                  {badges.map((b) => (
-                    <TableRow key={b.id}>
+                  {(b) => (
+                    <TableRow key={b.badgeId}>
                       <TableCell>
-                        {b.iconUrl ? (
-                          <Image
-                            src={b.iconUrl}
-                            alt={b.name}
-                            width={32}
-                            height={32}
-                            className="rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <Trophy size={16} className="text-slate-400" />
-                          </div>
-                        )}
+                        <Avatar src={b.iconUrl} radius="md" />
                       </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-bold text-sm">{b.name}</p>
-                          <p className="text-[10px] text-slate-400 uppercase font-black">{b.code}</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-black">{b.badgeCode}</p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px]">
-                          {b.category}
+                          {b.badgeCategory}
                         </Chip>
                       </TableCell>
                       <TableCell>
-                        <span className="font-black italic text-xs">Lv {b.level}</span>
+                        <span className="font-black italic text-xs">Lv {b.badgeLevel}</span>
                       </TableCell>
                       <TableCell>
-                        <Chip color={b.isRepeatable ? "success" : "default"}>
+                        <Chip color={b.isRepeatable ? "success" : "default"} size="sm" variant="flat">
                           {b.isRepeatable ? "Yes" : "No"}
                         </Chip>
                       </TableCell>
                       <TableCell>
-                        <span className="text-xs font-black italic">{b.awardedCount}</span>
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "-"}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button isIconOnly size="sm">
+                          <Button isIconOnly size="sm" variant="light" onPress={() => openEditBadgeModal(b)}>
                             <Pencil size={16} />
                           </Button>
-                          <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteBadge(b.id)}>
-                            <Trash2 size={16} />
+                          <Button isIconOnly size="sm" variant="light" onPress={() => handleDeleteBadge(b.badgeId)}>
+                            <Trash2 size={16} className="text-danger" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -491,12 +544,121 @@ export default function GamificationManagementPage() {
                   value={newBadgeCode}
                   onValueChange={setNewBadgeCode}
                 />
+                <Input
+                  label="Icon URL"
+                  placeholder="https://..."
+                  value={newBadgeIconUrl}
+                  onValueChange={setNewBadgeIconUrl}
+                />
+                <Textarea
+                  label="Description"
+                  placeholder="Describe the badge"
+                  value={newBadgeDescription}
+                  onValueChange={setNewBadgeDescription}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    label="Category"
+                    selectedKeys={[newBadgeCategory]}
+                    onSelectionChange={(keys) => setNewBadgeCategory(Array.from(keys)[0] as string)}
+                  >
+                    <SelectItem key="contest">Contest</SelectItem>
+                    <SelectItem key="course">Course</SelectItem>
+                    <SelectItem key="org">Organization</SelectItem>
+                    <SelectItem key="streak">Streak</SelectItem>
+                    <SelectItem key="problem">Problem</SelectItem>
+                  </Select>
+                  <Input
+                    label="Level"
+                    type="number"
+                    value={newBadgeLevel.toString()}
+                    onValueChange={(v) => setNewBadgeLevel(Number(v))}
+                    min={1}
+                  />
+                </div>
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-sm font-medium">Is Repeatable</span>
+                  <Switch
+                    isSelected={newBadgeIsRepeatable}
+                    onValueChange={setNewBadgeIsRepeatable}
+                  />
+                </div>
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>
                 <Button color="primary" onPress={handleCreateBadge}>Create Badge</Button>
               </ModalFooter>
 
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* MODAL EDIT BADGE */}
+      <Modal isOpen={isEditBadgeOpen} onOpenChange={setIsEditBadgeOpen} size="xl">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-2xl font-black uppercase">
+                Edit <span className="text-[#FF5C00]">Badge</span>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                <Input
+                  label="Badge Name"
+                  placeholder="e.g. Solve 100"
+                  value={editBadgeName}
+                  onValueChange={setEditBadgeName}
+                />
+                <Input
+                  label="Badge Code"
+                  placeholder="e.g. SOLVE_100"
+                  value={editBadgeCode}
+                  onValueChange={setEditBadgeCode}
+                />
+                <Input
+                  label="Icon URL"
+                  placeholder="https://..."
+                  value={editBadgeIconUrl}
+                  onValueChange={setEditBadgeIconUrl}
+                />
+                <Textarea
+                  label="Description"
+                  placeholder="Describe the badge"
+                  value={editBadgeDescription}
+                  onValueChange={setEditBadgeDescription}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    label="Category"
+                    selectedKeys={[editBadgeCategory]}
+                    onSelectionChange={(keys) => setEditBadgeCategory(Array.from(keys)[0] as string)}
+                  >
+                    <SelectItem key="contest">Contest</SelectItem>
+                    <SelectItem key="course">Course</SelectItem>
+                    <SelectItem key="org">Organization</SelectItem>
+                    <SelectItem key="streak">Streak</SelectItem>
+                    <SelectItem key="problem">Problem</SelectItem>
+                  </Select>
+                  <Input
+                    label="Level"
+                    type="number"
+                    value={editBadgeLevel.toString()}
+                    onValueChange={(v) => setEditBadgeLevel(Number(v))}
+                    min={1}
+                  />
+                </div>
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-sm font-medium">Is Repeatable</span>
+                  <Switch
+                    isSelected={editBadgeIsRepeatable}
+                    onValueChange={setEditBadgeIsRepeatable}
+                  />
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>Cancel</Button>
+                <Button color="primary" onPress={handleUpdateBadge}>Update Badge</Button>
+              </ModalFooter>
             </>
           )}
         </ModalContent>
@@ -518,7 +680,7 @@ export default function GamificationManagementPage() {
                   onSelectionChange={(keys) => setNewRuleBadgeId(Array.from(keys)[0] as string)}
                 >
                   {badges.map((b) => (
-                    <SelectItem key={b.id} textValue={b.name}>
+                    <SelectItem key={b.badgeId} textValue={b.name}>
                       {b.name}
                     </SelectItem>
                   ))}

@@ -55,7 +55,8 @@ import {
   useGetBadgesQuery,
   useGetBadgeProgressQuery,
   useGetStreakQuery,
-  useGetGamificationHistoryQuery
+  useGetGamificationHistoryQuery,
+  useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
@@ -105,12 +106,14 @@ export default function ProfilePage() {
   const { data: gProgressResponse } = useGetBadgeProgressQuery();
   const { data: gStreakResponse } = useGetStreakQuery();
   const { data: gHistoryResponse } = useGetGamificationHistoryQuery();
+  const { data: gActivitiesResponse } = useGetDailyActivitiesQuery();
 
   const gMe = gMeResponse?.data;
   const gStreak = gStreakResponse?.data;
-  const gBadges = gBadgesResponse?.data || [];
+  const gBadges = gBadgesResponse || [];
   const gProgress = gProgressResponse?.data || [];
   const gHistory = gHistoryResponse?.data || [];
+  const gActivities = gActivitiesResponse?.data || [];
 
   const userId = meData?.userId ?? "";
   const role = meData?.role ?? "";
@@ -144,15 +147,15 @@ export default function ProfilePage() {
 
   const difficultyData: DifficultyStat[] = useMemo(
     () => [
-      { label: "Easy", solved: gMe?.easySolved ?? 120, total: gMe?.easyTotal ?? 922, color: "text-[#00FF41]", variant: "success" },
-      { label: "Med", solved: gMe?.mediumSolved ?? 95, total: gMe?.mediumTotal ?? 1986, color: "text-blue-500", variant: "primary" },
-      { label: "Hard", solved: gMe?.hardSolved ?? 11, total: gMe?.hardTotal ?? 900, color: "text-[#FF5C00]", variant: "warning" },
+      { label: "Easy", solved: gMe?.easySolved ?? 0, total: gMe?.easyTotal ?? 0, color: "text-[#00FF41]", variant: "success" },
+      { label: "Med", solved: gMe?.mediumSolved ?? 0, total: gMe?.mediumTotal ?? 0, color: "text-blue-500", variant: "primary" },
+      { label: "Hard", solved: gMe?.hardSolved ?? 0, total: gMe?.hardTotal ?? 0, color: "text-[#FF5C00]", variant: "warning" },
     ],
     [gMe]
   );
 
   const SOLVED_COUNT = gMe?.solvedProblems ?? 0;
-  const TOTAL_COUNT = 3808;
+  const TOTAL_COUNT = (gMe?.easyTotal ?? 0) + (gMe?.mediumTotal ?? 0) + (gMe?.hardTotal ?? 0);
 
   const userCollections = useMemo(() => {
     const raw = collectionsResponse?.data;
@@ -448,15 +451,13 @@ export default function ProfilePage() {
                       cx="50"
                       cy="50"
                       r="45"
+                      fill="none"
                       stroke="#FF5C00"
                       strokeWidth="8"
-                      fill="transparent"
-                      strokeDasharray="282.7"
-                      strokeDashoffset={
-                        282.7 - (282.7 * SOLVED_COUNT) / TOTAL_COUNT
-                      }
+                      strokeDasharray="283"
+                      strokeDashoffset={TOTAL_COUNT > 0 ? 283 - (SOLVED_COUNT / TOTAL_COUNT) * 283 : 283}
                       strokeLinecap="round"
-                      className="transition-all duration-1000"
+                      className="transition-all duration-1000 ease-out"
                     />
                   </svg>
                   <div className="absolute text-center">
@@ -488,8 +489,8 @@ export default function ProfilePage() {
                     </div>
                     <Progress
                       size="sm"
-                      value={(item.solved / item.total) * 100}
-                      color={item.variant}
+                      value={item.total > 0 ? (item.solved / item.total) * 100 : 0}
+                      color={item.variant as any}
                       className="h-2 rounded-full"
                     />
                   </div>
@@ -561,28 +562,22 @@ export default function ProfilePage() {
                     const today = new Date();
                     const dateAtI = new Date();
                     dateAtI.setDate(today.getDate() - (370 - i));
+                    const dateStr = dateAtI.toISOString().split('T')[0];
 
-                    const lastActive = gStreak?.lastActiveDate ? new Date(gStreak.lastActiveDate) : new Date();
-                    const diffDays = Math.floor((lastActive.getTime() - dateAtI.getTime()) / (1000 * 3600 * 24));
+                    const activity = gActivities.find(a => a.date === dateStr);
+                    const count = activity?.count ?? 0;
 
                     let bg = "bg-slate-100 dark:bg-white/5";
 
-                    // Nếu ngày này nằm trong chuỗi Streak hiện tại
-                    if (gStreak && diffDays >= 0 && diffDays < gStreak.currentStreak) {
-                      bg = "bg-[#00FF41]";
-                    }
-                    // Nếu ngày này có trong lịch sử nhận thưởng (gHistory)
-                    else if (gHistory.some(h => {
-                      const hDate = new Date(h.time);
-                      return hDate.toDateString() === dateAtI.toDateString();
-                    })) {
-                      bg = "bg-[#00FF41]/40";
-                    }
+                    if (count >= 10) bg = "bg-[#00FF41]";
+                    else if (count >= 5) bg = "bg-[#00FF41]/80";
+                    else if (count >= 3) bg = "bg-[#00FF41]/60";
+                    else if (count >= 1) bg = "bg-[#00FF41]/30";
 
                     return (
                       <div
                         key={i}
-                        title={dateAtI.toDateString()}
+                        title={`${dateAtI.toDateString()}: ${count} activities`}
                         className={`w-3.5 h-3.5 rounded-sm shrink-0 hover:scale-125 transition-transform cursor-pointer ${bg}`}
                       />
                     );
@@ -837,7 +832,7 @@ export default function ProfilePage() {
                         <div className="mt-2 space-y-1">
                           <Progress
                             size="sm"
-                            value={(p.progress / p.target) * 100}
+                            value={p.target > 0 ? (p.progress / p.target) * 100 : 0}
                             color="warning"
                             className="h-1.5"
                           />

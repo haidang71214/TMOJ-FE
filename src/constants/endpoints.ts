@@ -245,9 +245,9 @@ const CollectionEndpoint = {
 };
 
 const StudyPlanEndpoint = {
-    GET_ALL: `${API_PREFIX}/study-plans`,
+  GET_ALL: `${API_PREFIX}/study-plans`,
   CREATE_STUDY_PLAN: `${API_PREFIX}/study-plans`,
-  CREATE_PROBLEM_INPLAN:`/problem/in-plan`,
+  CREATE_PROBLEM_INPLAN: `/problem/in-plan`,
   GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
 }
@@ -258,10 +258,11 @@ const GamificationEndpoint = {
   STREAK: `${API_PREFIX}/gamification/streak`,
   HISTORY: `${API_PREFIX}/gamification/history`,
   LEADERBOARD: `${API_PREFIX}/gamification/leaderboard`,
+  DAILY_ACTIVITIES: `${API_PREFIX}/gamification/daily-activities`,
 };
 
 const AdminGamificationEndpoint = {
-  BADGES: `${API_PREFIX}/gamification/badges`,
+  BADGES: `${API_PREFIX}/gamification/badges/all`,
   BADGE_ID: `${API_PREFIX}/gamification/badges/{id}`,
   BADGE_RULES: `${API_PREFIX}/gamification/badge-rules`,
   BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,

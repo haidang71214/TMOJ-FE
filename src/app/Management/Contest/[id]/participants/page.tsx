@@ -207,14 +207,16 @@ export default function ParticipantsPage({
             {paginatedTeams.map((t) => (
               <TableRow key={t.teamId} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                 <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white leading-none">
-                      {t.teamName}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      ID: {t.teamId.substring(0, 8)}...
-                    </span>
-                  </div>
+                  <User
+                    name={<span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white leading-none">{t.teamName}</span>}
+                    description={<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID: {t.teamId.substring(0, 8)}...</span>}
+                    avatarProps={{
+                      src: t.teamAvatarUrl || t.avatarUrl || `https://ui-avatars.com/api/?name=${t.teamName}&background=random`,
+                      size: "md",
+                      className: "shadow-sm border border-slate-200 dark:border-white/10 p-0.5",
+                    }}
+                    className="justify-start"
+                  />
                 </TableCell>
                 <TableCell>
                   <Chip

@@ -1399,3 +1399,35 @@ export interface GetStudyPlansResponse {
   message: string;
   traceId: string | null;
 }
+
+export interface ProblemBankListItemDto {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: string;
+  acceptancePercent: number | null;
+  statusCode: string;
+  createdAt: string;
+  problemMode: string;
+  scoringCode: string;
+  tags: {
+    id: string;
+    name: string;
+    color: string | null;
+    icon: string | null;
+  }[];
+}
+
+export interface ApiPagedResponse<T> {
+  data: T[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
+  message: string | null;
+  traceId: string | null;
+}
+
+export interface ProblemBankListResponse extends ApiPagedResponse<ProblemBankListItemDto> {}

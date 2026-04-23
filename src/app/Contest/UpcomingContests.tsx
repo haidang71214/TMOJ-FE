@@ -39,6 +39,7 @@ import {
   useUnregisterContestMutation,
   useJoinContestByCodeMutation
 } from "@/store/queries/Contest";
+import { useJoinTeamByCodeMutation } from "@/store/queries/Team";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
 import { toast } from "sonner";
 import { ContestDto } from "@/types";
@@ -77,7 +78,10 @@ export default function UpcomingContests() {
   // 2. Fetch danh sách contest của tôi (đã đăng ký)
   const { data: myContestsData } = useGetMyContestsQuery({}, { skip: !currentUser });
   const [unregisterContest] = useUnregisterContestMutation();
-  const [joinContestByCode, { isLoading: isJoining }] = useJoinContestByCodeMutation();
+  const [joinContestByCode, { isLoading: isJoiningContest }] = useJoinContestByCodeMutation();
+  const [joinTeamByCode, { isLoading: isJoiningTeam }] = useJoinTeamByCodeMutation();
+
+  const isJoining = isJoiningContest || isJoiningTeam;
 
   // API Favorites cho Contest
   const { data: favoriteContestsData } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1000 }, { skip: !currentUser });
@@ -162,20 +166,31 @@ export default function UpcomingContests() {
       toast.error("Invite code is required!");
       return;
     }
+    const code = inviteCode.trim();
     try {
-      const res = await joinContestByCode({ inviteCode: inviteCode.trim() }).unwrap();
-      toast.success(res.message || "Joined contest successfully!");
-      setInviteCode("");
-
-      // Redirect to the contest page
-      const targetId = res?.data?.contestId || res?.data?.id || res?.data;
-      if (targetId && typeof targetId === 'string') {
-        router.push(`/Contest/${targetId}`);
+      if (code.length === 8) {
+        // Team invite code
+        const res = await joinTeamByCode({ code }).unwrap();
+        toast.success(res.message || "Joined team successfully!");
+        setInviteCode("");
+        // Redirect to contest page if team info includes it
+        const targetContestId = res?.data?.contestId || res?.data?.id;
+        if (targetContestId) router.push(`/Contest/${targetContestId}`);
+      } else if (code.length === 10) {
+        // Contest invite code
+        const res = await joinContestByCode({ inviteCode: code }).unwrap();
+        toast.success(res.message || "Joined contest successfully!");
+        setInviteCode("");
+        const targetId = res?.data?.contestId || res?.data?.id || res?.data;
+        if (targetId && typeof targetId === 'string') router.push(`/Contest/${targetId}`);
       } else {
-        setSelectedTab("my");
+        // Fallback for unusual lengths
+        const res = await joinContestByCode({ inviteCode: code }).unwrap();
+        toast.success("Joined successfully!");
+        setInviteCode("");
       }
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to join contest. Check your code.");
+      toast.error(error?.data?.message || "Invalid invite code or failed to join.");
     }
   };
 

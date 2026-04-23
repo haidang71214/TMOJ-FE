@@ -36,6 +36,17 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import {
+  useGetAdminBadgesQuery,
+  useCreateBadgeMutation,
+  useDeleteBadgeMutation,
+  useGetAdminBadgeRulesQuery,
+  useUpdateBadgeRuleMutation,
+  useDeleteBadgeRuleMutation
+} from "@/store/queries/gamification";
+import { Badge, BadgeRule } from "@/types/gamification";
+import { addToast } from "@heroui/toast";
+
+import {
   Area,
   AreaChart,
   Bar,
@@ -47,27 +58,6 @@ import {
 } from "recharts";
 
 // Mock data dựa trên schema
-interface Badge {
-  id: string;
-  name: string;
-  badge_code: string;
-  badge_category: "contest" | "course" | "org" | "streak" | "problem";
-  badge_level: number;
-  is_repeatable: boolean;
-  description: string;
-  icon_url?: string;
-  awarded_count: number;
-}
-
-interface BadgeRule {
-  id: string;
-  badge_id: string;
-  badge_name: string;
-  rule_type: "rank" | "streak_days" | "solved_count" | "complete_contest";
-  target_entity: "contest" | "course" | "org" | "streak" | "problem";
-  target_value: number;
-  is_active: boolean;
-}
 
 // interface GamificationEvent {
 //   id: string;
@@ -88,9 +78,9 @@ const MOCK_BADGES: Badge[] = [
 ];
 
 const MOCK_RULES: BadgeRule[] = [
-  { id: "r1", badge_id: "1", badge_name: "First Blood", rule_type: "solved_count", target_entity: "contest", target_value: 1, is_active: true },
+  { id: "r1", badge_id: "1", badge_name: "First Blood", rule_type: "solved", target_entity: "contest", target_value: 1, is_active: true },
   { id: "r2", badge_id: "2", badge_name: "7-Day Streak", rule_type: "streak_days", target_entity: "streak", target_value: 7, is_active: true },
-  { id: "r3", badge_id: "3", badge_name: "Master Solver", rule_type: "solved_count", target_entity: "problem", target_value: 100, is_active: true },
+  { id: "r3", badge_id: "3", badge_name: "Master Solver", rule_type: "solved", target_entity: "problem", target_value: 100, is_active: true },
 ];
 
 const MOCK_ACHIEVEMENTS_CHART = [
@@ -111,11 +101,29 @@ const MOCK_STREAK_CHART = [
 ];
 
 export default function GamificationManagementPage() {
-  const [badges] = useState<Badge[]>(MOCK_BADGES);
-  const [rules, setRules] = useState<BadgeRule[]>(MOCK_RULES);
+  const { data: badgesData, isLoading: isLoadingBadges } = useGetAdminBadgesQuery();
+  const { data: rulesData, isLoading: isLoadingRules } = useGetAdminBadgeRulesQuery();
+
+  const [createBadge] = useCreateBadgeMutation();
+  const [deleteBadge] = useDeleteBadgeMutation();
+  const [updateBadgeRule] = useUpdateBadgeRuleMutation();
+  const [deleteBadgeRule] = useDeleteBadgeRuleMutation();
+
+  const badges = badgesData?.data || [];
+  const rules = rulesData?.data || [];
+
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
   const [isEditRuleModalOpen, setIsEditRuleModalOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<BadgeRule | null>(null);
+
+  // State cho form create badge
+  const [newBadgeName, setNewBadgeName] = useState("");
+  const [newBadgeCode, setNewBadgeCode] = useState("");
+  const [newBadgeCategory, setNewBadgeCategory] = useState("contest");
+  const [newBadgeLevel, setNewBadgeLevel] = useState(1);
+  const [newIsRepeatable, setNewIsRepeatable] = useState(true);
+  const [newDescription, setNewDescription] = useState("");
+  const [newIconUrl, setNewIconUrl] = useState("");
 
   // State cho modal edit rule
   const [editRuleType, setEditRuleType] = useState("");
@@ -132,27 +140,60 @@ export default function GamificationManagementPage() {
     setIsEditRuleModalOpen(true);
   };
 
-  const saveRuleChanges = () => {
-  if (!selectedRule) return;
-
-  setRules((prev) =>
-    prev.map((r) =>
-      r.id === selectedRule.id
-        ? {
-            ...r,
-            rule_type: editRuleType as "rank" | "streak_days" | "solved_count" | "complete_contest",
-            target_entity: editTargetEntity as "contest" | "course" | "org" | "streak" | "problem",
-            target_value: editTargetValue,
-            is_active: editIsActive,
-          }
-        : r
-    )
-  );
-
-    alert(`Đã cập nhật tiêu chí cho badge "${selectedRule.badge_name}"`);
-    setIsEditRuleModalOpen(false);
-    setSelectedRule(null);
+  const handleCreateBadge = async () => {
+    try {
+      await createBadge({
+        name: newBadgeName,
+        code: newBadgeCode,
+      }).unwrap();
+      addToast({ title: "Tạo badge thành công!", color: "success" });
+      setIsCreateBadgeOpen(false);
+      // Reset form
+      setNewBadgeName("");
+      setNewBadgeCode("");
+    } catch (error) {
+      addToast({ title: "Lỗi khi tạo badge", color: "danger" });
+    }
   };
+
+  const handleDeleteBadge = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa badge này?")) return;
+    try {
+      await deleteBadge(id).unwrap();
+      addToast({ title: "Đã xóa badge", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi xóa badge", color: "danger" });
+    }
+  };
+
+  const saveRuleChanges = async () => {
+    if (!selectedRule) return;
+
+    try {
+      await updateBadgeRule({
+        id: selectedRule.id,
+        ruleType: editRuleType,
+        targetValue: editTargetValue,
+      }).unwrap();
+
+      addToast({ title: `Đã cập nhật tiêu chí cho badge "${selectedRule.badge_name}"`, color: "success" });
+      setIsEditRuleModalOpen(false);
+      setSelectedRule(null);
+    } catch (error) {
+      addToast({ title: "Lỗi khi cập nhật tiêu chí", color: "danger" });
+    }
+  };
+
+  const handleDeleteRule = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa tiêu chí này?")) return;
+    try {
+      await deleteBadgeRule(id).unwrap();
+      addToast({ title: "Đã xóa tiêu chí", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi xóa tiêu chí", color: "danger" });
+    }
+  };
+
 
   return (
     <div className="space-y-8 pb-20">
@@ -262,8 +303,13 @@ export default function GamificationManagementPage() {
                   <TableColumn>AWARDED</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
-                <TableBody>
+                <TableBody
+                  emptyContent={isLoadingBadges ? "Đang tải..." : "Không có badge nào"}
+                  loadingContent={<div className="p-4">Đang tải dữ liệu...</div>}
+                  isLoading={isLoadingBadges}
+                >
                   {badges.map((b) => (
+
                     <TableRow key={b.id}>
                       <TableCell>
                         {b.icon_url ? (
@@ -293,9 +339,10 @@ export default function GamificationManagementPage() {
                           <Button isIconOnly size="sm">
                             <Pencil size={16} />
                           </Button>
-                          <Button isIconOnly size="sm" color="danger">
+                          <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteBadge(b.id)}>
                             <Trash2 size={16} />
                           </Button>
+
                         </div>
                       </TableCell>
                     </TableRow>
@@ -321,8 +368,12 @@ export default function GamificationManagementPage() {
                   <TableColumn>Active</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
-                <TableBody>
+                <TableBody
+                  emptyContent={isLoadingRules ? "Đang tải..." : "Không có quy tắc nào"}
+                  isLoading={isLoadingRules}
+                >
                   {rules.map((r) => (
+
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.badge_name}</TableCell>
                       <TableCell>
@@ -342,9 +393,10 @@ export default function GamificationManagementPage() {
                           >
                             <Pencil size={16} />
                           </Button>
-                          <Button isIconOnly size="sm" color="danger">
+                          <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteRule(r.id)}>
                             <Trash2 size={16} />
                           </Button>
+
                         </div>
                       </TableCell>
                     </TableRow>
@@ -378,27 +430,24 @@ export default function GamificationManagementPage() {
                 Create New <span className="text-[#FF5C00]">Badge</span>
               </ModalHeader>
               <ModalBody className="space-y-6">
-                <Input label="Badge Name" placeholder="e.g. First Blood" />
-                <Input label="Badge Code" placeholder="first_blood" />
-                <Select label="Category" defaultSelectedKeys={["contest"]}>
-                  <SelectItem key="contest">Contest</SelectItem>
-                  <SelectItem key="course">Course</SelectItem>
-                  <SelectItem key="org">Organization</SelectItem>
-                  <SelectItem key="streak">Streak</SelectItem>
-                  <SelectItem key="problem">Problem</SelectItem>
-                </Select>
-                <Input label="Level" type="number" defaultValue="1" />
-                <div className="flex items-center gap-4">
-                  <span className="font-black uppercase text-sm">Repeatable?</span>
-                  <Switch defaultSelected />
-                </div>
-                <Textarea label="Description" placeholder="Badge description..." />
-                <Input label="Icon URL" placeholder="https://..." />
+                <Input
+                  label="Badge Name"
+                  placeholder="e.g. Solve 100"
+                  value={newBadgeName}
+                  onValueChange={setNewBadgeName}
+                />
+                <Input
+                  label="Badge Code"
+                  placeholder="e.g. SOLVE_100"
+                  value={newBadgeCode}
+                  onValueChange={setNewBadgeCode}
+                />
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="primary" onPress={onClose}>Create Badge</Button>
+                <Button color="primary" onPress={handleCreateBadge}>Create Badge</Button>
               </ModalFooter>
+
             </>
           )}
         </ModalContent>

@@ -243,6 +243,15 @@ const CollectionEndpoint = {
   COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
 };
 
+const GamificationEndpoint = {
+  ME: `${API_PREFIX}/gamification/me`,
+  BADGES: `${API_PREFIX}/gamification/badges`,
+  PROGRESS: `${API_PREFIX}/gamification/badges/progress`,
+  STREAK: `${API_PREFIX}/gamification/streak`,
+  HISTORY: `${API_PREFIX}/gamification/history`,
+  LEADERBOARD: `${API_PREFIX}/gamification/leaderboard`,
+};
+
 const AdminGamificationEndpoint = {
   BADGES: `${API_PREFIX}/gamification/badges`,
   BADGE_ID: `${API_PREFIX}/gamification/badges/{id}`,
@@ -271,5 +280,6 @@ export {
   ProblemEditorialEndpoint,
   FavoriteEndpoint,
   CollectionEndpoint,
+  GamificationEndpoint,
   AdminGamificationEndpoint
 };

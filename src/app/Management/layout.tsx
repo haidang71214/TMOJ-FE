@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Calendar,
   Tag,
+  Library,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -41,6 +42,7 @@ export default function ManagementLayout({
     ...(isManagerOrAdmin ? [{ key: "Class", label: t('sidebar.class') || (language === 'vi' ? "Lớp Học" : "Class"), icon: <Users size={20} /> }] : []),
     ...(isManagerOrAdmin ? [{ key: "Teacher", label: t('sidebar.teacher') || (language === 'vi' ? "Giáo Viên" : "Teacher"), icon: <GraduationCap size={20} /> }] : []),
     { key: "Subject", label: t('sidebar.subject') || (language === 'vi' ? "Môn Học" : "Subject"), icon: <BookOpenCheck size={20} /> },
+    { key: "StudyPlan", label: t('sidebar.studyPlan') || (language === 'vi' ? "Lộ Trình Học" : "Study Plan"), icon: <Library size={20} /> },
     { key: "Settings", label: t('sidebar.settings') || (language === 'vi' ? "Cài Đặt" : "Settings"), icon: <Settings size={20} /> },
     ...(isManagerOrAdmin ? [{ key: "Semester", label: t('sidebar.semester') || (language === 'vi' ? "Học Kỳ" : "Semester"), icon: <Calendar size={20} /> }] : []),
     { key: "Tags", label: t('sidebar.tags') || (language === 'vi' ? "Nhãn" : "Tags"), icon: <Tag size={20} /> }

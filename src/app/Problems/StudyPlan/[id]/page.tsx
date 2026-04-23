@@ -1,104 +1,54 @@
 "use client";
 
-import { Button, Card, CardBody, Chip, Progress } from "@heroui/react";
+import { Button, Card, CardBody, Chip, Progress, Spinner } from "@heroui/react";
 import { Bookmark, CheckCircle2, ChevronLeft, ChevronRight, Clock, Lock, Play, Trophy } from "lucide-react";
-import { useState } from "react";
-
-const MOCK_PACKAGE = {
-  id: "pkg-1",
-  name: "Top Interview 150",
-  description: "Comprehensive 150 questions covering Array, Hash Map, Two Pointers, Sliding Window, Matrix, Linked List, Tree, Graph, Backtracking, and Dynamic Programming.",
-  enrolled: 12450,
-  estimatedHours: 45,
-  level: "INTERMEDIATE",
-  modules: [
-    {
-      id: "m1",
-      title: "Array / String",
-      progress: 100,
-      totalQs: 12,
-      solvedQs: 12,
-      isLocked: false,
-    },
-    {
-      id: "m2",
-      title: "Two Pointers",
-      progress: 60,
-      totalQs: 5,
-      solvedQs: 3,
-      isLocked: false,
-    },
-    {
-      id: "m3",
-      title: "Sliding Window",
-      progress: 25,
-      totalQs: 4,
-      solvedQs: 1,
-      isLocked: false,
-    },
-    {
-      id: "m4",
-      title: "Matrix / Grid",
-      progress: 0,
-      totalQs: 8,
-      solvedQs: 0,
-      isLocked: false,
-    },
-    {
-      id: "m5",
-      title: "Hash Map / Set",
-      progress: 0,
-      totalQs: 10,
-      solvedQs: 0,
-      isLocked: true,
-    },
-    {
-      id: "m6",
-      title: "Linked List",
-      progress: 0,
-      totalQs: 7,
-      solvedQs: 0,
-      isLocked: true,
-    },
-    {
-      id: "m7",
-      title: "Binary Tree / BST",
-      progress: 0,
-      totalQs: 14,
-      solvedQs: 0,
-      isLocked: true,
-    },
-    {
-      id: "m8",
-      title: "Backtracking",
-      progress: 0,
-      totalQs: 12,
-      solvedQs: 0,
-      isLocked: true,
-    },
-    {
-      id: "m9",
-      title: "Dynamic Programming",
-      progress: 0,
-      totalQs: 15,
-      solvedQs: 0,
-      isLocked: true,
-    }
-  ]
-};
+import { useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useGetStudyPlanDetailQuery } from "@/store/queries/StudyPlan";
 
 export default function PackageEnrollPage() {
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [overallProgress, setOverallProgress] = useState(0);
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
 
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
+  const { data: response, isLoading, isError } = useGetStudyPlanDetailQuery(id, { skip: !id });
+  const plan = response?.data;
+  console.log(response);
+  
   const handleEnroll = () => {
     setIsEnrolled(true);
-    setOverallProgress(25); // Mock starting progress
   };
 
   const handleSaveProgress = () => {
     alert("Learning progress saved successfully!");
   };
+
+  const overallProgress = useMemo(() => {
+    if (!plan?.items || plan.items.length === 0) return 0;
+    const completed = plan.items.filter((item: any) => item.isCompleted).length;
+    return Math.round((completed / plan.items.length) * 100);
+  }, [plan]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#F0F2F5] dark:bg-[#0A0F1C]">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+  }
+
+  if (isError || !plan) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center bg-[#F0F2F5] dark:bg-[#0A0F1C]">
+        <h2 className="text-2xl font-bold mb-4 text-[#071739] dark:text-white">Failed to load study plan</h2>
+        <Button color="primary" onPress={() => router.push('/StudyPlan')}>Back to Study Plans</Button>
+      </div>
+    );
+  }
+
+  const items = [...(plan.items || [])].sort((a: any, b: any) => a.order - b.order);
 
   return (
     <main className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] font-sans pb-24">
@@ -109,6 +59,7 @@ export default function PackageEnrollPage() {
             variant="light" 
             className="text-slate-400 hover:text-white -ml-4"
             startContent={<ChevronLeft size={16} />}
+            onPress={() => router.push('/StudyPlan')}
           >
             Back to Study Plans
           </Button>
@@ -116,13 +67,15 @@ export default function PackageEnrollPage() {
           <div className="flex flex-col md:flex-row gap-8 justify-between items-start md:items-end">
             <div className="space-y-4 max-w-2xl">
               <div className="flex items-center gap-3">
-                <Chip size="sm" className="bg-[#FF5C00]/20 text-[#FF5C00] font-black tracking-widest uppercase">{MOCK_PACKAGE.level}</Chip>
-                <span className="text-slate-400 text-sm flex items-center gap-1"><Clock size={14} /> {MOCK_PACKAGE.estimatedHours}h estimated</span>
-                <span className="text-slate-400 text-sm flex items-center gap-1"><Trophy size={14} /> {MOCK_PACKAGE.enrolled.toLocaleString()} enrolled</span>
+                <Chip size="sm" className="bg-[#FF5C00]/20 text-[#FF5C00] font-black tracking-widest uppercase">
+                  BEGINNER
+                </Chip>
+                <span className="text-slate-400 text-sm flex items-center gap-1"><Clock size={14} /> Flexible</span>
+                <span className="text-slate-400 text-sm flex items-center gap-1"><Trophy size={14} /> {items.length} Problems</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">{MOCK_PACKAGE.name}</h1>
+              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">{plan.title}</h1>
               <p className="text-slate-300 text-lg leading-relaxed">
-                {MOCK_PACKAGE.description}
+                {plan.description || "Comprehensive problem solving pathway to enhance your skills."}
               </p>
             </div>
 
@@ -166,50 +119,47 @@ export default function PackageEnrollPage() {
         {/* LEFT COLUMN: MODULES */}
         <div className="md:col-span-2 space-y-6">
           <h2 className="text-2xl font-black uppercase tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
-            Modules <span className="text-slate-400 text-sm font-medium">({MOCK_PACKAGE.modules.length})</span>
+            Path Items <span className="text-slate-400 text-sm font-medium">({items.length})</span>
           </h2>
 
           <div className="space-y-4">
-            {MOCK_PACKAGE.modules.map((mod, idx) => (
+            {items.map((item: any, idx: number) => (
               <Card 
-                key={mod.id} 
-                className={`border-none shadow-sm ${mod.isLocked ? "bg-slate-50 dark:bg-black/20 opacity-70" : "bg-white dark:bg-[#1C2737]"}`}
+                key={item.studyPlanItemId} 
+                className={`border-none shadow-sm ${!item.isUnlocked ? "bg-slate-50 dark:bg-black/20 opacity-70" : "bg-white dark:bg-[#1C2737]"}`}
               >
                 <CardBody className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black 
-                        ${mod.progress === 100 ? "bg-emerald-100 text-emerald-600" : mod.isLocked ? "bg-slate-200 text-slate-400" : "bg-indigo-100 text-indigo-600"}`}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black flex-shrink-0
+                        ${item.isCompleted ? "bg-emerald-100 text-emerald-600" : !item.isUnlocked ? "bg-slate-200 text-slate-400" : "bg-indigo-100 text-indigo-600"}`}
                       >
-                        {mod.progress === 100 ? <CheckCircle2 size={20} /> : mod.isLocked ? <Lock size={18} /> : idx + 1}
+                        {item.isCompleted ? <CheckCircle2 size={20} /> : !item.isUnlocked ? <Lock size={18} /> : idx + 1}
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">{mod.title}</h3>
-                        <p className="text-sm text-slate-500 font-medium">{mod.solvedQs} / {mod.totalQs} Problems</p>
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Challenge #{item.order + 1}</h3>
+                        <p className="text-xs text-slate-500 font-medium font-mono truncate max-w-[150px] sm:max-w-[300px]">ID: {item.problemId}</p>
                       </div>
                     </div>
 
-                    {!mod.isLocked && isEnrolled && (
-                      <Button size="sm" variant="flat" className="bg-[#071739]/5 dark:bg-white/5 font-bold" endContent={<ChevronRight size={14} />}>
-                        Solve Practice Problem
+                    {item.isUnlocked && (
+                      <Button 
+                        size="sm" 
+                        variant="flat" 
+                        className="bg-[#071739]/5 dark:bg-white/5 font-bold" 
+                        endContent={<ChevronRight size={14} />}
+                        onPress={() => {
+                          if(isEnrolled) {
+                             router.push(`/Problems/${item.problemId}/Description`);
+                          } else {
+                             alert("Please enroll first to access the challenge!");
+                          }
+                       }}
+                      >
+                        Solve
                       </Button>
                     )}
                   </div>
-
-                  {isEnrolled && !mod.isLocked && (
-                    <div className="pl-14">
-                      <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
-                        <span>Learning Progress</span>
-                        <span className={mod.progress === 100 ? "text-emerald-500" : "text-[#FF5C00]"}>{mod.progress}%</span>
-                      </div>
-                      <Progress 
-                        value={mod.progress} 
-                        color={mod.progress === 100 ? "success" : "warning"}
-                        className="h-2"
-                        classNames={{ indicator: mod.progress === 100 ? "bg-emerald-500" : "bg-[#FF5C00]" }}
-                      />
-                    </div>
-                  )}
                 </CardBody>
               </Card>
             ))}
@@ -220,7 +170,7 @@ export default function PackageEnrollPage() {
         <div className="space-y-6">
           {isEnrolled && (
             <Card className="bg-white dark:bg-[#1C2737] border-none shadow-xl rounded-3xl overflow-hidden sticky top-32">
-              <div className="bg-linear-to-br from-[#071739] to-[#1a2a4a] p-6 text-white">
+              <div className="bg-gradient-to-br from-[#071739] to-[#1a2a4a] p-6 text-white">
                 <h3 className="font-black uppercase tracking-widest text-xs mb-6 opacity-80">Your Overall Progress</h3>
                 <div className="flex items-end gap-2 mb-2">
                   <span className="text-5xl font-black">{overallProgress}%</span>
@@ -232,20 +182,20 @@ export default function PackageEnrollPage() {
                   classNames={{ indicator: "bg-[#FF5C00]" }} 
                 />
                 <p className="text-xs font-medium opacity-70 mt-4 leading-relaxed">
-                  You are tracking well! Complete the next 2 arrays problems to reach 30%.
+                  Keep going! Complete the next challenge to increase your progress.
                 </p>
               </div>
             </Card>
           )}
 
           {!isEnrolled && (
-            <Card className="bg-white dark:bg-[#1C2737] border border-slate-200 dark:border-white/10 shadow-sm p-6 rounded-3xl">
+            <Card className="bg-white dark:bg-[#1C2737] border border-slate-200 dark:border-white/10 shadow-sm p-6 rounded-3xl sticky top-32">
               <h3 className="font-black uppercase tracking-widest text-xs text-slate-400 mb-4">Package Includes</h3>
               <ul className="space-y-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> 150 Core Problems</li>
-                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> 10 Modules</li>
-                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Video Editorials</li>
-                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Complete Contest trigger badge</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> {items.length} Curated Challenges</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Step-by-step Progression</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Detailed Editorials</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Unlockable Content</li>
               </ul>
             </Card>
           )}

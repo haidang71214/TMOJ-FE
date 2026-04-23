@@ -40,11 +40,14 @@ export default function CreateProblemForm() {
   const [createdTestSetId, setCreatedTestSetId] = React.useState<string | null>(null);
 
   const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
-  const [createTestSet, { isLoading: isCreatingTestSet }] = useCreateTestSetMutation();
+  const [createTestSet, {  }] = useCreateTestSetMutation();
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
-
+  const isTeacher = userData?.role?.toLowerCase() === "teacher" || userData?.role?.includes("teacher");
+  const isManager = userData?.role?.toLowerCase() === "manager" || userData?.role?.includes("manager");
+  console.log(isManager, isTeacher);
+  
   // ── STEP 1: Problem form ──────────────────────────────────────────────────
   const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({
     slug: "",
@@ -96,7 +99,9 @@ export default function CreateProblemForm() {
       formData.append("descriptionMd", form.descriptionMd);
       formData.append("timeLimitMs", form.timeLimitMs.toString());
       formData.append("memoryLimitKb", form.memoryLimitKb.toString());
-      formData.append("statusCode", form.statusCode);
+      const finalStatusCode = (isTeacher || isManager ) ? "published" : form.statusCode;
+      
+      formData.append("statusCode", finalStatusCode);
       if (statementFile) {
         formData.append("StatementFile", statementFile);
       }
@@ -386,8 +391,10 @@ export default function CreateProblemForm() {
                   <RequiredStar rules={[t('common.required_field') || "Required field"]} />
                 </div>
               }
-              selectedKeys={[form.statusCode]}
+              selectedKeys={[(isTeacher || isManager) ? "published" : form.statusCode]}
+              isDisabled={isTeacher || isManager}
               onSelectionChange={(keys) => {
+                if (isTeacher || isManager) return;
                 const value = Array.from(keys)[0] as "draft" | "pending" | "published" | "archived";
                 setForm({ ...form, statusCode: value });
               }}

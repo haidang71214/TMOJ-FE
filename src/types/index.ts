@@ -1369,3 +1369,32 @@ export interface UpdateCollectionRequest {
 export interface ReorderCollectionRequest {
   items: { itemId: string; orderIndex: number }[];
 }
+// Định nghĩa types (bạn có thể tạo file types riêng nếu muốn)
+export interface CreateStudyPlanRequest {
+  title: string | null;
+  description: string | null;
+  isPublic: boolean;
+  isPaid: boolean;
+  price: number;
+}
+
+export interface CreateStudyPlanResponse {
+  // bạn có thể điều chỉnh theo response thực tế của API
+  data?: any;
+  message?: string;
+  success?: boolean;
+}
+export interface StudyPlanItem {
+  id: string;
+  title: string;
+  order: number;
+  problemCount: number;
+  isCompleted: boolean;
+  isUnlocked: boolean;
+}
+
+export interface GetStudyPlansResponse {
+  data: StudyPlanItem[];
+  message: string;
+  traceId: string | null;
+}

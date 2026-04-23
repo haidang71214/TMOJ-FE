@@ -11,6 +11,31 @@ export interface UserGamification {
   badges: Badge[];
 }
 
+export interface AdminBadge {
+  id: string;
+  name: string;
+  iconUrl: string;
+  description: string;
+  badgeCode: string;
+  badgeCategory: string;
+  badgeLevel: number;
+  isRepeatable: boolean;
+  createdAt?: string;
+  awardedCount?: number;
+}
+
+export interface CreateBadgeRequest {
+  dto: {
+    name: string;
+    iconUrl: string;
+    description: string;
+    badgeCode: string;
+    badgeCategory: string;
+    badgeLevel: number;
+    isRepeatable: boolean;
+  };
+}
+
 export interface Badge {
   badgeId: string;
   name: string;
@@ -33,6 +58,11 @@ export interface GamificationHistory {
   type: string;
   name: string;
   time: string;
+}
+
+export interface DailyActivity {
+  date: string;
+  count: number;
 }
 
 export interface CreateBadgeRuleRequest {
@@ -60,17 +90,6 @@ export interface LeaderboardResponse {
   me: LeaderboardEntry | null;
 }
 
-export interface AdminBadge {
-  id: string;
-  name: string;
-  code: string;
-  category: "contest" | "course" | "org" | "streak" | "problem";
-  level: number;
-  isRepeatable: boolean;
-  description: string;
-  iconUrl?: string;
-  awardedCount: number;
-}
 
 export interface AdminBadgeRule {
   id: string;

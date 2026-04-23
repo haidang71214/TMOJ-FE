@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardBody, Button, Chip } from "@heroui/react";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
-import { useGetStreakQuery, useGetGamificationHistoryQuery } from "@/store/queries/gamification";
+import { useGetStreakQuery, useGetGamificationHistoryQuery, useGetDailyActivitiesQuery } from "@/store/queries/gamification";
 
 export const CalendarSidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -10,9 +10,11 @@ export const CalendarSidebar = () => {
   // ── Gamification API ──
   const { data: gStreakResponse } = useGetStreakQuery();
   const { data: gHistoryResponse } = useGetGamificationHistoryQuery();
+  const { data: gActivitiesResponse } = useGetDailyActivitiesQuery();
 
   const gStreak = gStreakResponse?.data;
   const gHistory = gHistoryResponse?.data || [];
+  const gActivities = gActivitiesResponse?.data || [];
   const currentStreak = gStreak?.currentStreak ?? 0;
 
   const changeMonth = (offset: number) =>
@@ -103,8 +105,9 @@ export const CalendarSidebar = () => {
                 }
               }
 
-              // Tính toán solved (dựa trên history)
-              const isSolved = gHistory.some(h => {
+              // Tính toán solved (dựa trên history & activities)
+              const dateStr = cellDate.toISOString().split('T')[0];
+              const isSolved = gActivities.some(a => a.date === dateStr) || gHistory.some(h => {
                 const hDate = new Date(h.time);
                 return hDate.toDateString() === cellDate.toDateString();
               });

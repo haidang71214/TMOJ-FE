@@ -70,12 +70,12 @@ import {
 // }
 
 const MOCK_BADGES: AdminBadge[] = [
-  { id: "1", name: "First Blood", code: "first_blood", category: "contest", level: 1, isRepeatable: false, description: "Giải quyết problem đầu tiên trong contest", awardedCount: 342 },
-  { id: "2", name: "7-Day Streak", code: "streak_7", category: "streak", level: 1, isRepeatable: true, description: "Hoạt động liên tục 7 ngày", awardedCount: 128 },
-  { id: "3", name: "Master Solver", code: "master_100", category: "problem", level: 3, isRepeatable: false, description: "Giải ≥100 problems", awardedCount: 45 },
-  { id: "4", name: "Course Finisher", code: "course_done", category: "course", level: 2, isRepeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awardedCount: 512 },
-  { id: "5", name: "Top 10 Global", code: "top_10", category: "contest", level: 5, isRepeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awardedCount: 10 },
-  { id: "6", name: "Code Reviewer", code: "reviewer", category: "problem", level: 2, isRepeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awardedCount: 88 },
+  { id: "1", name: "First Blood", badgeCode: "first_blood", badgeCategory: "contest", badgeLevel: 1, isRepeatable: false, description: "Giải quyết problem đầu tiên trong contest", awardedCount: 342, iconUrl: "" },
+  { id: "2", name: "7-Day Streak", badgeCode: "streak_7", badgeCategory: "streak", badgeLevel: 1, isRepeatable: true, description: "Hoạt động liên tục 7 ngày", awardedCount: 128, iconUrl: "" },
+  { id: "3", name: "Master Solver", badgeCode: "master_100", badgeCategory: "problem", badgeLevel: 3, isRepeatable: false, description: "Giải ≥100 problems", awardedCount: 45, iconUrl: "" },
+  { id: "4", name: "Course Finisher", badgeCode: "course_done", badgeCategory: "course", badgeLevel: 2, isRepeatable: true, description: "Hoàn thành 1 khóa học bất kỳ", awardedCount: 512, iconUrl: "" },
+  { id: "5", name: "Top 10 Global", badgeCode: "top_10", badgeCategory: "contest", badgeLevel: 5, isRepeatable: false, description: "Lọt vào top 10 trong 1 contest chính thức", awardedCount: 10, iconUrl: "" },
+  { id: "6", name: "Code Reviewer", badgeCode: "reviewer", badgeCategory: "problem", badgeLevel: 2, isRepeatable: true, description: "Đóng góp 10 lời giải mẫu hữu ích", awardedCount: 88, iconUrl: "" },
 ];
 
 const MOCK_RULES: AdminBadgeRule[] = [
@@ -111,8 +111,8 @@ export default function GamificationManagementPage() {
   const [updateBadgeRule] = useUpdateBadgeRuleMutation();
   const [deleteBadgeRule] = useDeleteBadgeRuleMutation();
 
-  const badges = badgesData?.data || [];
-  const rules = rulesData?.data || [];
+  const badges = badgesData || [];
+  const rules = rulesData || [];
 
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
   const [isCreateRuleModalOpen, setIsCreateRuleModalOpen] = useState(false);
@@ -122,6 +122,11 @@ export default function GamificationManagementPage() {
   // State cho form create badge
   const [newBadgeName, setNewBadgeName] = useState("");
   const [newBadgeCode, setNewBadgeCode] = useState("");
+  const [newBadgeDescription, setNewBadgeDescription] = useState("");
+  const [newBadgeIconUrl, setNewBadgeIconUrl] = useState("");
+  const [newBadgeCategory, setNewBadgeCategory] = useState("problem");
+  const [newBadgeLevel, setNewBadgeLevel] = useState(1);
+  const [newBadgeIsRepeatable, setNewBadgeIsRepeatable] = useState(true);
 
   // State cho form create rule
   const [newRuleBadgeId, setNewRuleBadgeId] = useState("");
@@ -148,14 +153,26 @@ export default function GamificationManagementPage() {
   const handleCreateBadge = async () => {
     try {
       await createBadge({
-        name: newBadgeName,
-        code: newBadgeCode,
+        dto: {
+          name: newBadgeName,
+          iconUrl: newBadgeIconUrl,
+          description: newBadgeDescription,
+          badgeCode: newBadgeCode,
+          badgeCategory: newBadgeCategory,
+          badgeLevel: newBadgeLevel,
+          isRepeatable: newBadgeIsRepeatable,
+        }
       }).unwrap();
       addToast({ title: "Tạo badge thành công!", color: "success" });
       setIsCreateBadgeOpen(false);
       // Reset form
       setNewBadgeName("");
       setNewBadgeCode("");
+      setNewBadgeDescription("");
+      setNewBadgeIconUrl("");
+      setNewBadgeCategory("problem");
+      setNewBadgeLevel(1);
+      setNewBadgeIsRepeatable(true);
     } catch (error) {
       addToast({ title: "Lỗi khi tạo badge", color: "danger" });
     }
@@ -351,16 +368,16 @@ export default function GamificationManagementPage() {
                       <TableCell>
                         <div>
                           <p className="font-bold text-sm">{b.name}</p>
-                          <p className="text-[10px] text-slate-400 uppercase font-black">{b.code}</p>
+                          <p className="text-[10px] text-slate-400 uppercase font-black">{b.badgeCode}</p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px]">
-                          {b.category}
+                          {b.badgeCategory}
                         </Chip>
                       </TableCell>
                       <TableCell>
-                        <span className="font-black italic text-xs">Lv {b.level}</span>
+                        <span className="font-black italic text-xs">Lv {b.badgeLevel}</span>
                       </TableCell>
                       <TableCell>
                         <Chip color={b.isRepeatable ? "success" : "default"}>
@@ -491,6 +508,45 @@ export default function GamificationManagementPage() {
                   value={newBadgeCode}
                   onValueChange={setNewBadgeCode}
                 />
+                <Input
+                  label="Icon URL"
+                  placeholder="https://..."
+                  value={newBadgeIconUrl}
+                  onValueChange={setNewBadgeIconUrl}
+                />
+                <Textarea
+                  label="Description"
+                  placeholder="Describe the badge"
+                  value={newBadgeDescription}
+                  onValueChange={setNewBadgeDescription}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    label="Category"
+                    selectedKeys={[newBadgeCategory]}
+                    onSelectionChange={(keys) => setNewBadgeCategory(Array.from(keys)[0] as string)}
+                  >
+                    <SelectItem key="contest">Contest</SelectItem>
+                    <SelectItem key="course">Course</SelectItem>
+                    <SelectItem key="org">Organization</SelectItem>
+                    <SelectItem key="streak">Streak</SelectItem>
+                    <SelectItem key="problem">Problem</SelectItem>
+                  </Select>
+                  <Input
+                    label="Level"
+                    type="number"
+                    value={newBadgeLevel.toString()}
+                    onValueChange={(v) => setNewBadgeLevel(Number(v))}
+                    min={1}
+                  />
+                </div>
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-sm font-medium">Is Repeatable</span>
+                  <Switch
+                    isSelected={newBadgeIsRepeatable}
+                    onValueChange={setNewBadgeIsRepeatable}
+                  />
+                </div>
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>

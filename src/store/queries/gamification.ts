@@ -1,3 +1,4 @@
+import { AdminGamificationEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
   UserGamification,
@@ -7,7 +8,8 @@ import {
   GamificationHistory,
   LeaderboardEntry,
   AdminBadge,
-  AdminBadgeRule
+  AdminBadgeRule,
+  CreateBadgeRuleRequest
 } from "@/types/gamification";
 
 export const gamificationApi = baseApi.injectEndpoints({
@@ -40,12 +42,12 @@ export const gamificationApi = baseApi.injectEndpoints({
 
     // ADMIN APIs
     getAdminBadges: builder.query<{ data: AdminBadge[] }, void>({
-      query: () => "/api/v1/admin/badges",
+      query: () => AdminGamificationEndpoint.BADGES,
       providesTags: ["Gamification"],
     }),
     createBadge: builder.mutation<{ data: { id: string } }, { name: string; code: string }>({
       query: (body) => ({
-        url: "/api/v1/admin/badges",
+        url: AdminGamificationEndpoint.BADGES,
         method: "POST",
         body,
       }),
@@ -53,7 +55,7 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     updateBadge: builder.mutation<{ data: void }, { id: string; name: string; code: string }>({
       query: ({ id, ...body }) => ({
-        url: `/api/v1/admin/badges/${id}`,
+        url: AdminGamificationEndpoint.BADGE_ID.replace("{id}", id),
         method: "PUT",
         body,
       }),
@@ -61,19 +63,19 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     deleteBadge: builder.mutation<{ data: void }, string>({
       query: (id) => ({
-        url: `/api/v1/admin/badges/${id}`,
+        url: AdminGamificationEndpoint.BADGE_ID.replace("{id}", id),
         method: "DELETE",
       }),
       invalidatesTags: ["Gamification"],
     }),
 
     getAdminBadgeRules: builder.query<{ data: AdminBadgeRule[] }, void>({
-      query: () => "/api/v1/admin/badge-rules",
+      query: () => AdminGamificationEndpoint.BADGE_RULES,
       providesTags: ["Gamification"],
     }),
-    createBadgeRule: builder.mutation<{ data: { id: string } }, { ruleType: string; targetValue: number }>({
+    createBadgeRule: builder.mutation<{ data: { id: string } }, CreateBadgeRuleRequest>({
       query: (body) => ({
-        url: "/api/v1/admin/badge-rules",
+        url: AdminGamificationEndpoint.BADGE_RULES,
         method: "POST",
         body,
       }),
@@ -81,7 +83,7 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     updateBadgeRule: builder.mutation<{ data: void }, { id: string; ruleType: string; targetEntity: string; targetValue: number; isActive: boolean }>({
       query: ({ id, ...body }) => ({
-        url: `/api/v1/admin/badge-rules/${id}`,
+        url: AdminGamificationEndpoint.BADGE_RULE_ID.replace("{id}", id),
         method: "PUT",
         body,
       }),
@@ -89,7 +91,7 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     deleteBadgeRule: builder.mutation<{ data: void }, string>({
       query: (id) => ({
-        url: `/api/v1/admin/badge-rules/${id}`,
+        url: AdminGamificationEndpoint.BADGE_RULE_ID.replace("{id}", id),
         method: "DELETE",
       }),
       invalidatesTags: ["Gamification"],

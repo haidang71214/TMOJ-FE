@@ -40,6 +40,7 @@ import {
   useCreateBadgeMutation,
   useDeleteBadgeMutation,
   useGetAdminBadgeRulesQuery,
+  useCreateBadgeRuleMutation,
   useUpdateBadgeRuleMutation,
   useDeleteBadgeRuleMutation
 } from "@/store/queries/gamification";
@@ -106,6 +107,7 @@ export default function GamificationManagementPage() {
 
   const [createBadge] = useCreateBadgeMutation();
   const [deleteBadge] = useDeleteBadgeMutation();
+  const [createBadgeRule] = useCreateBadgeRuleMutation();
   const [updateBadgeRule] = useUpdateBadgeRuleMutation();
   const [deleteBadgeRule] = useDeleteBadgeRuleMutation();
 
@@ -113,17 +115,20 @@ export default function GamificationManagementPage() {
   const rules = rulesData?.data || [];
 
   const [isCreateBadgeOpen, setIsCreateBadgeOpen] = useState(false);
+  const [isCreateRuleModalOpen, setIsCreateRuleModalOpen] = useState(false);
   const [isEditRuleModalOpen, setIsEditRuleModalOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<AdminBadgeRule | null>(null);
 
   // State cho form create badge
   const [newBadgeName, setNewBadgeName] = useState("");
   const [newBadgeCode, setNewBadgeCode] = useState("");
-  const [newBadgeCategory, setNewBadgeCategory] = useState("contest");
-  const [newBadgeLevel, setNewBadgeLevel] = useState(1);
-  const [newIsRepeatable, setNewIsRepeatable] = useState(true);
-  const [newDescription, setNewDescription] = useState("");
-  const [newIconUrl, setNewIconUrl] = useState("");
+
+  // State cho form create rule
+  const [newRuleBadgeId, setNewRuleBadgeId] = useState("");
+  const [newRuleType, setNewRuleType] = useState("solved");
+  const [newRuleTargetEntity, setNewRuleTargetEntity] = useState("problem");
+  const [newRuleTargetValue, setNewRuleTargetValue] = useState(1);
+  const [newRuleScopeId, setNewRuleScopeId] = useState<string | null>(null);
 
   // State cho modal edit rule
   const [editRuleType, setEditRuleType] = useState("");
@@ -153,6 +158,22 @@ export default function GamificationManagementPage() {
       setNewBadgeCode("");
     } catch (error) {
       addToast({ title: "Lỗi khi tạo badge", color: "danger" });
+    }
+  };
+
+  const handleCreateRule = async () => {
+    try {
+      await createBadgeRule({
+        badgeId: newRuleBadgeId,
+        ruleType: newRuleType,
+        targetEntity: newRuleTargetEntity,
+        targetValue: newRuleTargetValue,
+        scopeId: newRuleScopeId,
+      }).unwrap();
+      addToast({ title: "Tạo tiêu chí thành công!", color: "success" });
+      setIsCreateRuleModalOpen(false);
+    } catch (error) {
+      addToast({ title: "Lỗi khi tạo tiêu chí", color: "danger" });
     }
   };
 
@@ -369,7 +390,11 @@ export default function GamificationManagementPage() {
             <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black uppercase">Badge Award Rules</h2>
-                <Button startContent={<Plus size={16} />} size="sm">
+                <Button
+                  startContent={<Plus size={16} />}
+                  size="sm"
+                  onPress={() => setIsCreateRuleModalOpen(true)}
+                >
                   Add Rule
                 </Button>
               </div>
@@ -472,6 +497,76 @@ export default function GamificationManagementPage() {
                 <Button color="primary" onPress={handleCreateBadge}>Create Badge</Button>
               </ModalFooter>
 
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* MODAL CREATE RULE */}
+      <Modal isOpen={isCreateRuleModalOpen} onOpenChange={setIsCreateRuleModalOpen} size="md">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-xl font-black uppercase">
+                Create New <span className="text-[#FF5C00]">Badge Rule</span>
+              </ModalHeader>
+              <ModalBody className="space-y-6">
+                <Select
+                  label="Select Badge"
+                  placeholder="Pick a badge"
+                  selectedKeys={newRuleBadgeId ? [newRuleBadgeId] : []}
+                  onSelectionChange={(keys) => setNewRuleBadgeId(Array.from(keys)[0] as string)}
+                >
+                  {badges.map((b) => (
+                    <SelectItem key={b.id} textValue={b.name}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Rule Type"
+                  selectedKeys={[newRuleType]}
+                  onSelectionChange={(keys) => setNewRuleType(Array.from(keys)[0] as string)}
+                >
+                  <SelectItem key="solved" textValue="Solved Count">Solved Count (Số problem giải)</SelectItem>
+                  <SelectItem key="streak_days" textValue="Streak Days">Streak Days (Chuỗi ngày)</SelectItem>
+                  <SelectItem key="rank" textValue="Rank">Rank (Xếp hạng)</SelectItem>
+                  <SelectItem key="complete_contest" textValue="Complete Contest">Complete Contest (Tham gia Contest)</SelectItem>
+                </Select>
+
+                <Select
+                  label="Target Entity"
+                  selectedKeys={[newRuleTargetEntity]}
+                  onSelectionChange={(keys) => setNewRuleTargetEntity(Array.from(keys)[0] as string)}
+                >
+                  <SelectItem key="contest">Contest</SelectItem>
+                  <SelectItem key="course">Course</SelectItem>
+                  <SelectItem key="org">Organization</SelectItem>
+                  <SelectItem key="streak">Streak</SelectItem>
+                  <SelectItem key="problem">Problem</SelectItem>
+                </Select>
+
+                <Input
+                  label="Target Value"
+                  type="number"
+                  placeholder="e.g. 100"
+                  value={newRuleTargetValue.toString()}
+                  onValueChange={(v) => setNewRuleTargetValue(Number(v))}
+                  min={1}
+                />
+
+                <Input
+                  label="Scope ID (Optional)"
+                  placeholder="e.g. Contest ID or Course ID"
+                  value={newRuleScopeId || ""}
+                  onValueChange={(v) => setNewRuleScopeId(v || null)}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>Cancel</Button>
+                <Button color="primary" onPress={handleCreateRule}>Create Rule</Button>
+              </ModalFooter>
             </>
           )}
         </ModalContent>

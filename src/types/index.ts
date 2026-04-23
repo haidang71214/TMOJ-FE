@@ -1437,6 +1437,7 @@ export interface ProblemBankListResponse extends ApiPagedResponse<ProblemBankLis
 
 export interface CreateVNPayPaymentRequest {
   amount: number;
+  returnUrl?: string;
 }
 
 export interface CreateVNPayPaymentResponse {

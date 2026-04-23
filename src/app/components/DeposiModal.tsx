@@ -56,7 +56,10 @@ export default function DepositModal({
     }
 
     try {
-      const response = await createPayment({ amount: numAmount }).unwrap();
+      const response = await createPayment({
+        amount: numAmount,
+        returnUrl: window.location.origin + "/payment-result"
+      }).unwrap();
       if (response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       }

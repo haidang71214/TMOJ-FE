@@ -36,7 +36,7 @@ export default function AchievementsPage() {
   const { data: progressResponse, isLoading: progressLoading } = useGetBadgeProgressQuery();
   const { data: historyResponse, isLoading: historyLoading } = useGetGamificationHistoryQuery();
 
-  const badges = badgesResponse?.data;
+  const badges = badgesResponse;
   const progress = progressResponse?.data;
   const history = historyResponse?.data;
 

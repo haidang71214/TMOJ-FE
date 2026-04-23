@@ -22,8 +22,12 @@ export const gamificationApi = baseApi.injectEndpoints({
       query: () => GamificationEndpoint.ME,
       providesTags: ["Gamification"],
     }),
-    getBadges: builder.query<{ data: Badge[] }, void>({
+    getBadges: builder.query<Badge[], void>({
       query: () => GamificationEndpoint.BADGES,
+      transformResponse: (response: any) => {
+        if (response && response.data) return response.data;
+        return response || [];
+      },
       providesTags: ["Gamification"],
     }),
     getBadgeProgress: builder.query<{ data: BadgeProgress[] }, void>({
@@ -64,11 +68,11 @@ export const gamificationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Gamification"],
     }),
-    updateBadge: builder.mutation<void, { id: string; dto: CreateBadgeRequest['dto'] }>({
-      query: ({ id, dto }) => ({
+    updateBadge: builder.mutation<void, { id: string; name: string; iconUrl: string; description: string; badgeCode: string; badgeCategory: string; badgeLevel: number; isRepeatable: boolean }>({
+      query: ({ id, ...body }) => ({
         url: AdminGamificationEndpoint.BADGE_ID.replace("{id}", id),
         method: "PUT",
-        body: { dto },
+        body: { badgeId: id, ...body },
       }),
       invalidatesTags: ["Gamification"],
     }),

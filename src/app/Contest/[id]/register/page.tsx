@@ -638,7 +638,16 @@ export default function ContestRegistrationPage() {
                               <div className="space-y-6">
                                 <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] flex justify-between items-center animate-in zoom-in-95">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={teamAvatarPreview ? teamAvatarPreview : (teamDetail?.data?.avatarUrl ? `${teamDetail.data.avatarUrl}?t=${new Date().getTime()}` : undefined)} name={teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar
+                                      src={teamAvatarPreview ? teamAvatarPreview : (() => {
+                                        const url = teamDetail?.data?.teamAvatarUrl || teamDetail?.data?.avatarUrl;
+                                        if (!url) return undefined;
+                                        return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                                      })()}
+                                      name={teamName}
+                                      size="lg"
+                                      className="border-2 border-green-500"
+                                    />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Team ID: {createdTeamId.slice(0, 8)}...</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{teamName}</p>
@@ -781,7 +790,16 @@ export default function ContestRegistrationPage() {
                               <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] animate-in zoom-in-95">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={myTeamInContest.avatarUrl ? `${myTeamInContest.avatarUrl}?t=${new Date().getTime()}` : undefined} name={myTeamInContest.teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar
+                                      src={(() => {
+                                        const url = myTeamInContest.teamAvatarUrl || myTeamInContest.avatarUrl;
+                                        if (!url) return undefined;
+                                        return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                                      })()}
+                                      name={myTeamInContest.teamName}
+                                      size="lg"
+                                      className="border-2 border-green-500"
+                                    />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">You Joined Team</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{myTeamInContest.teamName}</p>

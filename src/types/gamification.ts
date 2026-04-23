@@ -1,48 +1,56 @@
-export type BadgeCategory = "contest" | "course" | "org" | "streak" | "problem";
+export interface UserGamification {
+  exp: number;
+  level: number;
+  streak: number;
+  coins: number;
+}
 
 export interface Badge {
-  id: string;
+  badgeId: string;
   name: string;
-  badge_code: string;
-  badge_category: BadgeCategory;
-  badge_level: number;
-  is_repeatable: boolean;
-  description: string;
-  icon_url?: string;
-  awarded_count: number;
+  awardedAt: string;
 }
 
-export interface CreateBadgeRequest {
+export interface BadgeProgress {
+  badge: string;
+  progress: number;
+  target: number;
+}
+
+export interface StreakInfo {
+  currentStreak: number;
+  longestStreak: number;
+}
+
+export interface GamificationHistory {
+  type: "badge" | "reward" | string;
+  name: string;
+  time: string;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  value: number;
+}
+
+export interface AdminBadge {
+  id: string;
   name: string;
   code: string;
+  category: "contest" | "course" | "org" | "streak" | "problem";
+  level: number;
+  isRepeatable: boolean;
+  description: string;
+  iconUrl?: string;
+  awardedCount: number;
 }
 
-export interface CreateBadgeResponse {
+export interface AdminBadgeRule {
   id: string;
-}
-
-export type RuleType = "rank" | "streak_days" | "solved" | "complete_contest";
-export type TargetEntity = "contest" | "course" | "org" | "streak" | "problem";
-
-export interface BadgeRule {
-  id: string;
-  badge_id: string;
-  badge_name: string;
-  rule_type: RuleType;
-  target_entity: TargetEntity;
-  target_value: number;
-  is_active: boolean;
-}
-
-export interface CreateBadgeRuleRequest {
+  badgeId: string;
+  badgeName: string;
   ruleType: string;
+  targetEntity: string;
   targetValue: number;
-}
-
-export interface UpdateBadgeRuleRequest extends Partial<CreateBadgeRuleRequest> {
-  id: string;
-}
-
-export interface CreateBadgeRuleResponse {
-  id: string;
+  isActive: boolean;
 }

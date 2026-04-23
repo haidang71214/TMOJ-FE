@@ -207,6 +207,7 @@ const TeamEndpoint = {
   ADD_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members`,
   DELETE_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members/{userId}`,
   JOIN_BY_CODE: `${API_PREFIX}/teams/join-by-code`,
+  UPDATE_AVATAR: `${API_PREFIX}/teams/{id}/avatar`,
 };
 
 const ProblemEditorialEndpoint = {

@@ -236,7 +236,7 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }],
+      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }, "Team"],
     }),
     // 27. Lấy Scoreboard
     getScoreboard: builder.query<ScoreboardResponse, string>({

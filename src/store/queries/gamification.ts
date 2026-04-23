@@ -100,11 +100,11 @@ export const gamificationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Gamification"],
     }),
-    updateBadgeRule: builder.mutation<{ data: void }, { id: string; ruleType: string; targetEntity: string; targetValue: number; isActive: boolean }>({
+    updateBadgeRule: builder.mutation<{ data: void }, { id: string; badgeId: string; ruleType: string; targetEntity: string; targetValue: number; isActive: boolean }>({
       query: ({ id, ...body }) => ({
         url: AdminGamificationEndpoint.BADGE_RULE_ID.replace("{id}", id),
         method: "PUT",
-        body,
+        body: { id, ...body },
       }),
       invalidatesTags: ["Gamification"],
     }),

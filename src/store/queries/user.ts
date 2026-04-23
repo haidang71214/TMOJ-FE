@@ -1,4 +1,4 @@
-import { AdminUserEndPoint } from "@/constants/endpoints";
+import { AdminUserEndPoint, userProfileEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import { CreateUserRequest, CreateUserResponse, ImportUsersResponse, UpdateUserRequest, Users } from "@/types";
 
@@ -136,7 +136,20 @@ export const userApi = baseApi.injectEndpoints({
       }),
       providesTags: ["User"],
     }),
-
+    getAllUsers: builder.query<{ data: Users[] }, void>({
+      query: () => ({
+        url: userProfileEndpoint.GET_ALL_USERS,
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+    getUserByEmail: builder.query<{ data: Users }, string>({
+      query: (email) => ({
+        url: userProfileEndpoint.GET_USER_BY_EMAIL.replace("{email}", email),
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
   }),
 
 });
@@ -158,5 +171,7 @@ export const {
   useUpdateUserMutation,
   useGetUserByIdQuery,
   useSearchUsersQuery,
+  useGetAllUsersQuery,
+  useGetUserByEmailQuery,
 } = userApi;
 

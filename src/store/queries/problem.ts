@@ -90,6 +90,17 @@ downloadProblemStatement: builder.mutation<Blob, string>({
     responseHandler: (response) => response.blob(),
   }),
 }),
+  donateProblem: builder.mutation<
+    CreateProblemDraftResponse,
+    FormData
+  >({
+    query: (body) => ({
+      url: ProblemEndPoint.DONATE_PROBLEM,
+      method: "POST",
+      body,
+    }),
+    invalidatesTags: ["ProblemBank"],
+  }),
     }),
    
   })
@@ -102,5 +113,6 @@ export const {
   useUpdateProblemDifficultyMutation,
   useDownloadProblemStatementMutation,
   useGetProblemListPublicQuery,
-  useCreateProblemStudentMutation
+  useCreateProblemStudentMutation,
+  useDonateProblemMutation
 } = prolemApi;

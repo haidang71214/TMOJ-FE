@@ -24,7 +24,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CreateClassModal({ onCreated }: { onCreated?: () => void }) {
   const { t } = useTranslation();
-  const router = useRouter();
   const { closeModal } = useModal();
 
   const [create_class, { isLoading: isLaunching }] = useCreateClassMutation();
@@ -32,7 +31,7 @@ export default function CreateClassModal({ onCreated }: { onCreated?: () => void
   const { data: subjectData, isLoading: subjectLoading } = useGetAllSubjectQueryQuery();
   const subjects = subjectData?.data?.items ?? [];
 
-  const { data: userProfile, isLoading: isUserLoading } = useGetUserInformationQuery();
+  const { data: userProfile } = useGetUserInformationQuery();
   const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
 
   const { data: teacherData, isLoading: teacherLoading } = useGetUserRoleQuery({ roleName: "teacher" }, { skip: !isManagerOrAdmin });
@@ -94,8 +93,7 @@ export default function CreateClassModal({ onCreated }: { onCreated?: () => void
       toast.success("Class created successfully");
       if (onCreated) onCreated();
       closeModal();
-    } catch (error) {
-      console.error(error);
+    } catch  {
       toast.error("Failed to create class");
     }
   };

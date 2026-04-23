@@ -6,7 +6,7 @@ import {
 } from "@/store/queries/Submittion"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
-import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
+import {  RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
@@ -271,8 +271,7 @@ export default function SolutionSubmittion({
         color: "success"
       })
 
-    } catch (error) {
-      console.error(error)
+    } catch {
       addToast({ 
         title: "Run thất bại.", 
         color: "danger" 
@@ -317,8 +316,7 @@ export default function SolutionSubmittion({
         color: "success"
       })
 
-    } catch (error) {
-      console.error(error)
+    } catch{
       addToast({ 
         title: "Nộp bài thất bại.", 
         color: "danger" 

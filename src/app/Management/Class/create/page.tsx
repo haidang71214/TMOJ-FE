@@ -81,8 +81,7 @@ const semesters = semesterData?.data?.items ?? [];
 
       toast.success("Class created successfully");
       router.push("/Management/Class");
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to create class");
     }
   };

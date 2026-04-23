@@ -83,7 +83,7 @@ export default function GlobalProblemListPage() {
     refetch,
   } = useGetProblemListQueryQuery();
   console.log(apiResponse);
-  const [updateDifficulty, { isLoading: isUpdatingDifficulty }] = useUpdateProblemDifficultyMutation();
+  const [updateDifficulty] = useUpdateProblemDifficultyMutation();
 
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {
     try {
@@ -97,7 +97,7 @@ export default function GlobalProblemListPage() {
     }
   };
 
-  const [downloadStatement, { isLoading: isDownloadingStatement }] = useDownloadProblemStatementMutation();
+  const [downloadStatement] = useDownloadProblemStatementMutation();
 
   const handleDownloadStatement = async (problemId: string, slug: string) => {
     try {

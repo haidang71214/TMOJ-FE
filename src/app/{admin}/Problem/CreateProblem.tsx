@@ -129,34 +129,56 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
   }
 };
 
+const handleFinish = async () => {
+  // Trường hợp 1: Người dùng đã chọn file nhưng chưa bấm nút "Upload Archive"
+  if (zipFile) {
+    const success = await handleUploadTestCase();
+    if (!success) return; // Dừng lại nếu upload file đang chờ bị lỗi
+  } 
+  
+  // Trường hợp 2: Kiểm tra danh sách đã upload thành công (uploadedCases)
+  if (uploadedCases.length === 0) {
+    alert("You must upload at least one TestCase zip file before finishing.");
+    return;
+  }
 
+  // Nếu mọi thứ OK mới gọi callback hoàn tất
+  onFinish();
+};
 
-  const handleUploadTestCase = async () => {
-    if (!createdProblemId || !createdTestSetId) return;
-    if (!zipFile) { alert("Please select a zip file"); return; }
+  const handleUploadTestCase = async (): Promise<boolean> => {
+  if (!createdProblemId || !createdTestSetId) return false;
+  if (!zipFile) { 
+    alert("Please select a zip file"); 
+    return false; 
+  }
 
-    try {
-      const formData = new FormData();
-      formData.append("file", zipFile);
-      formData.append("replaceExisting", "true");
-      formData.append("testsetId", createdTestSetId);
+  try {
+    const formData = new FormData();
+    formData.append("file", zipFile);
+    formData.append("replaceExisting", "true");
+    formData.append("testsetId", createdTestSetId);
 
-      const res = await createTestCase({
-        id: createdProblemId,
-        body: formData,
-      }).unwrap();
+    const res = await createTestCase({
+      id: createdProblemId,
+      body: formData,
+    }).unwrap();
 
-      setUploadedCases((prev) => [
-        ...prev,
-        { name: zipFile.name, total: res.data?.total ?? 0 },
-      ]);
-      setZipFile(null);
-      if (zipRef.current) zipRef.current.value = "";
-    } catch (error) {
-      console.error("Upload testcase failed:", error);
-      alert("Upload testcase failed");
-    }
-  };
+    setUploadedCases((prev) => [
+      ...prev,
+      { name: zipFile.name, total: res.data?.total ?? 0 },
+    ]);
+    setZipFile(null);
+    if (zipRef.current) zipRef.current.value = "";
+    
+    // Thêm thông báo thành công nếu muốn
+    return true; 
+  } catch (error) {
+    console.error("Upload testcase failed:", error);
+    alert("Upload testcase failed");
+    return false;
+  }
+};
 
   const AdminStepper = () => (
     <div className="flex w-full items-center justify-between mb-8">
@@ -474,14 +496,15 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
               </Button>
 
               <Button
-                color="success"
-                startContent={<Save size={18} />}
-                onPress={onFinish}
-                radius="sm"
-                className="text-white font-semibold"
-              >
-                Complete & Save Problem
-              </Button>
+  color="success"
+  startContent={<Save size={18} />}
+  onPress={handleFinish} // Thay đổi ở đây
+  radius="sm"
+  className="text-white font-semibold"
+  isDisabled={isCreatingTestCase}
+>
+  Complete & Save Problem
+</Button>
             </div>
           </CardBody>
         </Card>

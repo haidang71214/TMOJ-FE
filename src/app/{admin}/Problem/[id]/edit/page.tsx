@@ -54,6 +54,7 @@ export default function AdminProblemEditPage({
     memoryLimitKb: 262144,
     difficulty: "medium",
     tagIds: [] as string[],
+    problemMode: "amateur",
   });
   const [statementFile, setStatementFile] = React.useState<File | null>(null);
 
@@ -71,6 +72,7 @@ export default function AdminProblemEditPage({
         visibilityCode: problemData.visibilityCode || "public",
         typeCode: problemData.typeCode || "algorithm",
         tagIds: problemData.tags?.map((t: any) => t.id) || [],
+        problemMode: problemData.problemMode || "amateur",
       });
     }
   }, [problemData]);
@@ -93,6 +95,7 @@ export default function AdminProblemEditPage({
       formData.append("timeLimitMs", form.timeLimitMs.toString());
       formData.append("memoryLimitKb", form.memoryLimitKb.toString());
       formData.append("statusCode", form.statusCode);
+      formData.append("problemMode", form.problemMode);
       if (statementFile) {
         formData.append("StatementFile", statementFile);
       }
@@ -297,7 +300,22 @@ export default function AdminProblemEditPage({
             <SelectItem key="medium">{t('problem_management.medium') || "Medium"}</SelectItem>
             <SelectItem key="hard">{t('problem_management.hard') || "Hard"}</SelectItem>
           </Select>
-
+            <Select
+              label={
+                <div className="flex items-center gap-1">
+                  {t('problem_create.mode') || "Mode"}
+                  <RequiredStar rules={["Required"]} />
+                </div>
+              }
+              selectedKeys={[form.problemMode]}
+              onSelectionChange={(keys) => {
+                const value = Array.from(keys)[0] as "amateur" | "pro";
+                setForm({ ...form, problemMode: value });
+              }}
+            >
+              <SelectItem key="amateur">Amateur</SelectItem>
+              <SelectItem key="pro">Pro</SelectItem>
+            </Select>
           <Select
             label={
               <div className="flex items-center gap-1">

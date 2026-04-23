@@ -141,6 +141,7 @@ export interface CreateProblemDraftRequest {
   displayIndex?: number;
   timeLimitMs: number;
   memoryLimitKb: number;
+  problemMode : "amateur" | "pro"
 }
 export interface ProblemDraft {
   id: string;                    // UUID dạng string

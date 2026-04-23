@@ -70,6 +70,7 @@ export default function CreateProblemStudyPlanPage() {
     timeLimitMs: 1000,
     memoryLimitKb: 262144,
     tagIds: [] as string[],
+    problemMode: "amateur",
   });
   const [statementFile, setStatementFile] = React.useState<File | null>(null);
 
@@ -306,7 +307,7 @@ export default function CreateProblemStudyPlanPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
-                label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field"]} /></div>}
+                label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field","Import statement will be used if no option value is selected"]} /></div>}
                 selectedKeys={[form.difficulty]}
                 onSelectionChange={(keys) => setForm({ ...form, difficulty: Array.from(keys)[0] as string })}
                 variant="bordered"
@@ -317,7 +318,17 @@ export default function CreateProblemStudyPlanPage() {
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="hard">Hard</SelectItem>
               </Select>
-
+              <Select
+                label={<div className="flex items-center gap-1">Problem Mode<RequiredStar rules={["Required field"]} /></div>}
+                selectedKeys={[form.problemMode]}
+                onSelectionChange={(keys) => {
+                  const value = Array.from(keys)[0] as "amateur" | "pro";
+                  setForm({ ...form, problemMode: value });
+                }}
+              >
+                <SelectItem key="amateur">Amateur (Cơ bản)</SelectItem>
+                <SelectItem key="pro">Pro (Nâng cao)</SelectItem>
+              </Select>
               <Select
                 label={<div className="flex items-center gap-1">Status<RequiredStar rules={["Required field"]} /></div>}
                 selectedKeys={[isTeacher ? "published" : form.statusCode]}

@@ -1,3 +1,4 @@
+// useDonateProblemMutation
 "use client";
 
 import React from "react";
@@ -22,7 +23,7 @@ import { useRouter } from "next/navigation";
 
 import { CreateProblemDraftRequest, ErrorForm } from "@/types";
 import {
-  useCreateProblemDraftMutation,
+  useDonateProblemMutation,
   useCreateTestCaseMutation,
   useCreateTestSetMutation,
 } from "@/store/queries/problem";
@@ -31,7 +32,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function CreateProblemForm() {
+export default function CreateBankForm() {
   const router = useRouter();
   const { t, language } = useTranslation();
 
@@ -39,7 +40,7 @@ export default function CreateProblemForm() {
   const [createdProblemId, setCreatedProblemId] = React.useState<string | null>(null);
   const [createdTestSetId, setCreatedTestSetId] = React.useState<string | null>(null);
 
-  const [createProblemDraft, { isLoading: isCreatingProblem }] = useCreateProblemDraftMutation();
+  const [createProblemDraft, { isLoading: isCreatingProblem }] = useDonateProblemMutation();
   const [createTestSet] = useCreateTestSetMutation();
   const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
   const { data: userData, isLoading: isUserLoading } = useGetUserInformationQuery();
@@ -53,8 +54,6 @@ export default function CreateProblemForm() {
     slug: "",
     title: "",
     typeCode: "algorithm",
-    statusCode: "draft",
-    visibilityCode: "public",
     scoringCode: "acm",
     descriptionMd: "",
     displayIndex: 1,
@@ -125,15 +124,15 @@ export default function CreateProblemForm() {
     formData.append("title", form.title);
     formData.append("difficulty", form.difficulty ? form.difficulty.charAt(0).toUpperCase() + form.difficulty.slice(1).toLowerCase() : "Medium");
     formData.append("typeCode", form.typeCode);
-    formData.append("visibilityCode", form.visibilityCode);
+  
     formData.append("scoringCode", form.scoringCode);
     formData.append("timeLimitMs", form.timeLimitMs.toString());
     formData.append("memoryLimitKb", form.memoryLimitKb.toString());
     formData.append("problemMode", form.problemMode);
+      formData.append("visibilityCode", "in-bank");
+      formData.append("statusCode", "published");
+      formData.append("problemSource", "origin");
     
-    const finalStatusCode = (isTeacher || isManager) ? "published" : form.statusCode;
-    formData.append("statusCode", finalStatusCode);
-
     // CHỈ APPEND CÁI NÀO CÓ DỮ LIỆU
     if (hasDescription) {
       formData.append("descriptionMd", form.descriptionMd);
@@ -256,7 +255,6 @@ export default function CreateProblemForm() {
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
       {/* HEADER */}
-      
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
@@ -272,7 +270,7 @@ export default function CreateProblemForm() {
             {t('problem_create.title1') || "CREATE"} <span className="text-[#FF5C00]">{t('problem_create.title2') || "PROBLEM"}</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">
-            {t('problem_create.subtitle') || "Define algorithm challenge, testset and testcases"}
+            Donation Problem Bank
           </p>
         </div>
 
@@ -435,26 +433,6 @@ export default function CreateProblemForm() {
     <SelectItem key="amateur" textValue="Amateur">Amateur (Cơ bản)</SelectItem>
     <SelectItem key="pro" textValue="Pro">Pro (Chuyên nghiệp)</SelectItem>
   </Select>
-            <Select
-              label={
-                <div className="flex items-center gap-1">
-                  {t('problem_create.status_code') || "Status"}
-                  <RequiredStar rules={[t('common.required_field') || "Required field"]} />
-                </div>
-              }
-              selectedKeys={[(isTeacher || isManager) ? "published" : form.statusCode]}
-              isDisabled={isTeacher || isManager}
-              onSelectionChange={(keys) => {
-                if (isTeacher || isManager) return;
-                const value = Array.from(keys)[0] as "draft" | "pending" | "published" | "archived";
-                setForm({ ...form, statusCode: value });
-              }}
-            >
-              <SelectItem key="draft" textValue="Draft">Draft</SelectItem>
-              <SelectItem key="pending" textValue="Pending">Pending</SelectItem>
-              <SelectItem key="published" textValue="Published">Published</SelectItem>
-              <SelectItem key="archived" textValue="Archived">Archived</SelectItem>
-            </Select>
           </div>
 
           <RadioGroup
@@ -468,17 +446,7 @@ export default function CreateProblemForm() {
             <Radio value="oi">OI</Radio>
           </RadioGroup>
 
-          <Switch
-            isSelected={form.visibilityCode === "public"}
-            onValueChange={(checked) =>
-              setForm({ ...form, visibilityCode: checked ? "public" : "private" })
-            }
-            className="animate-fade-in-up"
-            style={{ animationFillMode: 'both', animationDelay: '600ms' }}
-          >
-            {t('problem_create.visibility') || "Public Visible"}
-          </Switch>
-
+ 
           <div className="flex justify-between pt-8 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '700ms' }}>
             <Button
               variant="flat"

@@ -25,7 +25,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
-import { ContestDto } from "@/types";
+
 import NewsFeed from "./components/NewsFeed";
 import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
 import { useSelector } from "react-redux";
@@ -56,7 +56,7 @@ export default function Home() {
   const { openModal } = useModal();
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  const { data: contestsData, isLoading: isContestsLoading } = useGetContestListQuery({
+  const { data: contestsData } = useGetContestListQuery({
     page: 1,
     pageSize: 10,
   });

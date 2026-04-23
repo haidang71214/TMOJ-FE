@@ -67,9 +67,8 @@ export default function TeamsPage() {
           avatarUrl: base64String
         }).unwrap();
         toast.success("Team avatar updated successfully!");
-      } catch (error) {
+      } catch  {
         toast.error("Failed to update team avatar");
-        console.error(error);
       }
     };
     reader.readAsDataURL(file);

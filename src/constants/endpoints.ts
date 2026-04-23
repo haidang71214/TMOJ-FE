@@ -50,7 +50,7 @@ const ProblemEndPoint = {
   // có 1 cái để quản lí problem draft cho problem
   // create problem draft để student tạo -> admin và manager duyệt
   CREATE_PROBLEM_STUDENT: `${API_LON}/Problems/drafts`,
-
+  DONATE_PROBLEM: `${API_LON}/Problems/donate`, // create problem bank
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
@@ -246,9 +246,10 @@ const CollectionEndpoint = {
 const StudyPlanEndpoint = {
     GET_ALL: `${API_PREFIX}/study-plans`,
   CREATE_STUDY_PLAN: `${API_PREFIX}/study-plans`,
-  CREATE_PROBLEM_INPLAN:`${API_PREFIX}/study-plans/problem/in-plan`,
+  CREATE_PROBLEM_INPLAN:`/problem/in-plan`,
   GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
+}
 const GamificationEndpoint = {
   ME: `${API_PREFIX}/gamification/me`,
   BADGES: `${API_PREFIX}/gamification/badges`,

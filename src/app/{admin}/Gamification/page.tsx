@@ -133,7 +133,7 @@ export default function GamificationManagementPage() {
 
   // State cho form create rule
   const [newRuleBadgeId, setNewRuleBadgeId] = useState("");
-  const [newRuleType, setNewRuleType] = useState("solved");
+  const [newRuleType, setNewRuleType] = useState("solved_count");
   const [newRuleTargetEntity, setNewRuleTargetEntity] = useState("problem");
   const [newRuleTargetValue, setNewRuleTargetValue] = useState(1);
   const [newRuleScopeId, setNewRuleScopeId] = useState<string | null>(null);
@@ -255,6 +255,7 @@ export default function GamificationManagementPage() {
     try {
       await updateBadgeRule({
         id: selectedRule.id,
+        badgeId: selectedRule.badgeId,
         ruleType: editRuleType,
         targetEntity: editTargetEntity,
         targetValue: editTargetValue,
@@ -302,34 +303,12 @@ export default function GamificationManagementPage() {
       </div>
 
       {/* STATS OVERVIEW */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-linear-to-br from-blue-600/10 to-[#22C55E]/10 dark:from-blue-900/30 dark:to-green-900/30">
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-blue-600 dark:text-[#22C55E]">12,847</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">Total Users</div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-[#FF5C00]">4.2M</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
-              <Zap size={14} /> Total EXP
-            </div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-yellow-500">847K</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
-              <Coins size={14} /> Total Coins
-            </div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-orange-500">1,942</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
-              <Award size={14} /> Badges Awarded
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-linear-to-br from-orange-500/10 to-yellow-500/10 border-none shadow-none">
+          <CardBody className="text-center py-8">
+            <div className="text-5xl font-black text-orange-500">{isLoadingBadges ? "..." : badges.length}</div>
+            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2 font-bold">
+              <Award size={16} /> Total Badges Created
             </div>
           </CardBody>
         </Card>
@@ -466,12 +445,23 @@ export default function GamificationManagementPage() {
                 >
                   {rules.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.badgeName}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold uppercase">{r.ruleType}</span>
-                          <span className="text-[10px] text-slate-400">{r.targetEntity}</span>
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            src={badges.find((b) => b.badgeId === r.badgeId)?.iconUrl}
+                            radius="md"
+                            size="sm"
+                          />
+                          <span className="font-bold text-sm">
+                            {badges.find((b) => b.badgeId === r.badgeId)?.name || r.badgeName || "—"}
+                          </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-bold uppercase">{r.ruleType}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[10px] text-slate-400 uppercase font-black">{r.targetEntity}</span>
                       </TableCell>
                       <TableCell className="font-black italic text-orange-500">
                         {r.targetValue}
@@ -564,7 +554,7 @@ export default function GamificationManagementPage() {
                   >
                     <SelectItem key="contest">Contest</SelectItem>
                     <SelectItem key="course">Course</SelectItem>
-                    <SelectItem key="org">Organization</SelectItem>
+                    <SelectItem key="organization">Organization</SelectItem>
                     <SelectItem key="streak">Streak</SelectItem>
                     <SelectItem key="problem">Problem</SelectItem>
                   </Select>
@@ -635,7 +625,7 @@ export default function GamificationManagementPage() {
                   >
                     <SelectItem key="contest">Contest</SelectItem>
                     <SelectItem key="course">Course</SelectItem>
-                    <SelectItem key="org">Organization</SelectItem>
+                    <SelectItem key="organization">Organization</SelectItem>
                     <SelectItem key="streak">Streak</SelectItem>
                     <SelectItem key="problem">Problem</SelectItem>
                   </Select>
@@ -691,7 +681,7 @@ export default function GamificationManagementPage() {
                   selectedKeys={[newRuleType]}
                   onSelectionChange={(keys) => setNewRuleType(Array.from(keys)[0] as string)}
                 >
-                  <SelectItem key="solved" textValue="Solved Count">Solved Count (Số problem giải)</SelectItem>
+                  <SelectItem key="solved_count" textValue="Solved Count">Solved Count (Số problem giải)</SelectItem>
                   <SelectItem key="streak_days" textValue="Streak Days">Streak Days (Chuỗi ngày)</SelectItem>
                   <SelectItem key="rank" textValue="Rank">Rank (Xếp hạng)</SelectItem>
                   <SelectItem key="complete_contest" textValue="Complete Contest">Complete Contest (Tham gia Contest)</SelectItem>
@@ -704,7 +694,7 @@ export default function GamificationManagementPage() {
                 >
                   <SelectItem key="contest">Contest</SelectItem>
                   <SelectItem key="course">Course</SelectItem>
-                  <SelectItem key="org">Organization</SelectItem>
+                  <SelectItem key="organization">Organization</SelectItem>
                   <SelectItem key="streak">Streak</SelectItem>
                   <SelectItem key="problem">Problem</SelectItem>
                 </Select>
@@ -740,28 +730,28 @@ export default function GamificationManagementPage() {
           {(onClose) => (
             <>
               <ModalHeader className="text-xl font-black uppercase">
-                Update Criteria for <span className="text-[#FF5C00]">{selectedRule?.badgeName}</span>
+                Update Criteria for <span className="text-[#FF5C00]">{badges.find(b => b.badgeId === selectedRule?.badgeId)?.name || selectedRule?.badgeName}</span>
               </ModalHeader>
               <ModalBody className="space-y-6">
                 <Select
                   label="Rule Type"
-                  value={editRuleType}
-                  onChange={(e) => setEditRuleType(e.target.value)}
+                  selectedKeys={editRuleType ? [editRuleType] : []}
+                  onSelectionChange={(keys) => setEditRuleType(Array.from(keys)[0] as string)}
                 >
                   <SelectItem key="rank">Rank (Xếp hạng)</SelectItem>
                   <SelectItem key="streak_days">Streak Days (Chuỗi ngày)</SelectItem>
-                  <SelectItem key="solved">Solved Count (Số problem giải)</SelectItem>
+                  <SelectItem key="solved_count">Solved Count (Số problem giải)</SelectItem>
                   <SelectItem key="complete_contest">Complete Contest (Tham gia Contest)</SelectItem>
                 </Select>
 
                 <Select
                   label="Target Entity"
-                  value={editTargetEntity}
-                  onChange={(e) => setEditTargetEntity(e.target.value)}
+                  selectedKeys={editTargetEntity ? [editTargetEntity] : []}
+                  onSelectionChange={(keys) => setEditTargetEntity(Array.from(keys)[0] as string)}
                 >
                   <SelectItem key="contest">Contest</SelectItem>
                   <SelectItem key="course">Course</SelectItem>
-                  <SelectItem key="org">Organization</SelectItem>
+                  <SelectItem key="organization">Organization</SelectItem>
                   <SelectItem key="streak">Streak</SelectItem>
                   <SelectItem key="problem">Problem</SelectItem>
                 </Select>

@@ -10,6 +10,7 @@ import {
   Button,
   Image,
   Link,
+  Input,
 } from "@heroui/react";
 import {
   Copy,
@@ -18,7 +19,10 @@ import {
   Info,
   Crown,
   ChevronRight,
+  CreditCard,
 } from "lucide-react";
+import { useCreateVNPayPaymentMutation } from "@/store/queries/payment";
+import { toast } from "sonner";
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -29,6 +33,14 @@ export default function DepositModal({
   isOpen,
   onOpenChange,
 }: DepositModalProps) {
+  const [amount, setAmount] = React.useState<string>("10000");
+  const [createPayment, { isLoading: isCreatingPayment }] = useCreateVNPayPaymentMutation();
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
+
   const accountInfo = {
     bank: "MB BANK",
     number: "0345678999",
@@ -36,8 +48,21 @@ export default function DepositModal({
     content: "TMOJ DEPOSIT [USER_ID]",
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleVNPayDeposit = async () => {
+    const numAmount = parseInt(amount);
+    if (isNaN(numAmount) || numAmount < 10000) {
+      toast.error("Minimum deposit is 10,000 VND");
+      return;
+    }
+
+    try {
+      const response = await createPayment({ amount: numAmount }).unwrap();
+      if (response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to create payment request");
+    }
   };
 
   return (
@@ -108,6 +133,56 @@ export default function DepositModal({
                 >
                   View Plans
                 </Button>
+              </div>
+
+              {/* VNPAY SECTION */}
+              <div className="mb-8 p-6 bg-blue-500/5 dark:bg-blue-500/10 rounded-[2.5rem] border border-blue-500/20 flex flex-col items-center gap-4 text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
+                    <CreditCard size={28} />
+                  </div>
+                  <h4 className="font-[1000] italic uppercase text-lg text-blue-600 dark:text-blue-400 mt-2">
+                    Instant Deposit via VNPay
+                  </h4>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 max-w-sm">
+                    Fast, secure, and automated. Your coins will be added immediately after successful payment.
+                  </p>
+                </div>
+
+                <div className="w-full max-w-xs space-y-2">
+                  <Input
+                    type="number"
+                    label="Amount (VND)"
+                    placeholder="10,000"
+                    value={amount}
+                    onValueChange={setAmount}
+                    min={10000}
+                    variant="bordered"
+                    classNames={{
+                      label: "font-bold italic text-slate-400",
+                      input: "font-[1000] italic text-lg",
+                      inputWrapper: "rounded-2xl border-divider dark:border-white/10 h-14",
+                    }}
+                  />
+                  <p className="text-[10px] font-black uppercase text-blue-500/60 italic tracking-widest text-left px-2">
+                    Minimum deposit: 10,000 VND
+                  </p>
+                </div>
+
+                <Button
+                  className="bg-blue-600 text-white font-[1000] uppercase italic rounded-2xl px-10 h-12 shadow-xl shadow-blue-600/20 hover:scale-105 transition-all w-full sm:w-auto"
+                  isLoading={isCreatingPayment}
+                  onClick={handleVNPayDeposit}
+                  startContent={!isCreatingPayment && <CreditCard size={18} />}
+                >
+                  Deposit Now
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-[1px] flex-1 bg-divider" />
+                <span className="text-[10px] font-black text-slate-400 uppercase italic tracking-[0.2em]">OR TRANSFER MANUALLY</span>
+                <div className="h-[1px] flex-1 bg-divider" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-2 mb-6">

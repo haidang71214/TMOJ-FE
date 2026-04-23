@@ -270,6 +270,21 @@ const AdminGamificationEndpoint = {
   BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,
 };
 
+const PaymentEndpoint = {
+  VNPAY_CREATE: `${API_PREFIX}/payments/vnpay`,
+  VNPAY_CALLBACK: `${API_PREFIX}/payments/vnpay/callback`,
+  VNPAY_RETURN: `${API_PREFIX}/payments/vnpay/return`,
+  GET_BY_ID: `${API_PREFIX}/payments/{id}`,
+  CONVERSION_RATE: `${API_PREFIX}/payments/conversion-rate`,
+  HISTORY_ME: `${API_PREFIX}/payments/history/me`,
+  HISTORY_ADMIN: `${API_PREFIX}/payments/history/admin`,
+};
+
+const WalletEndpoint = {
+  BALANCE: `${API_PREFIX}/wallet`,
+  TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -293,5 +308,7 @@ export {
   CollectionEndpoint,
   StudyPlanEndpoint,
   GamificationEndpoint,
-  AdminGamificationEndpoint
+  AdminGamificationEndpoint,
+  PaymentEndpoint,
+  WalletEndpoint
 };

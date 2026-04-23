@@ -243,6 +243,13 @@ const CollectionEndpoint = {
   COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
 };
 
+const AdminGamificationEndpoint = {
+  BADGES: `${API_PREFIX}/gamification/badges`,
+  BADGE_ID: `${API_PREFIX}/gamification/badges/{id}`,
+  BADGE_RULES: `${API_PREFIX}/gamification/badge-rules`,
+  BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -263,5 +270,6 @@ export {
   TeamEndpoint,
   ProblemEditorialEndpoint,
   FavoriteEndpoint,
-  CollectionEndpoint
+  CollectionEndpoint,
+  AdminGamificationEndpoint
 };

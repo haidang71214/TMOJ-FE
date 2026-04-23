@@ -235,6 +235,14 @@ const CollectionEndpoint = {
   COPY_COLLECTION: `${API_PREFIX}/collections/{id}/copy`,
 };
 
+const StudyPlanEndpoint = {
+    GET_ALL: `${API_PREFIX}/study-plans`,
+  CREATE_STUDY_PLAN: `${API_PREFIX}/study-plans`,
+  CREATE_PROBLEM_INPLAN:`${API_PREFIX}/study-plans/problem/in-plan`,
+  GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
+  ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -255,5 +263,6 @@ export {
   TeamEndpoint,
   ProblemEditorialEndpoint,
   FavoriteEndpoint,
-  CollectionEndpoint
+  CollectionEndpoint,
+  StudyPlanEndpoint
 };

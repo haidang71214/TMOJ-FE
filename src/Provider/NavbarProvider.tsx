@@ -103,6 +103,7 @@ export default function NavbarProvider() {
           {/* Cập nhật danh sách Tabs ở đây */}
           {[
             "Problems",
+            "StudyPlan",
             "Contest",
             "Class",
             "Ranking",
@@ -111,7 +112,8 @@ export default function NavbarProvider() {
           ].map((item, index) => {
             // Logic điều hướng đặc biệt cho các tab
             let link = `/${item}`;
-         if (item === "Problems") link = "/Problems/Library";
+            if (item === "Problems") link = "/Problems/Library";
+            if (item === "StudyPlan") link = "/StudyPlan";
             if (item === "Class") {
               if (!user || user?.role?.includes("manager") || user?.role?.includes("admin")) return null;
               link = "/Class";

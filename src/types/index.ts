@@ -119,11 +119,39 @@ export interface Problem {
   statusCode: "draft" | "published";
   isActive: boolean;
   content?: string;
+  descriptionMd?: string;
+  problemMode: "amateur" | "pro";
+  typeCode: string;
+  visibilityCode: string;
+  scoringCode: string;
+  problemSource: string | null;
+  usedCount: number;
+  originId: string | null;
+  displayIndex: number | null;
   acceptancePercent: number | null;
   timeLimitMs: number;
   memoryLimitKb: number;
   createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+  approvedByUserId: string | null;
+  approvedAt: string | null;
   publishedAt: string | null;
+  statementSourceCode: string;
+  statementContentType: string | null;
+  statementFileName: string | null;
+  statementAccessUrl: string | null;
+  primaryTestsetId: string;
+  tags?: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    color: string | null;
+    icon: string | null;
+    isActive: boolean;
+  }[];
 }
 export interface ProblemListResponse {
   data: Problem[];
@@ -1432,3 +1460,48 @@ export interface ApiPagedResponse<T> {
 }
 
 export interface ProblemBankListResponse extends ApiPagedResponse<ProblemBankListItemDto> { }
+
+export interface CreateProblemTemplateRequest {
+  runtimeId: string;
+  templateCode: string;
+  injectionPoint: string;
+  solutionSignature: string;
+  version: number;
+}
+
+export interface CreateProblemTemplateResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
+export interface ProblemTemplateDto {
+  codeTemplateId: string;
+  problemId: string;
+  runtimeId: string;
+  templateCode: string;
+  injectionPoint: string;
+  solutionSignature: string;
+  version: number;
+}
+
+export interface GetProblemTemplatesResponse {
+  success: boolean;
+  data: ProblemTemplateDto[];
+  message: string;
+}
+
+export interface UpdateProblemTemplateRequest {
+  templateCode: string;
+  injectionPoint?: string;
+  solutionSignature?: string;
+  isActive?: boolean;
+}
+
+export interface CreateVirtualProblemRequest {
+  originProblemId?: string;
+  originProblemSlug?: string;
+  slug?: string;
+  title?: string;
+  visibilityCode?: string;
+}

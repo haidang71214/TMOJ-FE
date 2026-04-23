@@ -36,6 +36,8 @@ import {
   Archive,
   Tags,
   BookOpen,
+  Code,
+  Flame,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
@@ -144,6 +146,7 @@ export default function GlobalProblemListPage() {
     setSelectedProblemForEditorial(problem);
     editorialModal.onOpen();
   };
+
 
   // ── Transform API data → display format ─────────────────────
   const allProblems = useMemo<DisplayProblem[]>(() => {
@@ -535,7 +538,7 @@ export default function GlobalProblemListPage() {
                       </Button>
                     </Tooltip>
 
-                    <Tooltip content={t('common.remix') || "Remix Problem"} className="font-bold text-[10px]">
+                    <Tooltip content="Remix Problem" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
@@ -543,7 +546,19 @@ export default function GlobalProblemListPage() {
                         onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/remix`); }}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
-                        <Copy size={16} />
+                        <Flame size={16} />
+                      </Button>
+                    </Tooltip>
+
+                    <Tooltip content="Problem Template" className="font-bold text-[10px]">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/Template`); }}
+                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
+                      >
+                        <Code size={16} />
                       </Button>
                     </Tooltip>
 

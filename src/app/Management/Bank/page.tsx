@@ -31,9 +31,12 @@ import {
   SortAsc,
   ChevronDown,
   Tags,
+  File,
+  Flame,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AttachTagsModal from "@/app/components/AttachTagsModal";
+import CreateVirtualProblemModal from "@/app/components/CreateVirtualProblemModal";
 import { useGetProblemBankListQuery, useUpdateProblemDifficultyMutation } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -97,6 +100,15 @@ export default function BankProblemListPage() {
   const handleOpenTags = (problem: DisplayProblem) => {
     setSelectedProblemForTags(problem);
     tagsModal.onOpen();
+  };
+
+  // ── Create Virtual Problem ─────────────────────────────────
+  const virtualModal = useDisclosure();
+  const [selectedProblemForVirtual, setSelectedProblemForVirtual] = useState<DisplayProblem | null>(null);
+
+  const handleOpenVirtualModal = (problem: DisplayProblem) => {
+    setSelectedProblemForVirtual(problem);
+    virtualModal.onOpen();
   };
 
   const items = useMemo<DisplayProblem[]>(() => {
@@ -393,6 +405,30 @@ export default function BankProblemListPage() {
                         </Button>
                       </Tooltip>
   
+                      <Tooltip content="Clone Virtual Problem" className="font-bold text-[10px]">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onClick={(e) => { e.stopPropagation(); handleOpenVirtualModal(p); }}
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-purple-600 rounded-lg h-9 w-9"
+                        >
+                          <File size={16} />
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip content="Remix Problem" className="font-bold text-[10px]">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/remix`); }}
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-orange-500 rounded-lg h-9 w-9"
+                        >
+                          <Flame size={16} />
+                        </Button>
+                      </Tooltip>
+
                       <Tooltip content="Edit Detail" className="font-bold text-[10px]">
                         <Button
                           isIconOnly
@@ -420,6 +456,12 @@ export default function BankProblemListPage() {
           ...selectedProblemForTags,
           tags: selectedProblemForTags.tags.map(t => t.name)
         } : null}
+      />
+
+      <CreateVirtualProblemModal
+        isOpen={virtualModal.isOpen}
+        onOpenChange={virtualModal.onOpenChange}
+        problem={selectedProblemForVirtual}
       />
     </div>
   );

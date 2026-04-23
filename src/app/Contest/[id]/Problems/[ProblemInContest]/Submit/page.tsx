@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Maximize } from "lucide-react";
 import { Button, Select, SelectItem } from "@heroui/react";
@@ -8,30 +8,217 @@ import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 
 import { useParams, useRouter } from "next/navigation";
+import { 
+  useGetRuntimeListQuery, 
+  useGetRuntimeDetailQuery,
+  useGetSubmissionQuery,
+} from "@/store/queries/Submittion"
 import { useSubmitContestMutation } from "@/store/queries/Contest";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
+import { VerdictCode } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
+import { addToast } from "@heroui/toast";
+
+const TEMPLATES: Record<string, string> = {
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    // Your code here
+    return 0;
+}`,
+  c: `#include <stdio.h>
+
+int main() {
+    // Your code here
+    return 0;
+}`,
+  go: `package main
+
+import "fmt"
+
+func main() {
+    // Your code here
+}`,
+  javascript: `const fs = require('fs');
+
+function main() {
+    // const input = fs.readFileSync('/dev/stdin', 'utf-8').trim();
+    // Your code here
+}
+
+main();`,
+  python: `import sys
+
+def main():
+    # input_data = sys.stdin.read()
+    # Your code here
+    pass
+
+if __name__ == '__main__':
+    main()`,
+  java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // Your code here
+    }
+}`
+};
 
 export default function SubmitProblemPage() {
   const searchParams = useSearchParams();
   const params = useParams();
   const router = useRouter();
   const { theme } = useTheme();
-  
+  const { t, language: tLang } = useTranslation();
+
   const contestId = params.id as string;
-  const contestProblemId = params.ProblemInContest as string; // Assuming the URL param is the contestProblemId
+  const contestProblemId = params.ProblemInContest as string;
+
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [hasShownResultToast, setHasShownResultToast] = useState(false);
+  const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
+  const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
+
+  // Queries
+  const { data: user, isLoading: isUserLoading } = useGetUserInformationQuery();
+  const isLoggedIn = !!user;
+
+  const { data: runtimeData, isLoading: isRuntimeLoading } = useGetRuntimeListQuery();
+  const runtimes = runtimeData?.data ?? [];
 
   const [submitContest, { isLoading: isSubmitting }] = useSubmitContestMutation();
 
-  const [code, setCode] = useState<string>("#include <bits/stdc++.h>\n\nusing namespace std;\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n\n    return 0;\n}\n");
-  const [language, setLanguage] = useState<string>("cpp20");
+  // Query lấy submission
+  const { data: submissionData, isFetching } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { 
+      skip: !submissionId,
+      refetchOnMountOrArgChange: true,
+      pollingInterval: pollingIntervalTime,
+    }
+  );
 
-  const languages = [
-    { key: "cpp20", label: "C++20 (g++20 15.2.0)", editorLang: "cpp" },
-    { key: "python3", label: "Python 3.10", editorLang: "python" },
-    { key: "java", label: "Java 21", editorLang: "java" },
-  ];
+  // Polling logic
+  useEffect(() => {
+    if (!submissionId) {
+      setPollingIntervalTime(0);
+      return;
+    }
+    if (!submissionData?.data?.verdictCode) {
+      setPollingIntervalTime(5000);
+    } else {
+      setPollingIntervalTime(0);
+    }
+  }, [submissionId, submissionData?.data?.verdictCode]);
 
-  const selectedLangItem = languages.find(l => l.key === language) || languages[0];
+  // Verdict toast
+  useEffect(() => {
+    if (isFetching || !submissionData?.data?.verdictCode || hasShownResultToast) return;
+
+    const verdict = submissionData.data.verdictCode.toLowerCase();
+    let title = verdict;
+    let color: "success" | "danger" | "warning" | "default" | "primary" | "secondary" = "danger";
+
+    switch (verdict) {
+      case VerdictCode.AC:
+      case "accepted":
+        title = "Congratulations! Your solution has been accepted.";
+        color = "success";
+        break;
+      case VerdictCode.WA:
+        title = "Wrong Answer. Please check your logic!";
+        color = "danger";
+        break;
+      case VerdictCode.RTE:
+        title = "Runtime Error. Your code crashed!";
+        color = "danger";
+        break;
+      case VerdictCode.CE:
+        title = "Compile Error. Your code could not be compiled!";
+        color = "warning";
+        break;
+      case VerdictCode.TLE:
+        title = "Time Limit Exceeded. Your code is too slow!";
+        color = "danger";
+        break;
+      case VerdictCode.MLE:
+        title = "Memory Limit Exceeded. Please optimize your memory usage!";
+        color = "danger";
+        break;
+      case VerdictCode.OLE:
+        title = "Output Limit Exceeded.";
+        color = "danger";
+        break;
+      case VerdictCode.IE:
+      case VerdictCode.IR:
+        title = `System Error (${verdict.toUpperCase()}). Please try again later.`;
+        color = "warning";
+        break;
+      default:
+        title = `Result: ${verdict.toUpperCase()}`;
+        color = "warning";
+        break;
+    }
+
+    addToast({ title, color });
+    setHasShownResultToast(true);
+  }, [submissionData?.data?.verdictCode, hasShownResultToast, isFetching]);
+
+  useEffect(() => {
+    if (submissionId) {
+      setHasShownResultToast(false);
+    }
+  }, [submissionId]);
+
+  // Default runtime
+  useEffect(() => {
+    if (runtimes.length > 0 && selectedRuntimeId === null) {
+      const preferred = runtimes.find(r => 
+        r.runtimeName.toLowerCase().includes("c++") || 
+        r.runtimeName.toLowerCase().includes("g++")
+      );
+      setSelectedRuntimeId(preferred?.id || runtimes[0].id);
+    }
+  }, [runtimes, selectedRuntimeId]);
+
+  const { 
+    data: runtimeDetailData, 
+    isLoading: isDetailLoading 
+  } = useGetRuntimeDetailQuery(
+    { id: selectedRuntimeId! },
+    { skip: !selectedRuntimeId }
+  );
+
+  const selectedRuntime = runtimes.find(r => r.id === selectedRuntimeId) || runtimeDetailData?.data;
+  console.log("selectedRuntime", selectedRuntime)
+  const getLanguage = (runtimeName: string = "") => {
+    const lower = runtimeName.toLowerCase();
+    if (lower.includes("c++") || lower.includes("g++")) return "cpp";
+    if (lower.includes("c ") || lower.includes("gcc")) return "c";
+    if (lower.includes("go")) return "go";
+    if (lower.includes("node") || lower.includes("javascript") || lower.includes("js")) return "javascript";
+    if (lower.includes("python")) return "python";
+    if (lower.includes("java") && !lower.includes("javascript")) return "java";
+    return "cpp";
+  };
+
+  const editorLanguage = getLanguage(selectedRuntime?.runtimeName);
+
+  const [code, setCode] = useState(TEMPLATES.cpp);
+
+  useEffect(() => {
+    if (!selectedRuntime) return;
+    const currentCode = code.trim();
+    const isDefaultTemplate = Object.values(TEMPLATES).some(t => t.trim() === currentCode) || currentCode === "";
+    
+    if (isDefaultTemplate) {
+      setCode(TEMPLATES[editorLanguage] || TEMPLATES["cpp"]);
+    }
+  }, [editorLanguage, selectedRuntime]);
 
   return (
     <div className="w-full text-slate-800 dark:text-slate-200 pb-10">
@@ -73,7 +260,7 @@ export default function SubmitProblemPage() {
           <div className="w-full h-[550px] border-b border-slate-200 dark:border-slate-800 relative group bg-white dark:bg-[#1e1e1e]">
             <Editor
               height="100%"
-              language={selectedLangItem.editorLang}
+              language={editorLanguage}
               value={code}
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
               onChange={(val) => setCode(val || "")}
@@ -97,8 +284,8 @@ export default function SubmitProblemPage() {
             <div className="w-full sm:w-[320px]">
               <Select
                 aria-label="Language compiler"
-                selectedKeys={[language]}
-                onChange={(e) => setLanguage(e.target.value)}
+                selectedKeys={selectedRuntimeId ? [selectedRuntimeId] : []}
+                onChange={(e) => setSelectedRuntimeId(e.target.value)}
                 classNames={{
                   base: "w-full",
                   trigger: "h-11 min-h-11 border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#0f172a] shadow-sm rounded-md hover:border-slate-400 dark:hover:border-slate-500",
@@ -107,9 +294,9 @@ export default function SubmitProblemPage() {
                 size="sm"
                 variant="bordered"
               >
-                {languages.map((lang) => (
-                  <SelectItem key={lang.key} textValue={lang.label}>
-                    {lang.label}
+                {runtimes.map((runtime) => (
+                  <SelectItem key={runtime.id} textValue={runtime.runtimeName}>
+                    {runtime.runtimeName}
                   </SelectItem>
                 ))}
               </Select>
@@ -119,7 +306,11 @@ export default function SubmitProblemPage() {
               <Button 
                 className="w-full sm:w-auto bg-[#F26F21] hover:bg-[#d95b16] text-white font-medium px-8 h-10 shadow-md shadow-orange-500/10 rounded"
                 isLoading={isSubmitting}
+                disabled={!isLoggedIn || !selectedRuntimeId || !code.trim()}
                 onClick={async () => {
+                  if (!selectedRuntimeId || !code.trim() || !isLoggedIn) return;
+                  setSubmissionId(null);
+//aaaaaaaaaaaaaaaaaaaaa
                   try {
                     const result = await submitContest({
                       contestId: contestId,
@@ -127,11 +318,15 @@ export default function SubmitProblemPage() {
                         contestId: contestId,
                         contestProblemId: contestProblemId,
                         code: code,
-                        language: language
+                        language: selectedRuntimeId
                       }
                     }).unwrap();
-                    toast.success("Code submitted successfully!");
-                    router.push(`/Contest/${contestId}/Submissions`);
+
+                    const newSubmissionId = result?.data;
+                    if (newSubmissionId) {
+                      setSubmissionId(newSubmissionId);
+                      toast.success("Code submitted successfully! Waiting for results...");
+                    }
                   } catch (error: any) {
                     toast.error(error?.data?.message || "Submission failed.");
                   }

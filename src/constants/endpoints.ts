@@ -52,11 +52,13 @@ const ProblemEndPoint = {
   CREATE_PROBLEM_STUDENT: `${API_LON}/Problems/drafts`,
   DONATE_PROBLEM: `${API_LON}/Problems/donate`, // create problem bank
   GET_LIST_PROBLEM_BANK: `${API_LON}/Problems/banks`,
+  CREATE_VIRTUAL_PROBLEM: `${API_LON}/Problems/virtual`,
+  CREATE_REMIX_PROBLEM: `${API_LON}/Problems/remix`,
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
   GET_LIST_PUBLIC_PROBLEM: `${API_LON}/Problems/public`,
-  GET_DETAIL_PUBLIC_PROBLEM: `${API_PREFIX}/Problems/{id}`,
+  GET_DETAIL_PUBLIC_PROBLEM: `${API_LON}/Problems/{id}`,
 }
 // phần này nhớ tách biệt 2 cái, và kiểm soát cờ cho 2 cái khác nhau để update vào state.
 const SubmittionEndPoint = {
@@ -268,7 +270,14 @@ const AdminGamificationEndpoint = {
   BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,
 };
 
+const ProblemTemplateEndPoint = {
+  CREATE_TEMPLATE: `${API_LON}/ProblemTemplates/{problemId}/templates`,
+  GET_TEMPLATES: `${API_LON}/ProblemTemplates/{problemId}/templates`,
+  UPDATE_TEMPLATE: `${API_LON}/ProblemTemplates/templates/{codeTemplateId}`,
+}
+
 export {
+  ProblemTemplateEndPoint,
   ClassSlotEndpoint,
   authEndpoint,
   userProfileEndpoint,

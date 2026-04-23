@@ -10,11 +10,13 @@ import {
   Chip,
   Spinner,
   Pagination,
+  Tabs,
+  Tab,
 } from "@heroui/react";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Globe, Library } from "lucide-react";
 import { toast } from "sonner";
 import { useImportProblemToSlotMutation } from "@/store/queries/Class";
-import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { useGetProblemBankListQuery, useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { ImportProblemClassRequest } from "@/types";
 import { useModal } from "./ModalProvider";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -28,10 +30,14 @@ interface Problem {
   id: string;
   title: string;
   difficulty: string;
+  source: "public" | "bank";
 }
 
 interface SelectedProblem {
   problemId: string;
+  title: string;
+  difficulty: string;
+  source: "public" | "bank";
   ordinal: number;
   points: number;
   isRequired: boolean;
@@ -45,51 +51,114 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
   const { closeModal } = useModal();
   const [importProblems, { isLoading }] = useImportProblemToSlotMutation();
   const [page, setPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<"public" | "bank">("public");
   const rowsPerPage = 5;
 
-  const { data: apiResponse, isLoading: isLoadingProblems } =
-    useGetProblemListQueryQuery();
+  const { data: apiResponse, isLoading: isLoadingPublic } = useGetProblemListQueryQuery();
+  
+  const { data: bankResponse, isLoading: isLoadingBank } = useGetProblemBankListQuery({
+    page,
+    pageSize: rowsPerPage,
+    search: search,
+    difficulty: difficultyFilter || undefined,
+  }, { skip: activeTab !== "bank" });
 
-  const problems = useMemo<Problem[]>(() => {
+  const publicProblems = useMemo<Problem[]>(() => {
     if (!apiResponse?.data) return [];
-    return apiResponse.data?.map((p: any) => ({
+    return apiResponse.data.map((p: any) => ({
       id: p.id,
       title: p.title,
       difficulty: p.difficulty ?? "unknown",
+      source: "public",
     }));
   }, [apiResponse]);
 
-  // Filter problems
-  const filteredProblems = useMemo(() => {
-    return problems.filter((p) => {
-      const matchSearch = !search || 
-        p.title.toLowerCase().includes(search.toLowerCase());
+  const bankProblems = useMemo<Problem[]>(() => {
+    if (!bankResponse?.data) return [];
+    return bankResponse.data.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      difficulty: p.difficulty ?? "unknown",
+      source: "bank",
+    }));
+  }, [bankResponse]);
+
+  // Combined filtering for public (since it's not server-side)
+  const filteredPublicProblems = useMemo(() => {
+    return publicProblems.filter((p) => {
+      const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase());
       const matchDifficulty = !difficultyFilter || p.difficulty === difficultyFilter;
       return matchSearch && matchDifficulty;
     });
-  }, [problems, search, difficultyFilter]);
+  }, [publicProblems, search, difficultyFilter]);
 
-  const pages = Math.ceil(filteredProblems.length / rowsPerPage) || 1;
+  const problems = activeTab === "public" ? filteredPublicProblems : bankProblems;
+  const isLoadingProblems = activeTab === "public" ? isLoadingPublic : isLoadingBank;
+
+  const totalPages = useMemo(() => {
+    if (activeTab === "public") {
+      return Math.ceil(filteredPublicProblems.length / rowsPerPage) || 1;
+    }
+    return bankResponse?.pagination?.totalPages || 1;
+  }, [activeTab, filteredPublicProblems, bankResponse]);
+
   const paginatedProblems = useMemo(() => {
+    if (activeTab === "bank") return bankProblems; // Already paginated server-side
     const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    return filteredProblems.slice(start, end);
-  }, [page, filteredProblems]);
+    return filteredPublicProblems.slice(start, start + rowsPerPage);
+  }, [activeTab, bankProblems, filteredPublicProblems, page]);
 
   const handleSelectionChange = (keys: any) => {
-    const ids = Array.from(keys) as string[];
+    const selectedIds = Array.from(keys) as string[];
+    
+    setSelectedProblems(prev => {
+      // 1. Map current view for metadata lookup
+      const currentViewMap = new Map(paginatedProblems.map(p => [p.id, p]));
+      
+      // 2. Build the new selection list
+      const newSelection = selectedIds.map(id => {
+        // If already selected, preserve it (keeps metadata and points/required state)
+        const existing = prev.find(p => p.problemId === id);
+        if (existing) return existing;
+        
+        // If newly selected, get metadata from current view
+        const problem = currentViewMap.get(id);
+        if (problem) {
+          return {
+            problemId: id,
+            title: problem.title,
+            difficulty: problem.difficulty,
+            source: problem.source,
+            ordinal: prev.length,
+            points: 0,
+            isRequired: true,
+          };
+        }
+        return null;
+      }).filter((p): p is SelectedProblem => p !== null);
 
-    const newSelected = ids.map((id, index) => {
-      const existing = selectedProblems.find((p) => p.problemId === id);
-      return existing || {
-        problemId: id,
-        ordinal: index,
-        points: 0,
-        isRequired: true,
-      };
+      // 3. Combine and Deduplicate
+      // We take all items from other views + current selection
+      const currentViewIds = new Set(paginatedProblems.map(p => p.id));
+      const otherViewSelected = prev.filter(p => !currentViewIds.has(p.problemId));
+
+      const merged = [...otherViewSelected, ...newSelection];
+      const uniqueSelection: SelectedProblem[] = [];
+      const seenIds = new Set<string>();
+      
+      merged.forEach(item => {
+        if (!seenIds.has(item.problemId)) {
+          uniqueSelection.push(item);
+          seenIds.add(item.problemId);
+        }
+      });
+
+      // 4. Recalculate ordinals to maintain order
+      return uniqueSelection.map((p, idx) => ({
+        ...p,
+        ordinal: idx
+      }));
     });
-
-    setSelectedProblems(newSelected);
   };
 
   const updatePoints = (problemId: string, value: number) => {
@@ -162,6 +231,44 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
 
       {/* Body */}
       <div className="flex-1 px-6 py-6 overflow-y-auto flex flex-col gap-6 custom-scrollbar">
+        
+        {/* Tabs */}
+        <div className="flex justify-center animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '250ms' }}>
+          <Tabs 
+            aria-label="Problem Source" 
+            variant="underlined"
+            selectedKey={activeTab}
+            onSelectionChange={(key) => {
+              setActiveTab(key as any);
+              setPage(1);
+            }}
+            classNames={{
+              tabList: "gap-12 w-full relative rounded-none p-0 border-b border-orange-100 dark:border-orange-500/10 justify-center",
+              cursor: "w-full bg-orange-500 h-[3px] rounded-full",
+              tab: "max-w-fit px-8 h-14",
+              tabContent: "group-data-[selected=true]:text-orange-500 font-bold text-base transition-all duration-300"
+            }}
+          >
+            <Tab
+              key="public"
+              title={
+                <div className="flex items-center space-x-2.5 py-1">
+                  <Globe size={18} className={activeTab === 'public' ? "text-orange-500" : "text-gray-400"} />
+                  <span>{t('problem_management.public_problems') || "Public Problems"}</span>
+                </div>
+              }
+            />
+            <Tab
+              key="bank"
+              title={
+                <div className="flex items-center space-x-2.5 py-1">
+                  <Library size={18} className={activeTab === 'bank' ? "text-orange-500" : "text-gray-400"} />
+                  <span>{t('problem_management.problem_bank') || "Problem Bank"}</span>
+                </div>
+              }
+            />
+          </Tabs>
+        </div>
 
         {/* Search & Filter */}
         <div className="flex gap-3 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '300ms' }}>
@@ -192,7 +299,7 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
         </div>
 
         {/* Problem List */}
-        <div className="flex-1 flex flex-col min-h-0 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '400ms' }}>
+        <div className="flex flex-col flex-shrink-0 animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: '400ms' }}>
           <label className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
             {t('problem_management.problem_list') || "Danh sách bài tập"}
             {selectedProblems.length > 0 && (
@@ -248,7 +355,7 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
                     </ListboxItem>
                   ))}
                 </Listbox>
-                {pages > 0 && (
+                {totalPages > 1 && (
                   <div className="flex w-full justify-center py-2 mt-auto border-t border-orange-200 dark:border-orange-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-b-xl">
                     <Pagination
                       isCompact
@@ -256,7 +363,7 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
                       showShadow
                       color="warning"
                       page={page}
-                      total={pages}
+                      total={totalPages}
                       onChange={(p) => setPage(p)}
                       classNames={{
                         cursor: "bg-orange-500 text-white font-bold",
@@ -277,13 +384,11 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
               {t('problem_management.selected_problems') || "Bài tập đã chọn (thứ tự)"}
             </p>
 
-            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
               {selectedProblems.map((p, idx) => {
-                const problem = problems.find((x) => x.id === p.problemId);
-
                 return (
                   <div
-                    key={p.problemId}
+                    key={`${idx}-${p.problemId}`}
                     className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-2xl border border-orange-200 dark:border-orange-700 animate-fade-in-right"
                     style={{ animationFillMode: 'both', animationDelay: `${100 + idx * 50}ms` }}
                   >
@@ -294,12 +399,28 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
                     >
                       {idx + 1}
                     </Chip>
-
+ 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 dark:text-slate-200 truncate" title={problem?.title}>
-                        {problem?.title}
+                      <p className="font-medium text-gray-800 dark:text-slate-200 truncate" title={p.title || problems.find(x => x.id === p.problemId)?.title}>
+                        {p.title || problems.find(x => x.id === p.problemId)?.title || "Unknown Problem"}
                       </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Chip 
+                          size="sm" 
+                          variant="flat" 
+                          className={`h-4 text-[10px] uppercase font-bold ${
+                            p.source === 'bank' 
+                              ? "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400" 
+                              : "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                          }`}
+                        >
+                          {p.source}
+                        </Chip>
+                        <span className="text-[10px] text-gray-400 dark:text-slate-500 capitalize">
+                          {p.difficulty || problems.find(x => x.id === p.problemId)?.difficulty}
+                        </span>
                     </div>
+                  </div>
 
                     <Input
                       type="number"

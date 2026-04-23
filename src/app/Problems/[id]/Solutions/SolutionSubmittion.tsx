@@ -12,6 +12,7 @@ import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
 import { VerdictCode } from "@/types"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 
 interface SolutionSubmittionProps {
   editorHeight: number;
@@ -92,7 +93,8 @@ export default function SolutionSubmittion({
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
-
+  const { data: problemData } = useGetDetailProblemPublicQuery({id : problemId });
+  console.log("debug problem data : ",problemData);
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },

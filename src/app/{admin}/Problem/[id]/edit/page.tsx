@@ -37,7 +37,7 @@ export default function AdminProblemEditPage({
   const id = unwrappedParams.id;
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
-  const problemData = detailData?.data as any;
+  const problemData = detailData as any;
 
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();

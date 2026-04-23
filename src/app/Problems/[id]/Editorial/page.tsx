@@ -17,7 +17,7 @@ export default function EditorialTab() {
   
   // Wait until problem data is loaded if we started with a slug-like string
   const isSlug = !!(id && id.length < 36); // Simple check for UUID vs slug
-  const realProblemId = problemResponse?.data?.id || id || "";
+  const realProblemId = problemResponse?.id || id || "";
   
   const { data, isLoading, error } = useGetEditorialsQuery(
     { problemId: realProblemId }, 

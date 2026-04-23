@@ -51,6 +51,7 @@ const ProblemEndPoint = {
   // create problem draft để student tạo -> admin và manager duyệt
   CREATE_PROBLEM_STUDENT: `${API_LON}/Problems/drafts`,
   DONATE_PROBLEM: `${API_LON}/Problems/donate`, // create problem bank
+  GET_LIST_PROBLEM_BANK: `${API_LON}/Problems/banks`,
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem

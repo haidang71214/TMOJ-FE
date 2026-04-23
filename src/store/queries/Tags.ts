@@ -69,7 +69,7 @@ export const tagApi = baseApi.injectEndpoints({
       },
     };
   },
-  invalidatesTags: ["Problem", "Tag"] as any,
+  invalidatesTags: ["Problem", "Tag", "ProblemBank"] as any,
 }),
 // Thêm vào Tags api slice (cùng chỗ với updateProblemTags)
 attachProblemTags: builder.mutation<any, { problemId: string; tagIds: string[] }>({

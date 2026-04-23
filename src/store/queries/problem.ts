@@ -1,6 +1,6 @@
 import { ProblemEndPoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import {  CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse } from "@/types";
+import {  CreateProblemDraftResponse, ProblemListResponse, ProblemTestCaseUploadResponse, ProblemTestsetCreate, ProblemTestsetResponse, ProblemBankListResponse } from "@/types";
 export const prolemApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -11,6 +11,14 @@ export const prolemApi = baseApi.injectEndpoints({
     
   }),
   providesTags: ["Problem"],
+}),
+getProblemBankList: builder.query<ProblemBankListResponse, { page?: number; pageSize?: number; search?: string; difficulty?: string }>({
+  query: ({ page = 1, pageSize = 20, search = "", difficulty = "" }) => ({
+    url: ProblemEndPoint.GET_LIST_PROBLEM_BANK,
+    method: "GET",
+    params: { page, pageSize, search, difficulty },
+  }),
+  providesTags: ["ProblemBank"],
 }),
 getProblemListPublic: builder.query<ProblemListResponse, void>({
   query: () => ({
@@ -114,5 +122,6 @@ export const {
   useDownloadProblemStatementMutation,
   useGetProblemListPublicQuery,
   useCreateProblemStudentMutation,
-  useDonateProblemMutation
+  useDonateProblemMutation,
+  useGetProblemBankListQuery
 } = prolemApi;

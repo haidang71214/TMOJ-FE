@@ -28,6 +28,14 @@ export interface GamificationHistory {
   time: string;
 }
 
+export interface CreateBadgeRuleRequest {
+  badgeId: string;
+  ruleType: string;
+  targetEntity?: string | null;
+  targetValue: number;
+  scopeId?: string | null;
+}
+
 export interface LeaderboardEntry {
   userId: string;
   value: number;

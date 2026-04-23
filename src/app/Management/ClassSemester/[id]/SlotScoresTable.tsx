@@ -19,13 +19,13 @@ import StudentSubmissionsModal from "./StudentSubmissionsModal";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface Props {
-  classId: string;
+  semesterId: string;
   slot: any;
 }
 
-export default function SlotScoresTable({ classId, slot }: Props) {
+export default function SlotScoresTable({ semesterId, slot }: Props) {
   const { t, language } = useTranslation();
-  const { data, isLoading } = useGetSlotScoresQuery({ classId, slotId: slot.id });
+  const { data, isLoading } = useGetSlotScoresQuery({ semesterId, slotId: slot.id });
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
@@ -187,7 +187,7 @@ export default function SlotScoresTable({ classId, slot }: Props) {
       </div>
 
       <StudentSubmissionsModal
-        classId={classId}
+        classId={semesterId}
         slotId={slot.id}
         userId={selectedUser?.id || ""}
         studentName={selectedUser?.name || ""}

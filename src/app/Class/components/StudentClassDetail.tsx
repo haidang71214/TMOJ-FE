@@ -38,15 +38,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
 import { ClassSlotResponse } from "@/types";
 
-export default function StudentClassDetail({ classId }: { classId: string }) {
+export default function StudentClassDetail({ semesterId }: { semesterId: string }) {
   const router = useRouter();
 
   const searchParams = useSearchParams();
   const classCode = searchParams.get("classCode") || "Unknown";
   const semesterCode = searchParams.get("semesterCode") || "";
-
-  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(classId);
-  const slots = slotData?.data ?? [];
 
   const [mounted, setMounted] = useState(false);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
@@ -56,6 +53,11 @@ export default function StudentClassDetail({ classId }: { classId: string }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
+    skip: !mounted || !semesterId,
+  });
+  const slots = slotData?.data ?? [];
 
   /* ---------------- MOCK DATA ---------------- */
   const myDetailedResult = {

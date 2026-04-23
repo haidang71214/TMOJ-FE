@@ -50,7 +50,7 @@ import AddStudentModal from "@/app/Management/Class/[id]/Member/AddStudentToCLas
 import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
 
-export default function TeacherClassDetail({ classId }: { classId: string }) {
+export default function TeacherClassDetail({ semesterId }: { semesterId: string }) {
   const { t, language } = useTranslation();
   const router = useRouter();
 
@@ -77,26 +77,28 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
     setMounted(true);
   }, []);
 
-  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(classId);
+  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
+    skip: !mounted || !semesterId,
+  });
   const slots = slotData?.data ?? [];
 
   const openCreateSlotModal = () => {
     openModal({
-      content: <CreateSlotForma classId={classId} />,
+      content: <CreateSlotForma semesterId={semesterId} />,
     });
   };
 
 
   const openAddProblemModal = (slotId: string) => {
     openModal({
-      content: <AddProblemToSlotForm slotId={slotId} instanceId={classId} />,
+      content: <AddProblemToSlotForm slotId={slotId} semesterId={semesterId} />,
     });
   };
 
   const handleDeleteProblem = async (slotId: string, problemId: string) => {
     try {
       await deleteProblems({
-        instanceId: classId,
+        semesterId: semesterId,
         slotId,
         problemIds: [problemId],
       }).unwrap();
@@ -116,7 +118,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
 
   const handleExport = async () => {
     try {
-      const blob = await exportStudents({ classSemesterId: classId }).unwrap();
+      const blob = await exportStudents({ classSemesterId: semesterId }).unwrap();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -141,7 +143,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
 
   const handleExportTemplate = async () => {
     try {
-      const blob = await exportTemplate({ classSemesterId: classId }).unwrap();
+      const blob = await exportTemplate({ classSemesterId: semesterId }).unwrap();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -172,7 +174,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
       const formData = new FormData();
       formData.append("file", file);
       
-      const res = await importStudents({ classSemesterId: classId, data: formData }).unwrap();
+      const res = await importStudents({ classSemesterId: semesterId, data: formData }).unwrap();
       
       addToast({
         title: (t('class_semester.import_success') || "Import Success"),
@@ -192,7 +194,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
 
   const handlePublishToggle = async (slotId: string, isCurrentlyPublished: boolean) => {
     try {
-      await publishSlot({ classId, slotId }).unwrap();
+      await publishSlot({ semesterId, slotId }).unwrap();
       addToast({
         title: isCurrentlyPublished 
           ? (t('class_semester.slot_hidden') || (language === 'vi' ? 'Đã ẩn slot' : 'Slot hidden successfully'))
@@ -282,7 +284,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
               startContent={<Plus size={16} strokeWidth={2.5} />}
               size="md"
               color="warning"
-              onPress={() => openModal({ content: <AddStudentModal classId={classId} /> })}
+              onPress={() => openModal({ content: <AddStudentModal semesterId={semesterId} /> })}
               className="text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active-bump animate-fade-in-up"
               style={{ animationFillMode: 'both', animationDelay: '300ms' }}
             >
@@ -304,7 +306,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
         {/* RIGHT: INVITE CODE CARD */}
         <div className="flex lg:justify-end animate-fade-in-right" style={{ animationFillMode: "both", animationDelay: "150ms" }}>
           <InviteCodeCard 
-            classSemesterId={classId} 
+            classSemesterId={semesterId} 
             classCode={classCode} 
             semesterCode={semesterCode} 
           />
@@ -373,7 +375,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
                               openModal({
                                 content: (
                                   <UpdateDueDateModal
-                                    classId={classId}
+                                    semesterId={semesterId}
                                     slotId={slot.id}
                                     dueAt={slot.dueAt}
                                     closeAt={slot.closeAt}
@@ -445,7 +447,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
           title: t('class_semester.update_problems_slot') || "Update Problems in Slot",
           content: (
             <UpdateProblemIntoSlot
-              instanceId={classId}
+              semesterId={semesterId}
               slotId={slot.id}
               problems={
                 slot.problems?.map((p) => ({
@@ -565,7 +567,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
                         </div>
                           </Tab>
                           <Tab key="scores" title={t('class_semester.student_scores') || "Student Scores & Results"}>
-                            <SlotScoresTable classId={classId} slot={slot} />
+                            <SlotScoresTable semesterId={semesterId} slot={slot} />
                           </Tab>
                         </Tabs>
                       </div>
@@ -584,7 +586,7 @@ export default function TeacherClassDetail({ classId }: { classId: string }) {
         </Tab>
 
         <Tab key="members" title={t('class_semester.members') || "Members"}>
-          <ClassMembersPage classId={classId} />
+          <ClassMembersPage classSemesterId={semesterId} />
         </Tab>
       </Tabs>
     </div>

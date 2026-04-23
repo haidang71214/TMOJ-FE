@@ -26,17 +26,17 @@ import { ClassSlotResponse, ErrorForm } from "@/types";
 import CreateSlotForm from "@/app/Management/Class/CreateClassSlotModal";
 
 interface SlotManagementModalProps {
-  classId: string;
+  semesterId: string;
   className?: string;
 }
 // quản lí cái slot
 export default function SlotManagementModal({
-  classId,
+  semesterId,
   className,
 }: SlotManagementModalProps) {
   const { closeModal, openModal } = useModal();
 
-  const { data, isLoading, refetch } = useGetClassSlotsQuery(classId);
+  const { data, isLoading, refetch } = useGetClassSlotsQuery(semesterId);
   const slots: ClassSlotResponse[] = data?.data ?? [];
 
   const [publishSlot, { isLoading: isPublishing }] =
@@ -59,11 +59,11 @@ export default function SlotManagementModal({
   const handlePublishToggle = async (slot: ClassSlotResponse) => {
     try {
       if (!slot.isPublished) {
-        await publishSlot({ classId, slotId: slot.id }).unwrap();
+        await publishSlot({ semesterId, slotId: slot.id }).unwrap();
         toast.success(`Slot #${slot.slotNo} published!`);
       } else {
         await updateSlot({
-          classId,
+          semesterId,
           slotId: slot.id,
           data: { isPublished: false },
         }).unwrap();
@@ -94,7 +94,7 @@ export default function SlotManagementModal({
     if (!editingSlotId) return;
     try {
       await updateSlot({
-        classId,
+        semesterId,
         slotId: editingSlotId,
         data: {
           title: editTitle.trim(),
@@ -133,7 +133,7 @@ export default function SlotManagementModal({
     }
     try {
       await setDueDate({
-        classId,
+        semesterId,
         slotId: dueDateSlotId,
         data: {
           dueAt: new Date(dueDateValue).toISOString(),
@@ -153,7 +153,7 @@ export default function SlotManagementModal({
 
   const openCreateSlot = () => {
     openModal({
-      content: <CreateSlotForm classId={classId} />,
+      content: <CreateSlotForm semesterId={semesterId} />,
     });
   };
 

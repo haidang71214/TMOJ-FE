@@ -1,39 +1,74 @@
 
-export interface ProblemAttemptDTO {
-  problemId: string;       // Bảng chữ cái hoặc ID bài (VD: "A", "B")
-  isSolved: boolean;       // Đã giải được chưa?
-  isFirstBlood: boolean;   // Có phải người giải đầu tiên của bài này không?
-  attemptsCount: number;   // Tổng số lần nộp bài (bao gồm cả đúng và sai)
-  penaltyTime?: number;    // Thời gian tính phạt (phút) lúc giải thành công
-  pendingCount?: number;   // Số lượng bài đang chấm dỡ (Pending)
-}
-export interface ScoreboardRowDTO {
-  rank: number;            // Hạng hiện tại
-  userId: string;          // ID thí sinh
-  username: string;        // Tên hiển thị / Tên tài khoản
-  avatarUrl?: string;      // Ảnh đại diện (nếu có)
-  fullname?: string;       // Họ và tên thật (nếu cần hiển thị)
-  totalSolved: number;     // Tổng số bài giải được
-  totalPenalty: number;    // Tổng thời gian phạt (Penalty)
-  problems: ProblemAttemptDTO[]; // Danh sách trạng thái từng bài
-}
-export interface ContestProblemHeaderDTO {
-  id: string;              // "A", "B", "C"...
-  title: string;           // "Area Query", "Awesome MST Problem"...
-  balloonColor?: string;   // Mã màu Hex cho bóng bay ICPC (VD: "#ff0000")
-  solvedCount: number;     // Số người/đội đã giải được bài này
-  totalAttempts: number;   // Tổng số lần nộp bài của tất cả mọi người cho bài này
+// ACM Mode DTOs
+export interface ACMProblemAttemptDTO {
+  problemId: string;
+  isSolved: boolean;
+  isFirstBlood: boolean;
+  attemptsCount: number;
+  penaltyTime?: number;
 }
 
-/**
- * DTO tổng tổng hợp toàn bộ dữ liệu trả về cho trang Scoreboard
- */
-export interface ScoreboardResponseDTO {
+export interface ACMScoreboardRowDTO {
+  rank: number;
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  fullname?: string;
+  totalSolved: number;
+  totalPenalty: number;
+  problems: ACMProblemAttemptDTO[];
+}
+
+// IOI Mode DTOs
+export interface IOIProblemAttemptDTO {
+  problemId: string;
+  score: number;
+  attemptsCount: number;
+}
+
+export interface IOIScoreboardRowDTO {
+  rank: number;
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  fullname?: string;
+  totalScore: number;
+  problems: IOIProblemAttemptDTO[];
+}
+
+// Union type for rows based on mode
+export type ScoreboardRowDTO = ACMScoreboardRowDTO | IOIScoreboardRowDTO;
+export type ProblemAttemptDTO = ACMProblemAttemptDTO | IOIProblemAttemptDTO;
+export interface ContestProblemHeaderDTO {
+  id: string;
+  title: string;
+  balloonColor?: string;
+  solvedCount: number;
+  totalAttempts: number;
+}
+
+// Base response structure (shared fields)
+interface BaseScoreboardResponseDTO {
   contestId: string;
   contestName: string;
+  scoringMode: "acm" | "ioi";
   status: "upcoming" | "running" | "ended";
-  frozen: boolean;         // Bảng xếp hạng có đang bị đóng băng (Freeze) không?
-  problems: ContestProblemHeaderDTO[]; // Danh sách bài trên header
-  rows: ScoreboardRowDTO[];            // Dữ liệu từng dòng của bảng xếp hạng
-  lastUpdated: string;     // ISO 8601 Timestamp lần cập nhật cuối
+  frozen: boolean;
+  problems: ContestProblemHeaderDTO[];
+  lastUpdated: string;
 }
+
+// ACM-specific response
+export interface ACMScoreboardResponseDTO extends BaseScoreboardResponseDTO {
+  scoringMode: "acm";
+  rows: ACMScoreboardRowDTO[];
+}
+
+// IOI-specific response
+export interface IOIScoreboardResponseDTO extends BaseScoreboardResponseDTO {
+  scoringMode: "ioi";
+  rows: IOIScoreboardRowDTO[];
+}
+
+// Union type for the full response
+export type ScoreboardResponseDTO = ACMScoreboardResponseDTO | IOIScoreboardResponseDTO;

@@ -13,14 +13,14 @@ import { useModal } from "@/Provider/ModalProvider";
 import { useSetSlotDueDateMutation } from "@/store/queries/ClassSlot";
 
 interface Props {
-  classId: string;
+  semesterId: string;
   slotId: string;
   dueAt?: string | null;
   closeAt?: string | null;
 }
 
 export default function UpdateDueDateModal({
-  classId,
+  semesterId,
   slotId,
   dueAt,
   closeAt,
@@ -31,13 +31,11 @@ export default function UpdateDueDateModal({
 
   const [dueDate, setDueDate] = useState(dueAt ?? "");
   const [closeDate, setCloseDate] = useState(closeAt ?? "");
-  console.log(classId);
-  console.log(slotId);
-  
+
   const handleSubmit = async () => {
     try {
       const res = await updateDueDate({
-        classId,
+        semesterId,
         slotId,
         data: {
           dueAt: dueDate,

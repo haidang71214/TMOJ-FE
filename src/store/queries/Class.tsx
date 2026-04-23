@@ -1,6 +1,6 @@
 import { API_PREFIX, ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { addClassMemberRequest, DeleteClassStudentRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse } from "@/types";
+import { addClassMemberRequest, DeleteClassStudentRequest, UpdateClassMemberStatusRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -97,9 +97,20 @@ getMyClassesTeacher: builder.query<ClassResponse, {
       }),
       invalidatesTags: ["Class"],
     }),
-   getClassMembers: builder.query<{data : ClassMemberResponse[]}, { id: string }>({
-  query: ({ id }) => ({
-    url: ClassEndpoint.GET_CLASS_MEMBERS.replace("{id}", id),
+
+    updateStudentStatus: builder.mutation<void, UpdateClassMemberStatusRequest>({
+      query: ({ classSemesterId, studentId, isActive }) => ({
+        url: ClassEndpoint.DELETE_STUDENT_CLASS_SEMESTER
+             .replace("{classSemesterId}", classSemesterId)
+             .replace("{studentId}", studentId),
+        method: "PUT",
+        body: { isActive },
+      }),
+      invalidatesTags: ["Class"],
+    }),
+   getClassMembers: builder.query<{data : ClassMemberResponse[]}, { classSemesterId: string }>({
+  query: ({ classSemesterId }) => ({
+    url: ClassEndpoint.GET_CLASS_MEMBERS.replace("{classSemesterId}", classSemesterId),
     method: "GET",
   }),
   providesTags: ["Class"],
@@ -107,22 +118,22 @@ getMyClassesTeacher: builder.query<ClassResponse, {
 
  exportClass: builder.mutation<
   Blob,
-  { semesterId?: string; subjectId?: string }
+  { classSemesterId: string; subjectId?: string }
 >({
-  query: (params) => ({
-    url: ClassEndpoint.EXPORT_CLASS,
+  query: ({ classSemesterId, subjectId }) => ({
+    url: ClassEndpoint.EXPORT_CLASS.replace("{classSemesterId}", classSemesterId),
     method: "GET",
-    params,
+    params: subjectId ? { subjectId } : undefined,
     responseHandler: (response) => response.blob(),
   }),
 }),
 
 addClassMembers: builder.mutation<
   void,
-  { id: string; data: addClassMemberRequest }
+  { classSemesterId: string; data: addClassMemberRequest }
 >({
-  query: ({ id, data }) => ({
-    url: ClassEndpoint.ADD_CLASS_MEMBERS.replace("{classSemesterId}", id),
+  query: ({ classSemesterId, data }) => ({
+    url: ClassEndpoint.ADD_CLASS_MEMBERS.replace("{classSemesterId}", classSemesterId),
     method: "POST",
     body: data,
   }),
@@ -139,11 +150,11 @@ addClassMembers: builder.mutation<
 
     importProblemToSlot: builder.mutation<
   void,
-  { instanceId: string; slotId: string; data: ImportProblemClassRequest[] }
+  { semesterId: string; slotId: string; data: ImportProblemClassRequest[] }
 >({
-  query: ({ instanceId, slotId, data }) => ({
+  query: ({ semesterId, slotId, data }) => ({
     url: ClassEndpoint.IMPORT_PROBLEM_CLASS
-      .replace("{instanceId}", instanceId)
+      .replace("{semesterId}", semesterId)
       .replace("{slotId}", slotId),
     method: "POST",
     body: data,
@@ -152,14 +163,14 @@ addClassMembers: builder.mutation<
 }),
   updateSlotProblems: builder.mutation<UpdateSlotProblemResponse,
   {
-    instanceId: string;
+    semesterId: string;
     slotId: string;
     data: UpdateSlotProblemRequest[];
   }
 >({
-  query: ({ instanceId, slotId, data }) => ({
+  query: ({ semesterId, slotId, data }) => ({
     url: ClassEndpoint.UPDATE_SLOT_PROBLEMS
-      .replace("{instanceId}", instanceId)
+      .replace("{semesterId}", semesterId)
       .replace("{slotId}", slotId),
     method: "PUT",
     body: data,
@@ -169,11 +180,11 @@ addClassMembers: builder.mutation<
 // xóa 
 deleteSlotProblems: builder.mutation<
   void,
-  { instanceId: string; slotId: string; problemIds: string[] }
+  { semesterId: string; slotId: string; problemIds: string[] }
 >({
-  query: ({ instanceId, slotId, problemIds }) => ({
-    url: `${API_PREFIX}/class-instance/${instanceId}/slots/${slotId}/problems`,
-    method: "DELETE", 
+  query: ({ semesterId, slotId, problemIds }) => ({
+    url: `${API_PREFIX}/class-semester/${semesterId}/slots/${slotId}/problems`,
+    method: "DELETE",
     body: problemIds,
   }),
   invalidatesTags: ["ClassSlot"],
@@ -274,6 +285,7 @@ export const {
    useImportStudentsMutation,
    useExportStudentsClassSemesterMutation,
    useDeleteStudentClassSemesterMutation,
+   useUpdateStudentStatusMutation,
    useUpdateClassSemesterMutation,
    useJoinClassMutation,
    useGetStudentsNotYetQuery,

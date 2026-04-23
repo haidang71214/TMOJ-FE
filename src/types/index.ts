@@ -661,6 +661,12 @@ export interface DeleteClassStudentRequest {
   studentId: string;
 }
 
+export interface UpdateClassMemberStatusRequest {
+  classSemesterId: string;
+  studentId: string;
+  isActive: boolean;
+}
+
 export interface CreateUserRequest {
   email: string;
   password?: string;
@@ -1099,6 +1105,7 @@ export interface ScoreboardRowDTO {
   fullname?: string;
   totalSolved: number;
   totalPenalty: number;
+  totalScore: number;
   problems: ProblemAttemptDTO[];
 }
 

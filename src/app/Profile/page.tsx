@@ -110,7 +110,7 @@ export default function ProfilePage() {
 
   const gMe = gMeResponse?.data;
   const gStreak = gStreakResponse?.data;
-  const gBadges = gBadgesResponse?.data || [];
+  const gBadges = gBadgesResponse || [];
   const gProgress = gProgressResponse?.data || [];
   const gHistory = gHistoryResponse?.data || [];
   const gActivities = gActivitiesResponse?.data || [];

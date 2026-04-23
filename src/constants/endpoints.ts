@@ -262,7 +262,7 @@ const GamificationEndpoint = {
 };
 
 const AdminGamificationEndpoint = {
-  BADGES: `${API_PREFIX}/gamification/badges`,
+  BADGES: `${API_PREFIX}/gamification/badges/all`,
   BADGE_ID: `${API_PREFIX}/gamification/badges/{id}`,
   BADGE_RULES: `${API_PREFIX}/gamification/badge-rules`,
   BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,

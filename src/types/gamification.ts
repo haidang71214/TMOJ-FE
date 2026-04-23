@@ -12,7 +12,7 @@ export interface UserGamification {
 }
 
 export interface AdminBadge {
-  id: string;
+  badgeId: string;
   name: string;
   iconUrl: string;
   description: string;
@@ -21,7 +21,10 @@ export interface AdminBadge {
   badgeLevel: number;
   isRepeatable: boolean;
   createdAt?: string;
-  awardedCount?: number;
+  createdBy?: string;
+  updatedAt?: string | null;
+  updatedBy?: string | null;
+  badgeRules?: any[];
 }
 
 export interface CreateBadgeRequest {

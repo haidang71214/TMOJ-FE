@@ -20,6 +20,10 @@ import {
   ChangeVisibilityRequest,
   ChangeVisibilityResponse,
   ContestParticipantsResponse,
+  JoinContestByCodeRequest,
+  MyTeamResponse,
+  ScoreboardResponseDTO,
+  ScoreboardResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -217,6 +221,47 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: "Contest", id: `participants_${id}` }],
     }),
+    // 25. Join Contest by Code
+    joinContestByCode: builder.mutation<any, JoinContestByCodeRequest>({
+      query: (body) => ({
+        url: ContestEndpoint.JOIN_CONTEST_BY_CODE,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest", "Team"],
+    }),
+    // 26. Lấy team của tôi trong contest
+    getMyTeamInContest: builder.query<MyTeamResponse, string>({
+      query: (id) => ({
+        url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }, "Team"],
+    }),
+    // 27. Lấy Scoreboard
+    getScoreboard: builder.query<ScoreboardResponse, string>({
+      query: (id) => ({
+        url: ContestEndpoint.GET_SCOREBOARD.replace("{id}", id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Contest", id: `scoreboard_${id}` }],
+    }),
+    // 28. Freeze Contest
+    freezeContest: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.FREEZE_CONTEST.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
+    }),
+    // 29. Unfreeze Contest
+    unfreezeContest: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.UNFREEZE_CONTEST.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
+    }),
   }),
 });
 
@@ -239,4 +284,9 @@ export const {
   useDeleteContestMutation,
   useJoinContestTeamByCodeMutation,
   useGetContestParticipantsQuery,
+  useJoinContestByCodeMutation,
+  useGetMyTeamInContestQuery,
+  useGetScoreboardQuery,
+  useFreezeContestMutation,
+  useUnfreezeContestMutation,
 } = contestApi;

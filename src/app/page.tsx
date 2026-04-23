@@ -27,7 +27,7 @@ import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 import { ContestDto } from "@/types";
 import NewsFeed from "./components/NewsFeed";
-import { useGetContestListQuery, useGetMyContestsQuery, useGetContestParticipantsQuery } from "@/store/queries/Contest";
+import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -40,10 +40,7 @@ interface NewsPost {
   tags: string[];
 }
 
-const ParticipantCount = ({ contestId }: { contestId: string }) => {
-  const { data } = useGetContestParticipantsQuery(contestId);
-  return <>{data?.data?.totalUsers || 0}</>;
-};
+
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -234,7 +231,7 @@ export default function Home() {
                           </h4>
                           <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic tracking-widest">
                             <span className="flex items-center gap-2">
-                              <Users size={14} className="text-[#FF5C00]" /> <ParticipantCount contestId={contest.id} /> Students
+                              <Users size={14} className="text-[#FF5C00]" /> {contest.totalMembers || 0} Students
                             </span>
                             <span className="flex items-center gap-2">
                               <Clock size={14} className="text-[#FF5C00]" />{" "}
@@ -261,19 +258,25 @@ export default function Home() {
                               );
                             }
                             return (
-                              <Button
-                                fullWidth
-                                className="bg-[#071739] text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90"
-                                onPress={() => {
-                                  if (!currentUser) {
-                                    openModal({ title: "Đăng nhập", content: <LoginModal /> });
-                                    return;
-                                  }
-                                  router.push(`/Contest/${contest.id}/register`);
-                                }}
-                              >
-                                Register Now <ArrowRight size={18} />
-                              </Button>
+                              (() => {
+                                const isRegExpired = new Date(contest.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000;
+                                return (
+                                  <Button
+                                    fullWidth
+                                    isDisabled={isRegExpired}
+                                    className={`font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 ${isRegExpired ? "bg-gray-400 text-white cursor-not-allowed opacity-70" : "bg-[#071739] text-white hover:opacity-90 shadow-lg"}`}
+                                    onPress={() => {
+                                      if (!currentUser) {
+                                        openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                                        return;
+                                      }
+                                      router.push(`/Contest/${contest.id}/register`);
+                                    }}
+                                  >
+                                    {isRegExpired ? "Registration Closed" : "Register Now"} <ArrowRight size={18} />
+                                  </Button>
+                                );
+                              })()
                             );
                           }
 

@@ -84,7 +84,7 @@ export const collectionApi = baseApi.injectEndpoints({
     }),
 
     // Public / Sharing
-    getPublicCollections: builder.query<CollectionResponse, { page?: number; pageSize?: number }>({
+    getPublicCollections: builder.query<CollectionResponse, { page?: number; pageSize?: number; search?: string }>({
       query: (params) => ({
         url: CollectionEndpoint.GET_PUBLIC,
         method: "GET",
@@ -92,7 +92,7 @@ export const collectionApi = baseApi.injectEndpoints({
       }),
       providesTags: ["PublicCollections"],
     }),
-    getUserCollections: builder.query<CollectionResponse, { userId: string; page?: number; pageSize?: number }>({
+    getUserCollections: builder.query<CollectionResponse, { userId: string; page?: number; pageSize?: number; search?: string }>({
       query: ({ userId, ...params }) => ({
         url: CollectionEndpoint.GET_USER_COLLECTIONS.replace("{userId}", userId),
         method: "GET",

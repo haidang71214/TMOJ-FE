@@ -31,6 +31,7 @@ export default function ContestDetailPage() {
 
   return (
     <div className="w-full">
+      <ContestHeader contestId={contestId} />
 
       {/* MAIN CONTENT AREA */}
       <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
@@ -45,23 +46,63 @@ export default function ContestDetailPage() {
               <div className="lg:col-span-12 space-y-6">
 
                 {/* CONTEST STATUS BANNER */}
-                <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-center gap-4 shadow-sm relative overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-sky-400"></div>
-                  <h2 className="text-xl sm:text-2xl text-blue-600 dark:text-sky-400 font-semibold m-0 flex items-center gap-2">
-                    {contest?.status || "Contest"}
-                  </h2>
-                  <div className="hidden sm:block w-[1px] h-6 bg-slate-300 dark:bg-slate-700"></div>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-2 text-[15px] font-medium text-slate-600 dark:text-slate-300">
-                      <Clock className="w-4 h-4 text-blue-500 dark:text-sky-400" />
-                      <p>
-                        {new Date(contest?.startAt || "").toLocaleString()} - {new Date(contest?.endAt || "").toLocaleString()}
-                      </p>
+                <div className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-8 flex flex-col items-start gap-6 shadow-sm relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-600 to-sky-400"></div>
+
+                  <div className="space-y-4 w-full">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h1 className="text-3xl sm:text-4xl font-[1000] italic uppercase tracking-tighter text-slate-900 dark:text-white">
+                        {contest?.title}
+                      </h1>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-sky-400 rounded-full text-xs font-black uppercase italic">
+                        <Clock className="w-3 h-3" />
+                        {contest?.status}
+                      </div>
                     </div>
+
+                    {contest?.description && (
+                      <p className="text-slate-600 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-4xl border-l-4 border-slate-200 dark:border-slate-700 pl-6 italic">
+                        {contest.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <Divider className="bg-slate-100 dark:bg-slate-800" />
+
+                  <div className="flex flex-wrap items-center gap-8 text-[15px] font-medium text-slate-600 dark:text-slate-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-sky-400">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 leading-none mb-1">Time Window</p>
+                        <p className="font-bold text-slate-900 dark:text-white">
+                          {(() => {
+                            if (!contest?.startAt || !contest?.endAt) return "TBA";
+                            const start = new Date(contest.startAt);
+                            const end = new Date(contest.endAt);
+
+                            if (isNaN(start.getTime()) || isNaN(end.getTime())) return "TBA";
+
+                            const formatOptions: Intl.DateTimeFormatOptions = {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            };
+
+                            return `${start.toLocaleString('vi-VN', formatOptions)} - ${end.toLocaleString('vi-VN', formatOptions)}`;
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+
                     {contest?.isFrozen && (
-                      <div className="flex items-center gap-2 text-red-500 font-bold text-sm animate-pulse">
-                        <AlertCircle className="w-4 h-4" />
-                        SCOREBOARD FROZEN
+                      <div className="flex items-center gap-3 text-red-500 font-black italic uppercase text-sm">
+                        <AlertCircle className="w-5 h-5 animate-pulse" />
+                        Scoreboard Frozen
                       </div>
                     )}
                   </div>
@@ -90,6 +131,10 @@ export default function ContestDetailPage() {
                           <li className="flex items-start gap-3">
                             <span className="text-blue-500 dark:text-sky-400 mt-1.5 text-[8px]">◆</span>
                             <span>This contest <strong className="font-semibold text-slate-800 dark:text-slate-200">has no limit</strong> on the number of submissions.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-red-500 dark:text-red-400 mt-1.5 text-[8px]">◆</span>
+                            <span className="text-red-600 dark:text-red-400 font-bold uppercase text-[13px]">Registration deadline: 8 hours before start.</span>
                           </li>
                         </ul>
                       </div>

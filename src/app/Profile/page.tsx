@@ -29,16 +29,29 @@ import {
   Flame,
   Lock,
   Mail,
+  MessageSquare,
+  MoreVertical,
   Presentation,
   Star,
   User,
   Zap,
+  Camera,
+  Trash2,
+  Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
-import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import {
+  useGetUserInformationQuery,
+  useUpdateMeMutation,
+  useUpdateAvatarMutation,
+  useDeleteAvatarMutation,
+} from "@/store/queries/usersProfile";
+import { useGetCollectionsQuery } from "@/store/queries/collections";
+import { useGetFavoriteProblemsQuery, useGetFavoriteContestsQuery } from "@/store/queries/favorites";
 import { useGetStudentByIdQuery, useGetTeacherByIdQuery } from "@/store/queries/user";
 import EditProfileModal from "./EditProfileModal";
+import { toast } from "sonner";
 
 // --- INTERFACES ---
 interface DifficultyStat {
@@ -47,12 +60,12 @@ interface DifficultyStat {
   total: number;
   color: string;
   variant:
-    | "success"
-    | "primary"
-    | "warning"
-    | "danger"
-    | "default"
-    | "secondary";
+  | "success"
+  | "primary"
+  | "warning"
+  | "danger"
+  | "default"
+  | "secondary";
 }
 
 interface BadgeItem {
@@ -67,9 +80,17 @@ export default function ProfilePage() {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // ── /me ──
   const { data: meData, isLoading: meLoading } = useGetUserInformationQuery();
+  const [updateAvatar, { isLoading: isUpdatingAvatar }] = useUpdateAvatarMutation();
+  const [deleteAvatar, { isLoading: isDeletingAvatar }] = useDeleteAvatarMutation();
+
+  const { data: collectionsResponse, isLoading: collectionsLoading } = useGetCollectionsQuery();
+  const { data: favProblemsResponse, isLoading: favProblemsLoading } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 10 });
+  const { data: favContestsResponse, isLoading: favContestsLoading } = useGetFavoriteContestsQuery({ page: 1, pageSize: 10 });
+
   const userId = meData?.userId ?? "";
   const role = meData?.role ?? "";
 
@@ -117,14 +138,42 @@ export default function ProfilePage() {
     { id: "5", name: "Algorithm Knight", date: "Locked", isLocked: true, color: "#94a3b8" },
   ];
 
-  const MOCK_PUBLIC_COLLECTIONS = [
-    { id: "c1", title: "Dynamic Programming Top 50", count: 50, date: "2 weeks ago" },
-    { id: "c2", title: "Graph Algorithms", count: 12, date: "1 month ago" },
-    { id: "c3", title: "Interview Prep 2026", count: 150, date: "2 days ago" },
-  ];
+  const userCollections = useMemo(() => {
+    const raw = collectionsResponse?.data;
+    if (Array.isArray(raw)) return raw;
+    if ((raw as any)?.data) return (raw as any).data;
+    return [];
+  }, [collectionsResponse]);
+
+  const favoriteProblems = favProblemsResponse?.data ?? [];
+  const favoriteContests = favContestsResponse?.data ?? [];
 
   const SOLVED_COUNT = 226;
   const TOTAL_COUNT = 3808;
+
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      await updateAvatar(formData).unwrap();
+      toast.success("Avatar updated successfully");
+    } catch (err) {
+      toast.error("Failed to update avatar");
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    try {
+      await deleteAvatar().unwrap();
+      toast.success("Avatar removed successfully");
+    } catch (err) {
+      toast.error("Failed to remove avatar");
+    }
+  };
 
   const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
     <div className="flex items-center justify-between gap-4">
@@ -141,15 +190,58 @@ export default function ProfilePage() {
       <div className="max-w-[1440px] mx-auto grid grid-cols-1 xl:grid-cols-[350px_1fr] gap-10">
         {/* ================= LEFT SIDEBAR ================= */}
         <div className="space-y-8">
-           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-           <CardBody className="p-8 relative z-10">
+          <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+            <CardBody className="p-8 relative z-10">
               <div className="flex flex-col items-center text-center gap-4">
-                <div className="relative">
+                <div className="relative group/avatar">
                   <Avatar
-                    src={avatarUrl || undefined}
+                    src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
                     name={displayName || username}
-                    className="w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg"
+                    className={`w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
+                      }`}
                   />
+
+                  {/* Loading Spinner Over Avatar */}
+                  {(isUpdatingAvatar || isDeletingAvatar) && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <Spinner color="warning" size="lg" />
+                    </div>
+                  )}
+
+                  {/* Hover overlay for actions */}
+                  <div className="absolute inset-0 bg-black/40 rounded-[2.2rem] opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      className="bg-white/20 hover:bg-white/40 text-white border-none"
+                      onClick={() => fileInputRef.current?.click()}
+                      isLoading={isUpdatingAvatar}
+                    >
+                      <Camera size={16} />
+                    </Button>
+                    {avatarUrl && (
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-red-500/20 hover:bg-red-500/40 text-white border-none"
+                        onClick={handleDeleteAvatar}
+                        isLoading={isDeletingAvatar}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleUploadAvatar}
+                  />
+
                   <div className="absolute -bottom-1 -right-1 bg-[#00FF41] w-7 h-7 rounded-full border-4 border-white dark:border-[#071739] shadow-md animate-pulse" />
                 </div>
                 <div>
@@ -186,140 +278,140 @@ export default function ProfilePage() {
               </div>
             </CardBody>
 
-      {/* ── BASIC INFO ── */}
-      <CardHeader className="px-8 pt-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <User size={16} className="text-[#FF5C00]" />
-          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-            Basic Info
-          </h2>
-        </div>
-        <Button isIconOnly size="sm" variant="light" onClick={() => setIsEditProfileOpen(true)} className="text-[#FF5C00]">
-          <Edit3 size={14} />
-        </Button>
-      </CardHeader>
-
-      <CardBody className="px-8 pb-8 space-y-4">
-        {isDetailLoading ? (
-          <div className="flex justify-center py-6"><Spinner color="warning" /></div>
-        ) : (
-          <>
-            <InfoItem icon={<User size={14} />} label="Display Name" value={displayName || "—"} />
-            <Divider className="opacity-30" />
-            <InfoItem icon={<Mail size={14} />} label="Email" value={email || "—"} />
-            <Divider className="opacity-30" />
-            <InfoItem icon={<User size={14} />} label="Username" value={username ? `@${username}` : "—"} />
-            <Divider className="opacity-30" />
-            <InfoItem icon={<Zap size={14} />} label="Role" value={role || "—"} />
-
-            {/* Student-specific */}
-            {role === "student" && student && (
-              <>
-                <Divider className="opacity-30" />
-                <InfoItem icon={<BookOpen size={14} />} label="Roll Number" value={student.rollNumber || "—"} />
-                <Divider className="opacity-30" />
-                <InfoItem icon={<Briefcase size={14} />} label="Member Code" value={student.memberCode || "—"} />
-              </>
-            )}
-
-            {/* Teacher-specific */}
-            {role === "teacher" && teacher && (
-              <>
-                <Divider className="opacity-30" />
-                <InfoItem icon={<Presentation size={14} />} label="Total Classes" value={String(totalClasses)} />
-              </>
-            )}
-          </>
-        )}
-
-        <Button
-          size="lg"
-          className="w-full font-black uppercase italic text-[11px] tracking-widest bg-slate-50 dark:bg-white/5 text-[#071739] dark:text-white hover:bg-[#00FF41] hover:text-[#071739] transition-all rounded-2xl border border-slate-200 dark:border-white/10 mt-2"
-          startContent={<Edit3 size={16} />}
-          onClick={() => setIsEditProfileOpen(true)}
-        >
-          Edit Profile
-        </Button>
-      </CardBody>
-    </Card>
-
-    {/* ── ROLE EXTRA CARD ── */}
-    {role === "teacher" && teacherSubjects.length > 0 && (
-      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-        <CardHeader className="px-8 pt-8 flex items-center gap-2">
-          <BookOpen size={18} className="text-[#FF5C00]" />
-          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-            Subjects
-          </h2>
-        </CardHeader>
-        <CardBody className="px-8 pb-8 space-y-3">
-          {teacherSubjects.map((s: any) => (
-            <div key={s.subjectId} className="flex justify-between items-center">
-              <div>
-                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{s.code}</p>
-                <p className="text-[10px] text-slate-400 italic">{s.name}</p>
+            {/* ── BASIC INFO ── */}
+            <CardHeader className="px-8 pt-6 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User size={16} className="text-[#FF5C00]" />
+                <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+                  Basic Info
+                </h2>
               </div>
-              <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px] bg-orange-50 text-[#FF5C00] dark:bg-[#FF5C00]/10">
-                {s.classCount} class{s.classCount !== 1 ? "es" : ""}
-              </Chip>
-            </div>
-          ))}
-        </CardBody>
-      </Card>
-    )}
+              <Button isIconOnly size="sm" variant="light" onClick={() => router.push("/Settings")} className="text-[#FF5C00]">
+                <Settings size={14} />
+              </Button>
+            </CardHeader>
 
-    {role === "student" && studentClasses.length > 0 && (
-      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-        <CardHeader className="px-8 pt-8 flex items-center gap-2">
-          <Briefcase size={18} className="text-[#FF5C00]" />
-          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-            Classes
-          </h2>
-        </CardHeader>
-        <CardBody className="px-8 pb-8 space-y-4">
-          {studentClasses.slice(0, 4).map((c: any, i: number) => (
-            <div key={i} className="space-y-1">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
-                <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
-                  {c.semesterCode}
-                </Chip>
-              </div>
-              <p className="text-[10px] text-slate-400 italic">{c.subjectName}</p>
-              {i < studentClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
-            </div>
-          ))}
-        </CardBody>
-      </Card>
-    )}
+            <CardBody className="px-8 pb-8 space-y-4">
+              {isDetailLoading ? (
+                <div className="flex justify-center py-6"><Spinner color="warning" /></div>
+              ) : (
+                <>
+                  <InfoItem icon={<User size={14} />} label="Display Name" value={displayName || "—"} />
+                  <Divider className="opacity-30" />
+                  <InfoItem icon={<Mail size={14} />} label="Email" value={email || "—"} />
+                  <Divider className="opacity-30" />
+                  <InfoItem icon={<User size={14} />} label="Username" value={username ? `@${username}` : "—"} />
+                  <Divider className="opacity-30" />
+                  <InfoItem icon={<Zap size={14} />} label="Role" value={role || "—"} />
 
-    {role === "teacher" && teacherClasses.length > 0 && (
-      <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
-        <CardHeader className="px-8 pt-8 flex items-center gap-2">
-          <Clock size={18} className="text-[#FF5C00]" />
-          <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
-            Active Classes
-          </h2>
-        </CardHeader>
-        <CardBody className="px-8 pb-8 space-y-4">
-          {teacherClasses.slice(0, 4).map((c: any, i: number) => (
-            <div key={i} className="space-y-1">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
-                <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
-                  {c.semesterCode}
-                </Chip>
-              </div>
-              <p className="text-[10px] text-slate-400 italic">{c.subjectName} · {c.memberCount} students</p>
-              {i < teacherClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
-            </div>
-          ))}
-        </CardBody>
-      </Card>
-    )}
+                  {/* Student-specific */}
+                  {role === "student" && student && (
+                    <>
+                      <Divider className="opacity-30" />
+                      <InfoItem icon={<BookOpen size={14} />} label="Roll Number" value={student.rollNumber || "—"} />
+                      <Divider className="opacity-30" />
+                      <InfoItem icon={<Briefcase size={14} />} label="Member Code" value={student.memberCode || "—"} />
+                    </>
+                  )}
+
+                  {/* Teacher-specific */}
+                  {role === "teacher" && teacher && (
+                    <>
+                      <Divider className="opacity-30" />
+                      <InfoItem icon={<Presentation size={14} />} label="Total Classes" value={String(totalClasses)} />
+                    </>
+                  )}
+                </>
+              )}
+
+              <Button
+                size="lg"
+                className="w-full font-black uppercase italic text-[11px] tracking-widest bg-slate-50 dark:bg-white/5 text-[#071739] dark:text-white hover:bg-[#00FF41] hover:text-[#071739] transition-all rounded-2xl border border-slate-200 dark:border-white/10 mt-2"
+                startContent={<Edit3 size={16} />}
+                onClick={() => setIsEditProfileOpen(true)}
+              >
+                Edit Profile
+              </Button>
+            </CardBody>
+          </Card>
+
+          {/* ── ROLE EXTRA CARD ── */}
+          {role === "teacher" && teacherSubjects.length > 0 && (
+            <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+              <CardHeader className="px-8 pt-8 flex items-center gap-2">
+                <BookOpen size={18} className="text-[#FF5C00]" />
+                <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+                  Subjects
+                </h2>
+              </CardHeader>
+              <CardBody className="px-8 pb-8 space-y-3">
+                {teacherSubjects.map((s: any) => (
+                  <div key={s.subjectId} className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{s.code}</p>
+                      <p className="text-[10px] text-slate-400 italic">{s.name}</p>
+                    </div>
+                    <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px] bg-orange-50 text-[#FF5C00] dark:bg-[#FF5C00]/10">
+                      {s.classCount} class{s.classCount !== 1 ? "es" : ""}
+                    </Chip>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
+          {role === "student" && studentClasses.length > 0 && (
+            <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+              <CardHeader className="px-8 pt-8 flex items-center gap-2">
+                <Briefcase size={18} className="text-[#FF5C00]" />
+                <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+                  Classes
+                </h2>
+              </CardHeader>
+              <CardBody className="px-8 pb-8 space-y-4">
+                {studentClasses.slice(0, 4).map((c: any, i: number) => (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
+                      <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
+                        {c.semesterCode}
+                      </Chip>
+                    </div>
+                    <p className="text-[10px] text-slate-400 italic">{c.subjectName}</p>
+                    {i < studentClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
+          {role === "teacher" && teacherClasses.length > 0 && (
+            <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
+              <CardHeader className="px-8 pt-8 flex items-center gap-2">
+                <Clock size={18} className="text-[#FF5C00]" />
+                <h2 className="text-sm font-[1000] uppercase italic tracking-wider text-[#071739] dark:text-white">
+                  Active Classes
+                </h2>
+              </CardHeader>
+              <CardBody className="px-8 pb-8 space-y-4">
+                {teacherClasses.slice(0, 4).map((c: any, i: number) => (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-black uppercase italic text-[#071739] dark:text-white">{c.classCode}</p>
+                      <Chip size="sm" variant="flat" className="text-[9px] font-black italic uppercase bg-blue-50 text-blue-600 dark:bg-blue-500/10">
+                        {c.semesterCode}
+                      </Chip>
+                    </div>
+                    <p className="text-[10px] text-slate-400 italic">{c.subjectName} · {c.memberCount} students</p>
+                    {i < teacherClasses.slice(0, 4).length - 1 && <Divider className="opacity-30 mt-2" />}
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
 
 
-        {/* ================= MAIN CONTENT ================= */}
+          {/* ================= MAIN CONTENT ================= */}
         </div>
         <div className="space-y-8">
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[3rem] shadow-sm">
@@ -470,13 +562,12 @@ export default function ProfilePage() {
                           {title}
                         </p>
                         <p
-                          className={`text-[9px] font-black uppercase italic ${
-                            diff === "Easy"
-                              ? "text-[#00FF41]"
-                              : diff === "Hard"
+                          className={`text-[9px] font-black uppercase italic ${diff === "Easy"
+                            ? "text-[#00FF41]"
+                            : diff === "Hard"
                               ? "text-[#FF5C00]"
                               : "text-blue-500"
-                          }`}
+                            }`}
                         >
                           {diff}
                         </p>
@@ -500,49 +591,95 @@ export default function ProfilePage() {
               {/* KHÔI PHỤC CÁC TAB BỊ THIẾU */}
               <Tab key="collections" title="Collections">
                 <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
-                  {MOCK_PUBLIC_COLLECTIONS.map((col) => (
-                    <div
-                      key={col.id}
-                      className="py-6 flex justify-between items-center group cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-[#FF5C00] group-hover:bg-[#FF5C00]/20 transition-colors">
-                          <Bookmark size={20} />
+                  {collectionsLoading ? (
+                    <div className="flex justify-center py-10"><Spinner color="warning" /></div>
+                  ) : userCollections.length > 0 ? (
+                    userCollections.map((col: any) => (
+                      <div
+                        key={col.id}
+                        className="py-6 flex justify-between items-center group cursor-pointer"
+                        onClick={() => router.push(`/Problems/MyLists/${col.id}`)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-[#FF5C00] group-hover:bg-[#FF5C00]/20 transition-colors">
+                            <Bookmark size={20} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-base font-black uppercase italic group-hover:text-[#FF5C00] transition-colors text-[#071739] dark:text-white leading-none">
+                              {col.name}
+                            </p>
+                            <p className="text-[9px] font-black uppercase italic text-slate-400">
+                              {(col.itemsCount ?? col.totalItems ?? col.items?.length ?? 0)} Items
+                            </p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-base font-black uppercase italic group-hover:text-[#FF5C00] transition-colors text-[#071739] dark:text-white leading-none">
-                            {col.title}
-                          </p>
-                          <p className="text-[9px] font-black uppercase italic text-slate-400">
-                            {col.count} Problems
-                          </p>
+
+                        <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors">
+                          <span className="text-[10px] font-bold uppercase italic">
+                            {new Date(col.updatedAt || col.createdAt).toLocaleDateString()}
+                          </span>
+                          <ChevronRight size={16} />
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors">
-                        <span className="text-[10px] font-bold uppercase italic">
-                          {col.date}
-                        </span>
-                        <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="py-10 text-center text-slate-400 italic">No collections found.</div>
+                  )}
                   <Button
                     variant="light"
                     className="w-full mt-6 font-black uppercase italic text-[10px] text-[#FF5C00] tracking-[0.2em]"
+                    onClick={() => router.push("/Problems/MyLists")}
                   >
                     View All Collections →
                   </Button>
                 </div>
               </Tab>
-              <Tab key="solutions" title="Solutions">
-                <div className="p-10 text-center text-slate-400 italic font-black uppercase text-xs">
-                  No solutions published yet.
+              <Tab key="favorites" title="Favorites">
+                <div className="px-10 pb-10 space-y-8 mt-6">
+                  {/* Problems */}
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase italic text-slate-400 mb-4 tracking-widest">Favorite Problems</h3>
+                    <div className="divide-y divide-slate-100 dark:divide-white/5">
+                      {favProblemsLoading ? (
+                        <Spinner size="sm" color="warning" />
+                      ) : favoriteProblems.length > 0 ? (
+                        favoriteProblems.slice(0, 5).map((p: any) => (
+                          <div key={p.id} className="py-4 flex justify-between items-center group cursor-pointer" onClick={() => router.push(`/Problems/${p.id}`)}>
+                            <p className="text-sm font-black uppercase italic text-[#071739] dark:text-white group-hover:text-blue-600 transition-colors">{p.title}</p>
+                            <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-600" />
+                          </div>
+                        ))
+                      ) : <p className="text-xs italic text-slate-400">No favorite problems.</p>}
+                    </div>
+                  </div>
+
+                  {/* Contests */}
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase italic text-slate-400 mb-4 tracking-widest">Favorite Contests</h3>
+                    <div className="divide-y divide-slate-100 dark:divide-white/5">
+                      {favContestsLoading ? (
+                        <Spinner size="sm" color="warning" />
+                      ) : favoriteContests.length > 0 ? (
+                        favoriteContests.slice(0, 5).map((c: any) => (
+                          <div key={c.id} className="py-4 flex justify-between items-center group cursor-pointer" onClick={() => router.push(`/Contest/${c.id}`)}>
+                            <p className="text-sm font-black uppercase italic text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors">{c.title}</p>
+                            <ChevronRight size={14} className="text-slate-300 group-hover:text-[#FF5C00]" />
+                          </div>
+                        ))
+                      ) : <p className="text-xs italic text-slate-400">No favorite contests.</p>}
+                    </div>
+                  </div>
                 </div>
               </Tab>
-              <Tab key="discuss" title="Discuss">
-                <div className="p-10 text-center text-slate-400 italic font-black uppercase text-xs">
-                  No discussions yet.
+              <Tab key="discussion" title="Discussion">
+                <div className="p-12 text-center space-y-4">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                    <MessageSquare size={32} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-black uppercase italic text-slate-400">No discussions participated yet</p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Start a discussion on a problem page to see it here</p>
+                  </div>
                 </div>
               </Tab>
             </Tabs>
@@ -581,11 +718,10 @@ export default function ProfilePage() {
                   {badges.map((badge) => (
                     <div
                       key={badge.id}
-                      className={`p-6 rounded-4xl border-2 flex flex-col items-center gap-4 transition-all relative overflow-hidden group ${
-                        badge.isLocked
-                          ? "border-slate-100 dark:border-white/5 grayscale opacity-60"
-                          : "border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg"
-                      }`}
+                      className={`p-6 rounded-4xl border-2 flex flex-col items-center gap-4 transition-all relative overflow-hidden group ${badge.isLocked
+                        ? "border-slate-100 dark:border-white/5 grayscale opacity-60"
+                        : "border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg"
+                        }`}
                     >
                       {badge.isLocked && (
                         <Lock
@@ -632,7 +768,7 @@ export default function ProfilePage() {
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}
         profile={meData ?? null}
-      />  
+      />
 
       <style jsx global>{`
         .grid-cols-53 {

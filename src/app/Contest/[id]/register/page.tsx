@@ -13,12 +13,76 @@ import {
   Avatar, AvatarGroup, Tabs, Tab
 } from "@heroui/react";
 import { toast } from "sonner";
-import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation } from "@/store/queries/Contest";
+import { useGetContestDetailQuery, useRegisterContestMutation, useJoinContestTeamByCodeMutation, useGetMyTeamInContestQuery, useJoinContestByCodeMutation } from "@/store/queries/Contest";
 import { useCreateTeamMutation, useGetTeamDetailQuery, useAddTeamMemberMutation, useDeleteTeamMemberMutation } from "@/store/queries/Team";
+import { useGetUserByIdQuery, useSearchUsersQuery } from "@/store/queries/user";
+
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
+
+const TeamMemberItem = ({
+  m,
+  leaderId,
+  currentUser,
+  onRemove,
+  isDeleting
+}: {
+  m: any,
+  leaderId: string,
+  currentUser: any,
+  onRemove: (id: string) => void,
+  isDeleting: boolean
+}) => {
+  const { data: userResult } = useGetUserByIdQuery(m.userId);
+  const user = userResult?.data;
+
+  // Priority: fetched user > member info > fallbacks
+  const fullName = user?.displayName || m.displayName || m.user?.displayName || m.userName || (m.firstName || m.lastName ? `${m.firstName || ""} ${m.lastName || ""}`.trim() : null) || m.username || m.user?.username || `Member ${m.userId?.slice(0, 4) || "????"}`;
+  const emailDisplay = user?.email || m.email || m.user?.email || "Email not public";
+  const avatarUrl = user?.avatarUrl || m.avatarUrl || m.user?.avatarUrl || undefined;
+
+  return (
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
+      <div className="flex items-center gap-4">
+        <Avatar
+          src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
+          name={fullName}
+          className="w-10 h-10 border-2 border-[#071739]"
+        />
+        <div className="text-left">
+          <p className="text-xs font-black uppercase italic leading-none truncate max-w-[200px]">
+            {m.userId === currentUser?.userId ? (currentUser?.displayName || currentUser?.username) : fullName}
+          </p>
+          <p className="text-[9px] text-gray-400 font-bold lowercase truncate max-w-[200px]">
+            {m.userId === currentUser?.userId ? currentUser?.email : emailDisplay}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {m.userId !== leaderId ? (
+          <div className="flex items-center gap-2">
+            <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              color="danger"
+              className="h-7 w-7 min-w-0 rounded-lg group-hover:bg-danger group-hover:text-white transition-all shadow-sm"
+              onPress={() => onRemove(m.userId)}
+              isLoading={isDeleting}
+            >
+              <X size={14} />
+            </Button>
+          </div>
+        ) : (
+          <div className="text-[9px] font-black italic text-[#FF5C00] uppercase">Team Leader</div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function ContestRegistrationPage() {
   const params = useParams();
@@ -30,7 +94,8 @@ export default function ContestRegistrationPage() {
   // Form State
   const [regMode, setRegMode] = useState("individual"); // individual, create_team, join_code
   const [teamName, setTeamName] = useState("");
-  const [teamAvatarUrl, setTeamAvatarUrl] = useState("");
+  const [teamAvatarFile, setTeamAvatarFile] = useState<File | null>(null);
+  const [teamAvatarPreview, setTeamAvatarPreview] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState("");
   const [memberIds, setMemberIds] = useState<string[]>([]); // Synced with teamDetail
   const [newMemberId, setNewMemberId] = useState("");
@@ -42,12 +107,35 @@ export default function ContestRegistrationPage() {
   console.log("contestResult", contestResult);
   const [registerContest, { isLoading: isRegistering }] = useRegisterContestMutation();
   const [createTeam, { isLoading: isCreatingTeam }] = useCreateTeamMutation();
-  const [joinContestTeamByCode, { isLoading: isJoiningByCode }] = useJoinContestTeamByCodeMutation();
+  const [joinContestTeamByCode, { isLoading: isJoiningTeamByCode }] = useJoinContestTeamByCodeMutation();
+  const [joinContestByCode, { isLoading: isJoiningContestByCode }] = useJoinContestByCodeMutation();
   const [addTeamMember, { isLoading: isAddingMember }] = useAddTeamMemberMutation();
   const [deleteTeamMember, { isLoading: isDeletingMember }] = useDeleteTeamMemberMutation();
 
+  // Fetch info for the user being added
+  const isEmail = newMemberId.includes("@");
+  const { data: idUserResult, isFetching: isSearchingById } = useGetUserByIdQuery(newMemberId.trim(), {
+    skip: isEmail || newMemberId.trim().length < 5,
+  });
+
+  const { data: searchResult, isFetching: isSearchingBySearch } = useSearchUsersQuery({ search: newMemberId.trim() }, {
+    skip: !isEmail || newMemberId.trim().length < 5,
+  });
+
+  const foundUser = isEmail
+    ? searchResult?.data?.find(u => u.email.toLowerCase() === newMemberId.trim().toLowerCase())
+    : idUserResult?.data;
+
+  const isSearchingUser = isSearchingById || isSearchingBySearch;
+
+
+  // Load existing team state in this contest
+  const { data: myTeamResult, isLoading: isMyTeamLoading } = useGetMyTeamInContestQuery(contestId);
+  const myTeamInContest = myTeamResult?.data;
+
   const { data: teamDetail, refetch: refetchTeam } = useGetTeamDetailQuery(createdTeamId || "", {
-    skip: !createdTeamId
+    skip: !createdTeamId,
+    pollingInterval: createdTeamId ? 5000 : 0, // Auto-update for leader when members join
   });
 
   useEffect(() => {
@@ -61,6 +149,19 @@ export default function ContestRegistrationPage() {
 
   const contestData = contestResult?.data;
   const allowTeams = contestData?.allowTeams ?? true;
+
+  const isRegExpired = contestData ? (new Date(contestData.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000) : false;
+
+  // Restore state if user is already in a team
+  useEffect(() => {
+    if (myTeamInContest) {
+      console.log("♻️ Restoring state from current team:", myTeamInContest);
+      setCreatedTeamId(myTeamInContest.teamId || myTeamInContest.id || null);
+      setTeamInviteCode(myTeamInContest.inviteCode);
+      setTeamName(myTeamInContest.teamName);
+      setRegMode(myTeamInContest.isPersonal ? "individual" : "create_team");
+    }
+  }, [myTeamInContest]);
 
   // Auto-set Solo mode if contest doesn't allow teams
   useEffect(() => {
@@ -78,8 +179,11 @@ export default function ContestRegistrationPage() {
       }
     } else if (regMode === "create_team" && teamDetail?.data?.members) {
       setMemberIds(teamDetail.data.members.map(m => m.userId));
+    } else if (myTeamInContest?.members) {
+      // For members who joined via code
+      setMemberIds(myTeamInContest.members.map(m => m.userId));
     }
-  }, [teamDetail, regMode, currentUser]);
+  }, [teamDetail, regMode, currentUser, myTeamInContest]);
 
   // Auth Guard
   useEffect(() => {
@@ -92,8 +196,34 @@ export default function ContestRegistrationPage() {
 
   const handleCopyInviteCode = () => {
     if (teamInviteCode) {
-      navigator.clipboard.writeText(teamInviteCode);
-      toast.success("Mã mời đã được sao chép!");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(teamInviteCode);
+        toast.success("Mã mời đã được sao chép!");
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = teamInviteCode;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success("Mã mời đã được sao chép!");
+        } catch (err) {
+          toast.error("Không thể sao chép tự động. Vui lòng sao chép thủ công.");
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setTeamAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTeamAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -105,7 +235,7 @@ export default function ContestRegistrationPage() {
     try {
       const result = await createTeam({
         teamName: teamName.trim(),
-        avatarUrl: teamAvatarUrl.trim() || ""
+        avatarUrl: teamAvatarPreview || ""
       }).unwrap();
       setCreatedTeamId(result.data.teamId);
       console.log("result", result.data);
@@ -122,10 +252,12 @@ export default function ContestRegistrationPage() {
       toast.error("Please enter a User ID to add.");
       return;
     }
+    const targetUserId = foundUser?.userId || newMemberId.trim();
+
     try {
       await addTeamMember({
         teamId: createdTeamId,
-        userId: newMemberId.trim()
+        userId: targetUserId
       }).unwrap();
       setNewMemberId("");
       toast.success("Member added to team!");
@@ -155,11 +287,25 @@ export default function ContestRegistrationPage() {
       toast.error("Invite code is required!");
       return;
     }
+    const code = inviteCode.trim();
     try {
-      await joinContestTeamByCode({ contestId, body: { code: inviteCode.trim() } }).unwrap();
-      toast.success("Joined team! The leader will register for the contest.");
+      // First try to join contest (assuming it might be a general contest invite)
+      try {
+        const res = await joinContestByCode({ inviteCode: code }).unwrap();
+        toast.success("Joined contest successfully!");
+        const targetId = res?.data?.contestId || res?.data?.id || res?.data || contestId;
+        router.push(`/Contest/${targetId}`);
+      } catch (err) {
+        // If it fails, it might be a specific team invite code
+        await joinContestTeamByCode({ contestId, body: { code } }).unwrap();
+        toast.success("Joined team! The leader will register for the contest.");
+        router.push(`/Contest/${contestId}`);
+      }
+
+      // Clear code and state will be recovered by myTeamResult
+      setInviteCode("");
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to join team.");
+      toast.error(error?.data?.message || "Invalid invite code or failed to join.");
     }
   };
 
@@ -173,8 +319,8 @@ export default function ContestRegistrationPage() {
         return;
       }
     } else if (regMode === "create_team") {
-      if (count !== 3) {
-        toast.error(`Team registration requires exactly 3 members. Current: ${count}`);
+      if (count < 1 || count > 3) {
+        toast.error(`Team registration requires 1 to 3 members. Current: ${count}`);
         return;
       }
     }
@@ -287,9 +433,9 @@ export default function ContestRegistrationPage() {
 
               <div className="flex items-center gap-3">
                 <AvatarGroup isBordered max={3} size="sm" className="opacity-80">
-                  <Avatar src="https://i.pravatar.cc/150?u=a042581f4e29026024d" />
-                  <Avatar src="https://i.pravatar.cc/150?u=a04258a2462d826712d" />
-                  <Avatar src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a042581f4e29026024d&t=${new Date().getTime()}`} />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a04258a2462d826712d&t=${new Date().getTime()}`} />
+                  <Avatar src={`https://i.pravatar.cc/150?u=a042581f4e29026704d&t=${new Date().getTime()}`} />
                 </AvatarGroup>
                 <p className="font-black italic uppercase text-xs">{(contestData as any).participants}</p>
               </div>
@@ -421,7 +567,7 @@ export default function ContestRegistrationPage() {
                           <div className="space-y-4">
                             <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Solo Registration</span>
                             <div className="p-6 bg-content1 rounded-2xl border-2 border-dashed border-[#FF5C00]/20 flex items-center gap-4">
-                              <Avatar src={currentUser?.avatarUrl || undefined} name={currentUser?.displayName || currentUser?.username} size="lg" isBordered color="warning" />
+                              <Avatar src={currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : undefined} name={currentUser?.displayName || currentUser?.username} size="lg" isBordered color="warning" />
                               <div>
                                 <p className="text-sm font-black italic uppercase">{currentUser?.displayName || currentUser?.username}</p>
                                 <p className="text-[10px] text-gray-500 font-bold uppercase">{currentUser?.email}</p>
@@ -450,19 +596,34 @@ export default function ContestRegistrationPage() {
                                       input: "font-black uppercase italic text-sm"
                                     }}
                                   />
-                                  <Input
-                                    label="TEAM AVATAR URL (OPTIONAL)"
-                                    value={teamAvatarUrl}
-                                    onValueChange={setTeamAvatarUrl}
-                                    placeholder="https://example.com/avatar.png"
-                                    variant="bordered"
-                                    labelPlacement="outside"
-                                    classNames={{
-                                      inputWrapper: "h-14 rounded-2xl border-2 hover:border-[#FF5C00] transition-colors",
-                                      label: "font-black italic uppercase text-[10px] pl-2 mb-2",
-                                      input: "font-black italic text-sm"
-                                    }}
-                                  />
+                                  <div className="flex flex-col gap-2">
+                                    <label className="font-black italic uppercase text-[10px] pl-2">
+                                      TEAM AVATAR (OPTIONAL)
+                                    </label>
+                                    <div className="flex items-center gap-4 h-14 px-4 bg-white dark:bg-[#1C2737] rounded-2xl border-2 border-dashed border-[#FF5C00]/20 hover:border-[#FF5C00]/50 transition-all cursor-pointer relative overflow-hidden group">
+                                      {teamAvatarPreview ? (
+                                        <Avatar src={teamAvatarPreview} size="sm" className="border-2 border-[#FF5C00]" />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-[#FF5C00]/10 flex items-center justify-center border-2 border-dashed border-[#FF5C00]/30 group-hover:bg-[#FF5C00]/20 transition-all">
+                                          <Plus className="text-[#FF5C00]" size={16} />
+                                        </div>
+                                      )}
+                                      <div className="flex-1">
+                                        <p className="text-[10px] font-black uppercase italic leading-none mb-0.5 truncate">
+                                          {teamAvatarFile ? teamAvatarFile.name : "Click to upload image"}
+                                        </p>
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase">
+                                          PNG, JPG, WEBP (Max 2MB)
+                                        </p>
+                                      </div>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
                                 <Button
                                   fullWidth
@@ -477,7 +638,16 @@ export default function ContestRegistrationPage() {
                               <div className="space-y-6">
                                 <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] flex justify-between items-center animate-in zoom-in-95">
                                   <div className="flex items-center gap-4">
-                                    <Avatar src={teamAvatarUrl} name={teamName} size="lg" className="border-2 border-green-500" />
+                                    <Avatar
+                                      src={teamAvatarPreview ? teamAvatarPreview : (() => {
+                                        const url = teamDetail?.data?.teamAvatarUrl || teamDetail?.data?.avatarUrl;
+                                        if (!url) return undefined;
+                                        return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                                      })()}
+                                      name={teamName}
+                                      size="lg"
+                                      className="border-2 border-green-500"
+                                    />
                                     <div>
                                       <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Team ID: {createdTeamId.slice(0, 8)}...</p>
                                       <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{teamName}</p>
@@ -502,9 +672,9 @@ export default function ContestRegistrationPage() {
 
                                 <div className="space-y-4">
                                   <div className="flex justify-between items-end">
-                                    <p className="text-xs font-black uppercase text-gray-400">Add Team Members ({memberIds.length}/5)</p>
-                                    <Chip size="sm" variant="dot" color={memberIds.length < 3 ? "warning" : "success"} className="font-black italic text-[9px] uppercase">
-                                      {memberIds.length < 3 ? "Needs more" : "Ready to register"}
+                                    <p className="text-xs font-black uppercase text-gray-400">Add Team Members ({memberIds.length}/3)</p>
+                                    < Chip size="sm" variant="dot" color={memberIds.length < 1 ? "warning" : "success"} className="font-black italic text-[9px] uppercase">
+                                      {memberIds.length < 1 ? "Needs members" : "Ready to register"}
                                     </Chip>
                                   </div>
 
@@ -512,7 +682,7 @@ export default function ContestRegistrationPage() {
                                     <Input
                                       value={newMemberId}
                                       onValueChange={setNewMemberId}
-                                      placeholder="ENTER USER ID (UUID)"
+                                      placeholder="ENTER EMAIL OR USER ID"
                                       variant="bordered"
                                       className="flex-1"
                                       classNames={{
@@ -525,73 +695,62 @@ export default function ContestRegistrationPage() {
                                       className="h-14 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-8"
                                       onPress={handleAddMember}
                                       isLoading={isAddingMember}
-                                      isDisabled={memberIds.length >= 5}
+                                      isDisabled={memberIds.length >= 3 || (isEmail && !foundUser)}
                                     >
                                       Add
                                     </Button>
                                   </div>
 
-                                  <div className="grid grid-cols-1 gap-3 pt-4">
-                                    {teamDetail?.data?.members?.map((m: any, index: number) => {
-                                      // Priority: displayName > userName > (firstName + lastName) > username > Member ID
-                                      const fullName = m.displayName || m.user?.displayName || m.userName || (m.firstName || m.lastName ? `${m.firstName || ""} ${m.lastName || ""}`.trim() : null) || m.username || m.user?.username || `Member ${m.userId?.slice(0, 4) || "????"}`;
-                                      const emailDisplay = m.email || m.user?.email || "Email not public";
-
-                                      return (
-                                        <div key={m.userId} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 group animate-in slide-in-from-left-2 transition-all hover:border-[#FF5C00]/30 shadow-sm">
-                                          <div className="flex items-center gap-4">
-                                            <Avatar
-                                              src={m.avatarUrl || m.user?.avatarUrl || undefined}
-                                              name={fullName}
-                                              className="w-10 h-10 border-2 border-[#071739]"
-                                            />
-                                            <div className="text-left">
-                                              <p className="text-xs font-black uppercase italic leading-none truncate max-w-[200px]">
-                                                {fullName}
-                                              </p>
-                                              <p className="text-[9px] text-gray-400 font-bold lowercase truncate max-w-[200px]">
-                                                {emailDisplay}
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            {m.userId === teamDetail.data.leaderId ? (
-                                              <Chip size="sm" className="bg-[#FF5C00] text-white text-[8px] font-black italic uppercase px-2 h-5 border-none">Leader</Chip>
-                                            ) : (
-                                              <div className="flex items-center gap-2">
-                                                <div className="text-[9px] font-black italic text-green-500 uppercase">Verified Member</div>
-                                                <Button
-                                                  isIconOnly
-                                                  size="sm"
-                                                  variant="flat"
-                                                  color="danger"
-                                                  className="h-7 w-7 min-w-0 rounded-lg group-hover:bg-danger group-hover:text-white transition-all shadow-sm"
-                                                  onPress={() => handleRemoveMember(m.userId)}
-                                                  isLoading={isDeletingMember}
-                                                >
-                                                  <X size={14} />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
+                                  {newMemberId.trim().length >= 5 && foundUser && !memberIds.includes(foundUser.userId) && (
+                                    <div className="p-3 rounded-2xl bg-slate-100 dark:bg-white/5 border border-[#FF5C00]/30 animate-in fade-in zoom-in-95 transition-all">
+                                      <div className="flex items-center gap-3">
+                                        <Avatar src={foundUser.avatarUrl ? `${foundUser.avatarUrl}?t=${new Date().getTime()}` : undefined} name={foundUser.displayName} size="sm" className="border-2 border-[#FF5C00]" />
+                                        <div className="text-left">
+                                          <p className="text-[10px] font-black uppercase italic leading-none">{foundUser.displayName}</p>
+                                          <p className="text-[8px] text-gray-500 font-bold lowercase">{foundUser.email}</p>
                                         </div>
-                                      );
-                                    })}
-                                  </div>
-
-                                  {memberIds.length === 2 && (
-                                    <div className="p-4 bg-orange-500/10 border-2 border-dashed border-orange-500/30 rounded-2xl animate-pulse">
-                                      <p className="text-[10px] font-black text-orange-600 uppercase italic text-center">
-                                        ⚠️ Warning: Current team size is 2. You must add 1 more to make it 3 to register!
-
-                                      </p>
+                                        {isSearchingUser ? (
+                                          <div className="ml-auto animate-spin h-4 w-4 border-2 border-[#FF5C00] border-t-transparent rounded-full" />
+                                        ) : (
+                                          <div className="ml-auto flex items-center gap-2">
+                                            <Chip size="sm" color="success" variant="flat" className="text-[8px] font-black italic">USER FOUND</Chip>
+                                            <Button
+                                              size="sm"
+                                              color="success"
+                                              variant="shadow"
+                                              className="font-black italic uppercase text-[10px] rounded-xl h-8 px-4"
+                                              onPress={handleAddMember}
+                                              isLoading={isAddingMember}
+                                            >
+                                              Add Now
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
+
+
+                                  <div className="grid grid-cols-1 gap-3 pt-4">
+                                    {teamDetail?.data?.members?.map((m: any) => (
+                                      <TeamMemberItem
+                                        key={m.userId}
+                                        m={m}
+                                        leaderId={teamDetail.data.leaderId}
+                                        currentUser={currentUser}
+                                        onRemove={handleRemoveMember}
+                                        isDeleting={isDeletingMember}
+                                      />
+                                    ))}
+                                  </div>
+
+
+
 
                                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 mt-2">
                                     <p className="text-[10px] text-gray-500 font-bold uppercase italic leading-relaxed">
                                       * Important: Every member must be added to the team system before you can register for the contest.
-                                      You need exactly <span className="text-[#FF5C00]">3 members</span>.
+                                      You can register with <span className="text-[#FF5C00]">up to 3 members</span>.
                                     </p>
                                   </div>
                                 </div>
@@ -602,7 +761,7 @@ export default function ContestRegistrationPage() {
 
                         {regMode === "join_code" && (
                           <div className="space-y-6">
-                            <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Join Existing Team</span>
+                            <span className="text-xs font-black italic uppercase text-gray-400">Section 02: Join Existing Team / Contest</span>
                             <div className="flex gap-4">
                               <Input
                                 label="ENTER INVITE CODE"
@@ -621,14 +780,52 @@ export default function ContestRegistrationPage() {
                               <Button
                                 className="h-14 mt-6 bg-[#FF5C00] text-white font-black italic uppercase rounded-2xl px-10 shadow-lg shadow-[#FF5C00]/20"
                                 onPress={handleJoinByCode}
-                                isLoading={isJoiningByCode}
+                                isLoading={isJoiningTeamByCode || isJoiningContestByCode}
                               >
-                                Join Team
+                                Join Now
                               </Button>
                             </div>
+
+                            {myTeamInContest && !myTeamInContest.isPersonal && (
+                              <div className="p-6 bg-green-50 dark:bg-green-900/10 border-2 border-green-500/20 rounded-[2rem] animate-in zoom-in-95">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <Avatar
+                                      src={(() => {
+                                        const url = myTeamInContest.teamAvatarUrl || myTeamInContest.avatarUrl;
+                                        if (!url) return undefined;
+                                        return url.startsWith("http") ? `${url}?t=${new Date().getTime()}` : url;
+                                      })()}
+                                      name={myTeamInContest.teamName}
+                                      size="lg"
+                                      className="border-2 border-green-500"
+                                    />
+                                    <div>
+                                      <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">You Joined Team</p>
+                                      <p className="text-2xl font-[1000] italic text-green-700 uppercase leading-none">{myTeamInContest.teamName}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase">Leader: {myTeamInContest.members.find(m => m.userId === myTeamInContest.leaderId)?.displayName || "Team Leader"}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Chip color="success" variant="solid" className="font-black italic border-none text-white">READY</Chip>
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                  <AvatarGroup max={5} size="sm" isBordered>
+                                    {myTeamInContest.members.map(m => (
+                                      <Avatar key={m.userId} src={m.avatarUrl ? `${m.avatarUrl}?t=${new Date().getTime()}` : undefined} name={m.displayName} />
+                                    ))}
+                                  </AvatarGroup>
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase self-center italic">Leader will handle the registration.</p>
+                                </div>
+                              </div>
+                            )}
+
                             <div className="p-6 rounded-2xl bg-gray-100 dark:bg-gray-800/50 border-2 border-dashed border-gray-300">
                               <p className="text-[11px] font-black uppercase text-gray-500 leading-relaxed text-center">
-                                Once you join a team, the team leader will be responsible for registering the entire team for the contest.
+                                Join a team or contest to create your profile.
+                                <br />
+                                Team leaders complete the registration.
                               </p>
                             </div>
                           </div>
@@ -683,11 +880,11 @@ export default function ContestRegistrationPage() {
                       fullWidth
                       size="lg"
                       isLoading={isRegistering}
-                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length !== 3 && memberIds.length !== 5))}
-                      className="bg-[#071739] text-white font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-[0_15px_40px_rgba(7,23,57,0.4)] hover:scale-[1.02] active:scale-95 transition-all"
+                      isDisabled={(regMode === "individual" && memberIds.length !== 1) || (regMode === "create_team" && (memberIds.length < 1 || memberIds.length > 3)) || isRegExpired}
+                      className={`font-[1000] italic uppercase h-16 rounded-[1.5rem] shadow-lg transition-all ${isRegExpired ? "bg-gray-500 text-gray-300" : "bg-[#071739] text-white shadow-[#071739]/40 hover:scale-[1.02] active:scale-95"}`}
                       onPress={handleRegister}
                     >
-                      Confirm Registration
+                      {isRegExpired ? "Registration Closed" : "Confirm Registration"}
                     </Button>
                   )}
                   {regMode === "join_code" && (
@@ -707,9 +904,10 @@ export default function ContestRegistrationPage() {
               <ul className="space-y-4">
                 {[
                   "Solo: Exactly 1 player",
-                  "Team: Exactly 3 or 5 members",
+                  "Team: 1 to 3 members",
                   "Leader handles registration",
-                  "Verified IDs required"
+                  "Verified IDs required",
+                  "Registration deadline: 8h before start"
                 ].map((rule, i) => (
                   <li key={i} className="flex gap-3 items-center text-[11px] font-black italic uppercase text-gray-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
@@ -718,9 +916,15 @@ export default function ContestRegistrationPage() {
                 ))}
               </ul>
               <Divider />
-              <div className="flex items-center gap-4 text-gray-400">
-                <Info size={16} />
-                <p className="text-[10px] font-black italic uppercase">Registration changes lock 2h before start.</p>
+              <div className="flex flex-col gap-2 pt-2">
+                <div className="flex items-center gap-4 text-gray-400">
+                  <Info size={16} />
+                  <p className="text-[10px] font-black italic uppercase">Registration changes lock 2h before start.</p>
+                </div>
+                <div className="flex items-center gap-4 text-red-500/80">
+                  <Clock size={16} />
+                  <p className="text-[10px] font-black italic uppercase">Registration closes 8h before start.</p>
+                </div>
               </div>
             </div>
           </div>

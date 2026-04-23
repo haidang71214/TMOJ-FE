@@ -870,6 +870,8 @@ export interface ContestDto {
   visibilityCode: string; // Đổi từ visibility sang visibilityCode cho list
   allowTeams: boolean;
   status: string;
+  totalTeams?: number;
+  totalMembers?: number;
   contestType: string;
   isRegistered?: boolean;
   participants?: number; // Thêm nếu cần, từ UpcomingContests.tsx đang dùng (contest as any).participants
@@ -1050,6 +1052,51 @@ export interface LeaderboardResponse {
   teams: LeaderboardTeam[];
 }
 
+export interface ProblemAttemptDTO {
+  problemId: string;
+  isSolved: boolean;
+  isFirstBlood: boolean;
+  attemptsCount: number;
+  penaltyTime?: number;
+  pendingCount?: number;
+}
+
+export interface ScoreboardRowDTO {
+  rank: number;
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  fullname?: string;
+  totalSolved: number;
+  totalPenalty: number;
+  problems: ProblemAttemptDTO[];
+}
+
+export interface ContestProblemHeaderDTO {
+  id: string;
+  title: string;
+  balloonColor?: string;
+  solvedCount: number;
+  totalAttempts: number;
+}
+
+export interface ScoreboardResponseDTO {
+  contestId: string;
+  contestName: string;
+  status: "upcoming" | "running" | "ended";
+  frozen: boolean;
+  problems: ContestProblemHeaderDTO[];
+  rows: ScoreboardRowDTO[];
+  lastUpdated: string;
+}
+
+export interface ScoreboardResponse {
+  success: boolean;
+  data: ScoreboardResponseDTO;
+  message: string;
+  traceId: string | null;
+}
+
 // ── Team API Definitions ───────────────────────
 
 export interface CreateTeamRequest {
@@ -1079,14 +1126,22 @@ export interface TeamMember {
 }
 
 export interface TeamDetail {
-  id: string;
+  id?: string;
+  teamId: string;
+  contestId: string;
   teamName: string;
+  avatarUrl?: string | null;
+  teamAvatarUrl?: string | null;
   leaderId: string;
   teamSize: number;
+  memberCount: number;
   isPersonal: boolean;
   inviteCode: string;
-  createdAt: string;
+  joinedAt: string;
+  createdAt?: string;
   members: TeamMember[];
+  rank: number | null;
+  score: number | null;
 }
 
 export interface TeamDetailResponse {
@@ -1123,6 +1178,16 @@ export interface RegisterContestResponse {
   data: string; // Registration ID
   message: string;
   traceId: string | null;
+}
+
+export interface JoinContestByCodeRequest {
+  inviteCode: string;
+}
+
+export interface MyTeamResponse {
+  success: boolean;
+  data: TeamDetail | null;
+  message: string;
 }
 export interface StudentNotYet {
   avatarUrl: string | null;
@@ -1213,6 +1278,8 @@ export interface ContestParticipantMember {
 export interface ContestParticipantTeam {
   teamId: string;
   teamName: string;
+  avatarUrl?: string | null;
+  teamAvatarUrl?: string | null;
   isPersonal: boolean;
   leaderId: string;
   joinAt: string;
@@ -1257,12 +1324,28 @@ export interface CollectionItem {
   updatedAt: string;
   createdAt: string;
   items?: any[];
+  totalItems: number;
+  problemCount: number;
+  contestCount: number;
+  solvedProblems: number;
+  owner?: {
+    userId: string;
+    userName: string;
+    displayName: string;
+    avatarUrl: string | null;
+  };
 }
 
 export interface CollectionResponse {
   data: CollectionItem[];
   message?: string;
   totalCount?: number;
+  meta?: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
 }
 
 export interface CollectionDetailResponse {

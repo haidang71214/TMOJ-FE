@@ -238,22 +238,43 @@ export default function MyListDetailPage() {
     try {
       // If collection is private, make it public first
       if (!isVisible && currentId !== "Favorite") {
-        await updateCollection({
+        const result = await updateCollection({
           id: currentId,
           body: {
             name: listTitle,
             description: listDesc,
             isVisibility: true
           }
-        }).unwrap();
-        setIsVisible(true);
-        toast.info(language === 'vi' ? "Đã chuyển bộ sưu tập sang công khai để chia sẻ" : "Collection made public for sharing");
+        });
+
+        if ("data" in result) {
+          setIsVisible(true);
+          toast.info(language === 'vi' ? "Đã chuyển bộ sưu tập sang công khai để chia sẻ" : "Collection made public for sharing");
+        } else {
+          toast.error(language === 'vi' ? "Không thể chuyển sang công khai" : "Failed to make collection public");
+          return; // Stop if update fails
+        }
       }
 
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success(language === 'vi' ? "Đã sao chép liên kết vào bộ nhớ tạm!" : "Link copied to clipboard!");
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success(language === 'vi' ? "Đã sao chép liên kết vào bộ nhớ tạm!" : "Link copied to clipboard!");
+      } else {
+        // Fallback for non-secure contexts or missing clipboard API
+        const textArea = document.createElement("textarea");
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success(language === 'vi' ? "Đã sao chép liên kết vào bộ nhớ tạm!" : "Link copied to clipboard!");
+        } catch (err) {
+          toast.error(language === 'vi' ? "Không thể sao chép liên kết" : "Could not copy link");
+        }
+        document.body.removeChild(textArea);
+      }
     } catch (err: any) {
-      toast.error(err?.data?.message || (language === 'vi' ? "Không thể chia sẻ danh sách" : "Failed to share list"));
+      toast.error(language === 'vi' ? "Không thể chia sẻ danh sách" : "Failed to share list");
     }
   };
 

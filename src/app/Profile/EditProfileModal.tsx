@@ -100,7 +100,7 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                 <div className="flex items-center gap-5 relative z-10">
                   <Avatar
                     name={profile?.displayName || profile?.username}
-                    src={profile?.avatarUrl ?? undefined}
+                    src={profile?.avatarUrl ? `${profile.avatarUrl}?t=${new Date().getTime()}` : undefined}
                     size="lg"
                     className="ring-4 ring-white/20 text-white bg-white/10 font-black text-xl flex-shrink-0"
                   />
@@ -185,11 +185,10 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                   startContent={<Lock size={15} className="text-rose-400 flex-shrink-0" />}
                   classNames={{
                     label: "text-xs font-black uppercase tracking-wider text-slate-500",
-                    inputWrapper: `border-slate-200 dark:border-white/10 transition-colors ${
-                      passwordError
-                        ? "border-rose-500 hover:border-rose-500"
-                        : "hover:border-rose-400 focus-within:border-rose-500"
-                    }`,
+                    inputWrapper: `border-slate-200 dark:border-white/10 transition-colors ${passwordError
+                      ? "border-rose-500 hover:border-rose-500"
+                      : "hover:border-rose-400 focus-within:border-rose-500"
+                      }`,
                     description: "text-slate-400 text-[11px]",
                   }}
                 />

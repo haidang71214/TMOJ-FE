@@ -37,7 +37,7 @@ import {
   useGetContestListQuery,
   useGetMyContestsQuery,
   useUnregisterContestMutation,
-  useGetContestParticipantsQuery
+  useJoinContestByCodeMutation
 } from "@/store/queries/Contest";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
 import { toast } from "sonner";
@@ -54,10 +54,7 @@ const globalRanking = [
   { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
 ];
 
-const ParticipantCount = ({ contestId }: { contestId: string }) => {
-  const { data } = useGetContestParticipantsQuery(contestId);
-  return <>{data?.data?.totalUsers || 0}</>;
-};
+
 
 export default function UpcomingContests() {
   const [selectedTab, setSelectedTab] = useState("my");
@@ -80,6 +77,7 @@ export default function UpcomingContests() {
   // 2. Fetch danh sách contest của tôi (đã đăng ký)
   const { data: myContestsData } = useGetMyContestsQuery({}, { skip: !currentUser });
   const [unregisterContest] = useUnregisterContestMutation();
+  const [joinContestByCode, { isLoading: isJoining }] = useJoinContestByCodeMutation();
 
   // API Favorites cho Contest
   const { data: favoriteContestsData } = useGetFavoriteContestsQuery({ page: 1, pageSize: 1000 }, { skip: !currentUser });
@@ -158,6 +156,28 @@ export default function UpcomingContests() {
     const statusLower = c.status?.toLowerCase();
     return statusLower === "ended" || statusLower === "past" || isPast;
   });
+
+  const handleJoinByCode = async () => {
+    if (!inviteCode.trim()) {
+      toast.error("Invite code is required!");
+      return;
+    }
+    try {
+      const res = await joinContestByCode({ inviteCode: inviteCode.trim() }).unwrap();
+      toast.success(res.message || "Joined contest successfully!");
+      setInviteCode("");
+
+      // Redirect to the contest page
+      const targetId = res?.data?.contestId || res?.data?.id || res?.data;
+      if (targetId && typeof targetId === 'string') {
+        router.push(`/Contest/${targetId}`);
+      } else {
+        setSelectedTab("my");
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to join contest. Check your code.");
+    }
+  };
 
   if (isLoading) {
     return <div className="text-center py-20 font-black italic uppercase">Loading Contests...</div>;
@@ -240,7 +260,7 @@ export default function UpcomingContests() {
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic">
                       <span className="flex gap-2 items-center">
                         <Users size={14} className="text-[#FF5C00]" />{" "}
-                        <ParticipantCount contestId={contest.id} /> Students
+                        {contest.totalMembers || 0} Students
                       </span>
                       <span className="flex gap-2 items-center">
                         <Clock size={14} className="text-[#FF5C00]" />{" "}
@@ -259,19 +279,25 @@ export default function UpcomingContests() {
                         In Progress <Clock size={18} />
                       </Button>
                     ) : (
-                      <Button
-                        fullWidth
-                        className="bg-[#071739] text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90"
-                        onPress={() => {
-                          if (!currentUser) {
-                            openModal({ title: "Đăng nhập", content: <LoginModal /> });
-                            return;
-                          }
-                          router.push(`/Contest/${contest.id}/register`);
-                        }}
-                      >
-                        Register Now <ArrowRight size={18} />
-                      </Button>
+                      (() => {
+                        const isRegExpired = new Date(contest.startAt).getTime() - Date.now() < 8 * 60 * 60 * 1000;
+                        return (
+                          <Button
+                            fullWidth
+                            isDisabled={isRegExpired}
+                            className={`font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 ${isRegExpired ? "bg-gray-400 text-white cursor-not-allowed opacity-70" : "bg-[#071739] text-white hover:opacity-90 shadow-lg"}`}
+                            onPress={() => {
+                              if (!currentUser) {
+                                openModal({ title: "Đăng nhập", content: <LoginModal /> });
+                                return;
+                              }
+                              router.push(`/Contest/${contest.id}/register`);
+                            }}
+                          >
+                            {isRegExpired ? "Registration Closed" : "Register Now"} <ArrowRight size={18} />
+                          </Button>
+                        );
+                      })()
                     )
                   ) : (
                     <Button
@@ -470,6 +496,8 @@ export default function UpcomingContests() {
               />
               <Button
                 fullWidth
+                isLoading={isJoining}
+                onPress={handleJoinByCode}
                 className="bg-[#071739] text-white font-black rounded-2xl uppercase italic transition-all duration-300 hover:bg-[#00FF41] hover:text-[#071739]"
               >
                 Join

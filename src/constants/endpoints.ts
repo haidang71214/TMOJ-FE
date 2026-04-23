@@ -14,6 +14,8 @@ const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,
   UPDATE_INFOMATION: `${API_PREFIX}/users/profile`,
   UPDATE_ME: `${API_PREFIX}/User/me`,
+  UPDATE_AVATAR: `${API_PREFIX}/User/me/avatar`,
+  DELETE_AVATAR: `${API_PREFIX}/User/me/avatar`,
 }
 const AdminUserEndPoint = {
   GET_LIST_USER: `${API_PREFIX}/User/list-all`, // bệt đuôi api vô
@@ -60,8 +62,8 @@ const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
   GET_SUBMITTION: `${API_LON}/submissions/{submissionId}`,
   GET_SUBMISSIONS_LIST_BY_PROBLEM: `${API_LON}/submissions/{problemId}/submissionslist`,
-// tách biệt ở đây
-  
+  // tách biệt ở đây
+
 }
 const RuntimeEndpoint = {
   GET_ALL_RUNTIME: `${API_PREFIX}/Runtimes`,
@@ -191,7 +193,12 @@ const ContestEndpoint = {
   CHANGE_VISIBILITY: `${API_PREFIX}/contests/{id}/visibility`,
   EXTEND_CONTEST: `${API_PREFIX}/contests/{id}/extend`,
   JOIN_CONTEST_TEAM_BY_CODE: `${API_PREFIX}/contests/{contestId}/teams/join-by-code`,
+  JOIN_CONTEST_BY_CODE: `${API_PREFIX}/contests/join-by-code`,
   GET_CONTEST_PARTICIPANTS: `${API_PREFIX}/contests/{id}/participants`,
+  GET_SCOREBOARD: `${API_PREFIX}/contests/{id}/scoreboard`,
+  FREEZE_CONTEST: `${API_PREFIX}/contests/{id}/freeze`,
+  UNFREEZE_CONTEST: `${API_PREFIX}/contests/{id}/unfreeze`,
+  GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
 };
 
 const TeamEndpoint = {
@@ -200,6 +207,7 @@ const TeamEndpoint = {
   ADD_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members`,
   DELETE_TEAM_MEMBER: `${API_PREFIX}/teams/{id}/members/{userId}`,
   JOIN_BY_CODE: `${API_PREFIX}/teams/join-by-code`,
+  UPDATE_AVATAR: `${API_PREFIX}/teams/{id}/avatar`,
 };
 
 const ProblemEditorialEndpoint = {
@@ -243,6 +251,13 @@ const StudyPlanEndpoint = {
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
 };
 
+const AdminGamificationEndpoint = {
+  BADGES: `${API_PREFIX}/gamification/badges`,
+  BADGE_ID: `${API_PREFIX}/gamification/badges/{id}`,
+  BADGE_RULES: `${API_PREFIX}/gamification/badge-rules`,
+  BADGE_RULE_ID: `${API_PREFIX}/gamification/badge-rules/{id}`,
+};
+
 export {
   ClassSlotEndpoint,
   authEndpoint,
@@ -264,5 +279,6 @@ export {
   ProblemEditorialEndpoint,
   FavoriteEndpoint,
   CollectionEndpoint,
-  StudyPlanEndpoint
+  StudyPlanEndpoint,
+  AdminGamificationEndpoint
 };

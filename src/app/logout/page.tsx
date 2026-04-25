@@ -15,10 +15,9 @@ export default function Page() {
     const [logout] = useLogoutMutation();
   useEffect(() => {
     const auto_logout = async () => {
+      const host = window.location.host;
+      const is_admin = host.startsWith("admin.");
       try {
-        const host = window.location.host;
-        const is_admin = host.startsWith("admin.");
-
         await logout().unwrap();
 
         dispatch(baseApi.util.resetApiState());
@@ -33,7 +32,16 @@ export default function Page() {
         }
 
       } catch {
+        // Dù API lỗi vẫn phải clear local state và redirect
+        dispatch(baseApi.util.resetApiState());
+        webStorageClient.logout();
         addToast({ title: "Logout Success", color: "success" });
+
+        if (is_admin) {
+          window.location.href = PAGE_URL;
+        } else {
+          router.replace("/");
+        }
       }
     };
 

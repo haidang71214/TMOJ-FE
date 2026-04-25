@@ -354,7 +354,6 @@ export default function RemixProblemForm({ originId }: RemixProblemFormProps) {
               onSelectionChange={(keys) => setForm({ ...form, visibilityCode: Array.from(keys)[0] as string })}
             >
               <SelectItem key="public" textValue="Public">Public</SelectItem>
-              <SelectItem key="in-class" textValue="In Class">In Class</SelectItem>
               <SelectItem key="in-bank" textValue="In Bank">In Bank</SelectItem>
             </Select>
           </div>

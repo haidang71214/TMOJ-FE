@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { UpdateSlotProblemRequest } from "@/types";
 import { useDeleteSlotProblemsMutation, useUpdateSlotProblemsMutation } from "@/store/queries/Class";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useModal } from "@/Provider/ModalProvider";
 
 interface Props {
   semesterId: string;
@@ -30,6 +31,7 @@ export default function UpdateProblemIntoSlot({
   problems,
 }: Props) {
   const { t, language } = useTranslation();
+  const { closeModal } = useModal();
   const [items, setItems] = useState<ProblemItem[]>(() => {
     if (problems.length === 0) return problems;
     // Tạm thời chia đều 10 điểm, ưu tiên làm tròn số nguyên sao cho tổng luôn = 10
@@ -116,7 +118,8 @@ export default function UpdateProblemIntoSlot({
         data: items.map(({ title, ...rest }) => rest),
       }).unwrap();
 
-      toast.success(t('class_semester.update_slot_success') || (language === 'vi' ? 'Cập nhật thành công!' : 'Update slot problems success!'));
+      toast.success(t('class_semester.update_slot_success') || (language === 'vi' ? 'Cập nhật thành công!' : 'Update exam problems success!'));
+      closeModal();
     } catch (err) {
       console.error(err);
       toast.error(t('class_semester.update_failed') || (language === 'vi' ? 'Cập nhật thất bại' : 'Update failed'));
@@ -141,7 +144,7 @@ export default function UpdateProblemIntoSlot({
 
           <div>
             <h2 className="text-2xl font-[900] text-gray-900 dark:text-white">
-              {t('class_semester.update_problems_slot') || (language === 'vi' ? 'Cập nhật bài tập trong Slot' : 'Update Problems In Slot')}
+              {t('class_semester.update_problems_slot') || (language === 'vi' ? 'Cập nhật bài tập trong Bài kiểm tra' : 'Update Problems In Exam')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400">
               {t('class_semester.update_problems_slot_desc') || (language === 'vi' ? 'Chỉnh sửa thứ tự, điểm, yêu cầu và xóa bài tập' : 'Edit ordinal, points, required and remove problems')}
@@ -154,7 +157,7 @@ export default function UpdateProblemIntoSlot({
       <div className="flex-1 px-6 py-6 overflow-y-auto space-y-3">
         {items.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-            {t('class_semester.no_problems_in_slot') || (language === 'vi' ? 'Không còn bài tập nào trong slot này.' : 'No more problems in this slot.')}
+            {t('class_semester.no_problems_in_slot') || (language === 'vi' ? 'Không còn bài tập nào trong bài kiểm tra này.' : 'No more problems in this exam.')}
           </div>
         ) : (
           items.map((p, index) => (
@@ -177,7 +180,7 @@ export default function UpdateProblemIntoSlot({
 
               <Input
                 type="number"
-                label={t('class_semester.ordinal') || (language === 'vi' ? 'Thứ tự' : 'Ordinal')}
+                label={t('class_semester.header_ordinal') || (language === 'vi' ? 'SỐ THỨ TỰ' : 'ORDINAL')}
                 size="sm"
                 className="w-24"
                 value={p.ordinal.toString()}

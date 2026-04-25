@@ -46,7 +46,9 @@ export default function CreateProblemForm() {
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
   const isTeacher = userData?.role?.toLowerCase() === "teacher" || userData?.role?.includes("teacher");
   const isManager = userData?.role?.toLowerCase() === "manager" || userData?.role?.includes("manager");
-  console.log(isManager, isTeacher);
+  const isAdmin = userData?.role?.toLowerCase() === "admin" || userData?.role?.includes("admin");
+  const isPrivileged = isAdmin || isTeacher || isManager;
+  console.log("Roles:", { isAdmin, isManager, isTeacher, isPrivileged });
   
   // ── STEP 1: Problem form ──────────────────────────────────────────────────
   const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({
@@ -91,6 +93,14 @@ export default function CreateProblemForm() {
     });
     return;
   }
+  if (!form.descriptionMd && !statementFile) {
+    addToast({ 
+      title: t('common.error') || "Error", 
+      description: "Description or Statement file is required", 
+      color: "danger" 
+    });
+    return;
+  }
 
   // LOGIC KIỂM TRA: CHỈ ĐƯỢC CHỌN 1 TRONG 2
   const hasDescription = form.descriptionMd.trim().length > 0;
@@ -131,14 +141,14 @@ export default function CreateProblemForm() {
     formData.append("memoryLimitKb", form.memoryLimitKb.toString());
     formData.append("problemMode", form.problemMode);
     
-    const finalStatusCode = (isTeacher || isManager) ? "published" : form.statusCode;
+    const finalStatusCode = isPrivileged ? "published" : form.statusCode;
     formData.append("statusCode", finalStatusCode);
 
     // CHỈ APPEND CÁI NÀO CÓ DỮ LIỆU
     if (hasDescription) {
       formData.append("descriptionMd", form.descriptionMd);
     } else if (hasFile) {
-      formData.append("StatementFile", statementFile);
+      formData.append("statementFile", statementFile);
     }
 
     if (form.tagIds && form.tagIds.length > 0) {
@@ -442,8 +452,8 @@ export default function CreateProblemForm() {
                   <RequiredStar rules={[t('common.required_field') || "Required field"]} />
                 </div>
               }
-              selectedKeys={[(isTeacher || isManager) ? "published" : form.statusCode]}
-              isDisabled={isTeacher || isManager}
+              selectedKeys={[isPrivileged ? "published" : form.statusCode]}
+              isDisabled={isPrivileged}
               onSelectionChange={(keys) => {
                 if (isTeacher || isManager) return;
                 const value = Array.from(keys)[0] as "draft" | "pending" | "published" | "archived";

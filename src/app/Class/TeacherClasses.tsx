@@ -20,11 +20,14 @@ import {
   LogOut,
   BookX,
   Loader2,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import LeaveClassModal from "./../components/LeaveClassModal";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCurrentSemester } from "@/hooks/useCurrentSemester";
+import { useModal } from "@/Provider/ModalProvider";
+import CreateClassModal from "../Management/Class/components/CreateClassModal";
 
 import { useGetMyClassesTeacherQuery } from "@/store/queries/Class";
 import { ClassItem } from "@/types";
@@ -56,6 +59,7 @@ export default function TeacherClasses() {
     pageSize: rowsPerPage, 
     semesterId: querySemesterId 
   }, { skip: selectedSemesterId === "INITIALIZING" });
+  const { openModal } = useModal();
   const { t } = useTranslation();
   const fetchedClasses = responseData?.data?.items || [];
   const totalCount = responseData?.data?.totalCount || 0;
@@ -158,6 +162,13 @@ console.log(responseData);
             className="bg-blue-600 text-white h-11 w-11 rounded-lg transition-transform hover:scale-105"
           >
             <RefreshCw size={18} />
+          </Button>
+          <Button
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-lg shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
+            startContent={<Plus size={16} />}
+            onPress={() => openModal({ content: <CreateClassModal /> })}
+          >
+            {t('class_management.create_button') || "CREATE NEW CLASS"}
           </Button>
         </div>
 

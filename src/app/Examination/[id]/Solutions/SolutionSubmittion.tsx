@@ -12,6 +12,7 @@ import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
 import { VerdictCode } from "@/types"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 
 interface SolutionSubmittionProps {
   editorHeight: number;
@@ -87,11 +88,12 @@ export default function SolutionSubmittion({
   const runtimes = runtimeData?.data ?? []
 
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null)
-  const [code, setCode] = useState(TEMPLATES.cpp)
+  const [code, setCode] = useState("")
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
+  const { data: problemData } = useGetDetailProblemPublicQuery({id : problemId });
 
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
@@ -226,12 +228,18 @@ export default function SolutionSubmittion({
   useEffect(() => {
     if (!selectedRuntime) return;
     const currentCode = code.trim();
-    const isDefaultTemplate = Object.values(TEMPLATES).some(t => t.trim() === currentCode) || currentCode === "" || currentCode.includes("class Solution {");
+    // Only update if current code is empty or a known template
+    const isDefaultTemplate = currentCode === "" || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
     
     if (isDefaultTemplate) {
-      setCode(TEMPLATES[editorLanguage] || TEMPLATES["cpp"]);
+      if (problemData?.problemMode === "pro") {
+        if (code !== "") setCode("");
+      } else {
+        const newTemplate = TEMPLATES[editorLanguage] || TEMPLATES["cpp"];
+        if (code !== newTemplate) setCode(newTemplate);
+      }
     }
-  }, [editorLanguage, selectedRuntime]);
+  }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
 
   // ==================== HANDLE SUBMIT ====================
 

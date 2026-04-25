@@ -60,14 +60,14 @@ export default function SlotManagementModal({
     try {
       if (!slot.isPublished) {
         await publishSlot({ semesterId, slotId: slot.id }).unwrap();
-        toast.success(`Slot #${slot.slotNo} published!`);
+        toast.success(`Exam #${slot.slotNo} published!`);
       } else {
         await updateSlot({
           semesterId,
           slotId: slot.id,
           data: { isPublished: false },
         }).unwrap();
-        toast.success(`Slot #${slot.slotNo} unpublished`);
+        toast.success(`Exam #${slot.slotNo} unpublished`);
       }
       refetch();
     } catch (err) {
@@ -101,12 +101,12 @@ export default function SlotManagementModal({
           description: editDescription.trim() || undefined,
         },
       }).unwrap();
-      toast.success("Slot updated!");
+      toast.success("Exam updated!");
       cancelEdit();
       refetch();
     } catch (err) {
       const apiError = err as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Failed to update slot");
+      toast.error(apiError?.data?.data?.message || "Failed to update exam");
     }
   };
 
@@ -189,8 +189,8 @@ export default function SlotManagementModal({
               </h2>
               <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
                 {className
-                  ? `Manage slots for "${className}"`
-                  : "Manage class slots, schedule and problems"}
+                  ? `Manage exams for "${className}"`
+                  : "Manage class exams, schedule and problems"}
               </p>
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function SlotManagementModal({
             }
             onPress={openCreateSlot}
           >
-            Add Slot
+            Add Exam
           </Button>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function SlotManagementModal({
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <Spinner size="lg" color="secondary" />
             <p className="text-sm text-gray-500 animate-pulse">
-              Loading slots...
+              Loading exams...
             </p>
           </div>
         ) : slots.length === 0 ? (
@@ -240,7 +240,7 @@ export default function SlotManagementModal({
               📭
             </div>
             <p className="text-gray-400 dark:text-slate-500 text-sm font-medium">
-              No slots found for this class yet.
+              No exams found for this class yet.
             </p>
             <Button
               size="sm"
@@ -250,7 +250,7 @@ export default function SlotManagementModal({
               }}
               onPress={openCreateSlot}
             >
-              Create First Slot
+              Create First Exam
             </Button>
           </div>
         ) : (
@@ -265,7 +265,7 @@ export default function SlotManagementModal({
                 }}
               >
                 <p className="text-[10px] font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">
-                  Total Slots
+                  Total Exams
                 </p>
                 <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-0.5">
                   {slots.length}
@@ -305,7 +305,7 @@ export default function SlotManagementModal({
             {dueDateSlotId && (
               <div className="mb-4 p-4 rounded-xl border border-blue-200 dark:border-blue-500/20 bg-blue-50/50 dark:bg-blue-500/5">
                 <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">
-                  Set Due Date — Slot #
+                  Set Due Date — Exam #
                   {slots.find((s) => s.id === dueDateSlotId)?.slotNo}
                 </p>
                 <div className="flex gap-3 items-end">
@@ -359,7 +359,7 @@ export default function SlotManagementModal({
             {editingSlotId && (
               <div className="mb-4 p-4 rounded-xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/5">
                 <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-3">
-                  Edit Slot #
+                  Edit Exam #
                   {slots.find((s) => s.id === editingSlotId)?.slotNo}
                 </p>
                 <div className="flex flex-col gap-3">
@@ -407,7 +407,7 @@ export default function SlotManagementModal({
               style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}
             >
               <Table
-                aria-label="Slots table"
+                aria-label="Exams table"
                 removeWrapper
                 classNames={{
                   th: "bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-white/5 py-3",
@@ -522,7 +522,7 @@ export default function SlotManagementModal({
                       <TableCell>
                         <div className="flex justify-center gap-1">
                           {/* Edit */}
-                          <Tooltip content="Edit Slot" placement="top">
+                          <Tooltip content="Edit Exam" placement="top">
                             <Button
                               isIconOnly
                               size="sm"

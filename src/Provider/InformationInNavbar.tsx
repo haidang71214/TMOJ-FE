@@ -56,7 +56,6 @@ export default function InformationInNavbar() {
       }
 
     } catch {
-      addToast({ title: "Logout Success", color: "danger" });
     }
   };
   const checkadminpage = () => {

@@ -197,10 +197,10 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
         data: payload,
       }).unwrap();
       closeModal();
-      toast.success(t('class_management.add_problem_success') || "Add assignment to slot Success!");
+      toast.success(t('class_management.add_problem_success') || "Add assignment to exam Success!");
     } catch (err) {
       console.error(err);
-      toast.error(t('class_management.add_problem_failed') || "Can not add assisgnment, please act again.");
+      toast.error(t('class_management.add_problem_failed') || "Can not add assignment, please act again.");
     }
   };
 
@@ -220,10 +220,10 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-              {t('class_management.add_problems_to_slot') || "Add Problems to Slot"}
+              {t('class_management.add_problems_to_slot') || "Add Problems to Exam"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-              {t('class_management.add_problems_desc') || "Chọn và cấu hình bài tập cho slot này"}
+              {t('class_management.add_problems_desc') || "Chọn và cấu hình bài tập cho bài kiểm tra này"}
             </p>
           </div>
         </div>

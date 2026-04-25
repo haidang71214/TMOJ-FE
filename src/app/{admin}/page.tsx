@@ -28,6 +28,7 @@ import ProblemManagementPage from "./Problem/page";
 import DasboardPage from "./DasboardPage";
 import UserManagerPage from "./Users/page";
 import PracticePackagePage from "./Package/page";
+import CoinManagerPage from "./Coin/page";
 import ClassComponents from "./Class/ClassComponents";
 import SubjectComponents from "./Subject/SubjectComponents";
 import SemesterComponents from "./Semester/SemesterComponents";
@@ -42,7 +43,7 @@ const NAV = [
   { name: "Settings", tKey: "admin_sidebar.settings", defaultVi: "Cài đặt", defaultEn: "Settings", key: "settings", icon: Settings },
   { name: "Gamification", tKey: "admin_sidebar.gamification", defaultVi: "Hệ thống điểm", defaultEn: "Gamification", key: "gamification", icon: Award },
   { name: "Package", tKey: "admin_sidebar.package", defaultVi: "Gói dịch vụ", defaultEn: "Package", key: "package", icon: Package },
-  { name: "Coin Package", tKey: "admin_sidebar.coin_package", defaultVi: "Gói xu", defaultEn: "Coin Package", key: "coin", icon: Coins },
+  { name: "Coin Item", tKey: "admin_sidebar.coin_item", defaultVi: "Vật phẩm Coin", defaultEn: "Coin Item", key: "coin", icon: Coins },
   { name: "MODERATION & REPORT", tKey: "admin_sidebar.moderation", defaultVi: "Kiểm duyệt & Báo cáo", defaultEn: "MODERATION & REPORT", key: "moderation", icon: Shredder },
   { name: "Notification", tKey: "admin_sidebar.notification", defaultVi: "Thông báo", defaultEn: "Notification", key: "notification", icon: Bell },
   { name: "Class", tKey: "admin_sidebar.class", defaultVi: "Lớp học", defaultEn: "Class", key: "class", icon: School },
@@ -64,10 +65,10 @@ export default function AdminPage() {
     moderation: <ModerationManagementPage />,
     notification: <NotificationManagementPage />,
     package: <PracticePackagePage />,
-    coin: <PracticePackagePage />,
-    class:<ClassComponents/>,
-    subject:<SubjectComponents/>,
-    semester:<SemesterComponents/>,
+    coin: <CoinManagerPage />,
+    class: <ClassComponents />,
+    subject: <SubjectComponents />,
+    semester: <SemesterComponents />,
     tags: <TagsManagementPage />,
     settings: <div>Settings</div>,
   };
@@ -99,10 +100,9 @@ export default function AdminPage() {
                 onClick={() => setPage(item.key)}
                 className={`
                   relative flex items-center gap-4 px-4 py-3 rounded-xl transition-all opacity-0 animate-fade-in-right active-bump overflow-hidden
-                  ${
-                    active
-                      ? "bg-[#071739] text-white font-black shadow-lg shadow-[#071739]/30"
-                      : "text-slate-500 hover:bg-slate-100"
+                  ${active
+                    ? "bg-[#071739] text-white font-black shadow-lg shadow-[#071739]/30"
+                    : "text-slate-500 hover:bg-slate-100"
                   }
                   after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[3px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300
                 `}

@@ -48,7 +48,7 @@ export default function InformationInNavbar() {
       addToast({ title: "Logout successful!", color: "success" });
       if (is_admin) {
         // nếu đang ở admin subdomain → chuyển về domain chính
-        window.location.href = `${PAGE_URL}logout`;
+        window.location.href = `${PAGE_URL}/logout`;
         await logout().unwrap();
       } else {
         router.push("/");
@@ -117,7 +117,6 @@ export default function InformationInNavbar() {
             base: "gap-3 rounded-xl data-[hover=true]:bg-[#A68868]/10 dark:data-[hover=true]:bg-[#FFB800]/15 transition-colors",
           }}
         >
-          {checkadminpage()}
           <DropdownItem
             key="mylists"
             startContent={

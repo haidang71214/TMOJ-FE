@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   Button,
   Input,
   Chip,
@@ -31,6 +37,11 @@ import {
   List,
   Link2,
 } from "lucide-react";
+import {
+  ADMIN_TABLE_WRAPPER, ADMIN_TH, ADMIN_TH_RIGHT, ADMIN_TD, ADMIN_TD_MUTED,
+  ADMIN_TR_HOVER, ADMIN_THEAD_BG, ADMIN_H1, ADMIN_SUBTITLE, ADMIN_PAGE_WRAPPER,
+} from "../adminTable";
+import { iconBtnGhost, iconBtnDanger, iconBtnSuccess } from "../adminTheme";
 
 export interface Contest {
   id: string;
@@ -91,108 +102,123 @@ export default function ContestManagementPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black uppercase">
-            Contest <span className="text-[#FF5C00]">Management</span>
+          <h1 className={ADMIN_H1}>
+            Contest <span style={{ color: "#3B5BFF" }}>Management</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-500">
-            Organize and monitor programming competitions
-          </p>
+          <p className={ADMIN_SUBTITLE}>Organize and monitor programming competitions</p>
         </div>
-
-        <Button
-          className="bg-[#0B1C3D] text-white font-black"
-          startContent={<Plus size={16} />}
-          onPress={() => setIsOpen(true)}
+        <button
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all active:scale-95"
+          style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 4px 16px rgba(59,91,255,0.3)" }}
+          onClick={() => setIsOpen(true)}
         >
-          Create New Contest
-        </Button>
+          <Plus size={15} /> Create New Contest
+        </button>
       </div>
 
       {/* FILTER BAR */}
       <div className="flex gap-3 items-center">
-        <Input placeholder="Search contest title or ID..." className="max-w-xs" />
-        <Button variant="bordered">Rule Type</Button>
-        <Button variant="bordered">Sort By</Button>
-        <Button isIconOnly color="primary">
-          ↻
-        </Button>
+        <input
+          placeholder="Search contest title or ID..."
+          className="rounded-xl px-3 py-2 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all"
+          style={{ background: "#1E2B42", border: "1px solid rgba(255,255,255,0.10)", width: 260 }}
+        />
+        <button className="px-3 py-2 rounded-xl text-xs font-semibold text-white/50 transition-all hover:text-white/80" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>Rule Type</button>
+        <button className="px-3 py-2 rounded-xl text-xs font-semibold text-white/50 transition-all hover:text-white/80" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>Sort By</button>
       </div>
 
       {/* TABLE */}
-      <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="text-slate-400 uppercase text-xs">
-            <tr className="border-b">
-              <th className="p-4 text-left">ID</th>
-              <th className="p-4 text-left">Contest Title</th>
-              <th className="p-4">Rule</th>
-              <th className="p-4">Type</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Visible</th>
-              <th className="p-4 text-right">Operations</th>
-            </tr>
-          </thead>
-
-          <tbody>
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{ borderColor: "rgba(255,255,255,0.08)", background: "#162035" }}
+      >
+        <Table
+          aria-label="Contest Management Table"
+          removeWrapper
+          classNames={{
+            th: "text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08] py-4",
+            td: "text-white/75 border-b border-white/[0.05] py-4",
+            tr: "hover:bg-white/[0.03] transition-colors",
+            thead: "[&>tr]:bg-[#1E2B42]",
+          }}
+        >
+          <TableHeader>
+            <TableColumn>ID</TableColumn>
+            <TableColumn className="w-[35%]">Contest Title</TableColumn>
+            <TableColumn>Rule</TableColumn>
+            <TableColumn>Type</TableColumn>
+            <TableColumn>Status</TableColumn>
+            <TableColumn>Visible</TableColumn>
+            <TableColumn align="center">Actions</TableColumn>
+          </TableHeader>
+          <TableBody>
             {contests.map((c) => (
-              <tr key={c.id} className="border-b last:border-none">
-                <td className="p-4 text-slate-400">{c.id}</td>
-                <td className="p-4 font-bold">{c.title}</td>
-                <td className="p-4 text-center">
-                  <Chip size="sm" color={c.rule === "ACM" ? "primary" : "secondary"}>
+              <TableRow key={c.id}>
+                <TableCell>
+                  <span className="text-[10px] font-bold text-white/30 font-mono">
+                    #{c.id.slice(0, 8)}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="font-bold text-white tracking-tight leading-tight">{c.title}</div>
+                  <div className="text-[10px] text-white/30 font-mono mt-1 uppercase tracking-tight">Public Contest</div>
+                </TableCell>
+                <TableCell>
+                  <div
+                    className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black border uppercase italic"
+                    style={c.rule === "ACM"
+                      ? { color: "#7B9FFF", background: "rgba(59,91,255,0.12)", borderColor: "rgba(59,91,255,0.25)" }
+                      : { color: "#C084FC", background: "rgba(155,59,255,0.12)", borderColor: "rgba(155,59,255,0.25)" }
+                    }
+                  >
                     {c.rule}
-                  </Chip>
-                </td>
-                <td className="p-4 text-center font-semibold">{c.type}</td>
-                <td className="p-4 text-center">
-                  <Chip
-                    size="sm"
-                    color={
-                      c.status === "RUNNING"
-                        ? "success"
-                        : c.status === "UPCOMING"
-                        ? "warning"
-                        : "default"
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs font-bold text-white/60 uppercase">{c.type}</span>
+                </TableCell>
+                <TableCell>
+                  <div
+                    className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black border uppercase"
+                    style={c.status === "RUNNING"
+                      ? { color: "#10B981", background: "rgba(16,185,129,0.12)", borderColor: "rgba(16,185,129,0.25)" }
+                      : c.status === "UPCOMING"
+                      ? { color: "#F59E0B", background: "rgba(245,158,11,0.12)", borderColor: "rgba(245,158,11,0.25)" }
+                      : { color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }
                     }
                   >
                     {c.status}
-                  </Chip>
-                </td>
-                <td className="p-4 text-center">
+                  </div>
+                </TableCell>
+                <TableCell>
                   <Switch
                     isSelected={c.visible}
-                    onValueChange={(v) =>
-                      setContests((prev) =>
-                        prev.map((x) => (x.id === c.id ? { ...x, visible: v } : x))
-                      )
-                    }
+                    onValueChange={(v) => setContests((prev) => prev.map((x) => (x.id === c.id ? { ...x, visible: v } : x)))}
+                    size="sm"
                   />
-                </td>
-                <td className="p-4">
-                  <div className="flex justify-end gap-2">
-                    <Button isIconOnly size="sm"><Pencil size={16} /></Button>
-                    <Button isIconOnly size="sm"><Eye size={16} /></Button>
-                    <Button isIconOnly size="sm"><Download size={16} /></Button>
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      color="danger"
-                      onPress={() =>
-                        setContests((prev) => prev.filter((x) => x.id !== c.id))
-                      }
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-1">
+                    <button className={iconBtnGhost} title="Edit"><Pencil size={15} /></button>
+                    <button className={iconBtnGhost} title="View"><Eye size={15} /></button>
+                    <button className={iconBtnGhost} title="Download"><Download size={15} /></button>
+                    <button
+                      className={iconBtnDanger}
+                      onClick={() => setContests((prev) => prev.filter((x) => x.id !== c.id))}
+                      title="Delete"
                     >
-                      <Trash2 size={16} />
-                    </Button>
+                      <Trash2 size={15} />
+                    </button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* MODAL CREATE CONTEST */}

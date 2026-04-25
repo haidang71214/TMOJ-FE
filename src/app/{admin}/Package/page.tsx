@@ -91,11 +91,11 @@ export default function PracticePackagePage() {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black uppercase">
-            Practice <span className="text-[#FF5C00]">Packages</span>
+          <h1 className="text-3xl font-black tracking-tight text-white">
+            Service <span style={{ color: "#3B5BFF" }}>Packages</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-500">
-            Learning paths & modules
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/35 mt-1">
+            Learning paths, coin bundles & system modules
           </p>
         </div>
 
@@ -113,7 +113,8 @@ export default function PracticePackagePage() {
         {packages.map((pkg) => (
           <div
             key={pkg.id}
-            className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/40 overflow-hidden shadow-lg"
+            className="rounded-2xl border border-white/[0.08] bg-[#162035] overflow-hidden shadow-2xl transition-all hover:translate-y-[-4px]"
+            style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.4)" }}
           >
             {/* IMAGE */}
             <Image
@@ -126,8 +127,8 @@ export default function PracticePackagePage() {
             <div className="p-5 space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-black">{pkg.name}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2">
+                  <h3 className="font-bold text-white tracking-tight">{pkg.name}</h3>
+                  <p className="text-xs text-white/40 line-clamp-2 mt-1">
                     {pkg.description}
                   </p>
                 </div>
@@ -153,28 +154,30 @@ export default function PracticePackagePage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 text-xs">
-                <Chip>{pkg.level}</Chip>
+              <div className="flex gap-2">
+                <Chip size="sm" variant="flat" className="bg-white/5 text-white/60 font-bold uppercase text-[9px] border border-white/5">
+                  {pkg.level}
+                </Chip>
                 {pkg.disabled && (
-                  <Chip className="bg-red-500/15 text-red-400">
+                  <Chip size="sm" className="bg-red-500/10 text-red-400 font-bold uppercase text-[9px] border border-red-500/20">
                     DISABLED
                   </Chip>
                 )}
               </div>
 
               {/* PACKAGE STATISTICS */}
-              <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 dark:border-white/5">
+              <div className="grid grid-cols-3 gap-2 py-4 border-y border-white/[0.05]">
                 <div className="flex flex-col items-center justify-center">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Users size={10} /> Enrolled</p>
-                  <p className="text-sm font-black text-slate-800 dark:text-white">{MOCK_STATS[pkg.id]?.enrolled || 0}</p>
+                  <p className="text-[9px] text-white/30 font-black uppercase tracking-tighter flex items-center gap-1"><Users size={10} /> Enrolled</p>
+                  <p className="text-sm font-black text-white mt-0.5">{MOCK_STATS[pkg.id]?.enrolled || 0}</p>
                 </div>
-                <div className="flex flex-col items-center justify-center border-l border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Activity size={10} /> Comp. Rate</p>
-                  <p className="text-sm font-black text-emerald-500">{MOCK_STATS[pkg.id]?.completionRate || 0}%</p>
+                <div className="flex flex-col items-center justify-center border-l border-white/[0.05]">
+                  <p className="text-[9px] text-white/30 font-black uppercase tracking-tighter flex items-center gap-1"><Activity size={10} /> Comp. Rate</p>
+                  <p className="text-sm font-black text-emerald-400 mt-0.5">{MOCK_STATS[pkg.id]?.completionRate || 0}%</p>
                 </div>
-                <div className="flex flex-col items-center justify-center border-l border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1"><Layers size={10} /> Modules</p>
-                  <p className="text-sm font-black text-blue-500">{MOCK_STATS[pkg.id]?.modules || 0}</p>
+                <div className="flex flex-col items-center justify-center border-l border-white/[0.05]">
+                  <p className="text-[9px] text-white/30 font-black uppercase tracking-tighter flex items-center gap-1"><Layers size={10} /> Modules</p>
+                  <p className="text-sm font-black text-blue-400 mt-0.5">{MOCK_STATS[pkg.id]?.modules || 0}</p>
                 </div>
               </div>
 

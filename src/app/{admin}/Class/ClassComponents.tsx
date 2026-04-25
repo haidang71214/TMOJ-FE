@@ -76,7 +76,7 @@ export default function ClassComponents() {
   // Nếu đang xem slot của một class
   if (selectedClassId) {
     return (
-      <div className="p-6">
+      <div>
         <SlotManagement
           classId={selectedClassId}
           className={selectedClassName}
@@ -90,7 +90,7 @@ export default function ClassComponents() {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-6">
+    <div className="space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>

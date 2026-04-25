@@ -81,7 +81,7 @@ export default function TagsManagementPage() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-8 p-2">
+    <div className="space-y-8">
       <div 
         className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8 opacity-0 animate-fade-in-up"
         style={{ animationFillMode: 'both', animationDelay: '100ms' }}

@@ -225,22 +225,22 @@ const items = useMemo(() => {
 
   if (isLoading) {
     return (
-      <div className="p-10 text-center font-bold text-indigo-600 dark:text-cyan-400">
-        Loading users...
+      <div className="min-h-full p-8 flex items-center justify-center">
+        <div className="text-white/40 text-sm font-semibold">Loading users...</div>
       </div>
     );
   }
 
   if (!isLoading && users.length === 0) {
     return (
-      <div className="p-10 text-center text-slate-500 dark:text-slate-400">
-        No users found.
+      <div className="min-h-full p-8 flex items-center justify-center">
+        <div className="text-white/30 text-sm">No users found.</div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full gap-8">
+    <div className="space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center border-b border-slate-200 dark:border-white/10 pb-8">
         <div>
@@ -291,65 +291,45 @@ const items = useMemo(() => {
         </div>
       </div>
       
-      {/* SEARCH & FILTERS BAR */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center justify-between bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
-        <div className="flex-1 w-full sm:max-w-md">
-           <Input
-            isClearable
-            className="w-full"
-            placeholder="Search by username, name or email..."
-            startContent={<Search size={18} className="text-slate-400" />}
-            value={filterValue}
-            onClear={() => setFilterValue("")}
-            onValueChange={setFilterValue}
-            variant="flat"
-            classNames={{
-              inputWrapper: "bg-white dark:bg-black/20 border-none shadow-sm h-12 rounded-xl",
-            }}
-          />
-        </div>
-        
-        <div className="flex gap-2 p-1 bg-white/50 dark:bg-black/20 rounded-xl border border-slate-200 dark:border-white/5">
+      {/* SEARCH & FILTERS */}
+      <div
+        className="flex flex-col sm:flex-row gap-4 items-end sm:items-center justify-between p-4 rounded-2xl"
+        style={{ background: "#162035", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <input
+          placeholder="Search by username, name or email..."
+          className="rounded-xl px-3 py-2 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all flex-1"
+          style={{ background: "#1E2B42", border: "1px solid rgba(255,255,255,0.10)" }}
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+        />
+        <div className="flex gap-1.5 flex-wrap">
           {["all", "admin", "manager", "teacher", "student"].map((r) => (
-            <Button
+            <button
               key={r}
-              size="sm"
-              variant={roleFilter === r ? "solid" : "light"}
-              color={roleFilter === r ? "primary" : "default"}
               onClick={() => setRoleFilter(r)}
-              className={`
-                capitalize font-bold h-9 px-4 rounded-lg
-                ${roleFilter === r ? "shadow-md shadow-primary/20" : "text-slate-500"}
-              `}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all"
+              style={roleFilter === r
+                ? { background: "rgba(59,91,255,0.2)", color: "#7B9FFF", border: "1px solid rgba(59,91,255,0.3)" }
+                : { color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.07)" }
+              }
             >
               {r}
-            </Button>
+            </button>
           ))}
         </div>
       </div>
 
       {/* TABLE */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+      <div className="flex-1 overflow-y-auto">
         <Table
           removeWrapper
           classNames={{
-            base: `
-              rounded-2xl p-4
-              bg-white border border-slate-200 shadow-sm
-              dark:bg-black/40 dark:border-white/10 dark:backdrop-blur-xl
-            `,
-            th: `
-              text-slate-400 dark:text-indigo-400
-              font-black uppercase tracking-widest text-[10px]
-              border-b border-slate-100 dark:border-white/5
-              pb-4
-            `,
-            td: `
-              py-6 font-bold
-              text-slate-700 dark:text-slate-200
-              border-b border-slate-50 dark:border-white/5
-              last:border-none
-            `,
+            base: "rounded-2xl overflow-hidden",
+            wrapper: "bg-[#162035] border border-white/10",
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08] py-3",
+            td: "text-white/75 border-b border-white/[0.05] py-4 font-medium",
+            tr: "hover:bg-white/[0.03] transition-colors",
           }}
         >
           <TableHeader>

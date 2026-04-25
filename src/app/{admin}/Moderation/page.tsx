@@ -165,36 +165,19 @@ export default function ModerationManagementPage() {
         </div>
       </div>
 
-      {/* STATS OVERVIEW */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-linear-to-br from-amber-500/10 to-red-500/10">
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-amber-600 dark:text-amber-400">{pendingCount}</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
-              <AlertTriangle size={14} /> Pending Reports
-            </div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-red-600">{inReviewCount}</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">In Review</div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-emerald-600">{resolvedCount}</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2">Resolved This Week</div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="text-center">
-            <div className="text-4xl font-black text-purple-600">--</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2">
-              <Ban size={14} /> Active Bans
-            </div>
-          </CardBody>
-        </Card>
+      {/* STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Pending Reports", value: pendingCount, color: "#F59E0B", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.15)" },
+          { label: "In Review", value: inReviewCount, color: "#EF4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.15)" },
+          { label: "Resolved", value: resolvedCount, color: "#10B981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.15)" },
+          { label: "Active Bans", value: "--", color: "#C084FC", bg: "rgba(192,132,252,0.08)", border: "rgba(192,132,252,0.15)" },
+        ].map(stat => (
+          <div key={stat.label} className="rounded-2xl p-5 border text-center" style={{ background: stat.bg, borderColor: stat.border }}>
+            <div className="text-3xl font-black" style={{ color: stat.color }}>{stat.value}</div>
+            <div className="text-[10px] uppercase tracking-widest mt-1.5" style={{ color: "rgba(255,255,255,0.35)" }}>{stat.label}</div>
+          </div>
+        ))}
       </div>
 
       {/* FILTER BAR */}
@@ -238,10 +221,18 @@ export default function ModerationManagementPage() {
       </div>
 
       {/* REPORTS TABLE */}
-      <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
-        <Table 
-          aria-label="Reports" 
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{ background: "#162035", border: "1px solid rgba(255,255,255,0.10)" }}
+      >
+        <Table
+          aria-label="Reports"
           removeWrapper
+          classNames={{
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+            td: "text-white/75 border-b border-white/[0.05] py-3",
+            tr: "hover:bg-white/[0.03] transition-colors",
+          }}
           bottomContent={
             pages > 1 ? (
               <div className="flex w-full justify-center pb-4">

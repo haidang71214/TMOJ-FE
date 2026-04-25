@@ -231,9 +231,9 @@ export default function NotificationManagementPage() {
   };
 
   return (
-    <div className="flex flex-col h-full gap-8">
+    <div className="space-y-8">
       {/* HEADER */}
-      <div className="flex justify-between items-center border-b border-slate-200 dark:border-white/10 pb-8">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
             <span className="text-indigo-700 dark:text-cyan-400">Notification</span>{" "}
@@ -262,18 +262,29 @@ export default function NotificationManagementPage() {
 
       {/* TABS - Mở mặc định tab Sent Notifications */}
       <Tabs
-        defaultSelectedKey="sent" // <-- Đảm bảo tab Sent mở ngay từ đầu
+        defaultSelectedKey="sent"
         color="primary"
         variant="underlined"
         classNames={{
-          tabList: "gap-8 border-b border-slate-200 dark:border-white/10 pb-2",
-          tab: "text-lg font-black uppercase tracking-wide",
-          cursor: "bg-indigo-600 h-1",
+          tabList: "gap-8 pb-2",
+          tab: "text-sm font-bold uppercase tracking-wider text-white/40 data-[selected=true]:text-white",
+          cursor: "h-0.5 rounded-full",
         }}
       >
         <Tab title="Sent Notifications">
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
-            <Table removeWrapper aria-label="Sent Notifications">
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ background: "#162035", border: "1px solid rgba(255,255,255,0.10)" }}
+          >
+            <Table
+              removeWrapper
+              aria-label="Sent Notifications"
+              classNames={{
+                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+                td: "text-white/75 border-b border-white/[0.05] py-3",
+                tr: "hover:bg-white/[0.03] transition-colors",
+              }}
+            >
               <TableHeader>
                 <TableColumn>TITLE</TableColumn>
                 <TableColumn>TYPE</TableColumn>
@@ -288,7 +299,7 @@ export default function NotificationManagementPage() {
         </Tab>
 
         <Tab title="Received Alerts" key="received">
-          <div className="space-y-4">{renderReceivedBody()}</div>
+          <div className="space-y-3">{renderReceivedBody()}</div>
         </Tab>
 
         <Tab title="Configuration & Moderation" key="config">

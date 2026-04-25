@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Thêm để chuyển trang
 import { useTranslation } from "@/hooks/useTranslation";
 import {
@@ -38,12 +38,14 @@ import {
   XCircle,
   AlertTriangle,
   RefreshCw,
-  BookOpen, // Icon cho nút Editorial (có thể thay bằng FileText hoặc Edit3 nếu thích)
+  BookOpen,
   MoreVertical,
   Download,
   UploadCloud,
   FileArchive,
+  Search,
 } from "lucide-react";
+import { iconBtnGhost, iconBtnDanger, iconBtnSuccess, difficultyStyle } from "../adminTheme";
 import CreateProblem from "./CreateProblem";
 import EditProblem from "./EditProblem";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
@@ -64,6 +66,9 @@ export default function ProblemManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
   const [editProblemId, setEditProblemId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
   // Sync API data to local state when it loads
   useEffect(() => {
@@ -78,8 +83,16 @@ export default function ProblemManagementPage() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   // Lọc dữ liệu
-  const pendingProblems = problems.filter((p) => p.statusCode === "draft");
-  const approvedProblems = problems.filter((p) => p.statusCode === "published");
+  const filteredProblems = problems.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         p.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDifficulty = !difficultyFilter || p.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
+    const matchesType = !typeFilter || typeFilter === "ALGORITHM"; // Mock logic since all are algorithm for now
+    return matchesSearch && matchesDifficulty && matchesType;
+  });
+
+  const pendingProblems = filteredProblems.filter((p) => p.statusCode === "draft");
+  const approvedProblems = filteredProblems.filter((p) => p.statusCode === "published");
 
   const handleApprove = (problem: Problem) => {
     setSelectedProblem(problem);
@@ -116,6 +129,12 @@ export default function ProblemManagementPage() {
     setSelectedProblem(null);
   };
 
+  const handleDelete = (problem: Problem) => {
+    if (confirm(`Are you sure you want to delete "${problem.title}"?`)) {
+      setProblems((prev) => prev.filter((p) => p.id !== problem.id));
+    }
+  };
+
   const refreshData = async () => {
     setIsLoading(true);
     await refetch();
@@ -127,7 +146,7 @@ export default function ProblemManagementPage() {
     if (isLoading || isQueryLoading) {
       return (
         <TableRow>
-          <TableCell colSpan={7}>
+          <TableCell colSpan={5}>
             <div className="space-y-4 py-6">
               {[...Array(3)].map((_, i) => (
                 <Skeleton key={i} className="h-12 w-full rounded-lg" />
@@ -141,21 +160,22 @@ export default function ProblemManagementPage() {
     if (pendingProblems.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={7} className="text-center py-20">
-            <div className="flex flex-col items-center gap-6 text-slate-500 opacity-0 animate-fade-in-up"  style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-              <AlertTriangle size={64} className="text-amber-500 opacity-70" />
-              <div className="text-center">
-                <p className="text-xl font-bold">{language === 'vi' ? "Không có câu hỏi chờ duyệt" : "No problems pending approval"}</p>
-                <p className="text-sm mt-2">{language === 'vi' ? "Tất cả các câu hỏi đã được duyệt hoặc chưa có bài tập nào." : "All submitted problems have been reviewed or none are waiting."}</p>
+          <TableCell colSpan={5} className="text-center py-24">
+            <div className="flex flex-col items-center gap-6 opacity-0 animate-fade-in-up"  style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+              <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <AlertTriangle size={32} className="text-amber-500/50" />
               </div>
-              <Button
-                color="primary"
-                startContent={<Plus size={18} />}
-                onPress={() => setIsCreatingProblem(true)}
-                className="font-black uppercase tracking-wider mt-4 active-bump"
+              <div className="text-center max-w-xs">
+                <p className="text-lg font-black uppercase tracking-tight text-white/80">{language === 'vi' ? "Hộp thư trống" : "Queue is Empty"}</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/20 mt-2 leading-relaxed">{language === 'vi' ? "Tất cả các câu hỏi đã được duyệt hoặc chưa có bài tập nào mới." : "All submissions have been reviewed. No new problems in the queue."}</p>
+              </div>
+              <button
+                onClick={() => setIsCreatingProblem(true)}
+                className="mt-4 px-6 py-2.5 rounded-xl text-xs font-black text-white uppercase tracking-widest transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)" }}
               >
-                {t('admin_problem.create') || (language === 'vi' ? "Tạo bài tập mới" : "Create New Problem")}
-              </Button>
+                {language === 'vi' ? "Tạo bài tập" : "Create Problem"}
+              </button>
             </div>
           </TableCell>
         </TableRow>
@@ -165,108 +185,55 @@ export default function ProblemManagementPage() {
     return pendingProblems.map((prob, index) => (
       <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
         <TableCell>
-          <div className="font-bold">{prob.title}</div>
-          <div className="text-xs text-slate-500">{prob.slug}</div>
+          <div className="font-bold text-white tracking-tight leading-tight">{prob.title}</div>
+          <div className="text-[10px] text-white/30 font-mono mt-1 uppercase tracking-tight">{prob.slug}</div>
         </TableCell>
         <TableCell>
-          <Chip variant="flat" color="secondary" size="sm">
+          <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-secondary/10 text-secondary border border-secondary/20 italic">
             ALGORITHM
-          </Chip>
+          </div>
         </TableCell>
         <TableCell>
-          <Chip
-            size="sm"
-            color={
-              prob.difficulty === "easy" ? "success" :
-              prob.difficulty === "medium" ? "warning" :
-              prob.difficulty === "hard" ? "danger" : "default"
-            }
+          <div
+            className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border"
+            style={difficultyStyle(prob.difficulty)}
           >
             {prob.difficulty}
-          </Chip>
+          </div>
         </TableCell>
-        <TableCell>100</TableCell>
-        <TableCell>Unknown</TableCell>
-        <TableCell className="text-slate-500">{new Date(prob.createdAt).toLocaleDateString()}</TableCell>
+        <TableCell className="text-white/40 text-[11px] font-bold">
+          {new Date(prob.createdAt).toLocaleDateString()}
+        </TableCell>
         <TableCell>
-          <div className="flex gap-2">
-            <Button
-              isIconOnly
-              size="sm"
-              color="success"
-              className="active-bump"
-              onPress={() => handleApprove(prob)}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleApprove(prob)}
+              className={iconBtnSuccess}
+              title="Approve"
             >
-              <CheckCircle2 size={16} />
-            </Button>
-            <Button
-              isIconOnly
-              size="sm"
-              color="danger"
-              className="active-bump"
-              onPress={() => handleReject(prob)}
+              <CheckCircle2 size={15} />
+            </button>
+            <button
+              onClick={() => handleReject(prob)}
+              className={iconBtnDanger}
+              title="Reject"
             >
-              <XCircle size={16} />
-            </Button>
-            <Button isIconOnly size="sm" className="active-bump">
-              <Eye size={16} />
-            </Button>
-            <Button 
-              isIconOnly 
-              size="sm" 
-              className="active-bump"
-              onPress={() => setEditProblemId(prob.id)}
+              <XCircle size={15} />
+            </button>
+            <button
+              onClick={() => router.push(`/Problem/${prob.id}`)}
+              className={iconBtnGhost}
+              title="View"
             >
-              <Pencil size={16} />
-            </Button>
-            {/* Nút mới: Chuyển đến trang edit Editorial */}
-            <Button
-              isIconOnly
-              size="sm"
-              color="default" // hoặc primary/warning tùy thích
-              className="active-bump"
-              onPress={() => router.push(`Problem/${prob.id}/Editorial`)}
-              title="Chỉnh sửa Editorial"
+              <Eye size={15} />
+            </button>
+            <button
+              onClick={() => setEditProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Edit"
             >
-              <BookOpen size={16} />
-            </Button>
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="flat">
-                  <MoreVertical size={16} />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Extra Actions">
-                <DropdownItem
-                  key="upload"
-                  startContent={<UploadCloud size={14} />}
-                  onPress={() => alert("Upload New Solution triggered")}
-                >
-                  Upload New Solution
-                </DropdownItem>
-                <DropdownItem
-                  key="dl_testset"
-                  startContent={<FileArchive size={14} />}
-                  onPress={() => alert("Download Testset triggered")}
-                >
-                  Download Testset
-                </DropdownItem>
-                <DropdownItem
-                  key="dl_solution"
-                  startContent={<Download size={14} />}
-                  onPress={() => alert("Download Solution triggered")}
-                >
-                  Download Solution
-                </DropdownItem>
-                <DropdownItem
-                  key="set_score"
-                  startContent={<Pencil size={14} />}
-                  onPress={() => alert("Set Problem Score triggered")}
-                >
-                  Set Problem Score
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+              <Pencil size={15} />
+            </button>
           </div>
         </TableCell>
       </TableRow>
@@ -278,7 +245,7 @@ export default function ProblemManagementPage() {
     if (approvedProblems.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={9} className="text-center py-20 text-slate-500">
+          <TableCell colSpan={8} className="text-center py-20 text-white/20 font-bold uppercase tracking-widest text-[10px]">
             No approved or public problems yet
           </TableCell>
         </TableRow>
@@ -288,8 +255,8 @@ export default function ProblemManagementPage() {
     return approvedProblems.map((prob, index) => (
       <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
         <TableCell>
-          <div className="font-bold">{prob.title}</div>
-          <div className="text-xs text-slate-500">{prob.slug}</div>
+          <div className="font-bold text-white tracking-tight leading-tight">{prob.title}</div>
+          <div className="text-[10px] text-white/30 font-mono mt-1 uppercase tracking-tight">{prob.slug}</div>
         </TableCell>
         <TableCell>
           <Chip variant="flat" color="secondary" size="sm">
@@ -297,100 +264,77 @@ export default function ProblemManagementPage() {
           </Chip>
         </TableCell>
         <TableCell>
-          <Chip
-            size="sm"
-            color={
-              prob.difficulty === "easy" ? "success" :
-              prob.difficulty === "medium" ? "warning" :
-              prob.difficulty === "hard" ? "danger" : "default"
-            }
+          <div
+            className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border"
+            style={difficultyStyle(prob.difficulty)}
           >
             {prob.difficulty}
-          </Chip>
+          </div>
         </TableCell>
-        <TableCell>100</TableCell>
         <TableCell>
-            <div className="text-xs">
-              <Clock size={14} className="inline mr-1" />
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/50">
+              <Clock size={11} className="text-white/30" />
               {(prob.timeLimitMs / 1000).toFixed(1)}s
-              <br />
-              <Database size={14} className="inline mr-1" />
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/50">
+              <Database size={11} className="text-white/30" />
               {(prob.memoryLimitKb / 1024).toFixed(0)}MB
             </div>
+          </div>
         </TableCell>
-        <TableCell>0</TableCell>
         <TableCell>
-          <span className={prob.acceptancePercent && prob.acceptancePercent > 60 ? "text-emerald-500" : "text-amber-500"}>
-            {prob.acceptancePercent?.toFixed(1) || "—"}%
-          </span>
+          <div className="text-xs font-black text-white/80">0</div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            <div className="text-xs font-black" style={{ color: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }}>
+              {prob.acceptancePercent?.toFixed(1) || "—"}%
+            </div>
+            <div className="w-12 h-1 rounded-full bg-white/5 overflow-hidden">
+               <div
+                 className="h-full rounded-full"
+                 style={{
+                   width: `${prob.acceptancePercent || 0}%`,
+                   background: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B"
+                 }}
+               />
+            </div>
+          </div>
         </TableCell>
         <TableCell>
           <Switch isSelected={prob.statusCode === "published"} size="sm" />
         </TableCell>
         <TableCell>
-          <div className="flex gap-2">
-            <Button 
-              isIconOnly 
-              size="sm" 
-              className="active-bump"
-              onPress={() => setEditProblemId(prob.id)}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setEditProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Edit"
             >
-              <Pencil size={16} />
-            </Button>
-            <Button isIconOnly size="sm" className="active-bump">
-              <Eye size={16} />
-            </Button>
-            <Button isIconOnly size="sm" color="danger" className="active-bump">
-              <Trash2 size={16} />
-            </Button>
-            {/* Nút mới: Chuyển đến trang edit Editorial */}
-            <Button
-              isIconOnly
-              size="sm"
-              color="default"
-              className="active-bump"
-              onPress={() => router.push(`/problems/${prob.id}/editorial`)}
-              title="Chỉnh sửa Editorial"
+              <Pencil size={15} />
+            </button>
+            <button
+              onClick={() => router.push(`/Problem/${prob.id}`)}
+              className={iconBtnGhost}
+              title="View"
             >
-              <BookOpen size={16} />
-            </Button>
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="flat">
-                  <MoreVertical size={16} />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Extra Actions">
-                <DropdownItem
-                  key="upload"
-                  startContent={<UploadCloud size={14} />}
-                  onPress={() => alert("Upload New Solution triggered")}
-                >
-                  Upload New Solution
-                </DropdownItem>
-                <DropdownItem
-                  key="dl_testset"
-                  startContent={<FileArchive size={14} />}
-                  onPress={() => alert("Download Testset triggered")}
-                >
-                  Download Testset
-                </DropdownItem>
-                <DropdownItem
-                  key="dl_solution"
-                  startContent={<Download size={14} />}
-                  onPress={() => alert("Download Solution triggered")}
-                >
-                  Download Solution
-                </DropdownItem>
-                <DropdownItem
-                  key="set_score"
-                  startContent={<Pencil size={14} />}
-                  onPress={() => alert("Set Problem Score triggered")}
-                >
-                  Set Problem Score
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+              <Eye size={15} />
+            </button>
+            <button
+              onClick={() => handleDelete(prob)}
+              className={iconBtnDanger}
+              title="Delete"
+            >
+              <Trash2 size={15} />
+            </button>
+            <button
+              onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}
+              className={iconBtnGhost}
+              title="Editorial"
+            >
+              <BookOpen size={15} />
+            </button>
           </div>
         </TableCell>
       </TableRow>
@@ -424,100 +368,154 @@ export default function ProblemManagementPage() {
     );
   }
 
-  if (editProblemId) {
-    return (
-      <EditProblem
-        problemId={editProblemId}
-        onCancel={() => setEditProblemId(null)}
-        onFinish={() => {
-          setEditProblemId(null);
-          refreshData();
-        }}
-      />
-    );
-  }
-
   return (
     <div className="space-y-8 pb-20">
       {/* HEADER */}
-      <div className="flex justify-between items-center opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+      <div className="flex justify-between items-end opacity-0 animate-fade-in-up" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter">
-            {t('sidebar.problem') || (language === 'vi' ? "BÀI TẬP" : "PROBLEM")} <span className="text-[#FF5C00]">MANAGEMENT</span>
+          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">
+            Problem <span className="text-[#3B5BFF]">Vault</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-500 mt-1">
-            {language === 'vi' ? "XÉT DUYỆT, QUẢN LÝ DANH SÁCH BÀI TẬP VÀ LÝ THUYẾT" : "REVIEW, APPROVE/REJECT & MONITOR PROGRAMMING & THEORY PROBLEMS"}
-          </p>
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mt-2 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#3B5BFF] animate-pulse" />
+            {language === "vi" ? "Hệ thống quản lý & Kiểm duyệt bài tập" : "Centralized Problem Moderation & Control"}
+          </div>
         </div>
 
-        <div className="flex gap-4">
-          <Button
-            variant="bordered"
-            startContent={<RefreshCw size={16} />}
-            onPress={refreshData}
-            isLoading={isLoading || isQueryLoading}
-            className="active-bump"
+        <div className="flex gap-3">
+          <button
+            onClick={refreshData}
+            disabled={isLoading || isQueryLoading}
+            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white"
           >
-            {language === 'vi' ? "Làm Mới" : "Refresh"}
-          </Button>
-          <Button
-            className="bg-[#0B1C3D] text-white font-black active-bump"
-            startContent={<Plus size={16} />}
-            onPress={() => setIsCreatingProblem(true)}
+            <RefreshCw size={14} className={isLoading || isQueryLoading ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"} />
+            {language === "vi" ? "Làm mới" : "Refresh"}
+          </button>
+          <button
+            onClick={() => setIsCreatingProblem(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black text-white transition-all active:scale-95 hover:brightness-110 uppercase tracking-wider"
+            style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 8px 24px rgba(59,91,255,0.25)" }}
           >
-            {language === 'vi' ? "Tạo Bài Mới" : "Create New Problem"}
-          </Button>
+            <Plus size={16} />
+            {language === "vi" ? "Tạo bài mới" : "New Problem"}
+          </button>
         </div>
       </div>
 
-      {/* TABS - Mặc định mở Pending Approval */}
+      {/* FILTER BAR */}
+      <div className="flex flex-wrap gap-4 items-center opacity-0 animate-fade-in-up" style={{ animationDelay: "200ms", animationFillMode: "both" }}>
+        <div className="relative group flex-1 max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+          <input
+            placeholder={language === "vi" ? "Tìm kiếm tiêu đề, slug..." : "Search problems, slugs..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#162035] border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-white/20 focus:border-[#3B5BFF]/50 focus:bg-[#1E2B42] outline-none transition-all"
+          />
+        </div>
+
+        <div className="flex gap-2">
+           <Dropdown>
+             <DropdownTrigger>
+               <button className="px-4 py-3 rounded-2xl bg-[#162035] border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:border-white/10 transition-all">
+                 {difficultyFilter || "Difficulty"}
+               </button>
+             </DropdownTrigger>
+             <DropdownMenu 
+               aria-label="Filter Difficulty"
+               onAction={(key) => setDifficultyFilter(key === "all" ? null : key as string)}
+             >
+               <DropdownItem key="all">All Difficulties</DropdownItem>
+               <DropdownItem key="easy" className="text-green-500">Easy</DropdownItem>
+               <DropdownItem key="medium" className="text-orange-500">Medium</DropdownItem>
+               <DropdownItem key="hard" className="text-red-500">Hard</DropdownItem>
+             </DropdownMenu>
+           </Dropdown>
+
+           <Dropdown>
+             <DropdownTrigger>
+               <button className="px-4 py-3 rounded-2xl bg-[#162035] border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:border-white/10 transition-all">
+                 {typeFilter || "Type"}
+               </button>
+             </DropdownTrigger>
+             <DropdownMenu 
+               aria-label="Filter Type"
+               onAction={(key) => setTypeFilter(key === "all" ? null : key as string)}
+             >
+               <DropdownItem key="all">All Types</DropdownItem>
+               <DropdownItem key="ALGORITHM">Algorithm</DropdownItem>
+             </DropdownMenu>
+           </Dropdown>
+        </div>
+      </div>
+
+      {/* TABS */}
       <Tabs
         defaultSelectedKey="pending"
         color="primary"
         variant="underlined"
         classNames={{
-          tabList: "gap-8 border-b border-slate-200 dark:border-white/10 pb-2",
-          tab: "text-lg font-black uppercase tracking-wide",
-          cursor: "bg-[#FF5C00] h-1",
+          tabList: "gap-10 pb-2 border-b border-white/5",
+          tab: "h-12 text-[11px] font-black uppercase tracking-[0.2em] text-white/30 data-[selected=true]:text-[#3B5BFF]",
+          cursor: "h-0.5 rounded-full bg-[#3B5BFF] shadow-[0_0_12px_rgba(59,91,255,0.8)]",
+          tabContent: "group-data-[selected=true]:text-[#3B5BFF]",
         }}
       >
-        <Tab title={language === 'vi' ? `Chờ duyệt (${pendingProblems.length})` : `Pending Approval (${pendingProblems.length})`}>
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            <Table aria-label="Pending Approval Problems" removeWrapper>
+        <Tab key="pending" title={language === "vi" ? `Chờ duyệt (${pendingProblems.length})` : `Pending (${pendingProblems.length})`}>
+          <div
+            className="rounded-2xl border overflow-hidden opacity-0 animate-fade-in-up"
+            style={{ borderColor: "rgba(255,255,255,0.10)", background: "#162035", animationDelay: "200ms", animationFillMode: "both" }}
+          >
+            <Table
+              aria-label="Pending Approval Problems"
+              removeWrapper
+              classNames={{
+                th: "text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+                td: "text-white/75 border-b border-white/[0.05] py-3",
+                tr: "hover:bg-white/[0.03] transition-colors",
+                thead: "[&>tr]:bg-[#1E2B42]",
+              }}
+            >
               <TableHeader>
-                <TableColumn>{language === 'vi' ? "TIÊU ĐỀ / SLUG" : "TITLE / SLUG"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "THỂ LOẠI" : "TYPE"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "ĐỘ KHÓ" : "DIFFICULTY"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "ĐIỂM" : "POINTS"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "TÁC GIẢ" : "SUBMITTED BY"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "TẠO LÚC" : "SUBMITTED AT"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "THAO TÁC" : "ACTIONS"}</TableColumn>
+                <TableColumn className="w-[40%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
+                <TableColumn>Type</TableColumn>
+                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Ngày tạo" : "Created"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
               </TableHeader>
               <TableBody>{renderPendingBody()}</TableBody>
             </Table>
           </div>
         </Tab>
 
-        <Tab title={language === 'vi' ? `Công khai (${approvedProblems.length})` : `Approved / Public (${approvedProblems.length})`}>
-          <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            <Table aria-label="Approved Problems" removeWrapper>
+        <Tab key="approved" title={language === "vi" ? `Công khai (${approvedProblems.length})` : `Published (${approvedProblems.length})`}>
+          <div
+            className="rounded-2xl border overflow-hidden opacity-0 animate-fade-in-up"
+            style={{ borderColor: "rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", animationDelay: "200ms", animationFillMode: "both" }}
+          >
+            <Table
+              aria-label="Approved Problems"
+              removeWrapper
+              classNames={{
+                th: "bg-white/[0.04] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.06]",
+                td: "text-white/70 border-b border-white/[0.04] py-3",
+                tr: "hover:bg-white/[0.02] transition-colors",
+              }}
+            >
               <TableHeader>
-                <TableColumn>{language === 'vi' ? "TIÊU ĐỀ / SLUG" : "TITLE / SLUG"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "THỂ LOẠI" : "TYPE"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "ĐỘ KHÓ" : "DIFFICULTY"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "ĐIỂM" : "POINTS"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "T/G / BN" : "TIME / MEM"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "LƯỢT NỘP" : "SUBMISSIONS"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "TỈ LỆ ĐÚNG" : "ACCEPT %"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "C.KHAI" : "PUBLIC"}</TableColumn>
-                <TableColumn>{language === 'vi' ? "THAO TÁC" : "ACTIONS"}</TableColumn>
+                <TableColumn className="w-[30%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
+                <TableColumn>Type</TableColumn>
+                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+                <TableColumn>Time / Memory</TableColumn>
+                <TableColumn>Stats</TableColumn>
+                <TableColumn>Accept %</TableColumn>
+                <TableColumn>Status</TableColumn>
+                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
               </TableHeader>
               <TableBody>{renderApprovedBody()}</TableBody>
             </Table>
           </div>
         </Tab>
-
-        
       </Tabs>
 
       {/* MODAL APPROVE */}
@@ -532,13 +530,10 @@ export default function ProblemManagementPage() {
               <ModalBody>
                 <p>Are you sure to <strong>APPROVE</strong> and publish:</p>
                 <p className="font-bold mt-2">{selectedProblem?.title}</p>
-                <p className="text-sm text-slate-500">by Unknown</p>
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="success" onPress={confirmApprove}>
-                  Approve & Publish
-                </Button>
+                <Button color="success" onPress={confirmApprove}>Approve & Publish</Button>
               </ModalFooter>
             </>
           )}
@@ -555,20 +550,13 @@ export default function ProblemManagementPage() {
                 Reject Problem
               </ModalHeader>
               <ModalBody className="space-y-4">
-                <p>Provide reason for rejection (will be sent to author):</p>
+                <p>Provide reason for rejection:</p>
                 <p className="font-medium">{selectedProblem?.title}</p>
-                <Textarea
-                  minRows={3}
-                  placeholder="Rejection reason..."
-                  value={rejectionReason}
-                  onValueChange={setRejectionReason}
-                />
+                <Textarea minRows={3} placeholder="Rejection reason..." value={rejectionReason} onValueChange={setRejectionReason} />
               </ModalBody>
               <ModalFooter>
                 <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="danger" onPress={confirmReject} isDisabled={!rejectionReason.trim()}>
-                  Reject
-                </Button>
+                <Button color="danger" onPress={confirmReject} isDisabled={!rejectionReason.trim()}>Reject</Button>
               </ModalFooter>
             </>
           )}

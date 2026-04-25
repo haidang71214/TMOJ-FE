@@ -54,7 +54,7 @@ import { Problem } from "@/types";
 export default function ProblemManagementPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
-  
+
   // Use the API query
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
   // Safe extraction of the problem array

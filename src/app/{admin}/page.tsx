@@ -28,6 +28,7 @@ import ProblemManagementPage from "./Problem/page";
 import DasboardPage from "./DasboardPage";
 import UserManagerPage from "./Users/page";
 import PracticePackagePage from "./Package/page";
+import CoinManagerPage from "./Coin/page";
 import ClassComponents from "./Class/ClassComponents";
 import SubjectComponents from "./Subject/SubjectComponents";
 import SemesterComponents from "./Semester/SemesterComponents";

@@ -15,8 +15,13 @@ import {
   CardHeader,
   Input,
   Chip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "@heroui/react";
-import { Save, ArrowLeft, Code, BookOpen, AlertTriangle, Upload, Video } from "lucide-react";
+import { Save, ArrowLeft, Code, BookOpen, AlertTriangle, Upload, Video, Sparkles, Eye, Check, X, Pencil, History, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface Editorial {
@@ -26,10 +31,20 @@ interface Editorial {
   hint: string;
   solution_code?: string;
   solution_language: string;
-  video_url?: string;           // ← THÊM FIELD NÀY
+  video_url?: string;
   is_published: boolean;
   last_edited_at: string;
   last_edited_by: string;
+}
+
+interface AiEditorialDraft {
+  id: string;
+  title: string;
+  contentMd: string;
+  status: "Draft" | "Accepted" | "Rejected" | "Archived";
+  language: string;
+  createdAt: string;
+  warnings?: string[];
 }
 
 export default function ProblemEditorialPage() {
@@ -41,13 +56,18 @@ export default function ProblemEditorialPage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("editor");
 
+  // AI Draft states
+  const [aiDrafts, setAiDrafts] = useState<AiEditorialDraft[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedAiDraft, setSelectedAiDraft] = useState<AiEditorialDraft | null>(null);
+
   // Form state
   const [content, setContent] = useState("");
   const [hint, setHint] = useState("");
   const [solutionCode, setSolutionCode] = useState("");
   const [solutionLang, setSolutionLang] = useState("python");
-  const [videoUrl, setVideoUrl] = useState("");           // ← URL video (sau upload)
-  const [videoFile, setVideoFile] = useState<File | null>(null); // ← File tạm để preview
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isPublished, setIsPublished] = useState(false);
 
   // Mock fetch
@@ -74,11 +94,49 @@ export default function ProblemEditorialPage() {
       setVideoUrl(mockEditorial.video_url || "");
       setIsPublished(mockEditorial.is_published);
 
+      // Mock AI Drafts
+      const MOCK_AI_DRAFTS: AiEditorialDraft[] = [
+        {
+          id: "draft-1",
+          title: "AI Draft: Two Sum Approach",
+          contentMd: "## 1. Problem Understanding\nThe problem asks to find two indices...",
+          status: "Draft",
+          language: "Vietnamese",
+          createdAt: new Date().toISOString(),
+          warnings: ["AI generated content may contain errors."],
+        },
+      ];
+      setAiDrafts(MOCK_AI_DRAFTS);
+
       setLoading(false);
     }, 800);
 
     return () => clearTimeout(timer);
   }, [problemId]);
+
+  const handleGenerateAiDraft = () => {
+    setIsGenerating(true);
+    toast.promise(
+      new Promise((r) => setTimeout(r, 3000)),
+      {
+        loading: "AI is analyzing problem and generating draft...",
+        success: () => {
+          const newDraft: AiEditorialDraft = {
+            id: `draft-${Date.now()}`,
+            title: `AI Draft: ${new Date().toLocaleTimeString()}`,
+            contentMd: "## 1. Problem Understanding\nNew generated content...",
+            status: "Draft",
+            language: "Vietnamese",
+            createdAt: new Date().toISOString(),
+          };
+          setAiDrafts([newDraft, ...aiDrafts]);
+          setIsGenerating(false);
+          return "AI Editorial Draft generated successfully!";
+        },
+        error: "Failed to generate AI draft.",
+      }
+    );
+  };
 
   // Xử lý chọn file video
   const handleVideoChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -184,6 +242,17 @@ export default function ProblemEditorialPage() {
             Publish
           </Switch>
           <Button
+            className="bg-amber-500 text-white font-black"
+            startContent={<Sparkles size={18} />}
+            isLoading={isGenerating}
+            onPress={() => {
+              setActiveTab("ai-drafts");
+              handleGenerateAiDraft();
+            }}
+          >
+            AI Draft
+          </Button>
+          <Button
             color="primary"
             startContent={<Save size={18} />}
             isLoading={saving}
@@ -207,17 +276,41 @@ export default function ProblemEditorialPage() {
           cursor: "bg-primary h-1",
         }}
       >
-        <Tab key="editor" title="Editor">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Tab
+          key="editor"
+          title={
+            <div className="flex items-center gap-2">
+              <BookOpen size={18} />
+              <span>Editor</span>
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Left - Content */}
             <Card>
-              <CardHeader className="flex justify-between">
-                <h3 className="font-bold flex items-center gap-2">
-                  <BookOpen size={18} />
-                  Editorial Content (Markdown)
-                </h3>
+              <CardHeader className="flex justify-between items-center bg-slate-50/50 dark:bg-white/5 border-b dark:border-white/5 py-3 px-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                    <BookOpen size={16} className="text-blue-500" />
+                    Write Editorial
+                  </h3>
+                  <div className="h-4 w-[1px] bg-slate-300 dark:bg-white/10" />
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    Markdown Supported
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="shadow"
+                  className="bg-linear-to-r from-amber-400 to-[#FF5C00] text-white font-black text-[10px] uppercase h-8 px-4"
+                  startContent={<Sparkles size={14} />}
+                  onPress={handleGenerateAiDraft}
+                  isLoading={isGenerating}
+                >
+                  Generate with AI
+                </Button>
               </CardHeader>
-              <CardBody>
+              <CardBody className="relative">
                 <Textarea
                   minRows={18}
                   value={content}
@@ -225,7 +318,29 @@ export default function ProblemEditorialPage() {
                   placeholder="Viết giải thích chi tiết, ý tưởng, cách tiếp cận..."
                   className="font-mono text-sm"
                 />
+                {!content && !isGenerating && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/20 backdrop-blur-[1px] z-10 rounded-xl">
+                    <Button
+                      color="primary"
+                      variant="shadow"
+                      startContent={<Sparkles size={18} />}
+                      onPress={() => {
+                        setActiveTab("ai-drafts");
+                        handleGenerateAiDraft();
+                      }}
+                      className="font-black"
+                    >
+                      Generate with AI
+                    </Button>
+                  </div>
+                )}
               </CardBody>
+              <div className="px-6 py-2 border-t dark:border-white/5 bg-slate-50/30 dark:bg-black/10">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  Supported: GFM, Tables, MathJax (LaTeX), Images, HTML.
+                </p>
+              </div>
             </Card>
 
             {/* Right - Hint + Solution + Video */}
@@ -314,8 +429,138 @@ export default function ProblemEditorialPage() {
             </div>
           </div>
         </Tab>
+        <Tab
+          key="ai-drafts"
+          title={
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-500" />
+              <span>AI Drafts</span>
+            </div>
+          }
+        >
+          <div className="space-y-6 mt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Sparkles size={20} className="text-amber-500" />
+                  AI Editorial Assistant
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Generate editorial drafts using AI and review them before publishing.
+                </p>
+              </div>
+              <Button
+                color="primary"
+                variant="shadow"
+                startContent={<Sparkles size={18} />}
+                onPress={handleGenerateAiDraft}
+                isLoading={isGenerating}
+                className="font-black"
+              >
+                Generate AI Draft
+              </Button>
+            </div>
 
-        <Tab key="preview" title="Preview">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {aiDrafts.length === 0 ? (
+                <Card className="col-span-full border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent shadow-none">
+                  <CardBody className="py-12 flex flex-col items-center justify-center gap-4">
+                    <div className="p-4 rounded-full bg-slate-100 dark:bg-white/5">
+                      <FileText size={32} className="text-slate-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bold text-slate-600 dark:text-slate-300">No AI drafts yet</p>
+                      <p className="text-sm text-slate-400">Click the button above to generate your first draft.</p>
+                    </div>
+                  </CardBody>
+                </Card>
+              ) : (
+                aiDrafts.map((draft) => (
+                  <Card key={draft.id} className="border dark:border-white/10 hover:shadow-md transition-shadow">
+                    <CardHeader className="flex justify-between items-start pb-0">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+                          {new Date(draft.createdAt).toLocaleString()}
+                        </span>
+                        <h4 className="font-black text-lg mt-1">{draft.title}</h4>
+                      </div>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={draft.status === "Accepted" ? "success" : draft.status === "Rejected" ? "danger" : "warning"}
+                        className="font-black text-[10px] uppercase"
+                      >
+                        {draft.status}
+                      </Chip>
+                    </CardHeader>
+                    <CardBody>
+                      <p className="text-sm text-slate-500 line-clamp-3 italic mb-4">
+                        {draft.contentMd}
+                      </p>
+                      {draft.warnings && (
+                        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 mb-4">
+                          {draft.warnings.map((w, i) => (
+                            <p key={i} className="text-[10px] text-amber-700 dark:text-amber-400 flex items-center gap-1 font-bold">
+                              <AlertTriangle size={12} /> {w}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex justify-end gap-2 pt-2 border-t dark:border-white/5">
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          startContent={<Eye size={14} />}
+                          onPress={() => setSelectedAiDraft(draft)}
+                        >
+                          Preview
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          color="primary"
+                          startContent={<Pencil size={14} />}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-emerald-500 text-white font-bold"
+                          startContent={<Check size={14} />}
+                          onPress={() => {
+                            setContent(draft.contentMd);
+                            setActiveTab("editor");
+                            toast.success("AI Draft content has been copied to editor!");
+                          }}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="danger"
+                          isIconOnly
+                        >
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    </CardBody>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        </Tab>
+
+        <Tab
+          key="preview"
+          title={
+            <div className="flex items-center gap-2">
+              <Eye size={18} />
+              <span>Preview</span>
+            </div>
+          }
+        >
           <Card>
             <CardBody className="prose dark:prose-invert max-w-none">
               {/* Preview markdown - thay bằng ReactMarkdown thật */}
@@ -330,6 +575,53 @@ export default function ProblemEditorialPage() {
           </Card>
         </Tab>
       </Tabs>
+
+      {/* AI Draft Preview Modal */}
+      <Modal
+        isOpen={!!selectedAiDraft}
+        onClose={() => setSelectedAiDraft(null)}
+        size="3xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-500" />
+              <span className="font-black italic uppercase text-lg">AI Draft Preview</span>
+            </div>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              {selectedAiDraft?.title} • {selectedAiDraft?.language}
+            </p>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="prose dark:prose-invert max-w-none">
+              <div className="p-6 rounded-2xl bg-slate-50 dark:bg-black/20 border dark:border-white/5">
+                <pre className="whitespace-pre-wrap font-sans text-sm">
+                  {selectedAiDraft?.contentMd}
+                </pre>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={() => setSelectedAiDraft(null)}>
+              Close
+            </Button>
+            <Button
+              color="primary"
+              onPress={() => {
+                if (selectedAiDraft) {
+                  setContent(selectedAiDraft.contentMd);
+                  setActiveTab("editor");
+                  setSelectedAiDraft(null);
+                  toast.success("AI Draft content has been copied to editor!");
+                }
+              }}
+            >
+              Use this Draft
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Footer */}
       <div className="flex justify-end gap-4 pt-6 border-t">

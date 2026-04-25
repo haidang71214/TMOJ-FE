@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Card,
   CardBody,
@@ -13,121 +13,157 @@ import {
   ModalFooter,
   Input,
   Switch,
+  Tabs,
+  Tab,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Image,
 } from "@heroui/react";
-import { Edit, Trash2, Calendar, Plus, Download } from "lucide-react";
+import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
-import CoinPackageModal from "./CoinPackageModal";
+import CoinItemModal from "./CoinItemModal";
+import { CoinItem, ProductPurchaseHistory } from "@/types";
 
-type CoinPackage = {
-  id: number;
-  name: string;
-  coins: number;
-  price: number;
-  bonus: number;
-  image: string;
-  startAt: string;
-  endAt: string;
-  active?: boolean;
-};
-
-const MOCK_PACKAGES: CoinPackage[] = [
+const MOCK_ITEMS: CoinItem[] = [
   {
     id: 1,
-    name: "Starter Pack",
-    coins: 100,
-    price: 49000,
-    bonus: 0,
-    image: "https://cdn-icons-png.flaticon.com/512/272/272525.png",
-    startAt: "2026-01-01",
-    endAt: "2026-12-31",
+    name: "Áo Polo FPT Cam",
+    description: "Đồng phục Polo FPT màu cam năng động, chất liệu thoáng mát.",
+    price: 80000,
+    image: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
+    category: "Fashion",
+    stock: 100,
+    sales: 45,
+    createdAt: "2026-01-10",
     active: true,
   },
   {
     id: 2,
-    name: "Pro Pack",
-    coins: 500,
-    price: 219000,
-    bonus: 10,
-    image: "https://cdn-icons-png.flaticon.com/512/138/138292.png",
-    startAt: "2026-02-01",
-    endAt: "2026-06-01",
+    name: "Áo Polo FPT Trắng Phối Cam",
+    description: "Áo Polo FPT màu trắng phối cam thanh lịch.",
+    price: 90000,
+    image: "https://dongphuccati.com/images/products/2020/05/18/original/2-1.jpg",
+    category: "Fashion",
+    stock: 80,
+    sales: 32,
+    createdAt: "2026-01-12",
     active: true,
   },
   {
     id: 3,
-    name: "Mega Pack",
-    coins: 1200,
-    price: 499000,
-    bonus: 20,
-    image: "https://cdn-icons-png.flaticon.com/512/2649/2649421.png",
-    startAt: "2026-01-01",
-    endAt: "2026-12-31",
+    name: "Balo FPT Software",
+    description: "Balo laptop FPT Software cao cấp, chống nước.",
+    price: 250000,
+    image: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
+    category: "Accessories",
+    stock: 50,
+    sales: 120,
+    createdAt: "2026-02-05",
     active: true,
   },
   {
     id: 4,
-    name: "Elite Bundle",
-    coins: 3000,
-    price: 999000,
-    bonus: 30,
-    image: "https://cdn-icons-png.flaticon.com/512/2619/2619045.png",
-    startAt: "2026-03-01",
-    endAt: "2026-09-01",
+    name: "Cặp FPT",
+    description: "Cặp FPT thời trang, bền đẹp.",
+    price: 300000,
+    image: "https://5.imimg.com/data5/ANDROID/Default/2022/8/ND/IF/PO/22020579/product-jpeg-500x500.jpg",
+    category: "Accessories",
+    stock: 500,
+    sales: 230,
+    createdAt: "2026-01-05",
     active: true,
   },
   {
     id: 5,
-    name: "Lunar New Year Special",
-    coins: 888,
-    price: 388000,
-    bonus: 15,
-    image: "https://cdn-icons-png.flaticon.com/512/3050/3050215.png",
-    startAt: "2026-01-20",
-    endAt: "2026-02-20",
-    active: false,
+    name: "Bút FPT Excellence",
+    description: "Bút vinh danh dành cho sinh viên xuất sắc.",
+    price: 30000,
+    image: "https://tse1.mm.bing.net/th/id/OIP.6s4XuaMBVNzZBi9C_Rl_CQHaFj?w=700&h=525&rs=1&pid=ImgDetMain&o=7&rm=3",
+    category: "Collection",
+    stock: 20,
+    sales: 5,
+    createdAt: "2026-03-20",
+    active: true,
   },
 ];
 
-const getStatus = (start: string, end: string, active?: boolean) => {
-  const now = new Date();
-  if (active === false) return "DISABLED";
-  if (now < new Date(start)) return "UPCOMING";
-  if (now > new Date(end)) return "EXPIRED";
-  return "ACTIVE";
-};
+const MOCK_HISTORY: ProductPurchaseHistory[] = [
+  {
+    id: "ORD-001",
+    itemName: "Áo Polo FPT Cam",
+    itemImage: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
+    buyerName: "Nguyễn Văn A",
+    buyerEmail: "anv@fpt.edu.vn",
+    price: 500,
+    purchaseDate: "2026-04-20 10:30",
+    status: "Completed",
+  },
+  {
+    id: "ORD-002",
+    itemName: "Balo FPT Software",
+    itemImage: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
+    buyerName: "Trần Thị B",
+    buyerEmail: "bt@fpt.edu.vn",
+    price: 1200,
+    purchaseDate: "2026-04-21 14:15",
+    status: "Shipped",
+  },
+  {
+    id: "ORD-003",
+    itemName: "Dây đeo thẻ FPT",
+    itemImage: "https://5.imimg.com/data5/ANDROID/Default/2022/8/ND/IF/PO/22020579/product-jpeg-500x500.jpg",
+    buyerName: "Lê Văn C",
+    buyerEmail: "clv@fpt.edu.vn",
+    price: 100,
+    purchaseDate: "2026-04-22 09:00",
+    status: "Pending",
+  },
+];
 
 const formatVND = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 export default function CoinManagerPage() {
-  const [packages, setPackages] = useState(MOCK_PACKAGES);
-  const [editing, setEditing] = useState<CoinPackage | null>(null);
+  const [items, setItems] = useState<CoinItem[]>(MOCK_ITEMS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editing, setEditing] = useState<CoinItem | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [packageToDelete, setPackageToDelete] = useState<CoinPackage | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<CoinItem | null>(null);
+  const [activeTab, setActiveTab] = useState("items");
 
   const { openModal } = useModal();
 
-  const openDeleteModal = (pkg: CoinPackage) => {
-    setPackageToDelete(pkg);
+  const filteredItems = useMemo(() => {
+    return items.filter((item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [items, searchQuery]);
+
+  const openDeleteModal = (item: CoinItem) => {
+    setItemToDelete(item);
     setDeleteModalOpen(true);
   };
 
-  const removePackage = () => {
-    if (!packageToDelete) return;
-    setPackages((prev) => prev.filter((p) => p.id !== packageToDelete.id));
+  const removeItem = () => {
+    if (!itemToDelete) return;
+    setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
     setDeleteModalOpen(false);
-    setPackageToDelete(null);
+    setItemToDelete(null);
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black">
-            Coin Package <span className="text-[#FF5C00]">Management</span>
+            Coin Item <span className="text-[#FF5C00]">Management</span>
           </h1>
           <p className="text-xs uppercase tracking-widest text-slate-500">
-            Create, edit and monitor coin packages
+            Manage FPT products and purchase history
           </p>
         </div>
 
@@ -135,128 +171,207 @@ export default function CoinManagerPage() {
           <Button
             className="bg-slate-100 dark:bg-white/5 text-[#071739] dark:text-white font-black border border-slate-200 dark:border-white/10"
             startContent={<Download size={16} />}
-            onPress={() => alert("Payment Report Downloaded")}
+            onPress={() => alert("Sales Report Downloaded")}
           >
-            Export Payment Report
+            Export Sales Report
           </Button>
           <Button
             className="bg-[#FF5C00] text-white font-black"
             startContent={<Plus size={16} />}
             onClick={() =>
               openModal({
-                content: <CoinPackageModal />,
+                content: <CoinItemModal />,
               })
             }
           >
-            Create Package
+            Add New Item
           </Button>
         </div>
       </div>
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {packages.map((pkg) => {
-          const status = getStatus(pkg.startAt, pkg.endAt, pkg.active);
+      {/* TABS */}
+      <Tabs
+        selectedKey={activeTab}
+        onSelectionChange={(key) => setActiveTab(key as string)}
+        variant="underlined"
+        classNames={{
+          cursor: "bg-[#FF5C00]",
+          tab: "font-black uppercase tracking-wider",
+        }}
+      >
+        <Tab
+          key="items"
+          title={
+            <div className="flex items-center gap-2">
+              <PackageIcon size={18} />
+              <span>Items Management</span>
+            </div>
+          }
+        >
+          <div className="mt-6 space-y-6">
+            {/* SEARCH */}
+            <div className="max-w-md">
+              <Input
+                placeholder="Search products..."
+                startContent={<Search size={18} className="text-slate-400" />}
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                className="font-bold"
+              />
+            </div>
 
-          return (
-            <Card
-              key={pkg.id}
-              className="bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-2xl shadow-lg hover:-translate-y-1 transition-all"
-            >
-              <CardBody className="p-6 space-y-5">
-                {/* TOP */}
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={pkg.image}
-                      alt={pkg.name}
-                      className="w-14 h-14 rounded-xl bg-slate-100 p-2"
-                    />
-                    <div>
-                      <h3 className="font-black text-lg text-[#071739] dark:text-white">
-                        {pkg.name}
-                      </h3>
-                      <p className="text-xs text-slate-500">
-                        {pkg.coins} Coins
-                      </p>
+            {/* GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredItems.map((item) => (
+                <Card
+                  key={item.id}
+                  className="bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-2xl shadow-lg hover:-translate-y-1 transition-all"
+                >
+                  <CardBody className="p-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-4">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-20 rounded-xl object-cover bg-slate-100"
+                        />
+                        <div>
+                          <Chip size="sm" className="bg-blue-500/10 text-blue-500 font-black text-[10px] uppercase mb-1">
+                            {item.category}
+                          </Chip>
+                          <h3 className="font-black text-lg text-[#071739] dark:text-white leading-tight">
+                            {item.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <Chip
+                        size="sm"
+                        className={`font-black text-[9px] tracking-widest ${item.active ? "bg-emerald-500/15 text-emerald-400" : "bg-gray-500/15 text-gray-400"}`}
+                      >
+                        {item.active ? "ACTIVE" : "DISABLED"}
+                      </Chip>
                     </div>
-                  </div>
 
-                  <Chip
-                    size="sm"
-                    className={`
-                      font-black text-[9px] tracking-widest
-                      ${status === "ACTIVE" && "bg-emerald-500/15 text-emerald-400"}
-                      ${status === "UPCOMING" && "bg-blue-500/15 text-blue-400"}
-                      ${status === "EXPIRED" && "bg-red-500/15 text-red-400"}
-                      ${status === "DISABLED" && "bg-gray-500/15 text-gray-400"}
-                    `}
-                  >
-                    {status}
-                  </Chip>
-                </div>
-
-                {/* PRICE */}
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs uppercase text-slate-400 tracking-widest">
-                      Price
+                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                      {item.description}
                     </p>
-                    <p className="text-2xl font-black text-[#FF5C00]">
-                      {formatVND(pkg.price)} coins
-                    </p>
-                  </div>
 
-                  {pkg.bonus > 0 && (
-                    <Chip
-                      size="sm"
-                      className="bg-yellow-400/15 text-yellow-500 font-black text-[10px]"
-                    >
-                      +{pkg.bonus}% BONUS
-                    </Chip>
-                  )}
-                </div>
+                    <div className="flex justify-between items-end border-t border-slate-100 dark:border-white/5 pt-4">
+                      <div>
+                        <p className="text-[10px] uppercase text-slate-400 tracking-widest">
+                          Price
+                        </p>
+                        <p className="text-2xl font-black text-[#FF5C00]">
+                          {formatVND(item.price)} <span className="text-xs uppercase">Coins</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase text-slate-400 tracking-widest">
+                          Stock
+                        </p>
+                        <p className="font-black text-slate-700 dark:text-slate-200">
+                          {item.stock} Left
+                        </p>
+                      </div>
+                    </div>
 
-                {/* TIME */}
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <Calendar size={14} />
-                  {pkg.startAt} → {pkg.endAt}
-                </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        className="bg-blue-600 text-white"
+                        onClick={() => setEditing(item)}
+                      >
+                        <Edit size={16} />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        className="bg-red-600 text-white"
+                        onClick={() => openDeleteModal(item)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </Tab>
 
-                {/* ACTIONS */}
-                <div className="flex justify-end gap-2 pt-3">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    className="bg-blue-600 text-white"
-                    onClick={() => setEditing(pkg)}
-                  >
-                    <Edit size={16} />
-                  </Button>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    className="bg-red-600 text-white"
-                    onClick={() => openDeleteModal(pkg)}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          );
-        })}
-      </div>
+        <Tab
+          key="history"
+          title={
+            <div className="flex items-center gap-2">
+              <ShoppingCart size={18} />
+              <span>Purchase History</span>
+            </div>
+          }
+        >
+          <div className="mt-6">
+            <Table aria-label="Purchase history table">
+              <TableHeader>
+                <TableColumn className="font-black">PRODUCT</TableColumn>
+                <TableColumn className="font-black">BUYER</TableColumn>
+                <TableColumn className="font-black">PRICE</TableColumn>
+                <TableColumn className="font-black">DATE</TableColumn>
+                <TableColumn className="font-black">STATUS</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {MOCK_HISTORY.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Image
+                          src={row.itemImage}
+                          alt={row.itemName}
+                          className="w-10 h-10 rounded-lg object-cover"
+                        />
+                        <span className="font-bold">{row.itemName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold">{row.buyerName}</span>
+                        <span className="text-xs text-slate-500">{row.buyerEmail}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-black text-[#FF5C00]">
+                      {row.price} Coins
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm">
+                      {row.purchaseDate}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={
+                          row.status === "Completed" ? "success" :
+                            row.status === "Pending" ? "warning" :
+                              row.status === "Shipped" ? "primary" : "danger"
+                        }
+                        className="font-black uppercase text-[10px]"
+                      >
+                        {row.status}
+                      </Chip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Tab>
+      </Tabs>
 
       {/* EDIT MODAL */}
       <Modal isOpen={!!editing} onClose={() => setEditing(null)}>
         <ModalContent>
-          <ModalHeader>Edit Coin Package</ModalHeader>
+          <ModalHeader className="font-black">Edit Coin Item</ModalHeader>
           <ModalBody className="space-y-4">
-            {/* Package Name */}
             <Input
-              label="Package Name"
+              label="Item Name"
               defaultValue={editing?.name}
               onChange={(e) =>
                 setEditing((prev) =>
@@ -264,22 +379,6 @@ export default function CoinManagerPage() {
                 )
               }
             />
-
-            {/* Coins */}
-            <Input
-              label="Coins"
-              type="number"
-              defaultValue={editing?.coins?.toString()}
-              onChange={(e) =>
-                setEditing((prev) =>
-                  prev
-                    ? { ...prev, coins: Number(e.target.value) || 0 }
-                    : null
-                )
-              }
-            />
-
-            {/* Price */}
             <Input
               label="Price (coins)"
               type="number"
@@ -292,66 +391,30 @@ export default function CoinManagerPage() {
                 )
               }
             />
-
-            {/* Start Date */}
             <Input
-              label="Start Date"
-              type="date"
-              defaultValue={editing?.startAt}
+              label="Stock"
+              type="number"
+              defaultValue={editing?.stock?.toString()}
               onChange={(e) =>
                 setEditing((prev) =>
-                  prev ? { ...prev, startAt: e.target.value } : null
+                  prev
+                    ? { ...prev, stock: Number(e.target.value) || 0 }
+                    : null
                 )
               }
             />
-
-            {/* End Date */}
-            <Input
-              label="End Date"
-              type="date"
-              defaultValue={editing?.endAt}
-              onChange={(e) =>
-                setEditing((prev) =>
-                  prev ? { ...prev, endAt: e.target.value } : null
-                )
-              }
-            />
-
-            {/* Active Status - Switch + Nút chủ động */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Active Status</span>
-                <Switch
-                  isSelected={editing?.active ?? true}
-                  onValueChange={(value) => {
-                    setEditing((prev) =>
-                      prev ? { ...prev, active: value } : null
-                    );
-                  }}
-                  classNames={{
-                    wrapper: "group-data-[selected=true]:bg-green-600",
-                  }}
-                />
-              </div>
-
-              {/* Nút chủ động Enable/Disable */}
-              <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color={editing?.active ? "danger" : "success"}
-                  onPress={() => {
-                    setEditing((prev) =>
-                      prev ? { ...prev, active: !prev.active } : null
-                    );
-                  }}
-                >
-                  {editing?.active ? "Disable Package" : "Enable Package"}
-                </Button>
-              </div>
+            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-white/5">
+              <span className="font-bold text-sm">Active Status</span>
+              <Switch
+                isSelected={editing?.active ?? true}
+                onValueChange={(value) => {
+                  setEditing((prev) =>
+                    prev ? { ...prev, active: value } : null
+                  );
+                }}
+              />
             </div>
           </ModalBody>
-
           <ModalFooter>
             <Button variant="light" onClick={() => setEditing(null)}>
               Cancel
@@ -359,36 +422,32 @@ export default function CoinManagerPage() {
             <Button
               className="bg-[#FF5C00] text-white font-black"
               onPress={() => {
-                // Logic save (cập nhật state packages)
                 if (editing) {
-                  setPackages((prev) =>
-                    prev.map((p) =>
-                      p.id === editing.id ? { ...p, ...editing } : p
+                  setItems((prev) =>
+                    prev.map((i) =>
+                      i.id === editing.id ? { ...i, ...editing } : i
                     )
                   );
                 }
                 setEditing(null);
               }}
             >
-              Save
+              Save Changes
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {/* CONFIRM REMOVE MODAL */}
+      {/* DELETE MODAL */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
         <ModalContent>
           <ModalHeader className="text-red-600 font-black">
-            Remove Coin Package?
+            Remove Item?
           </ModalHeader>
           <ModalBody>
             <p className="text-sm">
               Are you sure you want to remove{" "}
-              <span className="font-bold">{packageToDelete?.name}</span>?
-            </p>
-            <p className="text-xs text-slate-500 mt-2">
-              This action cannot be undone.
+              <span className="font-bold">{itemToDelete?.name}</span>?
             </p>
           </ModalBody>
           <ModalFooter>
@@ -398,9 +457,8 @@ export default function CoinManagerPage() {
             <Button
               color="danger"
               onPress={() => {
-                if (packageToDelete) removePackage();
+                if (itemToDelete) removeItem();
                 setDeleteModalOpen(false);
-                setPackageToDelete(null);
               }}
             >
               Remove

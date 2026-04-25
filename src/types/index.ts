@@ -1595,3 +1595,27 @@ export interface PaymentHistoryResponse {
   message: string | null;
   traceId: string;
 }
+
+export interface CoinItem {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  stock: number;
+  sales: number;
+  createdAt: string;
+  active: boolean;
+}
+
+export interface ProductPurchaseHistory {
+  id: string;
+  itemName: string;
+  itemImage: string;
+  buyerName: string;
+  buyerEmail: string;
+  price: number;
+  purchaseDate: string;
+  status: "Pending" | "Shipped" | "Completed" | "Cancelled";
+}

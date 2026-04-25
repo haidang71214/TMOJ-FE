@@ -33,6 +33,7 @@ export default function CreateClassModal({ onCreated }: { onCreated?: () => void
 
   const { data: userProfile } = useGetUserInformationQuery();
   const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
+  const isTeacher = userProfile?.role?.toLowerCase() === "teacher";
 
   const { data: teacherData, isLoading: teacherLoading } = useGetUserRoleQuery({ roleName: "teacher" }, { skip: !isManagerOrAdmin });
   const teachers = teacherData?.data ?? [];
@@ -220,7 +221,7 @@ export default function CreateClassModal({ onCreated }: { onCreated?: () => void
               <SelectItem key={t.userId}>{t.displayName || t.userId}</SelectItem>
             ))}
           </Select>
-        ) : (
+        ) : isTeacher ? null : (
           <Input
             label={
               <div className="flex items-center gap-1">

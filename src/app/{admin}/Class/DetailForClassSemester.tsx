@@ -267,7 +267,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
               className="bg-[#FF5C00] hover:bg-orange-600 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active:scale-95"
               onPress={openCreateSlotModal}
             >
-              NEW SLOT
+              NEW EXAM
             </Button>
           </div>
         </div>
@@ -325,7 +325,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                         </div>
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                            Slot no {slot.slotNo}: {slot.title}
+                            Exam no {slot.slotNo}: {slot.title}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 uppercase italic">
                             {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
@@ -403,7 +403,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                                 className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
                                 onPress={() =>
                                   openModal({
-                                    title: "Update Problems in Slot",
+                                    title: "Update Problems in Exam",
                                     content: (
                                       <UpdateProblemIntoSlot
                                         semesterId={semesterId}
@@ -437,7 +437,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                           </div>
 
                           <Table
-                            aria-label={`Problems in slot ${slot.slotNo}`}
+                            aria-label={`Problems in exam ${slot.slotNo}`}
                             removeWrapper
                             classNames={{
                               base: "bg-white dark:bg-[#111c35] rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-white/5",
@@ -452,7 +452,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                               <TableColumn>REQUIRED</TableColumn>
                               <TableColumn className="text-right">ACTIONS</TableColumn>
                             </TableHeader>
-                            <TableBody emptyContent="No problems exist in this slot">
+                            <TableBody emptyContent="No problems exist in this exam">
                               {slot.problems?.map((p, index) => (
                                 <TableRow
                                   key={p.problemId}

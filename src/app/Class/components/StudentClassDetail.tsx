@@ -17,6 +17,7 @@ import {
   Chip,
   Pagination,
   Spinner,
+  addToast,
 } from "@heroui/react";
 import {
   ChevronLeft,
@@ -37,9 +38,11 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
 import { ClassSlotResponse } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function StudentClassDetail({ semesterId }: { semesterId: string }) {
   const router = useRouter();
+  const { t, language } = useTranslation();
 
   const searchParams = useSearchParams();
   const classCode = searchParams.get("classCode") || "Unknown";
@@ -179,11 +182,20 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                   <CardBody className="p-0">
                     <div
                       className="p-6 flex items-center justify-between group"
-                      onClick={() =>
+                      onClick={() => {
+                        if (!slot.isPublished) {
+                          addToast({
+                            title: language === 'vi' 
+                              ? 'Bạn phải đợi giảng viên mở bài kiểm tra này!' 
+                              : 'Please wait for the teacher to open this exam!',
+                            color: "warning"
+                          });
+                          return;
+                        }
                         setExpandedSlot(
                           expandedSlot === slot.id ? null : slot.id
                         )
-                      }
+                      }}
                     >
                       <div className="flex items-center gap-5">
                         <div
@@ -201,7 +213,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                         </div>
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                            Slot {slot.slotNo}: {slot.title}
+                            Exam {slot.slotNo}: {slot.title}
                           </h4>
                           <span className="text-[10px] font-bold text-slate-400 uppercase italic flex items-center gap-1 mt-1">
                             <Clock size={12} /> {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
@@ -217,6 +229,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                         }`}
                       />
                     </div>
+
                     {expandedSlot === slot.id && (
                       <div className="px-8 pb-10 border-t border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
                         <div className="grid grid-cols-1 gap-10 mt-8">
@@ -450,7 +463,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                                 Action
                               </TableColumn>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody emptyContent={"No problems exist in this exam"}>
                               {slot.submissions.map((sub) => (
                                 <TableRow
                                   key={sub.id}

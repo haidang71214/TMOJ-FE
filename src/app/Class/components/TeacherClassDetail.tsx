@@ -70,7 +70,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
   const [slotPage, setSlotPage] = useState(1);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
 
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
   const rowsPerPage = 10;
 
   useEffect(() => {
@@ -197,8 +197,8 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
       await publishSlot({ semesterId, slotId }).unwrap();
       addToast({
         title: isCurrentlyPublished 
-          ? (t('class_semester.slot_hidden') || (language === 'vi' ? 'Đã ẩn slot' : 'Slot hidden successfully'))
-          : (t('class_semester.slot_published') || (language === 'vi' ? 'Đã công bố slot' : 'Slot published successfully')),
+          ? (t('class_semester.slot_hidden') || (language === 'vi' ? 'Đã ẩn bài kiểm tra' : 'Exam hidden successfully'))
+          : (t('class_semester.slot_published') || (language === 'vi' ? 'Đã công bố bài kiểm tra' : 'Exam published successfully')),
         color: "success"
       });
     } catch (err) {
@@ -298,7 +298,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
               onPress={openCreateSlotModal}
               style={{ animationFillMode: 'both', animationDelay: '350ms' }}
             >
-              {t('class_semester.new_slot') || "NEW SLOT"}
+              {t('class_semester.new_slot') || "NEW EXAM"}
             </Button>
           </div>
         </div>
@@ -356,7 +356,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                         </div>
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
-                            {t('class_semester.slot_no') || "Slot no"} {slot.slotNo}: {slot.title}
+                             {t('class_semester.slot_no') || "Exam no"} {slot.slotNo}: {slot.title}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 uppercase italic">
                             {slot.openAt ?? "N/A"} — {slot.closeAt ?? "N/A"}
@@ -371,6 +371,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                             isIconOnly
                             size="sm"
                             variant="flat"
+                            isDisabled={slot.isPublished}
                             onPress={() =>
                               openModal({
                                 content: (
@@ -388,12 +389,46 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                           </Button>
                         </Tooltip>
 
-                        <Tooltip content={slot.isPublished ? (t('class_semester.hide_slot') || (language === 'vi' ? 'Ẩn slot này' : 'Hide Slot')) : (t('class_semester.publish_slot') || (language === 'vi' ? 'Công bố slot' : 'Publish Slot'))} className="text-[10px] font-bold" placement="top">
+                        <Tooltip content={slot.isPublished ? (t('class_semester.slot_published') || (language === 'vi' ? 'Đã công bố' : 'Published')) : (t('class_semester.publish_slot') || (language === 'vi' ? 'Công bố bài kiểm tra' : 'Publish Exam'))} className="text-[10px] font-bold" placement="top">
                           <Button
                             isIconOnly
                             size="sm"
                             variant="flat"
-                            onPress={() => handlePublishToggle(slot.id, !!slot.isPublished)}
+                            isDisabled={slot.isPublished}
+                            onPress={() => {
+                              openModal({
+                                content: (
+                                  <div className="w-[400px] max-w-full bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-orange-200 dark:border-orange-500/20">
+                                    <div className="px-6 py-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-600/10 dark:to-amber-600/10 border-b border-orange-200 dark:border-orange-500/20 flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-lg" style={{ background: "linear-gradient(135deg, #FF5C00, #f97316)", color: "white" }}>
+                                        ⚠️
+                                      </div>
+                                      <h2 className="text-xl font-[900] text-gray-900 dark:text-white">
+                                        {language === 'vi' ? 'Xác nhận công bố' : 'Confirm Publish'}
+                                      </h2>
+                                    </div>
+                                    <div className="p-6 space-y-6">
+                                      <p className="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                                        {language === 'vi' 
+                                          ? 'Bạn có chắc chắn muốn công bố bài kiểm tra này? Một khi đã công bố, bạn sẽ KHÔNG THỂ thay đổi, thêm hay xóa bài tập được nữa.'
+                                          : 'Are you sure you want to publish this exam? Once published, you CANNOT edit, add, or remove problems anymore.'}
+                                      </p>
+                                      <div className="flex justify-end gap-3 pt-2">
+                                        <Button variant="flat" onPress={() => closeModal()}>
+                                          {t('common.cancel') || (language === 'vi' ? 'Hủy' : 'Cancel')}
+                                        </Button>
+                                        <Button color="primary" className="bg-[#FF5C00] text-white font-bold shadow-md" onPress={() => {
+                                          closeModal();
+                                          handlePublishToggle(slot.id, false);
+                                        }}>
+                                          {t('class_semester.publish_slot') || (language === 'vi' ? 'Công bố' : 'Publish')}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              });
+                            }}
                           >
                             {slot.isPublished ? (
                               <Eye className="text-emerald-500" size={18} />
@@ -441,10 +476,11 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
     <Button
       size="sm"
       variant="flat"
-      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
+      isDisabled={slot.isPublished}
+      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
       onPress={() =>
         openModal({
-          title: t('class_semester.update_problems_slot') || "Update Problems in Slot",
+          title: t('class_semester.update_problems_slot') || "Update Problems in Exam",
           content: (
             <UpdateProblemIntoSlot
               semesterId={semesterId}
@@ -463,13 +499,14 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         })
       }
     >
-      {t('class_semester.edit_all') || "EDIT ALL"}
+      {t('class_semester.edit_all') || "EDIT / ALLOCATE POINTS"}
     </Button>
 
     <Button
        size="sm"
       variant="flat"
-      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600"
+      isDisabled={slot.isPublished}
+      className="text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
     
       onPress={() => openAddProblemModal(slot.id)}
     >
@@ -480,7 +517,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
 </div>
 
                           <Table
-                            aria-label={`Problems in slot ${slot.slotNo}`}
+                            aria-label={`Problems in exam ${slot.slotNo}`}
                             removeWrapper
                             classNames={{
                               base: "bg-white dark:bg-[#111c35] rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-white/5",
@@ -495,7 +532,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                               <TableColumn>{t('class_semester.header_required') || "REQUIRED"}</TableColumn>
                               <TableColumn className="text-right">{t('class_semester.header_actions') || "ACTIONS"}</TableColumn>
                             </TableHeader>
-                            <TableBody emptyContent={t('class_semester.empty_problems') || "No problems exist in this slot"}>
+                            <TableBody emptyContent={t('class_semester.empty_problems') || "No problems exist in this exam"}>
                               {slot.problems?.map((p, index) => (
                                 <TableRow
                                   key={p.problemId}
@@ -544,15 +581,22 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                                   </TableCell>
 
                                   <TableCell>
-                                    <div className="flex justify-end">
+                                    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
                                       <Button
                                         isIconOnly
                                         size="sm"
                                         variant="flat"
                                         color="danger"
-                                        className="animate-fade-in-up active-bump"
+                                        className={`animate-fade-in-up active-bump ${slot.isPublished ? "opacity-50" : ""}`}
                                         style={{ animationFillMode: "both", animationDelay: `${200 + index * 40 + 100}ms` }}
                                         onPress={() => {
+                                          if (slot.isPublished) {
+                                            addToast({
+                                              title: language === 'vi' ? 'Không thể xóa bài tập khi bài kiểm tra đã được công bố!' : 'Cannot delete problem from published exam!',
+                                              color: "danger"
+                                            });
+                                            return;
+                                          }
                                           handleDeleteProblem(slot.id, p.problemId);
                                         }}
                                       >

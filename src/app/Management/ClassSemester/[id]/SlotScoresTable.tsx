@@ -81,7 +81,7 @@ export default function SlotScoresTable({ semesterId, slot }: Props) {
         style={{ animationFillMode: "both", animationDelay: "100ms" }}
       >
         <Table 
-          aria-label="Slot Scores" 
+          aria-label="Exam Scores" 
           removeWrapper 
           classNames={{
             th: "bg-slate-100 dark:bg-white/5 text-slate-500 font-[1000] uppercase tracking-widest text-[10px] py-4 border-b border-divider",
@@ -113,7 +113,7 @@ export default function SlotScoresTable({ semesterId, slot }: Props) {
               </TableColumn>
             ]}
           </TableHeader>
-          <TableBody emptyContent={t('class_semester.no_score_data') || (language === 'vi' ? 'Không có điểm nào cho sinh viên trong slot này.' : "No score data available for any students in this slot.")}>
+          <TableBody emptyContent={t('class_semester.no_score_data') || (language === 'vi' ? 'Không có điểm nào cho sinh viên trong bài kiểm tra này.' : "No score data available for any students in this exam.")}>
             {filteredScores.map((student: any, index: number) => (
               <TableRow 
                 key={student.userId} 

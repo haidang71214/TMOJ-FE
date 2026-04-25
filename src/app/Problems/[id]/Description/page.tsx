@@ -15,18 +15,9 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useCheckFavoriteQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
 import AddToCollectionModal from "../../components/AddToCollectionModal";
 import { toast } from "sonner";
+import { Problem } from "@/types";
 
 // Types
-interface Problem {
-  title: string;
-  content?: string;
-  difficulty?: string;
-  statusCode?: string;
-  isActive?: boolean;
-  timeLimitMs?: number;
-  memoryLimitKb?: number;
-  acceptancePercent?: number;
-}
 
 const DIFFICULTY_MAP: Record<string, { color: string; bg: string; border: string; label: string }> = {
   easy: { color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/20", label: "Easy" },
@@ -107,7 +98,11 @@ export default function DescriptionTab() {
   const diff = getDifficulty(problem.difficulty);
 
   return (
-    <div className="h-full overflow-y-auto px-6 md:px-10 py-8 space-y-8 no-scrollbar bg-white dark:bg-[#1C2737] text-slate-700 dark:text-slate-300 selection:bg-orange-500/20 selection:text-orange-600 transition-colors">
+    <div 
+      onContextMenu={(e) => e.preventDefault()}
+      onCopy={(e) => e.preventDefault()}
+      className="h-full overflow-y-auto px-6 md:px-10 py-8 space-y-8 no-scrollbar bg-white dark:bg-[#1C2737] text-slate-700 dark:text-slate-300 transition-colors select-none"
+    >
 
       {/* Header */}
       <div className="space-y-4">
@@ -124,12 +119,9 @@ export default function DescriptionTab() {
                 : diff.label.toUpperCase())}
           </span>
 
-          {problem.statusCode && (
-            <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 shadow-sm">
-              {t(`management.problem.status.${problem.statusCode.toLowerCase()}`) ||
-                (language === 'vi' && problem.statusCode === 'DRAFT' ? 'Nháp' : problem.statusCode.toUpperCase())}
-            </span>
-          )}
+          <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 shadow-sm">
+            {problem.problemMode === "pro" ? "Professional" : "Amateur"}
+          </span>
 
           <span className={`px-2.5 py-1 rounded-md border flex items-center gap-1 shadow-sm
             ${problem.isActive
@@ -177,7 +169,7 @@ export default function DescriptionTab() {
           h3: ({ children }) => (String(children).toLowerCase().trim() === "subtasks" ? null : <h3>{children}</h3>),
         }}
       >
-        {problem.content || "Chưa có mô tả cho bài toán này."}
+        {problem.descriptionMd || "Chưa có mô tả cho bài toán này."}
       </ReactMarkdown>
 
       {/* Metadata */}
@@ -198,11 +190,11 @@ export default function DescriptionTab() {
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] text-[#FF5C00]/70 dark:text-[#FF5C00]/80 font-black uppercase tracking-widest">{t("problem_workspace.memory_limit") || (language === "vi" ? "Bộ nhớ" : "Memory Limit")}</span>
-            <span className="text-[12px] font-bold text-slate-800 dark:text-white">{problem.memoryLimitKb} KB</span>
+            <span className="text-[12px] font-bold text-slate-800 dark:text-white">{problem.memoryLimitKb/1024} MB</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white dark:bg-[#162130] border border-orange-100 dark:border-white/5 rounded-lg px-4 py-3 hover:border-[#FF5C00]/50 hover:shadow-md transition-all duration-300 group shadow-sm">
+        {/* <div className="flex items-center gap-3 bg-white dark:bg-[#162130] border border-orange-100 dark:border-white/5 rounded-lg px-4 py-3 hover:border-[#FF5C00]/50 hover:shadow-md transition-all duration-300 group shadow-sm">
           <div className="text-[#FF5C00] group-hover:scale-110 transition-transform">
             <Target size={16} />
           </div>
@@ -212,7 +204,7 @@ export default function DescriptionTab() {
               {problem.acceptancePercent?.toFixed(1) ?? "?"}%
             </span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="h-8" />

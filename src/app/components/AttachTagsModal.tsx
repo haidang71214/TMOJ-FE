@@ -102,7 +102,7 @@ export default function AttachTagsModal({
                   {t('problem_management.targeting') || "Targeting"}
                 </p>
                 <p className="text-sm font-bold italic text-[#22C55E] truncate">
-                  #{problem.id} - {problem.title}
+              {problem.title}
                 </p>
               </div>
 

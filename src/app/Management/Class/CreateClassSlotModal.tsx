@@ -64,8 +64,8 @@ const [closeAt, setCloseAt] = useState<string>("");
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!title.trim()) newErrors.title = t("slot.titleRequired") || "Slot title is required";
-    if (slotNo < 1) newErrors.slotNo = t("slot.slotNoMin") || "Slot number must be at least 1";
+    if (!title.trim()) newErrors.title = t("slot.titleRequired") || "Exam title is required";
+    if (slotNo < 1) newErrors.slotNo = t("slot.slotNoMin") || "Exam number must be at least 1";
 
     if (mode === "problemset" && selectedProblems.length === 0) {
       newErrors.problems = t("slot.problemRequiredForProblemset") || "At least one problem is required for Problem Set mode";
@@ -101,13 +101,13 @@ const [closeAt, setCloseAt] = useState<string>("");
 
       await createSlot({ semesterId, data: payload }).unwrap();
 
-      toast.success(t("slot.createSuccess") || "Class slot created successfully!");
+      toast.success(t("slot.createSuccess") || "Class exam created successfully!");
       closeModal();
     } catch (err) {
       const apiError = err as ErrorForm;
       const errorMessage =
         apiError?.data?.data?.message ||
-        (t("slot.createFailed") || "Failed to create slot. Please try again.");
+        (t("slot.createFailed") || "Failed to create exam. Please try again.");
       toast.error(errorMessage);
     }
   };
@@ -169,10 +169,10 @@ const handleSelectionChange = (keys : Selection) => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-              {t("slot.createNewSlot") || "Create New Slot"}
+              {t("slot.createNewSlot") || "Create New Exam"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-              {t("slot.createNewSlotDesc") || "Configure a new learning/activity slot for this class"}
+              {t("slot.createNewSlotDesc") || "Configure a new learning/activity exam for this class"}
             </p>
           </div>
         </div>
@@ -185,7 +185,7 @@ const handleSelectionChange = (keys : Selection) => {
           <Input
             label={
               <div className="flex items-center gap-1.5">
-                {t("slot.slotNumber") || "Slot Number"} <RequiredStar rules={[t("common.required") || "Required"]} />
+                {t("slot.slotNumber") || "Exam Number"} <RequiredStar rules={[t("common.required") || "Required"]} />
               </div>
             }
             type="number"
@@ -201,7 +201,7 @@ const handleSelectionChange = (keys : Selection) => {
           <Input
             label={
               <div className="flex items-center gap-1.5">
-                {t("slot.slotTitle") || "Slot Title"} <RequiredStar rules={[t("common.required") || "Required"]} />
+                {t("slot.slotTitle") || "Exam Title"} <RequiredStar rules={[t("common.required") || "Required"]} />
               </div>
             }
             value={title}
@@ -233,7 +233,7 @@ const handleSelectionChange = (keys : Selection) => {
 
         {/* Mode */}
         <Select
-          label={t("slot.slotMode") || "Slot Mode"}
+          label={t("slot.slotMode") || "Exam Mode"}
           selectedKeys={[mode]}
           onSelectionChange={(keys) => {
             const selected = Array.from(keys)[0] as "problemset" | "contest";
@@ -446,7 +446,7 @@ const handleSelectionChange = (keys : Selection) => {
             boxShadow: "0 6px 20px rgba(99,102,241,0.4)",
           }}
         >
-          {isCreating ? (t("slot.creating") || "Creating...") : (t("slot.createSlot") || "Create Slot")}
+          {isCreating ? (t("slot.creating") || "Creating...") : (t("slot.createSlot") || "Create Exam")}
         </Button>
       </div>
     </div>

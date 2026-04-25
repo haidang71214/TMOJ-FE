@@ -11,14 +11,23 @@ import {
   TriangleAlert,
   FlaskConical,
   CheckSquare,
+  Clock,
+  Database,
+  AlertCircle,
+  XCircle,
+  Zap,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import SolutionsTab from "./Solutions/page";
+import AiDebugAssistant from "@/app/components/AiDebugAssistant";
+import { useGetSubmissionQuery } from "@/store/queries/Submittion";
+import { VerdictCode } from "@/types";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -90,6 +99,12 @@ export default function ProblemDetailsPage() {
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+
+  const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { skip: !submissionId }
+  );
 
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,7 +206,11 @@ export default function ProblemDetailsPage() {
           <SolutionSubmittion
             editorHeight={editorHeight}
             problemId={problemId}
-            onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
+            onSubmitSuccess={() => setActiveLeftTab("submissions")}
+            onSubmissionIdChange={(id: string | null) => {
+              setSubmissionId(id);
+              setActiveBottomTab("result");
+            }}
           />
 
           {/* ── VERTICAL DRAG HANDLE ── */}
@@ -232,23 +251,20 @@ export default function ProblemDetailsPage() {
             <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
               {activeBottomTab === "testcase" ? (
                 <div className="space-y-4">
-                  {/* Case selector */}
+                  {/* ... Case selector content ... */}
                   <div className="flex items-center gap-2">
                     {["Case 1", "Case 2", "Case 3"].map((c, i) => (
                       <button
                         key={c}
                         onClick={() => setActiveCase(i)}
                         className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
-                            ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
-                            : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                          ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                          : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
                           }`}
                       >
                         {c}
                       </button>
                     ))}
-                    <button className="p-1.5 rounded-lg bg-gray-100 dark:bg-[#101828] border dark:border-[#334155] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors text-[14px] font-black">
-                      +
-                    </button>
                   </div>
 
                   {/* Input fields */}
@@ -268,6 +284,121 @@ export default function ProblemDetailsPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : submissionId ? (
+                /* ACTUAL RESULT VIEW */
+                <div className="space-y-6">
+                  {isLoadingResult ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-10 w-48 rounded-xl" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-fade-in">
+                      {(() => {
+                        const data = submissionData?.data as any;
+                        return (
+                          <>
+                            {/* Result Header */}
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : "text-rose-500"
+                                  }`}>
+                                  {data?.verdictCode?.toUpperCase() || "PENDING"}
+                                </h2>
+                                <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
+                                  Runtime: {data?.summary?.timeMs || 0}ms
+                                </Chip>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <Clock size={12} />
+                                Submited just now
+                              </div>
+                            </div>
+
+                            {/* Stats Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <Database size={14} />
+                                  Memory Usage
+                                </div>
+                                <div className="text-xl font-black">24.5 MB</div>
+                                <Progress size="sm" value={30} color="primary" className="mt-2" />
+                              </div>
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <CheckSquare size={14} />
+                                  Testcases Passed
+                                </div>
+                                <div className="text-xl font-black">
+                                  {data?.summary?.passed || 0} / {data?.summary?.total || 0}
+                                </div>
+                                <Progress
+                                  size="sm"
+                                  value={((data?.summary?.passed || 0) / (data?.summary?.total || 1)) * 100}
+                                  color="success"
+                                  className="mt-2"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Failed Testcase Detail (if any) */}
+                            {data?.verdictCode !== VerdictCode.AC && (
+                              <div className="space-y-4">
+                                <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
+                                    <AlertCircle size={16} />
+                                    Failed Testcase Detail
+                                  </div>
+
+                                  <div className="grid grid-cols-1 gap-4">
+                                    <div>
+                                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Input</p>
+                                      <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5">nums = [2,7,11,15], target = 9</pre>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Expected</p>
+                                        <pre className="p-3 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-mono border border-emerald-500/10">[0,1]</pre>
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Your Output</p>
+                                        <pre className="p-3 bg-rose-500/5 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-mono border border-rose-500/10">null</pre>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* AI DEBUG ASSISTANT INTEGRATION */}
+                                <AiDebugAssistant
+                                  verdict={data?.verdictCode}
+                                  testcase={{
+                                    input: "nums = [2,7,11,15], target = 9",
+                                    expected: "[0,1]",
+                                    actual: "null"
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            {data?.verdictCode === VerdictCode.AC && (
+                              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
+                                  <CheckSquare size={40} />
+                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
+                                <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* Test Result placeholder */

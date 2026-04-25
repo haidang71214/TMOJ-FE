@@ -1,31 +1,69 @@
 "use client";
-import React from "react";
-import { Lock, FileText, AlertCircle } from "lucide-react";
+
+import React, { useState } from "react";
+import { Lock, FileText, AlertCircle, Sparkles, Eye, History, AlertTriangle } from "lucide-react";
 import { useGetEditorialsQuery } from "@/store/queries/ProblemEditorial";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useParams } from "next/navigation";
 import MarkdownRenderer from "@/app/components/MarkdownRenderer";
+import {
+  Button,
+  Card,
+  CardBody,
+  Chip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
+} from "@heroui/react";
+import { toast } from "sonner";
 
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function EditorialTab() {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useTranslation();
-  
+
+  // AI states
+  const [aiDraft, setAiDraft] = useState<{ title: string, content: string } | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   // First get problem detail to ensure we have the correct UUID if id is a slug
   const { data: problemResponse, isLoading: isProblemLoading } = useGetDetailProblemPublicQuery({ id: id || "" }, { skip: !id });
-  
+
   // Wait until problem data is loaded if we started with a slug-like string
   const isSlug = !!(id && id.length < 36); // Simple check for UUID vs slug
   const realProblemId = problemResponse?.id || id || "";
-  
+
   const { data, isLoading, error } = useGetEditorialsQuery(
-    { problemId: realProblemId }, 
+    { problemId: realProblemId },
     { skip: !realProblemId || (isSlug && isProblemLoading) }
   );
 
   // Debugging logs (visible in browser console for the user/us)
   console.log("EditorialTab info:", { id, realProblemId, isProblemLoading, data });
+
+  const handleAiGenerate = () => {
+    setIsGenerating(true);
+    toast.promise(
+      new Promise((r) => setTimeout(r, 4000)),
+      {
+        loading: "AI đang phân tích bài toán và soạn thảo hướng dẫn...",
+        success: () => {
+          setAiDraft({
+            title: `Hướng dẫn AI cho bài tập #${realProblemId}`,
+            content: "## Phân tích bài toán\nĐể giải bài này, chúng ta cần...\n\n## Ý tưởng chính\nSử dụng thuật toán tối ưu để giảm độ phức tạp thời gian...\n\n## Các bước thực hiện\n1. Khởi tạo cấu trúc dữ liệu\n2. Lặp qua các phần tử\n3. Kiểm tra điều kiện...",
+          });
+          setIsGenerating(false);
+          setIsPreviewOpen(true);
+          return "Đã tạo hướng dẫn AI thành công!";
+        },
+        error: "Không thể tạo hướng dẫn AI lúc này.",
+      }
+    );
+  };
 
   if (isLoading || isProblemLoading) {
     return (
@@ -60,17 +98,39 @@ export default function EditorialTab() {
             {t('problem_management.official_editorial') || "Official Editorial"}
           </h2>
           <p className="text-[13px] text-gray-400 dark:text-[#475569] max-w-xs leading-relaxed">
-            {language === 'vi' 
+            {language === 'vi'
               ? "Lời giải cho bài toán này hiện chưa có. Vui lòng quay lại sau hoặc thảo luận cùng cộng đồng."
               : "The editorial for this problem is not available yet. Check back later or explore community solutions."}
           </p>
         </div>
-        <button 
-          onClick={() => window.location.hash = "#solutions"}
-          className="mt-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-[13px] font-black transition-colors shadow-lg shadow-amber-500/20"
-        >
-          {language === 'vi' ? "Xem thảo luận cộng đồng" : "View Community Solutions"}
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => window.location.hash = "#solutions"}
+            className="w-full px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-[#262626] dark:text-white text-[13px] font-black transition-all border border-slate-200 dark:border-white/10"
+          >
+            {language === 'vi' ? "Xem thảo luận cộng đồng" : "View Community Solutions"}
+          </button>
+
+          <Button
+            className="w-full bg-gradient-to-r from-amber-500 to-[#FF5C00] text-white font-black text-[13px] h-11 rounded-xl shadow-lg shadow-amber-500/20"
+            startContent={<Sparkles size={18} />}
+            onPress={handleAiGenerate}
+            isLoading={isGenerating}
+          >
+            {language === 'vi' ? "Hỏi AI hướng dẫn giải" : "Ask AI for Guidance"}
+          </Button>
+
+          {aiDraft && (
+            <Button
+              variant="light"
+              className="text-amber-500 font-bold text-xs"
+              startContent={<History size={14} />}
+              onPress={() => setIsPreviewOpen(true)}
+            >
+              Xem lại hướng dẫn AI trước đó
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -97,13 +157,26 @@ export default function EditorialTab() {
                   Updated {new Date(editorial.updatedAt).toLocaleDateString()}
                 </p>
               </div>
+              <div className="mt-4">
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="warning"
+                  className="font-black text-[10px] uppercase h-8 px-4 bg-amber-500/10 text-amber-500"
+                  startContent={<Sparkles size={14} />}
+                  onPress={handleAiGenerate}
+                  isLoading={isGenerating}
+                >
+                  Ask AI to explain
+                </Button>
+              </div>
             </div>
           </div>
-          
+
           <div className="hidden md:flex flex-col items-end">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Internal Resource</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Internal Resource</span>
             </div>
           </div>
         </div>
@@ -118,15 +191,54 @@ export default function EditorialTab() {
 
       <div className="mt-16 pt-8 border-t border-gray-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-           <span>© {new Date().getFullYear()} TMOJ Editorial System</span>
-           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-           <span>Academic Purpose Only</span>
+          <span>© {new Date().getFullYear()} TMOJ Editorial System</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+          <span>Academic Purpose Only</span>
         </div>
         <div className="flex items-center gap-6">
-           <button className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] hover:translate-x-1 transition-transform">Report Issue</button>
-           <button className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:translate-x-1 transition-transform">Cite Editorial</button>
+          <button className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] hover:translate-x-1 transition-transform">Report Issue</button>
+          <button className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:translate-x-1 transition-transform">Cite Editorial</button>
         </div>
       </div>
+      {/* AI Draft Preview Modal */}
+      <Modal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        size="3xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-amber-500" />
+              <span className="font-black italic uppercase text-lg">AI Guidance Assistant</span>
+            </div>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+              {aiDraft?.title}
+            </p>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 mb-6">
+              <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold flex items-center gap-2 uppercase tracking-widest">
+                <AlertTriangle size={14} /> Disclaimer
+              </p>
+              <p className="text-[11px] text-amber-600 dark:text-amber-300 mt-1">
+                Nội dung này được tạo bởi AI để hỗ trợ học tập. Hãy kiểm tra kỹ lập luận trước khi áp dụng.
+              </p>
+            </div>
+            <div className="prose dark:prose-invert max-w-none">
+              <div className="p-6 rounded-2xl bg-slate-50 dark:bg-black/20 border dark:border-white/5">
+                <MarkdownRenderer content={aiDraft?.content || ""} />
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" variant="flat" onPress={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

@@ -86,7 +86,7 @@ export default function ProblemDetailsPage() {
   const searchParams = useSearchParams();
   const problemId = params.id as string;
   const { t, language } = useTranslation();
-  
+
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
@@ -156,10 +156,9 @@ export default function ProblemDetailsPage() {
                   <button
                     onClick={() => setActiveLeftTab(key)}
                     className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                      ${
-                        isActive
-                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                      ${isActive
+                        ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                       }
                       after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                   >
@@ -189,11 +188,11 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-<SolutionSubmittion
-  editorHeight={editorHeight}
-  problemId={problemId}
-  onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
-/>
+          <SolutionSubmittion
+            editorHeight={editorHeight}
+            problemId={problemId}
+            onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
+          />
 
           {/* ── VERTICAL DRAG HANDLE ── */}
           <div
@@ -215,10 +214,9 @@ export default function ProblemDetailsPage() {
                     <button
                       onClick={() => setActiveBottomTab(key)}
                       className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                        ${
-                          isActive
-                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        ${isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                         }
                         after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                     >
@@ -240,11 +238,10 @@ export default function ProblemDetailsPage() {
                       <button
                         key={c}
                         onClick={() => setActiveCase(i)}
-                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${
-                          activeCase === i
+                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
                             ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
                             : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
-                        }`}
+                          }`}
                       >
                         {c}
                       </button>

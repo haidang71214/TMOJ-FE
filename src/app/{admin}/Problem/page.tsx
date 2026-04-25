@@ -52,7 +52,7 @@ import { Problem } from "@/types";
 export default function ProblemManagementPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
-  
+
   // Use the API query
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
   // Safe extraction of the problem array
@@ -142,7 +142,7 @@ export default function ProblemManagementPage() {
       return (
         <TableRow>
           <TableCell colSpan={7} className="text-center py-20">
-            <div className="flex flex-col items-center gap-6 text-slate-500 opacity-0 animate-fade-in-up"  style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+            <div className="flex flex-col items-center gap-6 text-slate-500 opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
               <AlertTriangle size={64} className="text-amber-500 opacity-70" />
               <div className="text-center">
                 <p className="text-xl font-bold">{language === 'vi' ? "Không có câu hỏi chờ duyệt" : "No problems pending approval"}</p>
@@ -178,8 +178,8 @@ export default function ProblemManagementPage() {
             size="sm"
             color={
               prob.difficulty === "easy" ? "success" :
-              prob.difficulty === "medium" ? "warning" :
-              prob.difficulty === "hard" ? "danger" : "default"
+                prob.difficulty === "medium" ? "warning" :
+                  prob.difficulty === "hard" ? "danger" : "default"
             }
           >
             {prob.difficulty}
@@ -211,9 +211,9 @@ export default function ProblemManagementPage() {
             <Button isIconOnly size="sm" className="active-bump">
               <Eye size={16} />
             </Button>
-            <Button 
-              isIconOnly 
-              size="sm" 
+            <Button
+              isIconOnly
+              size="sm"
               className="active-bump"
               onPress={() => setEditProblemId(prob.id)}
             >
@@ -301,8 +301,8 @@ export default function ProblemManagementPage() {
             size="sm"
             color={
               prob.difficulty === "easy" ? "success" :
-              prob.difficulty === "medium" ? "warning" :
-              prob.difficulty === "hard" ? "danger" : "default"
+                prob.difficulty === "medium" ? "warning" :
+                  prob.difficulty === "hard" ? "danger" : "default"
             }
           >
             {prob.difficulty}
@@ -310,13 +310,13 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>100</TableCell>
         <TableCell>
-            <div className="text-xs">
-              <Clock size={14} className="inline mr-1" />
-              {(prob.timeLimitMs / 1000).toFixed(1)}s
-              <br />
-              <Database size={14} className="inline mr-1" />
-              {(prob.memoryLimitKb / 1024).toFixed(0)}MB
-            </div>
+          <div className="text-xs">
+            <Clock size={14} className="inline mr-1" />
+            {(prob.timeLimitMs / 1000).toFixed(1)}s
+            <br />
+            <Database size={14} className="inline mr-1" />
+            {(prob.memoryLimitKb / 1024).toFixed(0)}MB
+          </div>
         </TableCell>
         <TableCell>0</TableCell>
         <TableCell>
@@ -329,9 +329,9 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <div className="flex gap-2">
-            <Button 
-              isIconOnly 
-              size="sm" 
+            <Button
+              isIconOnly
+              size="sm"
               className="active-bump"
               onPress={() => setEditProblemId(prob.id)}
             >
@@ -517,7 +517,7 @@ export default function ProblemManagementPage() {
           </div>
         </Tab>
 
-        
+
       </Tabs>
 
       {/* MODAL APPROVE */}

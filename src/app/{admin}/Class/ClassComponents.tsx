@@ -15,12 +15,24 @@ import {
   Spinner,
   Tooltip,
 } from "@heroui/react";
+import {
+  School,
+  Plus,
+  UserPlus,
+  CalendarDays,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import CreateClassModal from "./CreateClassModal";
 import CreateTeacherModal from "./CreateTeacherModal";
 import SlotManagement from "./ClassSemesterManager";
 import { useModal } from "@/Provider/ModalProvider";
+import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
 
-// ── Interfaces (đặt ở đây hoặc import từ file types) ──
+// ── Interfaces ──
 interface Teacher {
   userId: string;
   displayName: string;
@@ -58,26 +70,20 @@ export default function ClassComponents() {
 
   const classes: ClassItem[] = data?.data?.items ?? [];
 
-  // State để quản lý việc xem SlotManagement
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedClassName, setSelectedClassName] = useState<string>("");
-  console.log(selectedClassId);
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Spinner size="lg" color="secondary" />
-          <p className="text-sm text-gray-500 animate-pulse">Loading classes...</p>
-        </div>
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
 
-  // Nếu đang xem slot của một class
   if (selectedClassId) {
     return (
-      <div>
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
         <SlotManagement
           classId={selectedClassId}
           className={selectedClassName}
@@ -91,50 +97,29 @@ export default function ClassComponents() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 animate-in fade-in duration-500">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-b border-white/5 pb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Class Management
+          <h1 className={ADMIN_H1}>
+            Class <span style={{ color: "#3B5BFF" }}>Management</span>
           </h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-            Manage all classes, teachers, and schedules
-          </p>
+          <p className={ADMIN_SUBTITLE}>Manage all classes, teachers, and student groups</p>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
-            className="font-semibold text-white"
-            style={{
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
-            }}
-            startContent={
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="19" y1="8" x2="19" y2="14" />
-                <line x1="22" y1="11" x2="16" y2="11" />
-              </svg>
-            }
+            className="font-black uppercase text-[10px] tracking-widest px-6 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/10"
+            startContent={<UserPlus size={16} />}
             onPress={() => openModal({ content: <CreateTeacherModal /> })}
           >
             Create Teacher
           </Button>
 
           <Button
-            className="font-semibold text-white"
-            style={{
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
-            }}
-            startContent={
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
-            }
+            className="font-black uppercase text-[10px] tracking-widest px-8 h-11 rounded-xl text-white shadow-xl active:scale-95 transition-all"
+            style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 4px 15px rgba(59, 91, 255, 0.3)" }}
+            startContent={<Plus size={18} strokeWidth={3} />}
             onPress={() => openModal({ content: <CreateClassModal /> })}
           >
             Create Class
@@ -143,64 +128,62 @@ export default function ClassComponents() {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl px-5 py-4 border border-indigo-200 dark:border-indigo-500/15"
-          style={{ background: "linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04))" }}>
-          <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">Total Classes</p>
-          <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{classes.length}</p>
-        </div>
-        <div className="rounded-xl px-5 py-4 border border-emerald-200 dark:border-emerald-500/15"
-          style={{ background: "linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(16, 185, 129, 0.04))" }}>
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Active</p>
-          <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-            {classes.filter((c) => c.isActive).length}
-          </p>
-        </div>
-        <div className="rounded-xl px-5 py-4 border border-red-200 dark:border-red-500/15"
-          style={{ background: "linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(244, 63, 94, 0.04))" }}>
-          <p className="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wider">Inactive</p>
-          <p className="text-3xl font-extrabold text-red-500 dark:text-red-400 mt-1">
-            {classes.filter((c) => !c.isActive).length}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: "Total Classes", value: classes.length, icon: School, color: "#3B5BFF", bg: "rgba(59,91,255,0.08)" },
+          { label: "Active Groups", value: classes.filter(c => c.isActive).length, icon: CheckCircle2, color: "#10B981", bg: "rgba(16,185,129,0.08)" },
+          { label: "Inactive", value: classes.filter(c => !c.isActive).length, icon: XCircle, color: "#EF4444", bg: "rgba(239,68,68,0.08)" },
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className="p-6 rounded-[2rem] border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all"
+            style={{ background: "#162035" }}
+          >
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">{stat.label}</p>
+              <p className="text-4xl font-black italic tracking-tighter text-white group-hover:scale-110 transition-transform origin-left">{stat.value}</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: stat.bg }}>
+              <stat.icon size={22} style={{ color: stat.color }} />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* TABLE */}
-      <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10"
-        style={{ boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)" }}>
+      <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
         <Table
-          aria-label="Class table"
+          aria-label="Class Management Table"
           removeWrapper
           classNames={{
-            th: "bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-white/5 py-3",
-            td: "py-3 text-sm border-b border-gray-100 dark:border-white/[0.03]",
-            tr: "hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors",
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+            td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+            tr: "hover:bg-white/[0.03] transition-colors group/row",
           }}
         >
           <TableHeader>
-            <TableColumn>Code</TableColumn>
-            <TableColumn>Subject</TableColumn>
-            <TableColumn>Semester</TableColumn>
-            <TableColumn>Teacher</TableColumn>
-            <TableColumn align="center">Members</TableColumn>
-            <TableColumn align="center">Status</TableColumn>
-            <TableColumn align="center">Action</TableColumn>
+            <TableColumn>CLASS CODE</TableColumn>
+            <TableColumn>SUBJECT & SYLLABUS</TableColumn>
+            <TableColumn>SEMESTER</TableColumn>
+            <TableColumn>INSTRUCTOR</TableColumn>
+            <TableColumn align="center">CAPACITY</TableColumn>
+            <TableColumn align="center">STATUS</TableColumn>
+            <TableColumn align="center">ACTIONS</TableColumn>
           </TableHeader>
 
           <TableBody
             items={classes}
             emptyContent={
-              <div className="py-10 text-center">
-                <p className="text-gray-400 text-sm">No classes found. Create one to get started.</p>
+              <div className="py-20 text-center flex flex-col items-center gap-4">
+                <School size={48} className="text-white/10" />
+                <p className="text-white/30 font-bold uppercase tracking-widest text-xs italic">No classes found in registry</p>
               </div>
             }
           >
             {(classItem: ClassItem) => {
-              // Nếu class có nhiều instances, hiển thị instance đầu tiên (phổ biến nhất)
               const instance = classItem.instances[0];
-
               return (
-                <TableRow 
+                <TableRow
                   key={classItem.classId}
                   className="cursor-pointer"
                   onClick={() => {
@@ -209,115 +192,88 @@ export default function ClassComponents() {
                   }}
                 >
                   <TableCell>
-                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-md text-xs"
-                      style={{ background: "rgba(99, 102, 241, 0.1)", border: "1px solid rgba(99, 102, 241, 0.2)" }}>
+                    <span className="font-mono font-black text-[#7B9FFF] bg-[#3B5BFF]/10 border border-[#3B5BFF]/20 px-3 py-1.5 rounded-xl text-xs tracking-wider group-hover/row:bg-[#3B5BFF]/20 transition-all">
                       {classItem.classCode}
                     </span>
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-gray-800 dark:text-slate-300 font-medium">
-                        {instance?.subjectName || "—"}
-                      </span>
-                      <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                        {instance?.subjectCode || "—"}
-                      </span>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{instance?.subjectName || "—"}</span>
+                      <span className="text-[10px] font-black uppercase tracking-tighter text-white/30">{instance?.subjectCode || "—"}</span>
                     </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      classNames={{
-                        base: "bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10",
-                        content: "text-gray-700 dark:text-slate-300 text-xs font-semibold",
-                      }}
-                    >
-                      {instance?.semesterCode || "—"}
-                    </Chip>
                   </TableCell>
 
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
-                        style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
-                      >
-                        {instance?.teacher?.displayName?.charAt(0) ?? "?"}
-                      </div>
-                      <span className="text-gray-800 dark:text-slate-300 font-medium">
-                        {instance?.teacher?.displayName ?? "—"}
-                      </span>
+                      <CalendarDays size={14} className="text-white/20" />
+                      <span className="font-black italic text-[11px] uppercase text-white/60">{instance?.semesterCode || "—"}</span>
                     </div>
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex justify-center">
-                      <span className="text-lg font-extrabold text-gray-900 dark:text-white">
-                        {classItem.totalMemberCount}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white shadow-lg"
+                        style={{ background: "linear-gradient(135deg, #3B5BFF, #6B3BFF)" }}
+                      >
+                        {instance?.teacher?.displayName?.charAt(0) ?? "?"}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-white/90">{instance?.teacher?.displayName ?? "—"}</span>
+                        <span className="text-[10px] text-white/30">{instance?.teacher?.email ?? ""}</span>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="flex justify-center items-center gap-1.5">
+                      <span className="text-xl font-black italic text-white">{classItem.totalMemberCount}</span>
+                      <span className="text-[10px] font-black uppercase text-white/20 mt-1">Users</span>
                     </div>
                   </TableCell>
 
                   <TableCell>
                     <div className="flex justify-center">
                       {classItem.isActive ? (
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          classNames={{
-                            base: "bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20",
-                            content: "text-emerald-600 dark:text-emerald-400 text-xs font-bold",
-                          }}
-                          startContent={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 mr-1 animate-pulse" />}
-                        >
-                          Active
-                        </Chip>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[10px] font-black uppercase text-emerald-500">Active</span>
+                        </div>
                       ) : (
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          classNames={{
-                            base: "bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20",
-                            content: "text-red-600 dark:text-red-400 text-xs font-bold",
-                          }}
-                        >
-                          Inactive
-                        </Chip>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                          <span className="text-[10px] font-black uppercase text-red-500">Archived</span>
+                        </div>
                       )}
                     </div>
                   </TableCell>
 
                   <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-center gap-1">
-                      <Tooltip content="Manage Semester In Class" placement="top">
+                    <div className="flex justify-center gap-2">
+                      <Tooltip content="Manage Slots" placement="top">
                         <Button
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          className="bg-gray-100 dark:bg-white/5 hover:bg-purple-100 dark:hover:bg-purple-500/20 text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 min-w-7 w-7 h-7 transition-colors"
+                          className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
                           onPress={() => {
                             setSelectedClassId(classItem.classId);
-                            setSelectedClassName(classItem.classCode); // Dùng classCode làm tên tạm thời
+                            setSelectedClassName(classItem.classCode);
                           }}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                            <line x1="10" y1="14" x2="14" y2="14" />
-                            <line x1="12" y1="12" x2="12" y2="16" />
-                          </svg>
+                          <ChevronRight size={18} strokeWidth={3} />
                         </Button>
                       </Tooltip>
-                      <Tooltip content="Edit" placement="top">
-                        <Button isIconOnly size="sm" variant="flat" className="...">✏️</Button>
+                      <Tooltip content="Edit Details" placement="top">
+                        <Button isIconOnly size="sm" variant="flat" className="bg-white/5 hover:bg-white/10 text-white/30 hover:text-white rounded-xl h-9 w-9">
+                          <Pencil size={16} />
+                        </Button>
                       </Tooltip>
-                      <Tooltip content="Delete" placement="top" color="danger">
-                        <Button isIconOnly size="sm" variant="flat" className="...">🗑️</Button>
+                      <Tooltip content="Delete Class" placement="top" color="danger">
+                        <Button isIconOnly size="sm" variant="flat" className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9">
+                          <Trash2 size={16} />
+                        </Button>
                       </Tooltip>
                     </div>
                   </TableCell>

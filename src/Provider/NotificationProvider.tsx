@@ -3,16 +3,10 @@ import * as signalR from "@microsoft/signalr";
 import { BASE_URL } from "@/constants";
 import { NotificationEndpoint } from "@/constants/endpoints";
 
-type Notification = {
-  notificationId: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-};
+import { NotificationDto } from "@/types/notification";
 
 type NotificationContextType = {
-  notifications: Notification[];
+  notifications: NotificationDto[];
   connection: signalR.HubConnection | null;
 };
 
@@ -39,7 +33,7 @@ export const NotificationProvider = ({
 }: NotificationProviderProps) => {
 
   const [connection, set_connection] = useState<signalR.HubConnection | null>(null);
-  const [notifications, set_notifications] = useState<Notification[]>([]);
+    const [notifications, set_notifications] = useState<NotificationDto[]>([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -59,7 +53,7 @@ export const NotificationProvider = ({
       .catch((err) => console.log(err));
 
     // realtime notification
-    hub_connection.on("ReceiveNotification", (notification: Notification) => {
+    hub_connection.on("ReceiveNotification", (notification: NotificationDto) => {
       console.log("New notification:", notification);
 
       set_notifications((prev) => [notification, ...prev]);

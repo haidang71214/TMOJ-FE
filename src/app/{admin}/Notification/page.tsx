@@ -19,210 +19,123 @@ import {
   ModalFooter,
   Textarea,
   Switch,
-
   Input,
+  Spinner,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import {
   Send,
   Trash2,
-    Badge,
   Eye,
   AlertTriangle,
   BookOpen,
   Settings2,
   Lock,
 } from "lucide-react";
-
-// Mock data giống hệt bảng bạn paste
-const MOCK_SENT_NOTIFICATIONS = [
-  {
-    id: "n1",
-    title: "System Maintenance Scheduled",
-    type: "SYSTEM",
-    target: "All Users",
-    sentAt: "2026-01-27 16:45",
-    readCount: 1247,
-  },
-  {
-    id: "n2",
-    title: "New Contest Starting Soon",
-    type: "CONTEST",
-    target: "All Users",
-    sentAt: "2026-01-27 14:30",
-    readCount: 856,
-  },
-  {
-    id: "n3",
-    title: "PRJ301 Course Update",
-    type: "SUBJECT",
-    target: "PRJ301 Students",
-    sentAt: "2026-01-26 10:00",
-    readCount: 450,
-  },
-  {
-    id: "n4",
-    title: "Weekly Honor Roll Published",
-    type: "SYSTEM",
-    target: "All Users",
-    sentAt: "2026-01-25 09:15",
-    readCount: 3102,
-  },
-];
-
-const MOCK_RECEIVED_NOTIFICATIONS = [
-  {
-    id: "r1",
-    title: "Critical: Database Backup Completed",
-    message: "Full system backup successful at 04:00 AM today.",
-    type: "system",
-    from: "System",
-    receivedAt: "2026-01-27 04:15",
-    isRead: true,
-  },
-  {
-    id: "r2",
-    title: "Security Alert: Unusual Login Detected",
-    message: "Login from new device in Hanoi. If not you, change password immediately.",
-    type: "security",
-    from: "System",
-    receivedAt: "2026-01-26 22:10",
-    isRead: false,
-  },
-  {
-    id: "r3",
-    title: "High Traffic Warning",
-    message: "Current concurrent users exceeding 3,000. Monitor judge engine delay.",
-    type: "system",
-    from: "Monitor",
-    receivedAt: "2026-01-26 18:30",
-    isRead: true,
-  },
-];
+import { useCreateNotificationMutation, useGetAllNotificationsQuery, useDeleteNotificationMutation } from "@/store/queries/notification";
+import { addToast } from "@heroui/toast";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function NotificationManagementPage() {
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const { data: notificationsData, isLoading } = useGetAllNotificationsQuery();
+  const [createNotification] = useCreateNotificationMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+
+  const notifications = notificationsData || [];
+
+  const admin = useSelector((state: RootState) => state.auth.user);
 
   // Form state cho modal send
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [type, setType] = useState<"system" | "comment" | "report">("system");
   const [sendToAll, setSendToAll] = useState(true);
-  const [pinAnnouncement, setPinAnnouncement] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState("");
-  const [targetSubject, setTargetSubject] = useState("");
+  const [targetUserId, setTargetUserId] = useState("");
 
-  const [notificationTypes] = useState([
-    { id: "t1", name: "System Alerts", enabled: true },
-    { id: "t2", name: "Contest Reminders", enabled: true },
-    { id: "t3", name: "New Editorials", enabled: false },
-    { id: "t4", name: "Course Updates", enabled: true },
-  ]);
-
-  const [editorials] = useState([
-    { id: "e1", title: "Two Sum - Optimal Solution", author: "admin", date: "2026-03-08" },
-    { id: "e2", title: "Dijkstra's Algorithm Guide", author: "john_doe", date: "2026-03-05" },
-  ]);
-
-  const handleSendNotification = () => {
+  const handleSendNotification = async () => {
     if (!title.trim() || !message.trim()) {
-      alert("Please enter both title and message");
+      addToast({ title: "Vui lòng nhập đầy đủ tiêu đề và nội dung", color: "warning" });
       return;
     }
 
-    alert(`Broadcast sent:\nTitle: ${title}\nMessage: ${message}`);
-    
-    // Reset form
-    setTitle("");
-    setMessage("");
-    setSendToAll(true);
-    setPinAnnouncement(false);
-    setScheduledDate("");
-    setTargetSubject("");
-    setIsSendModalOpen(false);
+    if (!sendToAll && !targetUserId.trim()) {
+      addToast({ title: "Vui lòng nhập User ID mục tiêu", color: "warning" });
+      return;
+    }
+
+    try {
+      await createNotification({
+        userId: sendToAll ? "00000000-0000-0000-0000-000000000000" : targetUserId.trim(),
+        title: title.trim(),
+        message: message.trim(),
+        type: type,
+        scopeType: "discussion",
+        scopeId: "00000000-0000-0000-0000-000000000000",
+        createdBy: admin?.userId || "00000000-0000-0000-0000-000000000000",
+      }).unwrap();
+
+      addToast({ title: "Đã gửi thông báo thành công!", color: "success" });
+      setIsSendModalOpen(false);
+      setTitle("");
+      setMessage("");
+      setTargetUserId("");
+    } catch (error) {
+      addToast({ title: "Lỗi khi gửi thông báo", color: "danger" });
+    }
   };
 
-  // Render body cho tab Sent Notifications (tránh lỗi type Element[])
-  const renderSentBody = () => {
-    if (MOCK_SENT_NOTIFICATIONS.length === 0) {
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa thông báo này?")) return;
+    try {
+      await deleteNotification(id).unwrap();
+      addToast({ title: "Đã xóa thông báo", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi xóa thông báo", color: "danger" });
+    }
+  };
+
+  const renderReceivedBody = () => {
+    if (isLoading) {
       return (
-        <TableRow>
-          <TableCell colSpan={6} className="text-center py-10 text-slate-500">
-            No notifications have been sent yet
-          </TableCell>
-        </TableRow>
+        <div className="flex justify-center py-10">
+          <Spinner color="primary" />
+        </div>
       );
     }
 
-    return MOCK_SENT_NOTIFICATIONS.map((n) => (
-      <TableRow key={n.id}>
-        <TableCell className="font-medium">{n.title}</TableCell>
-        <TableCell>
-          <Chip
-            variant="flat"
-            size="sm"
-            className={`
-              font-black uppercase text-[9px] px-4
-              ${n.type === "SYSTEM" ? "bg-purple-500/15 text-purple-400" : "bg-teal-500/15 text-teal-400"}
-            `}
-          >
-            {n.type}
-          </Chip>
-        </TableCell>
-        <TableCell>{n.target}</TableCell>
-        <TableCell className="text-slate-500 dark:text-slate-400 text-sm">
-          {n.sentAt}
-        </TableCell>
-        <TableCell>{n.readCount.toLocaleString()}</TableCell>
-        <TableCell>
-          <div className="flex gap-2">
-            <Button isIconOnly size="sm" variant="flat">
-              <Eye size={16} />
-            </Button>
-            <Button isIconOnly size="sm" color="warning" variant="flat">
-              <BookOpen size={16} /> {/* Mock Update Announcement icon */}
-            </Button>
-            <Button isIconOnly size="sm" color="danger" variant="flat">
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        </TableCell>
-      </TableRow>
-    ));
-  };
-
-  // Render body cho tab Received Alerts
-  const renderReceivedBody = () => {
-    if (MOCK_RECEIVED_NOTIFICATIONS.length === 0) {
+    if (notifications.length === 0) {
       return (
-        <div className="text-center py-10 text-slate-500">
+        <div className="text-center py-10 text-slate-500 font-bold uppercase italic opacity-50">
           No system alerts received yet
         </div>
       );
     }
 
-    return MOCK_RECEIVED_NOTIFICATIONS.map((n) => (
+    return notifications.map((n) => (
       <div
-        key={n.id}
-        className={`p-5 rounded-xl border transition ${
-          n.isRead
-            ? "bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10"
-            : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 shadow-sm"
-        }`}
+        key={n.notificationId}
+        className={`p-5 rounded-xl border transition ${n.isRead
+          ? "bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10"
+          : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 shadow-sm"
+          }`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            {!n.isRead && <Badge color="danger" />}
             <div>
-              <div className="font-black text-lg flex items-center gap-2">
+              <div className="font-black text-lg flex items-center gap-2 text-black dark:text-white">
                 {n.title}
-                {n.type === "security" && <AlertTriangle size={18} className="text-red-500" />}
+                {n.type === "report" && <AlertTriangle size={18} className="text-red-500" />}
               </div>
-              <p className="text-sm mt-1 text-slate-700 dark:text-slate-300">{n.message}</p>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                From: <span className="font-medium">{n.from}</span> • {n.receivedAt}
+              <p className="text-sm mt-1 text-slate-700 dark:text-slate-300 italic">{n.message}</p>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-bold uppercase italic">
+                Type: <span className="text-indigo-500">{n.type}</span> • {new Date(n.createdAt).toLocaleString()}
               </div>
             </div>
           </div>
-          <Button isIconOnly size="sm" variant="light">
+          <Button isIconOnly size="sm" variant="light" color="danger" onPress={() => handleDelete(n.notificationId)}>
             <Trash2 size={16} />
           </Button>
         </div>
@@ -235,7 +148,7 @@ export default function NotificationManagementPage() {
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none text-black dark:text-white">
             <span className="text-indigo-700 dark:text-cyan-400">Notification</span>{" "}
             <span className="text-fuchsia-500">Management</span>
           </h1>
@@ -260,88 +173,39 @@ export default function NotificationManagementPage() {
         </Button>
       </div>
 
-      {/* TABS - Mở mặc định tab Sent Notifications */}
+      {/* TABS */}
       <Tabs
-        defaultSelectedKey="sent"
+        defaultSelectedKey="received"
         color="primary"
         variant="underlined"
         classNames={{
           tabList: "gap-8 pb-2",
-          tab: "text-sm font-bold uppercase tracking-wider text-white/40 data-[selected=true]:text-white",
-          cursor: "h-0.5 rounded-full",
+          tab: "text-sm font-bold uppercase tracking-wider text-slate-400 data-[selected=true]:text-indigo-600 dark:data-[selected=true]:text-white",
+          cursor: "h-0.5 rounded-full bg-indigo-600 dark:bg-cyan-400",
         }}
       >
-        <Tab title="Sent Notifications">
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "#162035", border: "1px solid rgba(255,255,255,0.10)" }}
-          >
-            <Table
-              removeWrapper
-              aria-label="Sent Notifications"
-              classNames={{
-                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
-                td: "text-white/75 border-b border-white/[0.05] py-3",
-                tr: "hover:bg-white/[0.03] transition-colors",
-              }}
-            >
-              <TableHeader>
-                <TableColumn>TITLE</TableColumn>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>TARGET</TableColumn>
-                <TableColumn>SENT AT</TableColumn>
-                <TableColumn>READ BY</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
-              </TableHeader>
-              <TableBody>{renderSentBody()}</TableBody>
-            </Table>
-          </div>
-        </Tab>
-
-        <Tab title="Received Alerts" key="received">
+        <Tab title="System Alerts" key="received">
           <div className="space-y-3">{renderReceivedBody()}</div>
         </Tab>
 
-        <Tab title="Configuration & Moderation" key="config">
+        <Tab title="Configuration" key="config">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Notification Types Settings */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-4">
+            <div className="p-6 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-4 text-black dark:text-white">
               <div className="flex items-center gap-2 mb-2">
                 <Settings2 className="text-indigo-600" />
-                <h3 className="font-black text-lg">Notification Types</h3>
+                <h3 className="font-black text-lg uppercase italic">Global Settings</h3>
               </div>
-              <p className="text-xs text-slate-500 mb-4">Toggle global system notifications</p>
-              
-              <div className="space-y-3">
-                {notificationTypes.map(type => (
-                  <div key={type.id} className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
-                    <span className="font-bold">{type.name}</span>
-                    <Switch defaultSelected={type.enabled} />
-                  </div>
-                ))}
-              </div>
-            </div>
+              <p className="text-xs text-slate-500 italic">Toggle global system notification behavior</p>
 
-            {/* Editorial Moderation */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Lock className="text-fuchsia-500" />
-                <h3 className="font-black text-lg">Editorial Moderation</h3>
-              </div>
-              <p className="text-xs text-slate-500 mb-4">Manage submitted problem editorials</p>
-              
               <div className="space-y-3">
-                {editorials.map(editorial => (
-                  <div key={editorial.id} className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
-                    <div>
-                      <p className="font-bold text-sm truncate w-48">{editorial.title}</p>
-                      <p className="text-[10px] text-slate-400">@{editorial.author} • {editorial.date}</p>
-                    </div>
-                    <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => alert("Deleted Editorial")}>
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                ))}
+                <div className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
+                  <span className="font-bold text-sm uppercase">Email Notifications</span>
+                  <Switch defaultSelected />
+                </div>
+                <div className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
+                  <span className="font-bold text-sm uppercase">Push Notifications</span>
+                  <Switch defaultSelected />
+                </div>
               </div>
             </div>
           </div>
@@ -386,9 +250,27 @@ export default function NotificationManagementPage() {
                   isRequired
                 />
 
+                <Select
+                  label="Notification Type"
+                  placeholder="Select type"
+                  defaultSelectedKeys={["system"]}
+                  selectedKeys={[type]}
+                  onSelectionChange={(keys) => {
+                    const selectedValue = Array.from(keys)[0] as "system" | "comment" | "report";
+                    if (selectedValue) setType(selectedValue);
+                  }}
+                  classNames={{
+                    trigger: "rounded-xl border-2 focus-within:border-indigo-600",
+                  }}
+                >
+                  <SelectItem key="system" textValue="system">System Announcement</SelectItem>
+                  <SelectItem key="comment" textValue="comment">Comment Notification</SelectItem>
+                  <SelectItem key="report" textValue="report">Report Alert</SelectItem>
+                </Select>
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Send to all users</span>
+                    <span className="font-medium text-sm uppercase">Send to all users</span>
                     <Switch
                       isSelected={sendToAll}
                       onValueChange={setSendToAll}
@@ -396,40 +278,17 @@ export default function NotificationManagementPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Pin as important announcement</span>
-                    <Switch
-                      isSelected={pinAnnouncement}
-                      onValueChange={setPinAnnouncement}
-                      classNames={{ wrapper: "group-data-[selected=true]:bg-fuchsia-500" }}
-                    />
-                  </div>
-
                   {!sendToAll && (
                     <Input
-                      label="Target Subject Code"
-                      placeholder="e.g. PRJ301"
-                      value={targetSubject}
-                      onValueChange={setTargetSubject}
+                      label="Target User ID"
+                      placeholder="GUID of the user"
+                      value={targetUserId}
+                      onValueChange={setTargetUserId}
                       classNames={{
                         inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
                       }}
                     />
                   )}
-
-                  <Input
-                    label="Schedule Date/Time (Optional)"
-                    type="datetime-local"
-                    value={scheduledDate}
-                    onValueChange={setScheduledDate}
-                    classNames={{
-                      inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
-                    }}
-                  />
-                </div>
-
-                <div className="text-xs text-slate-500 dark:text-slate-400 italic">
-                  This will appear in every target user&apos;s notification center.
                 </div>
               </ModalBody>
               <ModalFooter className="border-t border-slate-200 dark:border-white/10 pt-4">
@@ -440,7 +299,7 @@ export default function NotificationManagementPage() {
                   className="bg-indigo-600 text-white font-black"
                   startContent={<Send size={18} />}
                   onPress={handleSendNotification}
-                  isDisabled={!title.trim() || !message.trim()}
+                  isDisabled={!title.trim() || !message.trim() || (!sendToAll && !targetUserId.trim())}
                 >
                   Send Now
                 </Button>
@@ -449,19 +308,6 @@ export default function NotificationManagementPage() {
           )}
         </ModalContent>
       </Modal>
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155;
-        }
-      `}</style>
     </div>
   );
 }

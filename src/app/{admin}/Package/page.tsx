@@ -9,8 +9,10 @@ import {
   Users,
   Activity,
   Layers,
+  Plus,
+  Edit,
 } from "lucide-react";
-// import PracticePackageModal from "./PracticePackageModal";
+import PracticePackageModal from "./PracticePackageModal";
 import { PracticePackage } from "@/types";
 
 // Thêm price vào mock (giá trị mặc định)
@@ -83,8 +85,8 @@ const MOCK_STATS: Record<string, { enrolled: number; completionRate: number; mod
 
 export default function PracticePackagePage() {
   const [packages, setPackages] = useState<PracticePackage[]>(MOCK_PACKAGES);
-  // const [open, setOpen] = useState(false);
-  // const [editing, setEditing] = useState<PracticePackage | null>(null);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<PracticePackage | null>(null);
 
   return (
     <div className="space-y-8">
@@ -92,20 +94,20 @@ export default function PracticePackagePage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-white">
-            Service <span style={{ color: "#3B5BFF" }}>Packages</span>
+            Study <span style={{ color: "#3B5BFF" }}>Plans</span>
           </h1>
           <p className="text-xs font-semibold uppercase tracking-widest text-white/35 mt-1">
-            Learning paths, coin bundles & system modules
+            Learning paths, curriculum bundles & system modules
           </p>
         </div>
 
-        {/* <Button
-          className="bg-[#FF5C00] text-white font-black"
+        <Button
+          className="bg-[#FF5C00] text-white font-black uppercase text-[10px] tracking-widest"
           startContent={<Plus size={16} />}
           onPress={() => setOpen(true)}
         >
-          Create Package
-        </Button> */}
+          Create Study Plan
+        </Button>
       </div>
 
       {/* LIST */}
@@ -117,12 +119,24 @@ export default function PracticePackagePage() {
             style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.4)" }}
           >
             {/* IMAGE */}
-            <Image
-              removeWrapper
-              src={pkg.image}
-              alt={pkg.name}
-              className="h-40 w-full object-cover"
-            />
+            <div className="relative group">
+              <Image
+                removeWrapper
+                src={pkg.image}
+                alt={pkg.name}
+                className="h-40 w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-10">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  className="bg-white text-black rounded-full"
+                  onPress={() => setEditing(pkg)}
+                >
+                  <Edit size={16} />
+                </Button>
+              </div>
+            </div>
 
             <div className="p-5 space-y-4">
               <div className="flex justify-between items-start">
@@ -183,8 +197,8 @@ export default function PracticePackagePage() {
 
               {/* ACTIONS */}
               <div className="flex justify-between items-center pt-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-indigo-500/10 text-indigo-500 font-bold hover:bg-indigo-500 hover:text-white transition-colors"
                   isDisabled={pkg.disabled}
                 >
@@ -195,7 +209,7 @@ export default function PracticePackagePage() {
                   <Button
                     isIconOnly
                     size="sm"
-                    title={pkg.published ? "Unpublish Package" : "Publish Package"}
+                    title={pkg.published ? "Unpublish Plan" : "Publish Plan"}
                     className={pkg.published ? "bg-emerald-500/20 text-emerald-600" : "bg-slate-100 dark:bg-white/10 text-slate-400"}
                     onPress={() =>
                       setPackages((prev) =>
@@ -208,30 +222,30 @@ export default function PracticePackagePage() {
                     <Upload size={16} />
                   </Button>
 
-                <Button
-                  isIconOnly
-                  size="sm"
-                  onPress={() =>
-                    setPackages((prev) =>
-                      prev.map((p) =>
-                        p.id === pkg.id ? { ...p, disabled: !p.disabled } : p
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    onPress={() =>
+                      setPackages((prev) =>
+                        prev.map((p) =>
+                          p.id === pkg.id ? { ...p, disabled: !p.disabled } : p
+                        )
                       )
-                    )
-                  }
-                >
-                  <EyeOff size={16} />
-                </Button>
+                    }
+                  >
+                    <EyeOff size={16} />
+                  </Button>
 
-                <Button
-                  isIconOnly
-                  size="sm"
-                  color="danger"
-                  onPress={() =>
-                    setPackages((prev) => prev.filter((p) => p.id !== pkg.id))
-                  }
-                >
-                  <Trash2 size={16} />
-                </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    color="danger"
+                    onPress={() =>
+                      setPackages((prev) => prev.filter((p) => p.id !== pkg.id))
+                    }
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -240,15 +254,15 @@ export default function PracticePackagePage() {
       </div>
 
       {/* CREATE MODAL */}
-      {/* {open && (
+      {open && (
         <PracticePackageModal
           onClose={() => setOpen(false)}
           onCreate={(pkg) => setPackages((prev) => [...prev, pkg])}
         />
-      )} */}
+      )}
 
       {/* EDIT MODAL */}
-      {/* {editing && (
+      {editing && (
         <PracticePackageModal
           initialData={editing}
           onClose={() => setEditing(null)}
@@ -260,7 +274,7 @@ export default function PracticePackagePage() {
             )
           }
         />
-      )} */}
+      )}
     </div>
   );
 }

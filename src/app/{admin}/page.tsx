@@ -68,7 +68,7 @@ const NAV_GROUPS = [
   {
     label: "Business",
     items: [
-      { tKey: "admin_sidebar.package", defaultVi: "Gói dịch vụ", defaultEn: "Package", key: "package", icon: Package },
+      { tKey: "admin_sidebar.package", defaultVi: "Lộ trình học", defaultEn: "Study Plan", key: "package", icon: Package },
       { tKey: "admin_sidebar.notification", defaultVi: "Thông báo", defaultEn: "Notification", key: "notification", icon: Bell },
     ],
   },
@@ -94,7 +94,7 @@ export default function AdminPage() {
     moderation: <ModerationManagementPage />,
     notification: <NotificationManagementPage />,
     package: <PracticePackagePage />,
-    coin: <PracticePackagePage />,
+    coin: <CoinManagerPage />,
     class: <ClassComponents />,
     subject: <SubjectComponents />,
     semester: <SemesterComponents />,

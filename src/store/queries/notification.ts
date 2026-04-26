@@ -1,5 +1,5 @@
 import { NotificationEndpoint } from "@/constants/endpoints";
-import { CreateNotificationRequestDto, NotificationDto } from "@/types/notification";
+import { BroadcastNotificationCommand, CreateNotificationRequestDto, NotificationDto } from "@/types/notification";
 import { baseApi } from "../base";
 
 export const notificationApi = baseApi.injectEndpoints({
@@ -7,6 +7,14 @@ export const notificationApi = baseApi.injectEndpoints({
     createNotification: builder.mutation<NotificationDto, CreateNotificationRequestDto>({
       query: (body) => ({
         url: NotificationEndpoint.CREATE_NOTIFICATION,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Notification"],
+    }),
+    broadcastNotification: builder.mutation<{ message: string; targetCount: number }, BroadcastNotificationCommand>({
+      query: (body) => ({
+        url: NotificationEndpoint.BROADCAST_NOTIFICATION,
         method: "POST",
         body,
       }),
@@ -47,6 +55,7 @@ export const notificationApi = baseApi.injectEndpoints({
 
 export const {
   useCreateNotificationMutation,
+  useBroadcastNotificationMutation,
   useGetUserNotificationsQuery,
   useGetAllNotificationsQuery,
   useMarkNotificationAsReadMutation,

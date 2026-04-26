@@ -33,7 +33,12 @@ import {
   Settings2,
   Lock,
 } from "lucide-react";
-import { useCreateNotificationMutation, useGetAllNotificationsQuery, useDeleteNotificationMutation } from "@/store/queries/notification";
+import {
+  useCreateNotificationMutation,
+  useGetAllNotificationsQuery,
+  useDeleteNotificationMutation,
+  useBroadcastNotificationMutation
+} from "@/store/queries/notification";
 import { addToast } from "@heroui/toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -42,6 +47,7 @@ export default function NotificationManagementPage() {
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const { data: notificationsData, isLoading } = useGetAllNotificationsQuery();
   const [createNotification] = useCreateNotificationMutation();
+  const [broadcastNotification] = useBroadcastNotificationMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
   const notifications = notificationsData || [];
@@ -52,12 +58,14 @@ export default function NotificationManagementPage() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState<"system" | "comment" | "report">("system");
+  const [scopeType, setScopeType] = useState<"comment" | "discussion" | "team" | "study_plan">("discussion");
   const [sendToAll, setSendToAll] = useState(true);
   const [targetUserId, setTargetUserId] = useState("");
+  const [targetRole, setTargetRole] = useState("All");
 
   const handleSendNotification = async () => {
-    if (!title.trim() || !message.trim()) {
-      addToast({ title: "Vui lòng nhập đầy đủ tiêu đề và nội dung", color: "warning" });
+    if (!message.trim()) {
+      addToast({ title: "Vui lòng nhập nội dung thông báo", color: "warning" });
       return;
     }
 
@@ -66,18 +74,38 @@ export default function NotificationManagementPage() {
       return;
     }
 
-    try {
-      await createNotification({
-        userId: sendToAll ? "00000000-0000-0000-0000-000000000000" : targetUserId.trim(),
-        title: title.trim(),
-        message: message.trim(),
-        type: type,
-        scopeType: "discussion",
-        scopeId: "00000000-0000-0000-0000-000000000000",
-        createdBy: admin?.userId || "00000000-0000-0000-0000-000000000000",
-      }).unwrap();
+    if (!sendToAll && !title.trim()) {
+      addToast({ title: "Vui lòng nhập tiêu đề cho thông báo đích danh", color: "warning" });
+      return;
+    }
 
-      addToast({ title: "Đã gửi thông báo thành công!", color: "success" });
+    try {
+      if (sendToAll) {
+        const result = await broadcastNotification({
+          title: title.trim(),
+          message: message.trim(),
+          role: targetRole,
+        }).unwrap();
+        addToast({ title: `Đã gửi thông báo hàng loạt cho ${result.targetCount} người!`, color: "success" });
+      } else {
+        const payload: any = {
+          userId: targetUserId.trim(),
+          title: title.trim(),
+          message: message.trim(),
+          type: type,
+          scopeType: scopeType,
+          scopeId: null,
+        };
+
+        // Chỉ gửi createdBy nếu có giá trị thực
+        if (admin?.userId) {
+          payload.createdBy = admin.userId;
+        }
+
+        await createNotification(payload).unwrap();
+        addToast({ title: "Đã gửi thông báo đích danh thành công!", color: "success" });
+      }
+
       setIsSendModalOpen(false);
       setTitle("");
       setMessage("");
@@ -131,7 +159,7 @@ export default function NotificationManagementPage() {
               </div>
               <p className="text-sm mt-1 text-slate-700 dark:text-slate-300 italic">{n.message}</p>
               <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-bold uppercase italic">
-                Type: <span className="text-indigo-500">{n.type}</span> • {new Date(n.createdAt).toLocaleString()}
+                Type: <span className="text-indigo-500">{n.type}</span> • Scope: <span className="text-fuchsia-500">{n.scopeType}</span> • {new Date(n.createdAt).toLocaleString()}
               </div>
             </div>
           </div>
@@ -169,7 +197,7 @@ export default function NotificationManagementPage() {
             active:scale-95
           "
         >
-          Send Broadcast
+          New Notification
         </Button>
       </div>
 
@@ -212,7 +240,7 @@ export default function NotificationManagementPage() {
         </Tab>
       </Tabs>
 
-      {/* MODAL SEND BROADCAST */}
+      {/* MODAL SEND */}
       <Modal
         isOpen={isSendModalOpen}
         onOpenChange={setIsSendModalOpen}
@@ -224,12 +252,26 @@ export default function NotificationManagementPage() {
           {(onClose) => (
             <>
               <ModalHeader className="text-xl font-black uppercase">
-                Send System-Wide <span className="text-fuchsia-500">Broadcast</span>
+                {sendToAll ? "Broadcast Notification" : "Direct Notification"}
               </ModalHeader>
               <ModalBody className="space-y-6 py-6">
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <div className={sendToAll ? "text-indigo-600" : "text-slate-400"}>
+                      <Send size={18} />
+                    </div>
+                    <span className="font-bold text-xs uppercase italic">Broadcast to many</span>
+                  </div>
+                  <Switch
+                    isSelected={sendToAll}
+                    onValueChange={setSendToAll}
+                    classNames={{ wrapper: "group-data-[selected=true]:bg-indigo-600" }}
+                  />
+                </div>
+
                 <Input
                   label="Title"
-                  placeholder="e.g. Important: Maintenance Tonight"
+                  placeholder="e.g. Important Announcement"
                   value={title}
                   onValueChange={setTitle}
                   classNames={{
@@ -238,10 +280,40 @@ export default function NotificationManagementPage() {
                   isRequired
                 />
 
+                {!sendToAll && (
+                  <Input
+                    label="Target User ID"
+                    placeholder="GUID of the user"
+                    value={targetUserId}
+                    onValueChange={setTargetUserId}
+                    classNames={{
+                      inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
+                    }}
+                    isRequired
+                  />
+                )}
+
+                {sendToAll && (
+                  <Select
+                    label="Target Role"
+                    placeholder="Select target role"
+                    selectedKeys={[targetRole]}
+                    onSelectionChange={(keys) => setTargetRole(Array.from(keys)[0] as string)}
+                    classNames={{
+                      trigger: "rounded-xl border-2 focus-within:border-indigo-600",
+                    }}
+                  >
+                    <SelectItem key="All" textValue="All">All Users</SelectItem>
+                    <SelectItem key="Admin" textValue="Admin">Admins Only</SelectItem>
+                    <SelectItem key="Teacher" textValue="Teacher">Teachers Only</SelectItem>
+                    <SelectItem key="Student" textValue="Student">Students Only</SelectItem>
+                  </Select>
+                )}
+
                 <Textarea
                   label="Message"
-                  placeholder="Detailed announcement or alert content..."
-                  minRows={5}
+                  placeholder="Notification content..."
+                  minRows={3}
                   value={message}
                   onValueChange={setMessage}
                   classNames={{
@@ -250,58 +322,50 @@ export default function NotificationManagementPage() {
                   isRequired
                 />
 
-                <Select
-                  label="Notification Type"
-                  placeholder="Select type"
-                  defaultSelectedKeys={["system"]}
-                  selectedKeys={[type]}
-                  onSelectionChange={(keys) => {
-                    const selectedValue = Array.from(keys)[0] as "system" | "comment" | "report";
-                    if (selectedValue) setType(selectedValue);
-                  }}
-                  classNames={{
-                    trigger: "rounded-xl border-2 focus-within:border-indigo-600",
-                  }}
-                >
-                  <SelectItem key="system" textValue="system">System Announcement</SelectItem>
-                  <SelectItem key="comment" textValue="comment">Comment Notification</SelectItem>
-                  <SelectItem key="report" textValue="report">Report Alert</SelectItem>
-                </Select>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm uppercase">Send to all users</span>
-                    <Switch
-                      isSelected={sendToAll}
-                      onValueChange={setSendToAll}
-                      classNames={{ wrapper: "group-data-[selected=true]:bg-indigo-600" }}
-                    />
-                  </div>
-
-                  {!sendToAll && (
-                    <Input
-                      label="Target User ID"
-                      placeholder="GUID of the user"
-                      value={targetUserId}
-                      onValueChange={setTargetUserId}
+                {!sendToAll && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select
+                      label="Type"
+                      placeholder="Select type"
+                      selectedKeys={[type]}
+                      onSelectionChange={(keys) => setType(Array.from(keys)[0] as any)}
                       classNames={{
-                        inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
+                        trigger: "rounded-xl border-2 focus-within:border-indigo-600",
                       }}
-                    />
-                  )}
-                </div>
+                    >
+                      <SelectItem key="system" textValue="system">System</SelectItem>
+                      <SelectItem key="comment" textValue="comment">Comment</SelectItem>
+                      <SelectItem key="report" textValue="report">Report</SelectItem>
+                    </Select>
+
+                    <Select
+                      label="Scope"
+                      placeholder="Select scope"
+                      selectedKeys={[scopeType]}
+                      onSelectionChange={(keys) => setScopeType(Array.from(keys)[0] as any)}
+                      classNames={{
+                        trigger: "rounded-xl border-2 focus-within:border-indigo-600",
+                      }}
+                    >
+                      <SelectItem key="discussion" textValue="discussion">Discussion</SelectItem>
+                      <SelectItem key="comment" textValue="comment">Comment</SelectItem>
+                      <SelectItem key="team" textValue="team">Team</SelectItem>
+                      <SelectItem key="study_plan" textValue="study_plan">Study Plan</SelectItem>
+                    </Select>
+                  </div>
+                )}
               </ModalBody>
               <ModalFooter className="border-t border-slate-200 dark:border-white/10 pt-4">
                 <Button variant="flat" onPress={onClose}>
                   Cancel
                 </Button>
                 <Button
-                  className="bg-indigo-600 text-white font-black"
+                  className="bg-indigo-600 text-white font-black uppercase text-[11px] tracking-widest"
                   startContent={<Send size={18} />}
                   onPress={handleSendNotification}
                   isDisabled={!title.trim() || !message.trim() || (!sendToAll && !targetUserId.trim())}
                 >
-                  Send Now
+                  {sendToAll ? "Broadcast Now" : "Send To User"}
                 </Button>
               </ModalFooter>
             </>

@@ -26,6 +26,8 @@ import {
   ChevronDown,
   BookOpen,
   Settings,
+  ShieldAlert,
+  Megaphone,
 } from "lucide-react";
 import { useGetUserNotificationsQuery, useMarkNotificationAsReadMutation, useDeleteNotificationMutation } from "@/store/queries/notification";
 import { useSelector } from "react-redux";
@@ -40,8 +42,10 @@ const getIcon = (type: string) => {
     case "class":
       return <BookOpen className="text-purple-500" />;
     case "system":
+    case "announcement":
+      return <Megaphone className="text-blue-500" />;
     case "report":
-      return <Settings className="text-blue-500" />;
+      return <ShieldAlert className="text-rose-500" />;
     case "submission":
       return <Code2 className="text-green-500" />;
     default:
@@ -71,8 +75,8 @@ export default function NotificationsPage() {
         filterTab === "all"
           ? true
           : filterTab === "unread"
-          ? !n.isRead
-          : n.isRead;
+            ? !n.isRead
+            : n.isRead;
 
       const matchCategory =
         categoryFilter === "all" ? true : n.type.toLowerCase() === categoryFilter.toLowerCase();
@@ -107,7 +111,8 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleMarkAsRead = async (id: string) => {
+  const handleMarkAsRead = async (id: string, isRead: boolean) => {
+    if (isRead) return;
     try {
       await markAsRead(id).unwrap();
     } catch (error) {
@@ -261,32 +266,29 @@ export default function NotificationsPage() {
               <Card
                 key={n.notificationId}
                 isPressable
-                onPress={() => handleMarkAsRead(n.notificationId)}
-                className={`border-none transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 rounded-[2rem] overflow-hidden 
-                  ${
-                    !n.isRead
-                      ? "bg-white dark:bg-[#111c35] border-l-8 border-[#ff5c00]"
-                      : "bg-slate-100/50 dark:bg-white/5 opacity-80"
+                onPress={() => handleMarkAsRead(n.notificationId, n.isRead)}
+                className={`border-none transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] rounded-[2rem] overflow-hidden 
+                  ${!n.isRead
+                    ? "bg-white dark:bg-[#111c35] border-l-8 border-[#ff5c00]"
+                    : "bg-slate-100/50 dark:bg-white/5 opacity-80"
                   }`}
               >
                 <CardBody className="p-6 md:px-10 flex flex-row items-center gap-6 text-black dark:text-white text-left">
                   <div
-                    className={`p-4 rounded-2xl shrink-0 ${
-                      !n.isRead
-                        ? "bg-[#ff5c00]/10"
-                        : "bg-slate-200 dark:bg-white/5"
-                    }`}
+                    className={`p-4 rounded-2xl shrink-0 ${!n.isRead
+                      ? "bg-[#ff5c00]/10"
+                      : "bg-slate-200 dark:bg-white/5"
+                      }`}
                   >
                     {getIcon(n.type)}
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
                     <div className="flex justify-between items-start">
                       <h3
-                        className={`text-xl font-[1000] italic uppercase tracking-tight leading-tight ${
-                          !n.isRead
-                            ? "text-[#071739] dark:text-white"
-                            : "text-slate-500"
-                        }`}
+                        className={`text-xl font-[1000] italic uppercase tracking-tight leading-tight ${!n.isRead
+                          ? "text-[#071739] dark:text-white"
+                          : "text-slate-500"
+                          }`}
                       >
                         {n.title}
                       </h3>
@@ -294,17 +296,22 @@ export default function NotificationsPage() {
                         <span className="text-[10px] font-black text-slate-400 uppercase italic whitespace-nowrap">
                           {new Date(n.createdAt).toLocaleString()}
                         </span>
-                        <Button isIconOnly size="sm" variant="light" color="danger" onClick={(e) => handleDelete(e, n.notificationId)}>
+                        <div
+                          className="p-2 cursor-pointer hover:bg-red-500/10 rounded-full text-danger transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(e, n.notificationId);
+                          }}
+                        >
                           <Trash2 size={16} />
-                        </Button>
+                        </div>
                       </div>
                     </div>
                     <p
-                      className={`text-sm font-bold leading-relaxed italic line-clamp-2 ${
-                        !n.isRead
-                          ? "text-slate-600 dark:text-slate-300"
-                          : "text-slate-500"
-                      }`}
+                      className={`text-sm font-bold leading-relaxed italic line-clamp-2 ${!n.isRead
+                        ? "text-slate-600 dark:text-slate-300"
+                        : "text-slate-500"
+                        }`}
                     >
                       {n.message}
                     </p>

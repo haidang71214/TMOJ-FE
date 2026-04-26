@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Megaphone } from "lucide-react";
+import { useGetAnnouncementsQuery } from "@/store/queries/announcement";
 
 interface NewsFeedProps {
   announcements?: string[];
@@ -9,15 +10,28 @@ interface NewsFeedProps {
 }
 
 export default function NewsFeed({
-  announcements = [
-    "SU26 Enrollment for 'Data Structures' is now open.",
-    "System maintenance scheduled for January 25th, 02:00 AM UTC.",
-    "Congratulations to FPTU team for winning the ICPC Regional Asia!",
-    "New Feature: Grade analytics dashboard is now live.",
-  ],
+  announcements: manualAnnouncements,
   brandNavy = "#071739",
   brandOrange = "#FF5C00",
 }: NewsFeedProps) {
+  const { data: apiData } = useGetAnnouncementsQuery();
+
+  const displayAnnouncements = React.useMemo(() => {
+    if (manualAnnouncements) return manualAnnouncements;
+    if (apiData && apiData.length > 0) {
+      // Sắp xếp: Pinned lên đầu
+      const sorted = [...apiData].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+      return sorted.map((n) => n.content || n.title);
+    }
+    return [
+      "SU26 Enrollment for 'Data Structures' is now open.",
+      "System maintenance scheduled for January 25th, 02:00 AM UTC.",
+      "Congratulations to FPTU team for winning the ICPC Regional Asia!",
+      "New Feature: Grade analytics dashboard is now live.",
+    ];
+  }, [manualAnnouncements, apiData]);
+
+  const announcements = displayAnnouncements;
   return (
     <>
       <div

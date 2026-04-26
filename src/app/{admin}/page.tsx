@@ -34,6 +34,9 @@ import SubjectComponents from "./Subject/SubjectComponents";
 import SemesterComponents from "./Semester/SemesterComponents";
 import TagsManagementPage from "../Management/Tags/page";
 
+import AnnouncementManagementPage from "./Announcement/page";
+import { Megaphone } from "lucide-react";
+
 const NAV_GROUPS = [
   {
     label: "Overview",
@@ -68,7 +71,8 @@ const NAV_GROUPS = [
   {
     label: "Business",
     items: [
-      { tKey: "admin_sidebar.package", defaultVi: "Gói dịch vụ", defaultEn: "Package", key: "package", icon: Package },
+      { tKey: "admin_sidebar.package", defaultVi: "Lộ trình học", defaultEn: "Study Plan", key: "package", icon: Package },
+      { tKey: "admin_sidebar.announcement", defaultVi: "Bảng tin News Feed", defaultEn: "Announcements", key: "announcement", icon: Megaphone },
       { tKey: "admin_sidebar.notification", defaultVi: "Thông báo", defaultEn: "Notification", key: "notification", icon: Bell },
     ],
   },
@@ -93,6 +97,7 @@ export default function AdminPage() {
     gamification: <GamificationManagementPage />,
     moderation: <ModerationManagementPage />,
     notification: <NotificationManagementPage />,
+    announcement: <AnnouncementManagementPage />,
     package: <PracticePackagePage />,
     coin: <CoinManagerPage />,
     class: <ClassComponents />,

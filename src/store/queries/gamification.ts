@@ -42,7 +42,7 @@ export const gamificationApi = baseApi.injectEndpoints({
       query: () => GamificationEndpoint.HISTORY,
       providesTags: ["Gamification"],
     }),
-    getLeaderboard: builder.query<{ data: LeaderboardResponse }, { type: "exp" | "streak" | "badge" }>({
+    getGamificationLeaderboard: builder.query<{ data: LeaderboardResponse }, { type: "exp" | "streak" | "badge" }>({
       query: ({ type }) => `${GamificationEndpoint.LEADERBOARD}?type=${type}`,
       providesTags: ["Gamification"],
     }),
@@ -62,7 +62,7 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     createBadge: builder.mutation<{ id: string }, CreateBadgeRequest>({
       query: (body) => ({
-        url: AdminGamificationEndpoint.BADGES,
+        url: GamificationEndpoint.BADGES,
         method: "POST",
         body,
       }),
@@ -124,7 +124,7 @@ export const {
   useGetBadgeProgressQuery,
   useGetStreakQuery,
   useGetGamificationHistoryQuery,
-  useGetLeaderboardQuery,
+  useGetGamificationLeaderboardQuery,
   useGetDailyActivitiesQuery,
   useGetAdminBadgesQuery,
   useCreateBadgeMutation,

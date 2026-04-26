@@ -19,6 +19,7 @@ import { useGetTagsQuery } from "@/store/queries/Tags";
 import CreateTagsModal from "./createTagsModal";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ADMIN_H1, ADMIN_SUBTITLE } from "../../{admin}/adminTable";
 
 const getIconComponent = (iconName?: string | null) => {
   if (!iconName) return TagIcon;
@@ -34,8 +35,7 @@ export default function TagsManagementPage() {
   const { data: apiResponse, isLoading, isError, error, refetch } = useGetTagsQuery();
   const { t, language } = useTranslation();
   const createModal = useDisclosure();
-  console.log(apiResponse);
-  
+
   const allTags = useMemo(() => {
     let tags = apiResponse || [];
     if (searchTerm) {
@@ -61,7 +61,9 @@ export default function TagsManagementPage() {
     return (
       <div className="flex flex-col h-full items-center justify-center min-h-[500px]">
         <Spinner size="lg" color="primary" />
-        <p className="mt-4 text-slate-500 font-medium">{language === 'vi' ? "Đang tải danh sách nhãn..." : "Loading tags repository..."}</p>
+        <p className="mt-4 text-white/40 font-bold uppercase tracking-widest text-[10px] italic">
+          {language === 'vi' ? "Đang tải danh sách nhãn..." : "Loading tags repository..."}
+        </p>
       </div>
     );
   }
@@ -69,11 +71,16 @@ export default function TagsManagementPage() {
   if (isError) {
     return (
       <div className="flex flex-col h-full items-center justify-center text-center p-8 min-h-[500px]">
-        <div className="text-red-500 text-2xl mb-4 font-black">{language === 'vi' ? "Đã có lỗi xảy ra" : "Error occurred"}</div>
-        <p className="text-slate-400 mb-6 font-medium">
+        <div className="text-red-500 text-2xl mb-4 font-black uppercase tracking-tighter italic">
+          {language === 'vi' ? "Đã có lỗi xảy ra" : "Error occurred"}
+        </div>
+        <p className="text-white/30 mb-6 font-medium italic">
           {(error as ErrorForm)?.data?.data?.message || (language === 'vi' ? "Không thể tải danh sách nhãn." : "Unable to load tags list.")}
         </p>
-        <Button color="primary" onPress={refetch} className="font-bold">
+        <Button
+          className="bg-[#3B5BFF] text-white font-black px-10 rounded-xl uppercase text-[10px] tracking-widest"
+          onPress={refetch}
+        >
           {language === 'vi' ? "Thử lại" : "Retry"}
         </Button>
       </div>
@@ -81,143 +88,128 @@ export default function TagsManagementPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div 
-        className="flex justify-between items-center shrink-0 border-b border-slate-200 dark:border-white/10 pb-8 opacity-0 animate-fade-in-up"
-        style={{ animationFillMode: 'both', animationDelay: '100ms' }}
-      >
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <div className="flex justify-between items-center border-b border-white/5 pb-8">
         <div>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-            {language === 'vi' ? "KHO " : "TAGS "} <span className="text-[#FF5C00]">{language === 'vi' ? "NHÃN" : "REPOSITORY"}</span>
+          <h1 className={ADMIN_H1}>
+            {language === 'vi' ? "Tags " : "Tags "} <span style={{ color: "#3B5BFF" }}>{language === 'vi' ? "Repository" : "Repository"}</span>
           </h1>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 italic">
+          <p className={ADMIN_SUBTITLE}>
             {language === 'vi' ? "Quản lý nhãn bài tập hệ thống" : "Manage system problem tags"}
           </p>
         </div>
         <Button
           startContent={<Plus size={20} strokeWidth={3} />}
           onPress={createModal.onOpen}
-          className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95"
+          className="bg-[#3B5BFF] text-white font-black h-11 px-8 rounded-xl shadow-xl uppercase text-[10px] tracking-widest active:scale-95 transition-all"
+          style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 4px 15px rgba(59, 91, 255, 0.3)" }}
         >
           {language === 'vi' ? "TẠO NHÃN MỚI" : "CREATE NEW TAG"}
         </Button>
       </div>
 
-      <div 
-        className="flex flex-wrap items-center gap-3 shrink-0 opacity-0 animate-fade-in-up"
-        style={{ animationFillMode: 'both', animationDelay: '150ms' }}
-      >
-        <Input
-          placeholder={language === 'vi' ? "Tìm theo tên hoặc đường dẫn..." : "Search by name or slug..."}
-          value={searchTerm}
-          onValueChange={setSearchTerm}
-          startContent={<Search size={18} className="text-slate-400" />}
-          classNames={{
-            inputWrapper:
-              "bg-white dark:bg-[#111c35] rounded-xl h-12 shadow-sm border border-slate-200 dark:border-white/5 focus-within:!border-blue-600 dark:focus-within:!border-[#FF5C00] transition-colors w-full sm:w-[300px]",
-          }}
-          className="font-medium"
-        />
+      {/* FILTER BAR */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="relative group flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+          <input
+            placeholder={language === 'vi' ? "Tìm theo tên hoặc đường dẫn..." : "Search by name or slug..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10"
+          />
+        </div>
 
         <Button
           isIconOnly
-          className="h-12 w-12 rounded-xl bg-blue-600 dark:bg-[#FF5C00] text-white shadow-lg hover:opacity-80 transition-all active:scale-90 ml-auto"
+          variant="flat"
+          className="h-11 w-11 rounded-xl bg-white/5 text-white/30 hover:bg-white/10 hover:text-white transition-all ml-auto"
           onPress={refetch}
         >
           <RefreshCw size={18} />
         </Button>
       </div>
 
-      <div 
-        className="flex-1 overflow-auto pr-2 custom-scrollbar opacity-0 animate-fade-in-up"
-        style={{ animationFillMode: 'both', animationDelay: '200ms' }}
-      >
+      {/* TABLE */}
+      <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
         <Table
-          aria-label="Tags Table"
+          aria-label="Tags Management Table"
           removeWrapper
           classNames={{
-            base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] p-4 shadow-sm border border-transparent dark:border-white/5",
-            th: "bg-transparent text-slate-400 font-black uppercase tracking-widest text-[10px] border-b border-slate-100 dark:border-white/5 pb-4 px-6",
-            td: "py-6 font-bold text-[#071739] dark:text-slate-200 border-b border-slate-50 dark:border-white/5 last:border-none px-6",
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+            td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+            tr: "hover:bg-white/[0.03] transition-colors group/row",
           }}
         >
           <TableHeader>
             <TableColumn>{language === 'vi' ? "MÃ" : "ID"}</TableColumn>
-            <TableColumn>{language === 'vi' ? "TÊN NHÃN" : "TAG NAME"}</TableColumn>
+            <TableColumn className="w-[30%]">{language === 'vi' ? "TÊN NHÃN" : "TAG NAME"}</TableColumn>
             <TableColumn>{language === 'vi' ? "ĐƯỜNG DẪN" : "SLUG"}</TableColumn>
-            <TableColumn>{language === 'vi' ? "TRẠNG THÁI" : "STATUS"}</TableColumn>
-            <TableColumn className="text-right">{language === 'vi' ? "THAO TÁC" : "OPERATIONS"}</TableColumn>
+            <TableColumn align="center">{language === 'vi' ? "TRẠNG THÁI" : "STATUS"}</TableColumn>
+            <TableColumn align="end">{language === 'vi' ? "THAO TÁC" : "OPERATIONS"}</TableColumn>
           </TableHeader>
-          <TableBody emptyContent={language === 'vi' ? "Không tìm thấy nhãn nào" : "No tags found"}>
+          <TableBody emptyContent={language === 'vi' ? "Không tìm thấy nhãn nào" : "No tags found in registry"}>
             {items.map((tag, index) => (
-              <TableRow
-                key={tag.id}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors opacity-0 animate-fade-in-up"
-                style={{ animationFillMode: "both", animationDelay: `${index * 50 + 200}ms` }}
-              >
+              <TableRow key={tag.id}>
                 <TableCell>
-                  <span className="text-slate-400 font-bold italic text-xs">#{tag.id.substring(0, 8)}...</span>
+                  <span className="text-white/30 font-black italic text-xs tracking-tighter">#{tag.id.substring(0, 8)}</span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className={`flex items-center justify-center p-2 rounded-lg shadow-sm border border-transparent dark:border-white/5 ${!tag.color ? 'bg-emerald-100 dark:bg-[#22C55E]/10 text-emerald-600 dark:text-[#22C55E]' : ''}`}
-                      style={tag.color ? { backgroundColor: `${tag.color}25`, color: tag.color } : {}}
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex items-center justify-center w-10 h-10 rounded-xl shadow-lg border border-white/5"
+                      style={{ backgroundColor: tag.color ? `${tag.color}15` : 'rgba(16, 185, 129, 0.1)', color: tag.color || '#10B981' }}
                     >
-                      {React.createElement(getIconComponent(tag.icon), { size: 16 })}
+                      {React.createElement(getIconComponent(tag.icon), { size: 18 })}
                     </div>
-                    <span 
-                      className="text-base font-black uppercase italic tracking-tight transition-colors leading-none"
+                    <span
+                      className="text-base font-black uppercase italic tracking-tight group-hover/row:scale-105 transition-transform origin-left"
                       style={{ color: tag.color || undefined }}
                     >
-                      {tag.name || (language === 'vi' ? "CHƯA ĐẶT TÊN" : "UNNAMED")}
+                      {tag.name || "UNNAMED"}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span 
-                    className="text-sm font-medium px-3 py-1 rounded-md lowercase border shadow-sm"
-                    style={tag.color ? { 
-                      backgroundColor: `${tag.color}10`, 
-                      color: tag.color,
-                      borderColor: `${tag.color}30` 
-                    } : {
-                      backgroundColor: 'rgb(241 245 249)',
-                      color: 'rgb(100 116 139)'
-                    }}
+                  <span
+                    className="text-[10px] font-black px-3 py-1.5 rounded-lg lowercase border border-white/5 tracking-wider bg-white/5 text-white/50"
                   >
-                    {tag.slug || (language === 'vi' ? "không có" : "none")}
+                    {tag.slug || "none"}
                   </span>
                 </TableCell>
                 <TableCell>
-                  {tag.isActive === false ? (
-                    <span className="px-2 py-1 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 font-bold text-[10px] uppercase rounded-md">
-                      {language === 'vi' ? "KHÔNG HOẠT ĐỘNG" : "INACTIVE"}
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold text-[10px] uppercase rounded-md">
-                      {language === 'vi' ? "HOẠT ĐỘNG" : "ACTIVE"}
-                    </span>
-                  )}
+                  <div className="flex justify-center">
+                    {tag.isActive === false ? (
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+                        <span className="text-[10px] font-black uppercase text-red-500">Disabled</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase text-emerald-500">Active</span>
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Tooltip content={language === 'vi' ? "Chỉnh sửa Nhãn (Sắp ra mắt)" : "Edit Tag (Coming Soon)"} className="font-bold text-[10px]">
+                  <div className="flex justify-end gap-2">
+                    <Tooltip content="Edit Tag" className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
+                        className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
                       >
                         <Edit size={16} />
                       </Button>
                     </Tooltip>
-                    <Tooltip content={language === 'vi' ? "Xóa Nhãn (Sắp ra mắt)" : "Delete Tag (Coming Soon)"} className="font-bold text-[10px]">
+                    <Tooltip content="Delete Tag" className="font-bold text-[10px]" color="danger">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9 active-bump"
+                        className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -230,17 +222,19 @@ export default function TagsManagementPage() {
         </Table>
 
         {totalItems > 0 && (
-          <div className="flex w-full justify-center py-8">
+          <div className="flex w-full justify-center py-8 border-t border-white/5">
             <Pagination
-              isCompact
               showControls
               showShadow
               color="primary"
+              variant="faded"
               page={page}
               total={pages}
-              onChange={(p) => setPage(p)}
+              onChange={setPage}
               classNames={{
-                cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-bold italic shadow-lg",
+                cursor: "bg-[#3B5BFF] text-white font-black",
+                wrapper: "gap-2",
+                item: "text-white/60 hover:text-white hover:bg-white/10",
               }}
             />
           </div>

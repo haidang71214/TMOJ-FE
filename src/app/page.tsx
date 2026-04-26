@@ -27,6 +27,7 @@ import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
 
 import NewsFeed from "./components/NewsFeed";
+import DiscussionsSection from "./components/DiscussionsSection";
 import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -310,41 +311,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
             <div className="lg:col-span-3 flex flex-col gap-16">
               {/* Discussions */}
-              <div className="flex flex-col gap-8">
-                <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
-                  <MessageSquare style={{ color: brandOrange }} size={28} />{" "}
-                  Discussions & News
-                </h3>
-                <div className="flex flex-col gap-5">
-                  {news.map((post, i) => (
-                    <Card
-                      key={i}
-                      className="bg-white/60 dark:bg-[#1C2737]/80 backdrop-blur-md border-none rounded-3xl hover:scale-[1.01] transition-all p-3 shadow-sm group cursor-pointer"
-                    >
-                      <CardBody className="flex flex-row gap-6 items-center p-4">
-                        <Avatar
-                          name={post.author}
-                          size="md"
-                          style={{ backgroundColor: brandNavy }}
-                          className="text-[#FF5C00] font-black"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-black text-lg text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors uppercase italic">
-                            {post.title}
-                          </h4>
-                          <div className="flex gap-4 mt-2 font-black text-[9px] text-[#A4B5C4] uppercase italic">
-                            <span>By {post.author}</span>
-                            {post.tags.map((t) => (
-                              <span key={t}>#{t}</span>
-                            ))}
-                          </div>
-                        </div>
-                        <ChevronRight style={{ color: brandOrange }} />
-                      </CardBody>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+              <DiscussionsSection brandOrange={brandOrange} brandNavy={brandNavy} />
 
               {/* Learning Flow */}
               <div className="flex flex-col gap-10">
@@ -371,7 +338,7 @@ export default function Home() {
                       border: "text-[#FF5C00]",
                     },
                     {
-                      title: "Online Assessment",
+                      title: "Online Contest",
                       icon: <BookOpen size={20} />,
                       step: "03",
                       border: "text-[#00A651]",

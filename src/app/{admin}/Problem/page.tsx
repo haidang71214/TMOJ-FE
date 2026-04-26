@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Thêm để chuyển trang
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   Button,
@@ -49,6 +49,8 @@ import {
   Flame,
   Code,
   Archive,
+  ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 import { iconBtnGhost, iconBtnDanger, iconBtnSuccess, difficultyStyle } from "../adminTheme";
 import CreateProblem from "./CreateProblem";
@@ -60,18 +62,15 @@ import RemixProblemForm from "@/app/Problems/components/RemixProblemForm";
 import ProblemTemplatePage from "@/app/Management/Problem/[id]/Template/page";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
+import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
 
 export default function ProblemManagementPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
 
-  // Use the API query
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
-  // Safe extraction of the problem array
   const apiProblems: Problem[] = problemListData?.data || [];
 
-  // We still need local state if we want optimistic updates for Approve/Reject 
-  // before building out the mutations for them.
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
@@ -82,7 +81,6 @@ export default function ProblemManagementPage() {
   const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
-  // Sync API data to local state when it loads
   useEffect(() => {
     if (problemListData?.data) {
       setProblems(problemListData.data);
@@ -118,12 +116,11 @@ export default function ProblemManagementPage() {
     editorialModal.onOpen();
   };
 
-  // Lọc dữ liệu
   const filteredProblems = problems.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         p.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.slug.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDifficulty = !difficultyFilter || p.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
-    const matchesType = !typeFilter || typeFilter === "ALGORITHM"; // Mock logic since all are algorithm for now
+    const matchesType = !typeFilter || typeFilter === "ALGORITHM";
     return matchesSearch && matchesDifficulty && matchesType;
   });
 
@@ -144,12 +141,6 @@ export default function ProblemManagementPage() {
     );
     setIsApproveModalOpen(false);
     setSelectedProblem(null);
-  };
-
-  const handleReject = (problem: Problem) => {
-    setSelectedProblem(problem);
-    setRejectionReason("");
-    setIsRejectModalOpen(true);
   };
 
   const confirmReject = () => {
@@ -257,19 +248,6 @@ export default function ProblemManagementPage() {
                 <CheckCircle2 size={15} />
               </Button>
             </Tooltip>
-
-            <Tooltip content="Reject Problem" className="text-[10px] font-bold">
-              <Button
-                isIconOnly
-                size="sm"
-                variant="flat"
-                onPress={() => handleReject(prob)}
-                className="bg-red-400/10 text-red-400 min-w-8 h-8 rounded-lg"
-              >
-                <XCircle size={15} />
-              </Button>
-            </Tooltip>
-
             <Tooltip content="Manage Tags" className="text-[10px] font-bold">
               <Button
                 isIconOnly
@@ -505,134 +483,107 @@ export default function ProblemManagementPage() {
   };
 
 
+  const ActionButtons = ({ prob, isPending }: { prob: Problem; isPending: boolean }) => (
+    <div className="flex items-center gap-1">
+      {isPending && (
+        <>
+          <Tooltip content="Approve" className="font-bold text-[10px]">
+            <button onClick={() => handleApprove(prob)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all"><CheckCircle2 size={14} /></button>
+          </Tooltip>
+          <Tooltip content="Reject" className="font-bold text-[10px]" color="danger">
+            <button onClick={() => { setSelectedProblem(prob); setIsRejectModalOpen(true); }} className="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"><XCircle size={14} /></button>
+          </Tooltip>
+        </>
+      )}
 
-  if (isCreatingProblem) {
-    return (
-      <CreateProblem
-        onCancel={() => setIsCreatingProblem(false)}
-        onFinish={() => {
-          setIsCreatingProblem(false);
-          refreshData();
-        }}
-      />
-    );
-  }
+      <Tooltip content="Tags" className="font-bold text-[10px]">
+        <button onClick={() => handleOpenTags(prob)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all"><Tags size={14} /></button>
+      </Tooltip>
 
-  if (editProblemId) {
-    return (
-      <EditProblem
-        problemId={editProblemId}
-        onCancel={() => setEditProblemId(null)}
-        onFinish={() => {
-          setEditProblemId(null);
-          refreshData();
-        }}
-      />
-    );
-  }
+      <Dropdown>
+        <DropdownTrigger>
+          <button className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all"><MoreVertical size={14} /></button>
+        </DropdownTrigger>
+        <DropdownMenu aria-label="More Actions" classNames={{ base: "dark bg-[#1E2B42] text-white border border-white/10 rounded-xl" }}>
+          <DropdownItem key="edit" startContent={<Pencil size={14} />} onClick={() => setEditProblemId(prob.id)}>Edit Details</DropdownItem>
+          <DropdownItem key="view" startContent={<Eye size={14} />} onClick={() => router.push(`/Problem/${prob.id}`)}>View Problem</DropdownItem>
+          <DropdownItem key="remix" startContent={<Flame size={14} />} onClick={() => setRemixProblemId(prob.id)}>Remix Problem</DropdownItem>
+          <DropdownItem key="template" startContent={<Code size={14} />} onClick={() => setTemplateProblemId(prob.id)}>Code Template</DropdownItem>
+          <DropdownItem key="editorial" startContent={<BookOpen size={14} />} onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}>Editorial</DropdownItem>
+          <DropdownItem key="archive" startContent={<Archive size={14} />} className="text-red-400" onClick={() => handleOpenArchive(prob)}>Archive</DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
+    </div>
+  );
 
-  if (remixProblemId) {
-    return (
-      <RemixProblemForm
-        originId={remixProblemId}
-        onCancel={() => setRemixProblemId(null)}
-      />
-    );
-  }
-
-  if (templateProblemId) {
-    return (
-      <ProblemTemplatePage
-        inlineProblemId={templateProblemId}
-        onCancel={() => setTemplateProblemId(null)}
-      />
-    );
-  }
+  if (isCreatingProblem) return <CreateProblem onCancel={() => setIsCreatingProblem(false)} onFinish={() => { setIsCreatingProblem(false); refreshData(); }} />;
+  if (editProblemId) return <EditProblem problemId={editProblemId} onCancel={() => setEditProblemId(null)} onFinish={() => { setEditProblemId(null); refreshData(); }} />;
+  if (remixProblemId) return <RemixProblemForm originId={remixProblemId} onCancel={() => setRemixProblemId(null)} />;
+  if (templateProblemId) return <ProblemTemplatePage inlineProblemId={templateProblemId} onCancel={() => setTemplateProblemId(null)} />;
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-10 animate-in fade-in duration-500">
       {/* HEADER */}
-      <div className="flex justify-between items-end opacity-0 animate-fade-in-up" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
+      <div className="flex justify-between items-center border-b border-white/5 pb-8">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">
-            Problem <span className="text-[#3B5BFF]">Vault</span>
+          <h1 className={ADMIN_H1}>
+            Problem <span style={{ color: "#3B5BFF" }}>Vault</span>
           </h1>
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mt-2 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#3B5BFF] animate-pulse" />
-            {language === "vi" ? "Hệ thống quản lý & Kiểm duyệt bài tập" : "Centralized Problem Moderation & Control"}
-          </div>
+          <p className={ADMIN_SUBTITLE}>{language === "vi" ? "Quản lý và kiểm duyệt kho bài tập hệ thống" : "Centralized moderation and control for problem registry"}</p>
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={refreshData}
-            disabled={isLoading || isQueryLoading}
-            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white"
+          <Button
+            variant="flat"
+            className="font-black uppercase text-[10px] tracking-widest h-11 px-6 rounded-xl bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
+            isLoading={isLoading || isQueryLoading}
+            onPress={refreshData}
+            startContent={<RefreshCw size={16} className={isLoading || isQueryLoading ? "animate-spin" : ""} />}
           >
-            <RefreshCw size={14} className={isLoading || isQueryLoading ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"} />
-            {language === "vi" ? "Làm mới" : "Refresh"}
-          </button>
-          <button
-            onClick={() => setIsCreatingProblem(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black text-white transition-all active:scale-95 hover:brightness-110 uppercase tracking-wider"
-            style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 8px 24px rgba(59,91,255,0.25)" }}
+            Refresh
+          </Button>
+          <Button
+            className="font-black uppercase text-[10px] tracking-widest px-8 h-11 rounded-xl text-white shadow-xl active:scale-95 transition-all"
+            style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 4px 15px rgba(59, 91, 255, 0.3)" }}
+            startContent={<Plus size={18} strokeWidth={3} />}
+            onPress={() => setIsCreatingProblem(true)}
           >
-            <Plus size={16} />
-            {language === "vi" ? "Tạo bài mới" : "New Problem"}
-          </button>
+            New Problem
+          </Button>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="flex flex-wrap gap-4 items-center opacity-0 animate-fade-in-up" style={{ animationDelay: "200ms", animationFillMode: "both" }}>
-        <div className="relative group flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="relative group flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
           <input
             placeholder={language === "vi" ? "Tìm kiếm tiêu đề, slug..." : "Search problems, slugs..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#162035] border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-white/20 focus:border-[#3B5BFF]/50 focus:bg-[#1E2B42] outline-none transition-all"
+            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10"
           />
         </div>
 
         <div className="flex gap-2">
-           <Dropdown>
-             <DropdownTrigger>
-               <button className="px-4 py-3 rounded-2xl bg-[#162035] border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:border-white/10 transition-all">
-                 {difficultyFilter || "Difficulty"}
-               </button>
-             </DropdownTrigger>
-             <DropdownMenu 
-               aria-label="Filter Difficulty"
-               onAction={(key) => setDifficultyFilter(key === "all" ? null : key as string)}
-             >
-               <DropdownItem key="all">All Difficulties</DropdownItem>
-               <DropdownItem key="easy" className="text-green-500">Easy</DropdownItem>
-               <DropdownItem key="medium" className="text-orange-500">Medium</DropdownItem>
-               <DropdownItem key="hard" className="text-red-500">Hard</DropdownItem>
-             </DropdownMenu>
-           </Dropdown>
-
-           <Dropdown>
-             <DropdownTrigger>
-               <button className="px-4 py-3 rounded-2xl bg-[#162035] border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:border-white/10 transition-all">
-                 {typeFilter || "Type"}
-               </button>
-             </DropdownTrigger>
-             <DropdownMenu 
-               aria-label="Filter Type"
-               onAction={(key) => setTypeFilter(key === "all" ? null : key as string)}
-             >
-               <DropdownItem key="all">All Types</DropdownItem>
-               <DropdownItem key="ALGORITHM">Algorithm</DropdownItem>
-             </DropdownMenu>
-           </Dropdown>
+          <Dropdown>
+            <DropdownTrigger>
+              <Button variant="flat" className="bg-white/5 text-white/40 font-black uppercase text-[10px] h-10 px-5 rounded-xl">
+                {difficultyFilter || "Difficulty"}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu onAction={(key) => setDifficultyFilter(key === "all" ? null : key as string)} classNames={{ base: "dark bg-[#1E2B42] text-white border border-white/10 rounded-xl" }}>
+              <DropdownItem key="all">All</DropdownItem>
+              <DropdownItem key="easy" className="text-emerald-400">Easy</DropdownItem>
+              <DropdownItem key="medium" className="text-amber-400">Medium</DropdownItem>
+              <DropdownItem key="hard" className="text-red-400">Hard</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
         </div>
       </div>
 
       {/* TABS */}
       <Tabs
-        defaultSelectedKey="pending"
         color="primary"
         variant="underlined"
         classNames={{
@@ -642,19 +593,15 @@ export default function ProblemManagementPage() {
           tabContent: "group-data-[selected=true]:text-[#3B5BFF]",
         }}
       >
-        <Tab key="pending" title={language === "vi" ? `Chờ duyệt (${pendingProblems.length})` : `Pending (${pendingProblems.length})`}>
-          <div
-            className="rounded-2xl border overflow-hidden opacity-0 animate-fade-in-up"
-            style={{ borderColor: "rgba(255,255,255,0.10)", background: "#162035", animationDelay: "200ms", animationFillMode: "both" }}
-          >
+        <Tab key="pending" title={`Pending Approval (${pendingProblems.length})`}>
+          <div className="rounded-[2.5rem] overflow-hidden border border-white/5 mt-6" style={{ background: "#162035" }}>
             <Table
-              aria-label="Pending Approval Problems"
+              aria-label="Pending Table"
               removeWrapper
               classNames={{
-                th: "text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
-                td: "text-white/75 border-b border-white/[0.05] py-3",
-                tr: "hover:bg-white/[0.03] transition-colors",
-                thead: "[&>tr]:bg-[#1E2B42]",
+                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+                tr: "hover:bg-white/[0.03] transition-colors group/row",
               }}
             >
               <TableHeader>
@@ -663,24 +610,45 @@ export default function ProblemManagementPage() {
                 <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
                 <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
                 <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
+                <TableColumn className="w-[40%]">TITLE & SLUG</TableColumn>
+                <TableColumn>TYPE</TableColumn>
+                <TableColumn>DIFFICULTY</TableColumn>
+                <TableColumn>SUBMITTED</TableColumn>
+                <TableColumn align="center">ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody>{renderPendingBody()}</TableBody>
+              <TableBody emptyContent="No problems waiting for approval">
+                {pendingProblems.map((prob) => (
+                  <TableRow key={prob.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{prob.title}</span>
+                        <span className="text-[10px] font-mono text-white/20 uppercase tracking-tighter">{prob.slug}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-[10px] font-black uppercase italic text-white/30 border border-white/5 px-2 py-0.5 rounded-md bg-white/5">Algorithm</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border" style={difficultyStyle(prob.difficulty)}>{prob.difficulty}</div>
+                    </TableCell>
+                    <TableCell className="text-white/30 font-bold text-[11px]">{new Date(prob.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell><ActionButtons prob={prob} isPending={true} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
           </div>
         </Tab>
 
-        <Tab key="approved" title={language === "vi" ? `Công khai (${approvedProblems.length})` : `Published (${approvedProblems.length})`}>
-          <div
-            className="rounded-2xl border overflow-hidden opacity-0 animate-fade-in-up"
-            style={{ borderColor: "rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", animationDelay: "200ms", animationFillMode: "both" }}
-          >
+        <Tab key="approved" title={`Published Problems (${approvedProblems.length})`}>
+          <div className="rounded-[2.5rem] overflow-hidden border border-white/5 mt-6" style={{ background: "#162035" }}>
             <Table
-              aria-label="Approved Problems"
+              aria-label="Approved Table"
               removeWrapper
               classNames={{
-                th: "bg-white/[0.04] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.06]",
-                td: "text-white/70 border-b border-white/[0.04] py-3",
-                tr: "hover:bg-white/[0.02] transition-colors",
+                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+                tr: "hover:bg-white/[0.03] transition-colors group/row",
               }}
             >
               <TableHeader>
@@ -693,52 +661,89 @@ export default function ProblemManagementPage() {
                 <TableColumn>Accept %</TableColumn>
                 <TableColumn>Status</TableColumn>
                 <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
+                <TableColumn className="w-[30%]">PROBLEM</TableColumn>
+                <TableColumn>LEVEL</TableColumn>
+                <TableColumn>LIMITS</TableColumn>
+                <TableColumn align="center">ACCEPTANCE</TableColumn>
+                <TableColumn align="center">VISIBILITY</TableColumn>
+                <TableColumn align="center">ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody>{renderApprovedBody()}</TableBody>
+              <TableBody emptyContent="No published problems found">
+                {approvedProblems.map((prob) => (
+                  <TableRow key={prob.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{prob.title}</span>
+                        <span className="text-[10px] font-mono text-white/20 uppercase tracking-tighter">{prob.slug}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border" style={difficultyStyle(prob.difficulty)}>{prob.difficulty}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Clock size={11} /> {(prob.timeLimitMs / 1000).toFixed(1)}s</div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Database size={11} /> {(prob.memoryLimitKb / 1024).toFixed(0)}MB</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="text-xs font-black italic" style={{ color: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }}>
+                          {prob.acceptancePercent?.toFixed(1) || "0.0"}%
+                        </div>
+                        <div className="w-16 h-1 rounded-full bg-white/5 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${prob.acceptancePercent || 0}%`, background: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }} />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-center"><Switch isSelected={prob.statusCode === "published"} size="sm" classNames={{ wrapper: "group-data-[selected=true]:bg-[#3B5BFF]" }} /></div>
+                    </TableCell>
+                    <TableCell><ActionButtons prob={prob} isPending={false} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
           </div>
         </Tab>
       </Tabs>
 
-      {/* MODAL APPROVE */}
-      <Modal isOpen={isApproveModalOpen} onOpenChange={setIsApproveModalOpen} size="sm">
+      {/* MODALS remain mostly same but with refined dark styles */}
+      <Modal isOpen={isApproveModalOpen} onOpenChange={setIsApproveModalOpen} size="sm" classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="text-lg font-black uppercase flex items-center gap-3">
-                <CheckCircle2 className="text-green-500" size={24} />
-                Approve Problem
+                <CheckCircle2 className="text-emerald-500" size={24} /> Approve Problem
               </ModalHeader>
               <ModalBody>
-                <p>Are you sure to <strong>APPROVE</strong> and publish:</p>
-                <p className="font-bold mt-2">{selectedProblem?.title}</p>
+                <p className="text-white/60">Are you sure to <strong>APPROVE</strong> and publish:</p>
+                <p className="font-bold text-white mt-2 text-lg italic tracking-tight">{selectedProblem?.title}</p>
               </ModalBody>
               <ModalFooter>
-                <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="success" onPress={confirmApprove}>Approve & Publish</Button>
+                <Button variant="flat" className="bg-white/5 text-white" onPress={onClose}>Cancel</Button>
+                <Button className="bg-emerald-500 text-white font-bold" onPress={confirmApprove}>Confirm & Publish</Button>
               </ModalFooter>
             </>
           )}
         </ModalContent>
       </Modal>
 
-      {/* MODAL REJECT */}
-      <Modal isOpen={isRejectModalOpen} onOpenChange={setIsRejectModalOpen} size="md">
+      <Modal isOpen={isRejectModalOpen} onOpenChange={setIsRejectModalOpen} size="md" classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="text-lg font-black uppercase flex items-center gap-3">
-                <XCircle className="text-red-500" size={24} />
-                Reject Problem
+                <XCircle className="text-red-500" size={24} /> Reject Problem
               </ModalHeader>
               <ModalBody className="space-y-4">
-                <p>Provide reason for rejection:</p>
-                <p className="font-medium">{selectedProblem?.title}</p>
-                <Textarea minRows={3} placeholder="Rejection reason..." value={rejectionReason} onValueChange={setRejectionReason} />
+                <p className="text-white/60">Provide reason for rejecting:</p>
+                <p className="font-bold text-white text-lg italic">{selectedProblem?.title}</p>
+                <Textarea minRows={3} placeholder="Explain what needs to be improved..." value={rejectionReason} onValueChange={setRejectionReason} classNames={{ input: "text-white", inputWrapper: "bg-white/5 border border-white/10 focus-within:!border-red-500" }} />
               </ModalBody>
               <ModalFooter>
-                <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="danger" onPress={confirmReject} isDisabled={!rejectionReason.trim()}>Reject</Button>
+                <Button variant="flat" className="bg-white/5 text-white" onPress={onClose}>Cancel</Button>
+                <Button color="danger" className="font-bold" onPress={confirmReject} isDisabled={!rejectionReason.trim()}>Confirm Reject</Button>
               </ModalFooter>
             </>
           )}
@@ -765,6 +770,7 @@ export default function ProblemManagementPage() {
         problemId={selectedProblemForEditorial?.id}
         problemTitle={selectedProblemForEditorial?.title}
       />
+      <AttachTagsModal isOpen={tagsModal.isOpen} onOpenChange={tagsModal.onOpenChange} problem={selectedProblemForTags as any} />
     </div>
   );
 }

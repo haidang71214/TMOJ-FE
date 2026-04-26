@@ -30,6 +30,7 @@ import { useGetRuntimeListQuery } from "@/store/queries/Submittion";
 import { useCreateProblemTemplateMutation, useGetProblemTemplatesQuery, useUpdateProblemTemplateMutation } from "@/store/queries/problem";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
+import { ErrorForm } from "@/types";
 
 interface ProblemTemplatePageProps {
   inlineProblemId?: string;
@@ -187,8 +188,9 @@ export default function ProblemTemplatePage({ inlineProblemId, onCancel }: Probl
         }).unwrap();
         toast.success("Problem template created successfully");
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Operation failed");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Operation failed");
     }
   };
 

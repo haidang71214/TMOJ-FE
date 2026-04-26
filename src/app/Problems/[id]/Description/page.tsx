@@ -15,7 +15,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useCheckFavoriteQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
 import AddToCollectionModal from "../../components/AddToCollectionModal";
 import { toast } from "sonner";
-import { Problem } from "@/types";
+import { Problem, ErrorForm } from "@/types";
 
 // Types
 
@@ -68,8 +68,9 @@ export default function DescriptionTab() {
     try {
       const res = await toggleFavorite(id).unwrap();
       toast.success(res.data?.isFavorite ? "Added to favorites" : "Removed from favorites");
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to update favorite status");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to update favorite status");
     }
   };
 

@@ -19,6 +19,7 @@ import { RootState } from "@/store";
 import { UserRole } from "@/types";
 import { toast } from "sonner";
 import ContestHeader from "../components/ContestHeader";
+import { ErrorForm } from "@/types";
 import type { ScoreboardResponseDTO, ProblemAttemptDTO, ScoreboardRowDTO, ACMProblemAttemptDTO, IOIProblemAttemptDTO, ACMScoreboardRowDTO, IOIScoreboardRowDTO } from "./dto";
 
 export default function ScoreboardPage() {
@@ -67,8 +68,9 @@ export default function ScoreboardPage() {
         await freezeContest(contestId).unwrap();
         toast.success("Đã đóng băng bảng xếp hạng!");
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Thao tác thất bại");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Thao tác thất bại");
     }
   };
 

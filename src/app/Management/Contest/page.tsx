@@ -41,7 +41,7 @@ import {
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
 import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation, useDeleteContestMutation } from "@/store/queries/Contest";
-import { ContestDto } from "@/types";
+import { ContestDto, ErrorForm } from "@/types";
 import { toast } from "sonner";
 import { Globe, Lock as LockIcon, EyeOff } from "lucide-react";
 
@@ -72,16 +72,18 @@ export default function ContestListPage() {
     try {
       await publishContest(id).unwrap();
       toast.success("Cập nhật trạng thái hiển thị thành công");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Không thể cập nhật trạng thái hiển thị");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Không thể cập nhật trạng thái hiển thị");
     }
   };
   const handleChangeVisibility = async (id: string, visibility: string) => {
     try {
       await changeVisibility({ id, body: { visibilityCode: visibility } }).unwrap();
       toast.success(`Chuyển sang chế độ ${visibility.toUpperCase()} thành công`);
-    } catch (error: any) {
-      toast.error(error?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
     }
   };
 
@@ -91,8 +93,9 @@ export default function ContestListPage() {
         await deleteContest(id).unwrap();
         toast.success("Xóa cuộc thi thành công");
         refetch();
-      } catch (error: any) {
-        toast.error(error?.data?.message || "Không thể xóa cuộc thi");
+      } catch (error) {
+        const err = error as ErrorForm;
+        toast.error(err?.data?.data?.message || "Không thể xóa cuộc thi");
       }
     }
   };

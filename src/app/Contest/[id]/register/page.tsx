@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
+import { ErrorForm } from "@/types";
 
 const TeamMemberItem = ({
   m,
@@ -239,8 +240,9 @@ export default function ContestRegistrationPage() {
       console.log("result", result.data);
       setTeamInviteCode(result.data.inviteCode);
       toast.success("Team created successfully! Now add your members.");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to create team.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to create team.");
     }
   };
 
@@ -260,8 +262,9 @@ export default function ContestRegistrationPage() {
       setNewMemberId("");
       toast.success("Member added to team!");
       refetchTeam(); // Refresh the list
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to add member. Make sure the User ID is correct.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to add member. Make sure the User ID is correct.");
     }
   };
 
@@ -275,8 +278,9 @@ export default function ContestRegistrationPage() {
       await deleteTeamMember({ teamId: createdTeamId, userId }).unwrap();
       toast.success("Member removed from team!");
       refetchTeam();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to remove member.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to remove member.");
     }
   };
 
@@ -313,8 +317,9 @@ export default function ContestRegistrationPage() {
       }
 
       setInviteCode("");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Invalid invite code or failed to join.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Invalid invite code or failed to join.");
     }
   };
 
@@ -368,9 +373,10 @@ export default function ContestRegistrationPage() {
 
       toast.success(result.message || "Registered for contest successfully!");
       router.push(`/Contest/${contestId}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ REGISTRATION ERROR:", error);
-      const serverMsg = error?.data?.message || error?.data?.title || error?.data?.detail;
+      const apiError = error as ErrorForm;
+      const serverMsg = apiError?.data?.data?.message;
       toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");
     }
   };

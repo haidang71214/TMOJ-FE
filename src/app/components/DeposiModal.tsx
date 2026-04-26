@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useCreateVNPayPaymentMutation } from "@/store/queries/payment";
 import { toast } from "sonner";
+import { ErrorForm } from "@/types";
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -63,8 +64,9 @@ export default function DepositModal({
       if (response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to create payment request");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to create payment request");
     }
   };
 

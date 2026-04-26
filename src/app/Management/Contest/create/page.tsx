@@ -28,7 +28,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useCreateContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
-import { CreateContestRequest } from "@/types";
+import { CreateContestRequest, ErrorForm } from "@/types";
 
 export default function CreateContestPage() {
   const router = useRouter();
@@ -61,9 +61,10 @@ export default function CreateContestPage() {
       const result = await createContest(payload).unwrap();
       toast.success("Tạo contest thành công!");
       router.push(`/Management/Contest`);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to create contest:", error);
-      toast.error(error?.data?.message || "Đã xảy ra lỗi khi tạo contest");
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Đã xảy ra lỗi khi tạo contest");
     }
   };
 

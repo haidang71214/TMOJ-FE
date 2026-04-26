@@ -29,7 +29,7 @@ import {
 } from "@/store/queries/user";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
-import { Users, UserRole } from "@/types";
+import { Users, UserRole, ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -135,7 +135,8 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
         toast.success(`Đã unlock thành công ${user.email}`);
       }
     } catch (e: any) {
-      toast.error(`Thao tác thất bại: ${e?.data?.message || e?.message}`);
+      const apiError = e as ErrorForm;
+      toast.error(`Thao tác thất bại: ${apiError?.data?.data?.message || e?.message}`);
     }
   };
 

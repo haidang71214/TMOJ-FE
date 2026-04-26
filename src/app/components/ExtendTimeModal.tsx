@@ -12,6 +12,7 @@ import {
 import { Timer, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useExtendContestTimeMutation } from "@/store/queries/Contest";
+import { ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -75,8 +76,9 @@ export default function ExtendTimeModal({
         style: { fontWeight: "bold", fontStyle: "italic" },
       });
       onClose();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to extend contest time.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to extend contest time.");
     }
   };
 

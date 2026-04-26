@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useAddProblemToCollectionMutation, useDeleteCollectionItemMutation } from "@/store/queries/collections";
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -56,8 +57,9 @@ export default function AddQuestionsToCollectionModal({
     try {
       await addProblem({ id: collectionId, problemId }).unwrap();
       toast.success(`"${title}" ${language === 'vi' ? 'đã được thêm vào danh sách!' : 'added to list!'}`);
-    } catch (err: any) {
-      toast.error(err?.data?.message || `Failed to add "${title}"`);
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || `Failed to add "${title}"`);
     } finally {
       setActionId(null);
     }
@@ -74,8 +76,9 @@ export default function AddQuestionsToCollectionModal({
 
       await deleteItem({ id: collectionId, itemId: targetItem.id }).unwrap();
       toast.success(`"${title}" ${language === 'vi' ? 'đã được xóa khỏi danh sách!' : 'removed from list!'}`);
-    } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || `Failed to remove "${title}"`);
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || (err as Error).message || `Failed to remove "${title}"`);
     } finally {
       setActionId(null);
     }

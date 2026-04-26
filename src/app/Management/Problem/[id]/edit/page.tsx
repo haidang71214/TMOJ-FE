@@ -25,6 +25,7 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function GlobalProblemEditPage({
   params,
@@ -110,9 +111,10 @@ export default function GlobalProblemEditPage({
     console.log(a);
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
       // router.back();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Update problem failed:", error);
-      addToast({ title: "Update Failed", description: error?.data?.message || "Failed to update problem", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({ title: "Update Failed", description: err?.data?.data?.message || "Failed to update problem", color: "danger" });
     }
   };
 

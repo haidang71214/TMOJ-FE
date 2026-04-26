@@ -197,8 +197,9 @@ export default function RemixProblemForm({ originId, onCancel }: RemixProblemFor
       if (zipRef.current) zipRef.current.value = "";
       addToast({ title: "Success", description: "Testcases uploaded successfully!", color: "success" });
       return true;
-    } catch (error: any) {
-      addToast({ title: "Upload Failed", description: error?.data?.message || "Check your zip file format.", color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: "Upload Failed", description: err?.data?.data?.message || "Check your zip file format.", color: "danger" });
       return false;
     }
   };

@@ -6,7 +6,7 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
-import { SubjectResponseForm } from "@/types";
+import { SubjectResponseForm, ErrorForm } from "@/types";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -41,8 +41,8 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
       });
       closeModal();
     } catch (error) {
-      console.error("Failed to update subject:", error);
-      toast.error(t('common.error') || (language === 'vi' ? 'Cập nhật thất bại' : 'Failed to update subject.'));
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || (t('common.error') || (language === 'vi' ? 'Cập nhật thất bại' : 'Failed to update subject.')));
     }
   };
 

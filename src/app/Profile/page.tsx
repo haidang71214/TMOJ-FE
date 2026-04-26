@@ -61,6 +61,7 @@ import {
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
 import { toast } from "sonner";
+import { ErrorForm } from "@/types";
 
 // --- INTERFACES ---
 interface DifficultyStat {
@@ -178,7 +179,8 @@ export default function ProfilePage() {
       await updateAvatar(formData).unwrap();
       toast.success("Avatar updated successfully");
     } catch (err) {
-      toast.error("Failed to update avatar");
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to update avatar");
     }
   };
 
@@ -187,7 +189,8 @@ export default function ProfilePage() {
       await deleteAvatar().unwrap();
       toast.success("Avatar removed successfully");
     } catch (err) {
-      toast.error("Failed to remove avatar");
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to remove avatar");
     }
   };
 

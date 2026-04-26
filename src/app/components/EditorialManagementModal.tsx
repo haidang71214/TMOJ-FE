@@ -20,6 +20,7 @@ import {
   useUpdateEditorialMutation,
   useDeleteEditorialMutation
 } from "@/store/queries/ProblemEditorial";
+import { ErrorForm } from "@/types";
 
 interface EditorialManagementModalProps {
   isOpen: boolean;
@@ -82,8 +83,9 @@ export default function EditorialManagementModal({
         addToast({ title: t('common.success') || "Success", description: t('problem_management.editorial_save') || "Editorial created successfully", color: "success" });
       }
       onOpenChange(false);
-    } catch (error: any) {
-      const msg = error?.data?.message || "Failed to save editorial";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || t('problem_management.editorial_save_failed') || "Failed to save editorial";
       addToast({ title: t('common.error') || "Error", description: msg, color: "danger" });
     }
   };
@@ -97,8 +99,9 @@ export default function EditorialManagementModal({
       await deleteEditorial(existingEditorial.id).unwrap();
       addToast({ title: t('common.success') || "Success", description: t('problem_management.editorial_delete') || "Editorial deleted successfully", color: "success" });
       onOpenChange(false);
-    } catch (error: any) {
-      const msg = error?.data?.message || "Failed to delete editorial";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || t('problem_management.editorial_delete_failed') || "Failed to delete editorial";
       addToast({ title: t('common.error') || "Error", description: msg, color: "danger" });
     }
   };

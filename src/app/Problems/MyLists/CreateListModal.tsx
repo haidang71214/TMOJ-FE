@@ -14,7 +14,7 @@ import {
 } from "@heroui/react";
 import { toast } from "sonner";
 import { useCreateCollectionMutation, useUpdateCollectionMutation } from "@/store/queries/collections";
-import { CollectionItem } from "@/types";
+import { CollectionItem, ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -75,8 +75,9 @@ export default function CreateListModal({
       
       onClose();
       if (onParentClose) onParentClose();
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Something went wrong.");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Something went wrong.");
     }
   };
 

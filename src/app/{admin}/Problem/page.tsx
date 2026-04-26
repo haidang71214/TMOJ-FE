@@ -32,7 +32,6 @@ import {
 import {
   Plus,
   Pencil,
-  Trash2,
   Eye,
   Clock,
   Database,
@@ -58,6 +57,7 @@ import CreateProblem from "./CreateProblem";
 import EditProblem from "./EditProblem";
 import AttachTagsModal from "@/app/components/AttachTagsModal";
 import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
+import EditorialManagementModal from "@/app/components/EditorialManagementModal";
 import RemixProblemForm from "@/app/Problems/components/RemixProblemForm";
 import ProblemTemplatePage from "@/app/Management/Problem/[id]/Template/page";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
@@ -108,6 +108,14 @@ export default function ProblemManagementPage() {
     archiveModal.onOpen();
   };
 
+  const editorialModal = useDisclosure();
+  const [selectedProblemForEditorial, setSelectedProblemForEditorial] = useState<Problem | null>(null);
+
+  const handleOpenEditorial = (problem: Problem) => {
+    setSelectedProblemForEditorial(problem);
+    editorialModal.onOpen();
+  };
+
   const filteredProblems = problems.filter(p => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.slug.toLowerCase().includes(searchQuery.toLowerCase());
@@ -153,6 +161,327 @@ export default function ProblemManagementPage() {
     await refetch();
     setIsLoading(false);
   };
+
+  // Render body cho Pending tab
+  const renderPendingBody = () => {
+    if (isLoading || isQueryLoading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <div className="space-y-4 py-6">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full rounded-lg" />
+              ))}
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (pendingProblems.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center py-24">
+            <div className="flex flex-col items-center gap-6 opacity-0 animate-fade-in-up"  style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+              <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <AlertTriangle size={32} className="text-amber-500/50" />
+              </div>
+              <div className="text-center max-w-xs">
+                <p className="text-lg font-black uppercase tracking-tight text-white/80">{language === 'vi' ? "Hộp thư trống" : "Queue is Empty"}</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/20 mt-2 leading-relaxed">{language === 'vi' ? "Tất cả các câu hỏi đã được duyệt hoặc chưa có bài tập nào mới." : "All submissions have been reviewed. No new problems in the queue."}</p>
+              </div>
+              <button
+                onClick={() => setIsCreatingProblem(true)}
+                className="mt-4 px-6 py-2.5 rounded-xl text-xs font-black text-white uppercase tracking-widest transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)" }}
+              >
+                {language === 'vi' ? "Tạo bài tập" : "Create Problem"}
+              </button>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return pendingProblems.map((prob, index) => (
+      <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
+        <TableCell>
+          <div className="font-bold text-white tracking-tight leading-tight">{prob.title}</div>
+          <div className="text-[10px] text-white/30 font-mono mt-1 uppercase tracking-tight">{prob.slug}</div>
+        </TableCell>
+        <TableCell>
+          <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-secondary/10 text-secondary border border-secondary/20 italic">
+            ALGORITHM
+          </div>
+        </TableCell>
+        <TableCell>
+          <div
+            className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border"
+            style={difficultyStyle(prob.difficulty)}
+          >
+            {prob.difficulty}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {prob.tags && prob.tags.length > 0 ? (
+              prob.tags.map((tag: any) => (
+                <span key={tag.id || tag} className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 text-white/40 rounded-md tracking-tighter border border-white/5">
+                  {tag.name || tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-[8px] text-white/20 italic">—</span>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <Tooltip content="Approve Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleApprove(prob)}
+                className="bg-emerald-400/10 text-emerald-400 min-w-8 h-8 rounded-lg"
+              >
+                <CheckCircle2 size={15} />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Manage Tags" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenTags(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Tags size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Archive to Bookmark" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenArchive(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Archive size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Remix Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setRemixProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Flame size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Problem Template" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setTemplateProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Code size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Editorial Management" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenEditorial(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <BookOpen size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Edit Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setEditProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Pencil size={15} />
+              </Button>
+            </Tooltip>
+          </div>
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
+  // Render body cho Approved tab
+  const renderApprovedBody = () => {
+    if (approvedProblems.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={8} className="text-center py-20 text-white/20 font-bold uppercase tracking-widest text-[10px]">
+            No approved or public problems yet
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return approvedProblems.map((prob, index) => (
+      <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
+        <TableCell>
+          <div className="font-bold text-white tracking-tight leading-tight">{prob.title}</div>
+          <div className="text-[10px] text-white/30 font-mono mt-1 uppercase tracking-tight">{prob.slug}</div>
+        </TableCell>
+        <TableCell>
+          <Chip variant="flat" color="secondary" size="sm">
+            ALGORITHM
+          </Chip>
+        </TableCell>
+        <TableCell>
+          <div
+            className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border"
+            style={difficultyStyle(prob.difficulty)}
+          >
+            {prob.difficulty}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-wrap gap-1 max-w-[150px]">
+            {prob.tags && prob.tags.length > 0 ? (
+              prob.tags.map((tag: any) => (
+                <span key={tag.id || tag} className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 text-white/40 rounded-md tracking-tighter border border-white/5">
+                  {tag.name || tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-[8px] text-white/20 italic">—</span>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/50">
+              <Clock size={11} className="text-white/30" />
+              {(prob.timeLimitMs / 1000).toFixed(1)}s
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/50">
+              <Database size={11} className="text-white/30" />
+              {(prob.memoryLimitKb / 1024).toFixed(0)}MB
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="text-xs font-black text-white/80">0</div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            <div className="text-xs font-black" style={{ color: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }}>
+              {prob.acceptancePercent?.toFixed(1) || "—"}%
+            </div>
+            <div className="w-12 h-1 rounded-full bg-white/5 overflow-hidden">
+               <div
+                 className="h-full rounded-full"
+                 style={{
+                   width: `${prob.acceptancePercent || 0}%`,
+                   background: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B"
+                 }}
+               />
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>
+          <Switch isSelected={prob.statusCode === "published"} size="sm" />
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            <Tooltip content="Manage Tags" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenTags(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Tags size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Archive to Bookmark" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenArchive(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Archive size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Remix Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setRemixProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Flame size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Problem Template" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setTemplateProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Code size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Edit Detail" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setEditProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Pencil size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Editorial Management" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenEditorial(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <BookOpen size={15} />
+              </Button>
+            </Tooltip>
+          </div>
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
 
   const ActionButtons = ({ prob, isPending }: { prob: Problem; isPending: boolean }) => (
     <div className="flex items-center gap-1">
@@ -276,6 +605,11 @@ export default function ProblemManagementPage() {
               }}
             >
               <TableHeader>
+                <TableColumn className="w-[40%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
+                <TableColumn>Type</TableColumn>
+                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
                 <TableColumn className="w-[40%]">TITLE & SLUG</TableColumn>
                 <TableColumn>TYPE</TableColumn>
                 <TableColumn>DIFFICULTY</TableColumn>
@@ -318,6 +652,15 @@ export default function ProblemManagementPage() {
               }}
             >
               <TableHeader>
+                <TableColumn className="w-[30%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
+                <TableColumn>Type</TableColumn>
+                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
+                <TableColumn>Time / Memory</TableColumn>
+                <TableColumn>Stats</TableColumn>
+                <TableColumn>Accept %</TableColumn>
+                <TableColumn>Status</TableColumn>
+                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
                 <TableColumn className="w-[30%]">PROBLEM</TableColumn>
                 <TableColumn>LEVEL</TableColumn>
                 <TableColumn>LIMITS</TableColumn>
@@ -407,6 +750,26 @@ export default function ProblemManagementPage() {
         </ModalContent>
       </Modal>
 
+      <AttachTagsModal
+        isOpen={tagsModal.isOpen}
+        onOpenChange={tagsModal.onOpenChange}
+        // @ts-ignore - Map Admin Problem type to DisplayProblem
+        problem={selectedProblemForTags}
+      />
+
+      <ArchiveProblemModal
+        isOpen={archiveModal.isOpen}
+        onOpenChange={archiveModal.onOpenChange}
+        // @ts-ignore
+        problem={selectedProblemForArchive}
+      />
+
+      <EditorialManagementModal
+        isOpen={editorialModal.isOpen}
+        onOpenChange={editorialModal.onOpenChange}
+        problemId={selectedProblemForEditorial?.id}
+        problemTitle={selectedProblemForEditorial?.title}
+      />
       <AttachTagsModal isOpen={tagsModal.isOpen} onOpenChange={tagsModal.onOpenChange} problem={selectedProblemForTags as any} />
     </div>
   );

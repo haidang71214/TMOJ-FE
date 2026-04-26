@@ -20,6 +20,7 @@ import {
   useAddContestToCollectionMutation
 } from "@/store/queries/collections";
 import CreateListModal from "../MyLists/CreateListModal";
+import { ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -61,8 +62,9 @@ export default function AddToCollectionModal({
 
       toast.success(`Added ${problemId ? "problem" : "contest"} to "${collectionName}"`);
       onOpenChange(); // Close modal on success
-    } catch (err: any) {
-      toast.error(err?.data?.message || `Failed to add to "${collectionName}"`);
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || `Failed to add to "${collectionName}"`);
     }
   };
 

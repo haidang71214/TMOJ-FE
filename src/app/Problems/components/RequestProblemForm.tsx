@@ -30,6 +30,7 @@ import { useGetTagsQuery } from "@/store/queries/Tags";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function RequestProblemForm() {
   const router = useRouter();
@@ -120,9 +121,10 @@ export default function RequestProblemForm() {
       }
 
       setStep(1);
-    } catch (error: any) {
-      console.error("Request problem failed:", error);
-      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Request Failed"), description: error?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể gửi yêu cầu tạo bài tập" : "Failed to request problem draft"), color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      console.error("Request problem failed:", err);
+      addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Request Failed"), description: err?.data?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể gửi yêu cầu tạo bài tập" : "Failed to request problem draft"), color: "danger" });
     }
   };
 
@@ -152,9 +154,10 @@ export default function RequestProblemForm() {
       if (zipRef.current) zipRef.current.value = "";
       addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.upload_success') || (language === 'vi' ? "Tải testcase thành công!" : "Testcases uploaded successfully!"), color: "success" });
       return true;
-    } catch (error: any) {
-      console.error("Upload testcase failed:", error);
-      addToast({ title: t('problem_create.upload_failed') || (language === 'vi' ? "Tải lên thất bại" : "Upload Failed"), description: error?.data?.message || t('problem_create.check_zip_format') || (language === 'vi' ? "Kiểm tra lại định dạng file zip." : "Check your zip file format."), color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      console.error("Upload testcase failed:", err);
+      addToast({ title: t('problem_create.upload_failed') || (language === 'vi' ? "Tải lên thất bại" : "Upload Failed"), description: err?.data?.data?.message || t('problem_create.check_zip_format') || (language === 'vi' ? "Kiểm tra lại định dạng file zip." : "Check your zip file format."), color: "danger" });
       return false;
     }
   };

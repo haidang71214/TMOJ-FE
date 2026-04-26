@@ -12,6 +12,7 @@ import { Copy, Plus, Ticket, ArrowRight, Loader2 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
 import { useJoinClassMutation } from "@/store/queries/Class";
+import { ErrorForm } from "@/types";
 
 interface JoinClassModalProps {
   isOpen: boolean;
@@ -31,8 +32,9 @@ export default function JoinClassModal({ isOpen, onOpenChange }: JoinClassModalP
       toast.success(t("class_management.join_class_success"));
       setInviteCode("");
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.data?.message || t("class_management.join_class_fail"));
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || t("class_management.join_class_fail"));
     }
   };
 

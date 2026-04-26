@@ -7,6 +7,7 @@ import { RootState } from "@/store";
 import { useState } from "react";
 import { useUpdateMeMutation } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
+import { ErrorForm } from "@/types";
 
 export default function SettingsPage() {
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -40,8 +41,9 @@ export default function SettingsPage() {
       }).unwrap();
       toast.success(`${key} updated successfully!`);
       setEditingField(null);
-    } catch (error: any) {
-      toast.error(error?.data?.message || `Failed to update ${key}`);
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || `Failed to update ${key}`);
     }
   };
 

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useUpdateMeMutation, useUpdateAvatarMutation, useDeleteAvatarMutation } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
+import { ErrorForm } from "@/types";
 
 export default function AccountSettingsPage() {
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -38,8 +39,9 @@ export default function AccountSettingsPage() {
       toast.success("Avatar updated successfully!");
       set_selected_file(null);
       set_avatar_preview(null); // Clear local preview to show fresh URL from store
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update avatar.");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Failed to update avatar.");
     }
   };
 
@@ -48,8 +50,9 @@ export default function AccountSettingsPage() {
       await deleteAvatar().unwrap();
       toast.success("Avatar removed.");
       set_avatar_preview(null);
-    } catch (error: any) {
-      toast.error("Failed to remove avatar.");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Failed to remove avatar.");
     }
   };
 
@@ -70,8 +73,9 @@ export default function AccountSettingsPage() {
       setNewPassword("");
       setConfirmPassword("");
       setCurrentPassword("");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update password.");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Failed to update password.");
     }
   };
 

@@ -416,7 +416,7 @@ export default function CoinManagerPage() {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onClick={() => setEditing(null)}>
+            <Button variant="light" onPress={() => setEditing(null)}>
               Cancel
             </Button>
             <Button
@@ -451,7 +451,7 @@ export default function CoinManagerPage() {
             </p>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onClick={() => setDeleteModalOpen(false)}>
+            <Button variant="light" onPress={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
             <Button

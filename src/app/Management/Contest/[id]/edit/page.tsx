@@ -33,7 +33,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useGetContestDetailQuery, useUpdateContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
-import { CreateContestRequest } from "@/types";
+import { CreateContestRequest, ErrorForm } from "@/types";
 
 export default function EditContestPage({
   params,
@@ -99,9 +99,9 @@ export default function EditContestPage({
       await updateContest({ id, body: payload }).unwrap();
       toast.success("Cập nhật Contest thành công!");
       router.push("/Management/Contest");
-    } catch (error: any) {
-      console.error("Update failed:", error);
-      toast.error(error?.data?.message || "Không thể cập nhật Contest");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Không thể cập nhật Contest");
     }
   };
 

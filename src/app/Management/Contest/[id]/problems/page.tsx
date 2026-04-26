@@ -30,7 +30,7 @@ import {
   useGetContestDetailQuery
 } from "@/store/queries/Contest";
 import { toast } from "sonner";
-import { Problem, ContestProblemDto } from "@/types";
+import { Problem, ContestProblemDto, ErrorForm } from "@/types";
 
 export default function ContestProblemsPage() {
   const router = useRouter();
@@ -107,9 +107,9 @@ export default function ContestProblemsPage() {
       );
       toast.success(`Đã thêm ${results.length} bài tập vào contest!`);
       refetch();
-    } catch (error: any) {
-      console.error("Failed to add problems:", error);
-      toast.error(error?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
     }
   };
 
@@ -121,9 +121,9 @@ export default function ContestProblemsPage() {
 
       toast.success("Đã xóa bài tập khỏi contest!");
       refetch();
-    } catch (error: any) {
-      console.error("Failed to remove problem:", error);
-      toast.error(error?.data?.message || "Không thể xóa bài tập");
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || "Không thể xóa bài tập");
     }
   };
 

@@ -11,7 +11,7 @@ import {
 import { useLockUserMutation, useGetUserRoleQuery, useGetUserListQuery } from "@/store/queries/user";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useHideCommentMutation, useDeleteDiscussionMutation } from "@/store/queries/discussion";
-import { ReportItem, UserRole, Users } from "@/types";
+import { ReportItem, UserRole, Users, ErrorForm } from "@/types";
 import { useRouter } from "next/navigation";
 import { PAGE_URL } from "@/constants";
 
@@ -171,9 +171,9 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
           closeModal();
         }
         
-      } catch (error: any) {
-        console.log(error);
-        toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi hệ thống khi xử lý");
+      } catch (error) {
+        const err = error as ErrorForm;
+        toast.error(err?.data?.data?.message || "Đã xảy ra lỗi hệ thống khi xử lý");
       }
   };
 

@@ -8,6 +8,7 @@ import { useCreateSubjectMutation } from "@/store/queries/Subject";
 import { useModal } from "@/Provider/ModalProvider";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function CreateSubjectModal() {
   const { t, language } = useTranslation();
@@ -36,8 +37,8 @@ export default function CreateSubjectModal() {
       });
       closeModal();
     } catch (error) {
-      console.error("Failed to create subject:", error);
-      toast.error(t('common.error') || (language === 'vi' ? 'Có lỗi xảy ra' : 'Failed to create subject.'));
+      const err = error as ErrorForm;
+      toast.error(err?.data?.data?.message || (t('common.error') || (language === 'vi' ? 'Có lỗi xảy ra' : 'Failed to create subject.')));
     }
   };
 

@@ -16,7 +16,7 @@ import {
 import { useSubmitContestMutation } from "@/store/queries/Contest";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
-import { VerdictCode } from "@/types";
+import { VerdictCode, ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { addToast } from "@heroui/toast";
 
@@ -327,8 +327,9 @@ export default function SubmitProblemPage() {
                       setSubmissionId(newSubmissionId);
                       toast.success("Code submitted successfully! Waiting for results...");
                     }
-                  } catch (error: any) {
-                    toast.error(error?.data?.message || "Submission failed.");
+                  } catch (error) {
+                    const apiError = error as ErrorForm;
+                    toast.error(apiError?.data?.data?.message || "Submission failed.");
                   }
                 }}
               >

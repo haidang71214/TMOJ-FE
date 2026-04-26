@@ -38,6 +38,7 @@ import {
   BookOpen,
   Code,
   Flame,
+  Eye,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
@@ -92,10 +93,9 @@ export default function GlobalProblemListPage() {
       await updateDifficulty({ problemId, difficulty }).unwrap();
       addToast({ title: t('common.success') || "Success", description: "Difficulty updated successfully", color: "success" });
       refetch();
-    } catch (error: any) {
-      console.error(error);
-      const msg = error?.data?.message || "Failed to update difficulty";
-      addToast({ title: "Update Failed", description: msg, color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: "Update Failed", description: err?.data?.data?.message || "Failed to update difficulty", color: "danger" });
     }
   };
 
@@ -115,8 +115,8 @@ export default function GlobalProblemListPage() {
       window.URL.revokeObjectURL(url);
       addToast({ title: t('common.success') || "Success", description: "Statement downloaded successfully", color: "success" });
     } catch (error) {
-      console.error("Download statement error:", error);
-      addToast({ title: "Download Failed", description: "Could not download statement", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({ title: "Download Failed", description: err?.data?.data?.message || "Could not download statement", color: "danger" });
     }
   };
 
@@ -401,7 +401,7 @@ export default function GlobalProblemListPage() {
             {items.map((p, index) => (
               <TableRow
                 key={p.id}
-                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active-press animate-fade-in-right cursor-pointer"
+                className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors animate-fade-in-right"
                 style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}
               >
                 <TableCell>
@@ -490,12 +490,14 @@ export default function GlobalProblemListPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
+                
+
                     <Tooltip content={t('problem_management.attach_tags') || "Manage Tags"} className="font-bold text-[10px]">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); handleOpenTags(p); }}
+                        onPress={() => handleOpenTags(p)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Tags size={16} />
@@ -507,7 +509,7 @@ export default function GlobalProblemListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); handleOpenEditorial(p); }}
+                        onPress={() => handleOpenEditorial(p)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-amber-500 transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <BookOpen size={16} />
@@ -519,7 +521,7 @@ export default function GlobalProblemListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); handleOpenArchive(p); }}
+                        onPress={() => handleOpenArchive(p)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#FFB800] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Archive size={16} />
@@ -531,7 +533,7 @@ export default function GlobalProblemListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/edit`); }}
+                        onPress={() => router.push(`/Management/Problem/${p.id}/edit`)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Edit size={16} />
@@ -543,7 +545,7 @@ export default function GlobalProblemListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/remix`); }}
+                        onPress={() => router.push(`/Management/Problem/${p.id}/remix`)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Flame size={16} />
@@ -555,7 +557,7 @@ export default function GlobalProblemListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/Template`); }}
+                        onPress={() => router.push(`/Management/Problem/${p.id}/Template`)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9 active-bump"
                       >
                         <Code size={16} />

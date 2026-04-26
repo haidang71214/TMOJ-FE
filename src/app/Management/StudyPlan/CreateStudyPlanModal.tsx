@@ -16,6 +16,7 @@ import {
 import { Plus, Type, AlignLeft, DollarSign } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCreateStudyPlanMutation } from "@/store/queries/StudyPlan";
+import { ErrorForm } from "@/types";
 
 interface CreateStudyPlanModalProps {
   isOpen: boolean;
@@ -71,10 +72,11 @@ export default function CreateStudyPlanModal({
 
       onSuccess?.();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as ErrorForm;
       addToast({
         title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"),
-        description: error?.data?.message || (t('studyPlan.createFail') || (language === 'vi' ? "Không thể tạo Study Plan" : "Failed to create Study Plan")),
+        description: err?.data?.data?.message || (t('studyPlan.createFail') || (language === 'vi' ? "Không thể tạo Study Plan" : "Failed to create Study Plan")),
         color: "danger",
       });
     }

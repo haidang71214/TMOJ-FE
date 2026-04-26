@@ -17,11 +17,16 @@ import { Tags } from "lucide-react";
 import { toast } from "sonner";
 import { useGetTagsQuery, useUpdateProblemTagsMutation } from "@/store/queries/Tags";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: () => void;
-  problem: { id: string; title: string; tags: string[] } | null;
+  problem: { 
+    id: string; 
+    title: string; 
+    tags?: string[] | { id: string; name: string }[] 
+  } | null;
 }
 
 export default function AttachTagsModal({
@@ -40,10 +45,24 @@ export default function AttachTagsModal({
 
   useEffect(() => {
     if (isOpen && problem && allTags) {
-      // Map existing tags to their IDs based on the tag name
+      // Safely handle problem.tags which could be undefined, string[], or object[]
+      const problemTags = problem.tags || [];
+      
+      // Map existing tags to their IDs based on the tag name or ID match
       const existingTagIds = allTags
-        .filter((tag) => problem.tags.includes(tag.name || ""))
+        .filter((tag) => {
+          if (!tag.name) return false;
+          
+          return problemTags.some((pt: any) => {
+            if (typeof pt === "string") {
+              return pt === tag.name;
+            }
+            // Match by ID or name if it's an object
+            return pt.id === tag.id || pt.name === tag.name;
+          });
+        })
         .map((tag) => tag.id);
+        
       setSelectedTags(existingTagIds);
     }
   }, [isOpen, problem, allTags]);
@@ -65,11 +84,15 @@ export default function AttachTagsModal({
     console.log("✅ Success:", result);
     onClose();
     addToast({title:"success",color:"success"})
-  } catch (err: any) {
-    console.error("❌ Full error:", err);
-    console.error("Error data:", err?.data);
-    console.error("Error status:", err?.status);
-  }
+    } catch (err) {
+      console.error("❌ Full error:", err);
+      const apiError = err as ErrorForm;
+      addToast({
+        title: "Error",
+        description: apiError?.data?.data?.message || "Failed to update tags",
+        color: "danger"
+      });
+    }
 };
 
   if (!problem) return null;

@@ -9,6 +9,7 @@ import {
   useDeleteInviteCodeMutation 
 } from "@/store/queries/InviteCode";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface InviteCodeCardProps {
   classSemesterId: string;
@@ -71,8 +72,9 @@ export default function InviteCodeCard({ classSemesterId, classCode, semesterCod
     try {
       await createCode({ classSemesterId, data: { minutesValid: Number(minutesValid) || 1440 } }).unwrap();
       addToast({ title: t('class_semester.invite_code_created') || (language === 'vi' ? 'Tạo mã mời thành công' : 'Invite code created successfully'), color: "success" });
-    } catch (err: any) {
-      addToast({ title: t('class_semester.invite_code_failed') || (language === 'vi' ? 'Tạo mã mời thất bại' : 'Failed to create invite code'), description: err?.data?.message || "", color: "danger" });
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      addToast({ title: t('class_semester.invite_code_failed') || (language === 'vi' ? 'Tạo mã mời thất bại' : 'Failed to create invite code'), description: apiError?.data?.data?.message || "", color: "danger" });
       console.error(err);
     }
   };
@@ -81,8 +83,9 @@ export default function InviteCodeCard({ classSemesterId, classCode, semesterCod
     try {
       await deleteCode(classSemesterId).unwrap();
       addToast({ title: t('class_semester.invite_code_deleted') || (language === 'vi' ? 'Đã xóa mã mời' : 'Invite code deleted'), color: "success" });
-    } catch (err: any) {
-      addToast({ title: t('class_semester.invite_code_delete_failed') || (language === 'vi' ? 'Xóa mã mời thất bại' : 'Failed to delete invite code'), description: err?.data?.message || "", color: "danger" });
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      addToast({ title: t('class_semester.invite_code_delete_failed') || (language === 'vi' ? 'Xóa mã mời thất bại' : 'Failed to delete invite code'), description: apiError?.data?.data?.message || "", color: "danger" });
       console.error(err);
     }
   };

@@ -12,6 +12,7 @@ import {
 import { Flag } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateReportMutation } from "@/store/queries/reports";
+import { ErrorForm } from "@/types";
 
 interface Props {
   isOpen: boolean;
@@ -40,8 +41,9 @@ export const ReportModal = ({
       toast.success(res?.message || "Đã gửi báo cáo thành công");
       setReason("");
       onClose();
-    } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || "Đã xảy ra lỗi khi gửi báo cáo");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Đã xảy ra lỗi khi gửi báo cáo");
     }
   };
 

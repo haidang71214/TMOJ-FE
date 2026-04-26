@@ -25,6 +25,7 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function AdminProblemEditPage({
   params,
@@ -108,9 +109,9 @@ export default function AdminProblemEditPage({
       await updateProblemContent({ problemId: id, body: formData }).unwrap();  
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
       router.back();
-    } catch (error: any) {
-      console.error("Update problem failed:", error);
-      addToast({ title: "Update Failed", description: error?.data?.message || "Failed to update problem", color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: "Update Failed", description: err?.data?.data?.message || "Failed to update problem", color: "danger" });
     }
   };
 

@@ -17,11 +17,12 @@ import {
   Chip,
   Autocomplete,
   AutocompleteItem,
+  addToast,
 } from "@heroui/react";
 
 import { Save, ArrowLeft, ArrowRight, Check, UploadCloud } from "lucide-react";
 
-import { CreateProblemDraftRequest } from "@/types";
+import { CreateProblemDraftRequest, ErrorForm } from "@/types";
 import {
   useCreateProblemDraftMutation,
   useCreateTestCaseMutation,
@@ -124,8 +125,8 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
 
     setStep(1);
   } catch (error) {
-    console.error("Create problem failed:", error);
-    alert("Create problem failed");
+    const err = error as ErrorForm;
+    addToast({ title: "Creation Failed", description: err?.data?.data?.message || "Failed to create problem", color: "danger" });
   }
 };
 
@@ -174,8 +175,8 @@ const handleFinish = async () => {
     // Thêm thông báo thành công nếu muốn
     return true; 
   } catch (error) {
-    console.error("Upload testcase failed:", error);
-    alert("Upload testcase failed");
+    const err = error as ErrorForm;
+    addToast({ title: "Upload Failed", description: err?.data?.data?.message || "Failed to upload testcases", color: "danger" });
     return false;
   }
 };

@@ -46,7 +46,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
 import { toast } from "sonner";
-import { CollectionItem } from "@/types";
+import { CollectionItem, ErrorForm } from "@/types";
 
 export default function MyListsPage() {
   const router = useRouter();
@@ -259,8 +259,9 @@ export default function MyListsPage() {
         toast.success("Collection deleted successfully");
         deleteModal.onClose();
         setSelectedItem(null);
-      } catch (err: any) {
-        toast.error("Failed to delete collection");
+      } catch (err) {
+        const apiError = err as ErrorForm;
+        toast.error(apiError?.data?.data?.message || "Failed to delete collection");
       }
     }
   };

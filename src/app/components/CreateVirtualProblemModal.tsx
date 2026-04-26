@@ -14,6 +14,7 @@ import {
 import { Copy, Globe, Lock, ShieldCheck } from "lucide-react";
 import { useCreateVirtualProblemMutation } from "@/store/queries/problem";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface CreateVirtualProblemModalProps {
   isOpen: boolean;
@@ -59,11 +60,12 @@ export default function CreateVirtualProblemModal({
         color: "success"
       });
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Mutation Error:", error);
+      const apiError = error as ErrorForm;
       addToast({
         title: "Error",
-        description: error?.data?.message || "Failed to create virtual problem",
+        description: apiError?.data?.data?.message || "Failed to create virtual problem",
         color: "danger"
       });
     }

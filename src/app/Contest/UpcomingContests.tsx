@@ -42,7 +42,7 @@ import {
 import { useJoinTeamByCodeMutation } from "@/store/queries/Team";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
 import { toast } from "sonner";
-import { ContestDto } from "@/types";
+import { ContestDto, ErrorForm } from "@/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -189,8 +189,9 @@ export default function UpcomingContests() {
         toast.success("Joined successfully!");
         setInviteCode("");
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Invalid invite code or failed to join.");
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Invalid invite code or failed to join.");
     }
   };
 

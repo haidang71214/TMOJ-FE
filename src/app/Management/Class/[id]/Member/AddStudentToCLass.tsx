@@ -97,14 +97,8 @@ export default function AddStudentModal({ semesterId }: Props) {
       toast.success("Student added successfully");
       closeModal();
     } catch (error) {
-      console.error("error", error);
       const err = error as ErrorForm;
-      
-      if (err?.data?.data?.message) {
-        toast.error(err.data.data.message);
-      } else {
-        toast.error("Failed to add student");
-      }
+      toast.error(err?.data?.data?.message || "Failed to add student");
     }
   };
 

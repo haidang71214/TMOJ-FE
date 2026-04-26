@@ -18,6 +18,7 @@ import {
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { DiscussionCommentItem, DiscussionItem } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface DiscussionProps {
   problemId: string;
@@ -123,8 +124,9 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       }
       
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
-    } catch (error: any) {
-      toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
     }
   };
 
@@ -141,8 +143,9 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       }
       
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
-    } catch (error: any) {
-      toast.error("Lỗi Vote: " + JSON.stringify(error?.data || error?.message || error));
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
     }
   };
 
@@ -176,8 +179,9 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       }
       setComments((prev) => filterDeletedComment(prev, id));
       toast.success("Đã xóa thành công!");
-    } catch (error: any) {
-      toast.error("Lỗi xóa: " + JSON.stringify(error?.data || error?.message || error));
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error("Lỗi xóa: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
     }
   };
 

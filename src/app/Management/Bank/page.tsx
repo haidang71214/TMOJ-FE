@@ -88,8 +88,9 @@ export default function BankProblemListPage() {
       await updateDifficulty({ problemId, difficulty }).unwrap();
       addToast({ title: t('common.success') || "Success", description: "Difficulty updated successfully", color: "success" });
       refetch();
-    } catch (error: any) {
-      const msg = error?.data?.message || "Failed to update difficulty";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || "Failed to update difficulty";
       addToast({ title: "Update Failed", description: msg, color: "danger" });
     }
   };

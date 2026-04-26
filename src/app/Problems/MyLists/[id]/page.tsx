@@ -48,6 +48,7 @@ import { useGetCollectionDetailQuery, useDeleteCollectionItemMutation, useUpdate
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useGetFavoriteProblemsQuery } from "@/store/queries/favorites";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 
 
@@ -116,8 +117,9 @@ export default function MyListDetailPage() {
       };
       console.log("Reorder Payload:", payload);
       await reorderItems({ id: currentId, body: payload }).unwrap();
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to sync order");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to sync order");
     }
   };
   const activeMeta = isFavoritePage ? null : getMeta(rawDetail);
@@ -202,8 +204,9 @@ export default function MyListDetailPage() {
       toast.success("Problem removed from list");
       removeModal.onClose();
       setProblemToRemoveId(null);
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to remove problem");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to remove problem");
     }
   };
 
@@ -212,8 +215,9 @@ export default function MyListDetailPage() {
       await deleteCollection(currentId).unwrap();
       toast.success("Collection deleted successfully");
       router.push("/Problems/MyLists");
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to delete collection");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to delete collection");
     }
   };
 
@@ -229,8 +233,9 @@ export default function MyListDetailPage() {
       }).unwrap();
       toast.success("Collection updated successfully!");
       editModal.onClose();
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to update collection");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || "Failed to update collection");
     }
   };
 
@@ -273,8 +278,9 @@ export default function MyListDetailPage() {
         }
         document.body.removeChild(textArea);
       }
-    } catch (err: any) {
-      toast.error(language === 'vi' ? "Không thể chia sẻ danh sách" : "Failed to share list");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      toast.error(apiError?.data?.data?.message || (language === 'vi' ? "Không thể chia sẻ danh sách" : "Failed to share list"));
     }
   };
 

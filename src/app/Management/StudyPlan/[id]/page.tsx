@@ -21,6 +21,7 @@ import {
   useAddProblemToStudyPlanMutation,
 } from "@/store/queries/StudyPlan";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function StudyPlanDetailPage({
   params,
@@ -64,10 +65,11 @@ export default function StudyPlanDetailPage({
       setProblemIdInput("");
       onClose();
       refetch();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as ErrorForm;
       addToast({
         title: language === 'vi' ? "Lỗi" : "Error",
-        description: error?.data?.message || (language === 'vi' ? "Không thể thêm bài tập" : "Failed to add problem"),
+        description: err?.data?.data?.message || (language === 'vi' ? "Không thể thêm bài tập" : "Failed to add problem"),
         color: "danger",
       });
     }

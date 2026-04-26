@@ -24,6 +24,7 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 interface EditProblemProps {
   problemId: string;
@@ -106,9 +107,13 @@ export default function EditProblem({ problemId, onCancel, onFinish }: EditProbl
       await updateProblemContent({ problemId, body: formData }).unwrap();  
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
       onFinish();
-    } catch (error: any) {
-      console.error("Update problem failed:", error);
-      addToast({ title: "Update Failed", description: error?.data?.message || "Failed to update problem", color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ 
+        title: "Update Failed", 
+        description: err?.data?.data?.message || "Failed to update problem", 
+        color: "danger" 
+      });
     }
   };
 

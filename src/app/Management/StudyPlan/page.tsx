@@ -33,8 +33,9 @@ import { useDisclosure } from "@heroui/react";
 import CreateStudyPlanModal from "./CreateStudyPlanModal";
 
 import { useTranslation } from "@/hooks/useTranslation";
-import {  useGetStudyPlansQuery } from "@/store/queries/StudyPlan";
+import { useGetStudyPlansQuery } from "@/store/queries/StudyPlan";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { ErrorForm } from "@/types";
 
 interface StudyPlan {
   id: string;
@@ -146,7 +147,7 @@ export default function StudyPlanListPage() {
           {t('common.error') || (language === 'vi' ? "Có lỗi xảy ra" : "An error occurred")}
         </div>
         <p className="text-slate-400 mb-6 font-medium">
-          {(error as any)?.data?.message || (t('studyPlan.loadFail') || (language === 'vi' ? "Không thể tải danh sách Study Plan" : "Failed to load Study Plan list"))}
+          {(error as ErrorForm)?.data?.data?.message || (t('studyPlan.loadFail') || (language === 'vi' ? "Không thể tải danh sách Study Plan" : "Failed to load Study Plan list"))}
         </p>
         <Button color="primary" onPress={refetch} className="font-bold">
           {t('common.retry') || (language === 'vi' ? "Thử lại" : "Retry")}

@@ -27,7 +27,7 @@ import {
 } from "@heroui/react";
 
 import { Edit3, UserPlus, Shield, Lock, Unlock, Download, Upload, Search, User, AtSign, Type, Lock as LockIcon, Sparkles } from "lucide-react";
-import { Users as ApiUser } from "@/types";
+import { Users as ApiUser, ErrorForm } from "@/types";
 import { useGetUserListQuery, useDownloadImportUserTemplateMutation, useImportUsersMutation, useLockUserMutation, useUnlockUserMutation, useAssignRoleMutation, useUpdateUserMutation } from "@/store/queries/user";
 import { useModal } from "@/Provider/ModalProvider";
 import CreateUserModal from "./CreateUserModal";
@@ -101,7 +101,8 @@ export default function UserManagerPage() {
       await assignRole({ id: user.userId, data: { roleCode: key.toString() } }).unwrap();
       addToast({ title: `Role changed to ${key} successfully`, color: "success" });
     } catch (error) {
-      addToast({ title: "Failed to change role", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({ title: err?.data?.data?.message ?? "Failed to change role", color: "danger" });
     }
   };
   
@@ -115,8 +116,8 @@ export default function UserManagerPage() {
         addToast({ title: "Account locked successfully", color: "success" });
       }
     } catch (e) {
-      console.error("Lock/Unlock error:", e);
-      addToast({ title: "Failed to update account status", color: "danger" });
+      const err = e as ErrorForm;
+      addToast({ title: err?.data?.data?.message ?? "Failed to update account status", color: "danger" });
     }
   };
 
@@ -132,8 +133,8 @@ export default function UserManagerPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Template download error:", error);
-      addToast({ title: "Failed to download template", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({ title: err?.data?.data?.message ?? "Failed to download template", color: "danger" });
     }
   };
 
@@ -148,9 +149,8 @@ export default function UserManagerPage() {
       const res = await importUsers(formData).unwrap();
       addToast({ title: `Import successful: ${res.data.successCount} succeeded, ${res.data.failedCount} failed`, color: "success" });
     } catch (error) {
-      console.log(error);
-      
-      addToast({ title: "Failed to import users", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({ title: err?.data?.data?.message ?? "Failed to import users", color: "danger" });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -218,8 +218,9 @@ const items = useMemo(() => {
       }).unwrap();
       addToast({ title: "User updated successfully", color: "success" });
       setIsEditModalOpen(false);
-    } catch {
-      addToast({ title: "Failed to update user", color: "danger" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: err?.data?.data?.message ?? "Failed to update user", color: "danger" });
     }
   };
 
@@ -256,7 +257,7 @@ const items = useMemo(() => {
         <div className="flex gap-3">
           <Button
             startContent={<Download size={18} />}
-            onClick={handleDownloadTemplate}
+            onPress={handleDownloadTemplate}
             isLoading={isDownloading}
             className="bg-emerald-500 text-white dark:bg-emerald-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-emerald-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
           >
@@ -273,7 +274,7 @@ const items = useMemo(() => {
             />
             <Button
               startContent={<Upload size={18} />}
-              onClick={() => fileInputRef.current?.click()}
+              onPress={() => fileInputRef.current?.click()}
               isLoading={isImporting}
               className="bg-sky-500 text-white dark:bg-sky-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-sky-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
             >
@@ -283,7 +284,7 @@ const items = useMemo(() => {
 
           <Button
             startContent={<UserPlus size={18} />}
-            onClick={() => openModal({ content: <CreateUserModal /> })}
+            onPress={() => openModal({ content: <CreateUserModal /> })}
             className="bg-indigo-500 text-white dark:bg-indigo-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-indigo-500/20 uppercase text-[10px] tracking-wider transition-transform hover:scale-105 active:scale-95"
           >
             New User

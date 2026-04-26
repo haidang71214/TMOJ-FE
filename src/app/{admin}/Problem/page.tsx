@@ -27,11 +27,11 @@ import {
   DropdownMenu,
   DropdownItem,
   useDisclosure,
+  Tooltip,
 } from "@heroui/react";
 import {
   Plus,
   Pencil,
-  Trash2,
   Eye,
   Clock,
   Database,
@@ -55,6 +55,7 @@ import CreateProblem from "./CreateProblem";
 import EditProblem from "./EditProblem";
 import AttachTagsModal from "@/app/components/AttachTagsModal";
 import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
+import EditorialManagementModal from "@/app/components/EditorialManagementModal";
 import RemixProblemForm from "@/app/Problems/components/RemixProblemForm";
 import ProblemTemplatePage from "@/app/Management/Problem/[id]/Template/page";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
@@ -107,6 +108,14 @@ export default function ProblemManagementPage() {
   const handleOpenArchive = (problem: Problem) => {
     setSelectedProblemForArchive(problem);
     archiveModal.onOpen();
+  };
+
+  const editorialModal = useDisclosure();
+  const [selectedProblemForEditorial, setSelectedProblemForEditorial] = useState<Problem | null>(null);
+
+  const handleOpenEditorial = (problem: Problem) => {
+    setSelectedProblemForEditorial(problem);
+    editorialModal.onOpen();
   };
 
   // Lọc dữ liệu
@@ -222,74 +231,116 @@ export default function ProblemManagementPage() {
             {prob.difficulty}
           </div>
         </TableCell>
-        <TableCell className="text-white/40 text-[11px] font-bold">
-          {new Date(prob.createdAt).toLocaleDateString()}
+        <TableCell>
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {prob.tags && prob.tags.length > 0 ? (
+              prob.tags.map((tag: any) => (
+                <span key={tag.id || tag} className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 text-white/40 rounded-md tracking-tighter border border-white/5">
+                  {tag.name || tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-[8px] text-white/20 italic">—</span>
+            )}
+          </div>
         </TableCell>
         <TableCell>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handleApprove(prob)}
-              className={iconBtnSuccess}
-              title="Approve"
-            >
-              <CheckCircle2 size={15} />
-            </button>
-            <button
-              onClick={() => handleReject(prob)}
-              className={iconBtnDanger}
-              title="Reject"
-            >
-              <XCircle size={15} />
-            </button>
-            <button
-              onClick={() => handleOpenTags(prob)}
-              className={iconBtnGhost}
-              title="Tags"
-            >
-              <Tags size={15} />
-            </button>
-            <button
-              onClick={() => handleOpenArchive(prob)}
-              className={iconBtnGhost}
-              title="Archive"
-            >
-              <Archive size={15} />
-            </button>
-            <button
-              onClick={() => setRemixProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Remix Problem"
-            >
-              <Flame size={15} />
-            </button>
-            <button
-              onClick={() => setTemplateProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Problem Template"
-            >
-              <Code size={15} />
-            </button>
-            <button
-              onClick={() => router.push(`/Problem/${prob.id}`)}
-              className={iconBtnGhost}
-              title="View"
-            >
-              <Eye size={15} />
-            </button>
-            <button
-              onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}
-              className={iconBtnGhost}
-              title="Editorial"
-            >
-              <BookOpen size={15} />
-            </button>
-            <button
-              onClick={() => setEditProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Edit"
-            >
-              <Pencil size={15} />
-            </button>
+          <div className="flex items-center gap-1">
+            <Tooltip content="Approve Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleApprove(prob)}
+                className="bg-emerald-400/10 text-emerald-400 min-w-8 h-8 rounded-lg"
+              >
+                <CheckCircle2 size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Reject Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleReject(prob)}
+                className="bg-red-400/10 text-red-400 min-w-8 h-8 rounded-lg"
+              >
+                <XCircle size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Manage Tags" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenTags(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Tags size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Archive to Bookmark" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenArchive(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Archive size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Remix Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setRemixProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Flame size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Problem Template" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setTemplateProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Code size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Editorial Management" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenEditorial(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <BookOpen size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Edit Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setEditProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Pencil size={15} />
+              </Button>
+            </Tooltip>
           </div>
         </TableCell>
       </TableRow>
@@ -328,6 +379,19 @@ export default function ProblemManagementPage() {
           </div>
         </TableCell>
         <TableCell>
+          <div className="flex flex-wrap gap-1 max-w-[150px]">
+            {prob.tags && prob.tags.length > 0 ? (
+              prob.tags.map((tag: any) => (
+                <span key={tag.id || tag} className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 text-white/40 rounded-md tracking-tighter border border-white/5">
+                  {tag.name || tag}
+                </span>
+              ))
+            ) : (
+              <span className="text-[8px] text-white/20 italic">—</span>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/50">
               <Clock size={11} className="text-white/30" />
@@ -363,48 +427,77 @@ export default function ProblemManagementPage() {
         </TableCell>
         <TableCell>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleOpenTags(prob)}
-              className={iconBtnGhost}
-              title="Tags"
-            >
-              <Tags size={15} />
-            </button>
-            <button
-              onClick={() => setRemixProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Remix Problem"
-            >
-              <Flame size={15} />
-            </button>
-            <button
-              onClick={() => setTemplateProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Problem Template"
-            >
-              <Code size={15} />
-            </button>
-            <button
-              onClick={() => setEditProblemId(prob.id)}
-              className={iconBtnGhost}
-              title="Edit"
-            >
-              <Pencil size={15} />
-            </button>
-            <button
-              onClick={() => router.push(`/Problem/${prob.id}`)}
-              className={iconBtnGhost}
-              title="View"
-            >
-              <Eye size={15} />
-            </button>
-            <button
-              onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}
-              className={iconBtnGhost}
-              title="Editorial"
-            >
-              <BookOpen size={15} />
-            </button>
+            <Tooltip content="Manage Tags" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenTags(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Tags size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Archive to Bookmark" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenArchive(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Archive size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Remix Problem" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setRemixProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Flame size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Problem Template" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setTemplateProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Code size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Edit Detail" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => setEditProblemId(prob.id)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <Pencil size={15} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Editorial Management" className="text-[10px] font-bold">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                onPress={() => handleOpenEditorial(prob)}
+                className="bg-white/5 text-white/40 hover:text-white/80 min-w-8 h-8 rounded-lg"
+              >
+                <BookOpen size={15} />
+              </Button>
+            </Tooltip>
           </div>
         </TableCell>
       </TableRow>
@@ -568,7 +661,7 @@ export default function ProblemManagementPage() {
                 <TableColumn className="w-[40%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
                 <TableColumn>Type</TableColumn>
                 <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
-                <TableColumn>{language === "vi" ? "Ngày tạo" : "Created"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
                 <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
               </TableHeader>
               <TableBody>{renderPendingBody()}</TableBody>
@@ -594,6 +687,7 @@ export default function ProblemManagementPage() {
                 <TableColumn className="w-[30%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
                 <TableColumn>Type</TableColumn>
                 <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
                 <TableColumn>Time / Memory</TableColumn>
                 <TableColumn>Stats</TableColumn>
                 <TableColumn>Accept %</TableColumn>
@@ -656,6 +750,20 @@ export default function ProblemManagementPage() {
         onOpenChange={tagsModal.onOpenChange}
         // @ts-ignore - Map Admin Problem type to DisplayProblem
         problem={selectedProblemForTags}
+      />
+
+      <ArchiveProblemModal
+        isOpen={archiveModal.isOpen}
+        onOpenChange={archiveModal.onOpenChange}
+        // @ts-ignore
+        problem={selectedProblemForArchive}
+      />
+
+      <EditorialManagementModal
+        isOpen={editorialModal.isOpen}
+        onOpenChange={editorialModal.onOpenChange}
+        problemId={selectedProblemForEditorial?.id}
+        problemTitle={selectedProblemForEditorial?.title}
       />
     </div>
   );

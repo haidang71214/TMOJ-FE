@@ -132,6 +132,7 @@ export const discussionApi = baseApi.injectEndpoints({
 
 export const {
   useGetProblemDiscussionsQuery,
+  useLazyGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
   useGetDiscussionQuery,
   useUpdateDiscussionMutation,

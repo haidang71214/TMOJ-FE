@@ -21,11 +21,11 @@ import {
   User as UserComponent
 } from "@heroui/react";
 import { Lock, Unlock, Search, ShieldAlert } from "lucide-react";
-import { 
-  useGetLockedUsersQuery, 
-  useGetUnlockedUsersQuery, 
-  useLockUserMutation, 
-  useUnlockUserMutation 
+import {
+  useGetLockedUsersQuery,
+  useGetUnlockedUsersQuery,
+  useLockUserMutation,
+  useUnlockUserMutation
 } from "@/store/queries/user";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
   const { data: lockedRes, isLoading: isLoadingLocked } = useGetLockedUsersQuery();
   const { data: unlockedRes, isLoading: isLoadingUnlocked } = useGetUnlockedUsersQuery();
   const { data: currentUser } = useGetUserInformationQuery();
-  
+
   const [lockUser, { isLoading: isLocking }] = useLockUserMutation();
   const [unlockUser, { isLoading: isUnlocking }] = useUnlockUserMutation();
 
@@ -58,11 +58,11 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
     return rawData.filter(u => {
       const roleStr = (u.role || "").toLowerCase();
       const rolesArr = (u as any).roles || [];
-      
+
       // Check if user has any privileged role
-      const hasPrivilegedRole = 
-        roleStr.includes("admin") || 
-        roleStr.includes("teacher") || 
+      const hasPrivilegedRole =
+        roleStr.includes("admin") ||
+        roleStr.includes("teacher") ||
         roleStr.includes("manager") ||
         rolesArr.some((r: any) => {
           const rs = String(r || "").toLowerCase();
@@ -70,7 +70,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
         });
 
       const isNotSelf = !currentUser?.userId || u.userId !== currentUser.userId;
-      
+
       // "Student only" is someone who is not an Admin, Teacher, or Manager
       return !hasPrivilegedRole && isNotSelf;
     });
@@ -91,8 +91,8 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return currentUsers;
     const q = searchQuery.toLowerCase();
-    return currentUsers.filter(u => 
-      u.email?.toLowerCase().includes(q) || 
+    return currentUsers.filter(u =>
+      u.email?.toLowerCase().includes(q) ||
       u.displayName?.toLowerCase().includes(q) ||
       u.username?.toLowerCase().includes(q) ||
       u.userId?.toLowerCase().includes(q)
@@ -111,19 +111,19 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
   const handleAction = async (user: Users, action: "lock" | "unlock") => {
     // Safety check
     if (user.userId === currentUser?.userId) {
-       toast.warning("Bạn không thể tự khóa tài khoản của chính mình.");
-       return;
+      toast.warning("Bạn không thể tự khóa tài khoản của chính mình.");
+      return;
     }
 
     const roleStr = (user.role || "").toLowerCase();
-    const isPrivileged = 
-      roleStr.includes("admin") || 
-      roleStr.includes("teacher") || 
+    const isPrivileged =
+      roleStr.includes("admin") ||
+      roleStr.includes("teacher") ||
       roleStr.includes("manager");
 
     if (isPrivileged) {
-       toast.warning("Không thể khóa/mở khóa tài khoản đặc quyền (Admin, Teacher, Manager).");
-       return;
+      toast.warning("Không thể khóa/mở khóa tài khoản đặc quyền (Admin, Teacher, Manager).");
+      return;
     }
 
     try {
@@ -147,9 +147,11 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
             avatarProps={{ radius: "lg", src: user.avatarUrl || undefined }}
             description={user.email}
             name={user.displayName || user.username || "Unknown"}
-          >
-            {user.email}
-          </UserComponent>
+            classNames={{
+              name: "text-slate-900 dark:text-white font-bold",
+              description: "text-slate-500 dark:text-slate-400"
+            }}
+          />
         );
       case "role":
         return (
@@ -160,10 +162,10 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
       case "actions":
         if (selectedTab === "locked") {
           return (
-            <Button 
-              size="sm" 
-              color="success" 
-              variant="flat" 
+            <Button
+              size="sm"
+              color="success"
+              variant="flat"
               startContent={<Unlock size={14} />}
               onPress={() => handleAction(user, "unlock")}
               isLoading={isUnlocking}
@@ -173,10 +175,10 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
           );
         } else {
           return (
-            <Button 
-              size="sm" 
-              color="danger" 
-              variant="flat" 
+            <Button
+              size="sm"
+              color="danger"
+              variant="flat"
               startContent={<Lock size={14} />}
               onPress={() => handleAction(user, "lock")}
               isLoading={isLocking}
@@ -191,9 +193,9 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onOpenChange={onOpenChange} 
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
       size="3xl"
       scrollBehavior="inside"
       classNames={{
@@ -208,23 +210,22 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
                 <ShieldAlert size={22} strokeWidth={2.5} />
                 Manage User Access
               </div>
-              <p className="text-xs text-slate-500 tracking-wider">
+              <p className="text-xs text-slate-500 dark:text-slate-400 tracking-wider font-medium">
                 Xem danh sách người dùng đang bị lock và unlock.
               </p>
             </ModalHeader>
             <ModalBody className="py-2 flex flex-col gap-4">
               <div className="flex justify-between items-center bg-slate-50/50 dark:bg-black/20 p-2 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <Tabs 
-                  aria-label="User Status Tabs" 
-                  selectedKey={selectedTab} 
+                <Tabs
+                  aria-label="User Status Tabs"
+                  selectedKey={selectedTab}
                   onSelectionChange={handleTabChange}
-                  color="danger"
-                  variant="light"
+                  variant="underlined"
                   classNames={{
                     tabList: "gap-6 relative rounded-none p-0 border-b border-divider",
-                    cursor: "w-full bg-danger",
+                    cursor: "w-full bg-[#FF5C00]",
                     tab: "max-w-fit px-0 h-10",
-                    tabContent: "group-data-[selected=true]:text-danger font-bold uppercase text-xs tracking-widest"
+                    tabContent: "group-data-[selected=true]:text-[#FF5C00] font-bold uppercase text-xs tracking-widest text-slate-900 dark:text-white/90"
                   }}
                 >
                   <Tab
@@ -262,10 +263,15 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
 
               <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-black/40">
                 <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                  <Table 
+                  <Table
                     aria-label="User List Table"
                     removeWrapper
                     isHeaderSticky
+                    classNames={{
+                      th: "bg-slate-50 dark:bg-[#1E2B42] text-slate-500 dark:text-slate-300 text-[11px] font-black uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]",
+                      td: "text-slate-700 dark:text-white/75 border-b border-slate-50 dark:border-white/[0.05] py-3",
+                      tr: "hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors",
+                    }}
                     bottomContent={
                       pages > 1 ? (
                         <div className="flex w-full justify-center pb-4 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -287,7 +293,7 @@ export function BannedUsersModal({ isOpen, onOpenChange }: Props) {
                       <TableColumn key="role">ROLE</TableColumn>
                       <TableColumn key="actions" align="end">ACTION</TableColumn>
                     </TableHeader>
-                    <TableBody 
+                    <TableBody
                       items={items}
                       emptyContent={
                         (selectedTab === "locked" && isLoadingLocked) || (selectedTab === "unlocked" && isLoadingUnlocked)

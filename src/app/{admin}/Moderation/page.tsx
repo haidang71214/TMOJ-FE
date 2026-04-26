@@ -35,8 +35,8 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { 
-  useGetAllReportsQuery, 
+import {
+  useGetAllReportsQuery,
   useGetReportByIdQuery
 } from "@/store/queries/reports";
 import { useGetUserListQuery } from "@/store/queries/user";
@@ -63,20 +63,20 @@ export default function ModerationManagementPage() {
   const { data: currentUser } = useGetUserInformationQuery();
 
   console.log(allReportsRes);
-  
+
   let reports: ReportItem[] = useMemo(() => {
     let rawReports = allReportsRes?.data || [];
-    
+
     // Filter to only show reports where the author is a student and not the current user
     if (userListRes?.data) {
       rawReports = rawReports.filter((r: ReportItem) => {
         const author = userListRes.data.find(u => u.userId === r.authorId);
         if (!author) return false;
-        
+
         const roleStr = (author.role || "").toLowerCase();
-        const isPrivileged = 
-          roleStr.includes("admin") || 
-          roleStr.includes("teacher") || 
+        const isPrivileged =
+          roleStr.includes("admin") ||
+          roleStr.includes("teacher") ||
           roleStr.includes("manager") ||
           (author as any).roles?.some((r: any) => {
             const rs = String(r || "").toLowerCase();
@@ -85,11 +85,11 @@ export default function ModerationManagementPage() {
 
         const isStudent = !isPrivileged;
         const isNotSelf = !currentUser?.userId || author.userId !== currentUser.userId;
-        
+
         return isStudent && isNotSelf;
       });
     }
-    
+
     return rawReports;
   }, [allReportsRes, userListRes, currentUser]);
 
@@ -130,7 +130,7 @@ export default function ModerationManagementPage() {
     { id: selectedReportForDetails?.id as string },
     { skip: !selectedReportForDetails?.id }
   );
-  
+
   const reportDetail = reportDetailRes?.data || selectedReportForDetails;
 
 
@@ -152,15 +152,12 @@ export default function ModerationManagementPage() {
         </div>
 
         <div className="flex gap-3">
-          <Button 
-            variant="bordered" 
+          <Button
+            className="bg-[#0B1C3D] text-white font-black"
             startContent={<Users size={16} />}
             onPress={() => setBannedUsersModalOpen(true)}
           >
             Banned Users
-          </Button>
-          <Button className="bg-[#0B1C3D] text-white font-black" startContent={<Flag size={16} />}>
-            View Queue
           </Button>
         </div>
       </div>
@@ -175,24 +172,24 @@ export default function ModerationManagementPage() {
         ].map(stat => (
           <div key={stat.label} className="rounded-2xl p-5 border text-center" style={{ background: stat.bg, borderColor: stat.border }}>
             <div className="text-3xl font-black" style={{ color: stat.color }}>{stat.value}</div>
-            <div className="text-[10px] uppercase tracking-widest mt-1.5" style={{ color: "rgba(255,255,255,0.35)" }}>{stat.label}</div>
+            <div className="text-[10px] uppercase tracking-widest mt-1.5 text-slate-500 dark:text-slate-400/60 font-bold">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* FILTER BAR */}
       <div className="flex flex-wrap gap-3 items-center">
-        <Input 
-          placeholder="Search reason or id..." 
-          className="max-w-xs" 
+        <Input
+          placeholder="Search reason or id..."
+          className="max-w-xs"
           value={searchQuery}
           onValueChange={(val) => {
             setSearchQuery(val);
             setPage(1);
           }}
         />
-        <Select 
-          placeholder="Type" 
+        <Select
+          placeholder="Type"
           className="w-36"
           selectedKeys={new Set([typeFilter])}
           onChange={(e) => {
@@ -204,8 +201,8 @@ export default function ModerationManagementPage() {
           <SelectItem key="comment">Comment</SelectItem>
           <SelectItem key="discussion">Discussion</SelectItem>
         </Select>
-        <Select 
-          placeholder="Status" 
+        <Select
+          placeholder="Status"
           className="w-36"
           selectedKeys={new Set([statusFilter])}
           onChange={(e) => {
@@ -229,9 +226,9 @@ export default function ModerationManagementPage() {
           aria-label="Reports"
           removeWrapper
           classNames={{
-            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
-            td: "text-white/75 border-b border-white/[0.05] py-3",
-            tr: "hover:bg-white/[0.03] transition-colors",
+            th: "bg-[#1E2B42] text-slate-300 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+            td: "text-slate-700 dark:text-white/75 border-b border-white/[0.05] py-3",
+            tr: "hover:bg-slate-100 dark:hover:bg-white/[0.03] transition-colors",
           }}
           bottomContent={
             pages > 1 ? (
@@ -259,8 +256,8 @@ export default function ModerationManagementPage() {
             <TableColumn>TIME</TableColumn>
             <TableColumn>ACTIONS</TableColumn>
           </TableHeader>
-          <TableBody 
-            emptyContent={isLoading ? <Spinner size="lg" color="primary"/> : "Không có báo cáo nào."}
+          <TableBody
+            emptyContent={isLoading ? <Spinner size="lg" color="primary" /> : "Không có báo cáo nào."}
           >
             {items.map((r) => (
               <TableRow key={r.id}>
@@ -277,7 +274,7 @@ export default function ModerationManagementPage() {
                 </TableCell>
                 <TableCell>
                   {r.problemId ? (
-                    <div 
+                    <div
                       onClick={() => window.location.href = `${PAGE_URL}/Problems/${r.problemId}`}
                       className="flex items-center gap-1.5 text-blue-500 hover:text-blue-700 transition-colors group cursor-pointer"
                     >
@@ -298,8 +295,8 @@ export default function ModerationManagementPage() {
                     size="sm"
                     color={
                       r.status === "pending" ? "warning" :
-                      r.status === "approved" ? "danger" :
-                      "default"
+                        r.status === "approved" ? "danger" :
+                          "default"
                     }
                   >
                     {r.status.toUpperCase()}
@@ -327,8 +324,8 @@ export default function ModerationManagementPage() {
                         <ShieldAlert size={16} />
                       </Button>
                     )}
-                    <Button 
-                      isIconOnly 
+                    <Button
+                      isIconOnly
                       size="sm"
                       onPress={() => {
                         setSelectedReportForDetails(r);
@@ -363,7 +360,7 @@ export default function ModerationManagementPage() {
                         <div className="font-bold text-sm text-slate-500">Reported Reason</div>
                         <p className="text-base font-medium">{reportDetail?.reason}</p>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <div className="font-bold text-xs text-slate-500">Target Type</div>
@@ -378,19 +375,19 @@ export default function ModerationManagementPage() {
                           <p className="font-medium text-sm">{(reportDetail as any)?.authorName || "N/A"}</p>
                           <p className="text-[10px] text-slate-400">{(reportDetail as any)?.authorId}</p>
                         </div>
-                          <div className="font-bold text-xs text-slate-500">Problem ID</div>
-                          <p 
-                            className={`font-medium text-sm ${((reportDetail as any)?.problemId) ? "text-blue-500 cursor-pointer hover:underline" : ""}`}
-                            onClick={() => {
-                              const pid = (reportDetail as any)?.problemId;
-                              if (pid) {
-                                setDetailsModalOpen(false);
-                                window.location.href = `${PAGE_URL}/Problems/${pid}`;
-                              }
-                            }}
-                          >
-                            {(reportDetail as any)?.problemId || "N/A"}
-                          </p>
+                        <div className="font-bold text-xs text-slate-500">Problem ID</div>
+                        <p
+                          className={`font-medium text-sm ${((reportDetail as any)?.problemId) ? "text-blue-500 cursor-pointer hover:underline" : ""}`}
+                          onClick={() => {
+                            const pid = (reportDetail as any)?.problemId;
+                            if (pid) {
+                              setDetailsModalOpen(false);
+                              window.location.href = `${PAGE_URL}/Problems/${pid}`;
+                            }
+                          }}
+                        >
+                          {(reportDetail as any)?.problemId || "N/A"}
+                        </p>
                         <div>
                           <div className="font-bold text-xs text-slate-500">Status</div>
                           <Chip size="sm" color={reportDetail?.status === "pending" ? "warning" : reportDetail?.status === "approved" ? "danger" : "default"}>
@@ -435,7 +432,7 @@ export default function ModerationManagementPage() {
 
 
 
-      <BannedUsersModal 
+      <BannedUsersModal
         isOpen={bannedUsersModalOpen}
         onOpenChange={setBannedUsersModalOpen}
       />

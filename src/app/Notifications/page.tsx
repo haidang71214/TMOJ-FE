@@ -13,6 +13,7 @@ import {
   DropdownItem,
   Tabs,
   Tab,
+  Spinner,
 } from "@heroui/react";
 import {
   Bell,
@@ -26,31 +27,20 @@ import {
   BookOpen,
   Settings,
 } from "lucide-react";
-
-// Professional English Mock Data với nhiều Category hơn
-const FULL_NOTIFICATIONS = Array.from({ length: 20 }).map((_, i) => ({
-  id: `${i + 1}`,
-  title: [
-    "Weekly Contest #12 Started",
-    "New Assignment: Data Structures",
-    "System Maintenance Notice",
-    "Submission Accepted",
-    "Class Enrollment Confirmed",
-  ][i % 5],
-  message:
-    "Stay updated with your academic activity and platform improvements on TMOJ.",
-  type: ["contest", "class", "system", "submission", "class"][i % 5],
-  is_read: i > 6,
-  created_at: `${i + 1} hours ago`,
-}));
+import { useGetUserNotificationsQuery, useMarkNotificationAsReadMutation, useDeleteNotificationMutation } from "@/store/queries/notification";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { addToast } from "@heroui/toast";
 
 const getIcon = (type: string) => {
-  switch (type) {
+  switch (type.toLowerCase()) {
     case "contest":
       return <Trophy className="text-[#ff5c00]" />;
+    case "comment":
     case "class":
       return <BookOpen className="text-purple-500" />;
     case "system":
+    case "report":
       return <Settings className="text-blue-500" />;
     case "submission":
       return <Code2 className="text-green-500" />;
@@ -60,33 +50,80 @@ const getIcon = (type: string) => {
 };
 
 export default function NotificationsPage() {
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(user?.userId || "", {
+    skip: !user?.userId,
+  });
+  const [markAsRead] = useMarkNotificationAsReadMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+
   const [page, setPage] = useState(1);
   const [filterTab, setFilterTab] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const rowsPerPage = 6;
 
+  const notifications = notificationsData || [];
+
   // Logic lọc kết hợp giữa Tabs và Category Dropdown
   const filteredData = useMemo(() => {
-    return FULL_NOTIFICATIONS.filter((n) => {
+    return notifications.filter((n) => {
       const matchTab =
         filterTab === "all"
           ? true
           : filterTab === "unread"
-          ? !n.is_read
-          : n.is_read;
+          ? !n.isRead
+          : n.isRead;
 
       const matchCategory =
-        categoryFilter === "all" ? true : n.type === categoryFilter;
+        categoryFilter === "all" ? true : n.type.toLowerCase() === categoryFilter.toLowerCase();
 
       return matchTab && matchCategory;
     });
-  }, [filterTab, categoryFilter]);
+  }, [filterTab, categoryFilter, notifications]);
 
-  const pages = Math.ceil(filteredData.length / rowsPerPage);
+  const pages = Math.ceil(filteredData.length / rowsPerPage) || 1;
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [page, filteredData]);
+
+  const handleMarkAllAsRead = async () => {
+    const unreadNotifications = notifications.filter(n => !n.isRead);
+    try {
+      await Promise.all(unreadNotifications.map(n => markAsRead(n.notificationId).unwrap()));
+      addToast({ title: "Tất cả thông báo đã được đánh dấu là đã đọc", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi đánh dấu đã đọc", color: "danger" });
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!confirm("Bạn có chắc chắn muốn xóa tất cả thông báo?")) return;
+    try {
+      await Promise.all(notifications.map(n => deleteNotification(n.notificationId).unwrap()));
+      addToast({ title: "Đã xóa tất cả thông báo", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi xóa thông báo", color: "danger" });
+    }
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id).unwrap();
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await deleteNotification(id).unwrap();
+      addToast({ title: "Đã xóa thông báo", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi xóa thông báo", color: "danger" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#071739] transition-colors duration-300">
@@ -106,6 +143,7 @@ export default function NotificationsPage() {
               variant="flat"
               size="sm"
               startContent={<CheckCheck size={16} />}
+              onPress={handleMarkAllAsRead}
               className="font-black uppercase italic text-[10px] h-10 px-4 rounded-xl dark:bg-[#111c35] dark:text-white border border-divider dark:border-white/10"
             >
               Mark all
@@ -115,6 +153,7 @@ export default function NotificationsPage() {
               color="danger"
               size="sm"
               startContent={<Trash2 size={16} />}
+              onPress={handleDeleteAll}
               className="font-black uppercase italic text-[10px] h-10 px-4 rounded-xl dark:bg-red-500/10"
             >
               Clear All
@@ -184,10 +223,10 @@ export default function NotificationsPage() {
                 All Categories
               </DropdownItem>
               <DropdownItem
-                key="class"
+                key="comment"
                 className="font-bold uppercase italic text-[10px] dark:text-white text-purple-500"
               >
-                Class
+                Comment
               </DropdownItem>
               <DropdownItem
                 key="contest"
@@ -201,20 +240,31 @@ export default function NotificationsPage() {
               >
                 System
               </DropdownItem>
+              <DropdownItem
+                key="report"
+                className="font-bold uppercase italic text-[10px] dark:text-white text-red-500"
+              >
+                Report
+              </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </div>
 
         {/* LIST SECTION */}
         <div className="flex flex-col gap-4">
-          {items.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Spinner color="warning" size="lg" />
+            </div>
+          ) : items.length > 0 ? (
             items.map((n) => (
               <Card
-                key={n.id}
+                key={n.notificationId}
                 isPressable
+                onPress={() => handleMarkAsRead(n.notificationId)}
                 className={`border-none transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 rounded-[2rem] overflow-hidden 
                   ${
-                    !n.is_read
+                    !n.isRead
                       ? "bg-white dark:bg-[#111c35] border-l-8 border-[#ff5c00]"
                       : "bg-slate-100/50 dark:bg-white/5 opacity-80"
                   }`}
@@ -222,7 +272,7 @@ export default function NotificationsPage() {
                 <CardBody className="p-6 md:px-10 flex flex-row items-center gap-6 text-black dark:text-white text-left">
                   <div
                     className={`p-4 rounded-2xl shrink-0 ${
-                      !n.is_read
+                      !n.isRead
                         ? "bg-[#ff5c00]/10"
                         : "bg-slate-200 dark:bg-white/5"
                     }`}
@@ -233,20 +283,25 @@ export default function NotificationsPage() {
                     <div className="flex justify-between items-start">
                       <h3
                         className={`text-xl font-[1000] italic uppercase tracking-tight leading-tight ${
-                          !n.is_read
+                          !n.isRead
                             ? "text-[#071739] dark:text-white"
                             : "text-slate-500"
                         }`}
                       >
                         {n.title}
                       </h3>
-                      <span className="text-[10px] font-black text-slate-400 uppercase italic whitespace-nowrap ml-4">
-                        {n.created_at}
-                      </span>
+                      <div className="flex items-center gap-4 ml-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase italic whitespace-nowrap">
+                          {new Date(n.createdAt).toLocaleString()}
+                        </span>
+                        <Button isIconOnly size="sm" variant="light" color="danger" onClick={(e) => handleDelete(e, n.notificationId)}>
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
                     </div>
                     <p
                       className={`text-sm font-bold leading-relaxed italic line-clamp-2 ${
-                        !n.is_read
+                        !n.isRead
                           ? "text-slate-600 dark:text-slate-300"
                           : "text-slate-500"
                       }`}

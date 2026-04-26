@@ -62,7 +62,7 @@ export const gamificationApi = baseApi.injectEndpoints({
     }),
     createBadge: builder.mutation<{ id: string }, CreateBadgeRequest>({
       query: (body) => ({
-        url: AdminGamificationEndpoint.BADGES,
+        url: GamificationEndpoint.BADGES,
         method: "POST",
         body,
       }),

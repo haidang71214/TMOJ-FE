@@ -138,11 +138,11 @@ const ClassSlotEndpoint = {
   GET_SLOT_RANKINGS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/rankings`,
 };
 const NotificationEndpoint = {
-  CREATE_NOTIFICATION: `${API_PREFIX}/notification`,
-  GET_NOTIFICATION_BY_USER: `${API_PREFIX}/notification/user/{userId}`,
-  GET_ALL_NOTIFICATION: `${API_PREFIX}/notification/all`,
-  MARK_AS_READ: `${API_PREFIX}/notification/read/{id}`,
-  DELETE_NOTIFICATION: `${API_PREFIX}/notification/{id}`,
+  CREATE_NOTIFICATION: `/api/notification`,
+  GET_NOTIFICATION_BY_USER: `/api/notification/user/{userId}`,
+  GET_ALL_NOTIFICATION: `/api/notification/all`,
+  MARK_AS_READ: `/api/notification/read/{id}`,
+  DELETE_NOTIFICATION: `/api/notification/{id}`,
 };
 const DiscussionEndpoint = {
   GET_PROBLEM_DISCUSSIONS: `${API_PREFIX}/problems/{problemId}/discussions`,

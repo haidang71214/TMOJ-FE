@@ -561,18 +561,6 @@ export default function GlobalProblemListPage() {
                         <Code size={16} />
                       </Button>
                     </Tooltip>
-
-                    <Tooltip content={t('common.delete') || "Delete"} className="font-bold text-[10px]">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9 active-bump"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </Tooltip>
                   </div>
                 </TableCell>
               </TableRow>

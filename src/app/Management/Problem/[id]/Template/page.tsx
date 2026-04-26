@@ -31,11 +31,16 @@ import { useCreateProblemTemplateMutation, useGetProblemTemplatesQuery, useUpdat
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 
-export default function ProblemTemplatePage() {
+interface ProblemTemplatePageProps {
+  inlineProblemId?: string;
+  onCancel?: () => void;
+}
+
+export default function ProblemTemplatePage({ inlineProblemId, onCancel }: ProblemTemplatePageProps) {
   const params = useParams();
   const router = useRouter();
   const { theme } = useTheme();
-  const problemId = params.id as string;
+  const problemId = inlineProblemId || (params.id as string);
 
   const { data: runtimeData, isLoading: isRuntimeLoading } = useGetRuntimeListQuery();
   const runtimes = runtimeData?.data ?? [];
@@ -203,7 +208,7 @@ export default function ProblemTemplatePage() {
               <Button 
                 isIconOnly 
                 variant="light" 
-                onClick={() => router.back()}
+                onClick={() => onCancel ? onCancel() : router.back()}
                 className="hover:bg-white dark:hover:bg-white/10"
               >
                 <ChevronLeft size={24} />

@@ -26,6 +26,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
 } from "@heroui/react";
 import {
   Plus,
@@ -44,10 +45,18 @@ import {
   UploadCloud,
   FileArchive,
   Search,
+  Tags,
+  Flame,
+  Code,
+  Archive,
 } from "lucide-react";
 import { iconBtnGhost, iconBtnDanger, iconBtnSuccess, difficultyStyle } from "../adminTheme";
 import CreateProblem from "./CreateProblem";
 import EditProblem from "./EditProblem";
+import AttachTagsModal from "@/app/components/AttachTagsModal";
+import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
+import RemixProblemForm from "@/app/Problems/components/RemixProblemForm";
+import ProblemTemplatePage from "@/app/Management/Problem/[id]/Template/page";
 import { useGetProblemListQueryQuery } from "@/store/queries/problem";
 import { Problem } from "@/types";
 
@@ -66,6 +75,8 @@ export default function ProblemManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
   const [editProblemId, setEditProblemId] = useState<string | null>(null);
+  const [remixProblemId, setRemixProblemId] = useState<string | null>(null);
+  const [templateProblemId, setTemplateProblemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -81,6 +92,22 @@ export default function ProblemManagementPage() {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  const tagsModal = useDisclosure();
+  const [selectedProblemForTags, setSelectedProblemForTags] = useState<Problem | null>(null);
+
+  const handleOpenTags = (problem: Problem) => {
+    setSelectedProblemForTags(problem);
+    tagsModal.onOpen();
+  };
+
+  const archiveModal = useDisclosure();
+  const [selectedProblemForArchive, setSelectedProblemForArchive] = useState<Problem | null>(null);
+
+  const handleOpenArchive = (problem: Problem) => {
+    setSelectedProblemForArchive(problem);
+    archiveModal.onOpen();
+  };
 
   // Lọc dữ liệu
   const filteredProblems = problems.filter(p => {
@@ -127,12 +154,6 @@ export default function ProblemManagementPage() {
     );
     setIsRejectModalOpen(false);
     setSelectedProblem(null);
-  };
-
-  const handleDelete = (problem: Problem) => {
-    if (confirm(`Are you sure you want to delete "${problem.title}"?`)) {
-      setProblems((prev) => prev.filter((p) => p.id !== problem.id));
-    }
   };
 
   const refreshData = async () => {
@@ -221,11 +242,46 @@ export default function ProblemManagementPage() {
               <XCircle size={15} />
             </button>
             <button
+              onClick={() => handleOpenTags(prob)}
+              className={iconBtnGhost}
+              title="Tags"
+            >
+              <Tags size={15} />
+            </button>
+            <button
+              onClick={() => handleOpenArchive(prob)}
+              className={iconBtnGhost}
+              title="Archive"
+            >
+              <Archive size={15} />
+            </button>
+            <button
+              onClick={() => setRemixProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Remix Problem"
+            >
+              <Flame size={15} />
+            </button>
+            <button
+              onClick={() => setTemplateProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Problem Template"
+            >
+              <Code size={15} />
+            </button>
+            <button
               onClick={() => router.push(`/Problem/${prob.id}`)}
               className={iconBtnGhost}
               title="View"
             >
               <Eye size={15} />
+            </button>
+            <button
+              onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}
+              className={iconBtnGhost}
+              title="Editorial"
+            >
+              <BookOpen size={15} />
             </button>
             <button
               onClick={() => setEditProblemId(prob.id)}
@@ -308,6 +364,27 @@ export default function ProblemManagementPage() {
         <TableCell>
           <div className="flex items-center gap-1">
             <button
+              onClick={() => handleOpenTags(prob)}
+              className={iconBtnGhost}
+              title="Tags"
+            >
+              <Tags size={15} />
+            </button>
+            <button
+              onClick={() => setRemixProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Remix Problem"
+            >
+              <Flame size={15} />
+            </button>
+            <button
+              onClick={() => setTemplateProblemId(prob.id)}
+              className={iconBtnGhost}
+              title="Problem Template"
+            >
+              <Code size={15} />
+            </button>
+            <button
               onClick={() => setEditProblemId(prob.id)}
               className={iconBtnGhost}
               title="Edit"
@@ -320,13 +397,6 @@ export default function ProblemManagementPage() {
               title="View"
             >
               <Eye size={15} />
-            </button>
-            <button
-              onClick={() => handleDelete(prob)}
-              className={iconBtnDanger}
-              title="Delete"
-            >
-              <Trash2 size={15} />
             </button>
             <button
               onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}
@@ -364,6 +434,24 @@ export default function ProblemManagementPage() {
           setEditProblemId(null);
           refreshData();
         }}
+      />
+    );
+  }
+
+  if (remixProblemId) {
+    return (
+      <RemixProblemForm
+        originId={remixProblemId}
+        onCancel={() => setRemixProblemId(null)}
+      />
+    );
+  }
+
+  if (templateProblemId) {
+    return (
+      <ProblemTemplatePage
+        inlineProblemId={templateProblemId}
+        onCancel={() => setTemplateProblemId(null)}
       />
     );
   }
@@ -562,6 +650,13 @@ export default function ProblemManagementPage() {
           )}
         </ModalContent>
       </Modal>
+
+      <AttachTagsModal
+        isOpen={tagsModal.isOpen}
+        onOpenChange={tagsModal.onOpenChange}
+        // @ts-ignore - Map Admin Problem type to DisplayProblem
+        problem={selectedProblemForTags}
+      />
     </div>
   );
 }

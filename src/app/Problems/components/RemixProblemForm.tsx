@@ -35,9 +35,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 interface RemixProblemFormProps {
   originId: string;
+  onCancel?: () => void;
 }
 
-export default function RemixProblemForm({ originId }: RemixProblemFormProps) {
+export default function RemixProblemForm({ originId, onCancel }: RemixProblemFormProps) {
   const router = useRouter();
   const { t, language } = useTranslation();
 
@@ -227,7 +228,7 @@ export default function RemixProblemForm({ originId }: RemixProblemFormProps) {
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
-          onPress={() => router.back()}
+          onPress={() => onCancel ? onCancel() : router.back()}
           startContent={<ChevronLeft size={16} />}
           className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 text-[10px]"
         >
@@ -359,7 +360,7 @@ export default function RemixProblemForm({ originId }: RemixProblemFormProps) {
           </div>
 
           <div className="flex justify-between pt-8">
-            <Button variant="flat" onPress={() => router.back()}>{t('common.cancel') || "Cancel"}</Button>
+            <Button variant="flat" onPress={() => onCancel ? onCancel() : router.back()}>{t('common.cancel') || "Cancel"}</Button>
             <Button
               className="bg-orange-600 text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-orange-500/20 active-bump"
               onPress={handleStep1}

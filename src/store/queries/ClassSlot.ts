@@ -11,6 +11,7 @@ import {
   ClassSlotResponse,
   StudentSlotScoreResponse,
   StudentSubmissionDetailResponse,
+  ClassSlotRankingsResponse,
 } from "@/types";
 // mấy cái này đổi thành class-semester
 export const classSlotApi = baseApi.injectEndpoints({
@@ -50,7 +51,7 @@ export const classSlotApi = baseApi.injectEndpoints({
       providesTags: ["ClassSlot"],   // ← chung
     }),
 
-    getSlotRankings: builder.query<any, { semesterId: string; slotId: string }>({
+    getSlotRankings: builder.query<ClassSlotRankingsResponse, { semesterId: string; slotId: string }>({
       query: ({ semesterId, slotId }) => ({
         url: ClassSlotEndpoint.GET_SLOT_RANKINGS
           .replace("{semesterId}", semesterId)

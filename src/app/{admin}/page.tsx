@@ -62,7 +62,7 @@ const NAV_GROUPS = [
     items: [
       { tKey: "admin_sidebar.users", defaultVi: "Người dùng", defaultEn: "Users", key: "user", icon: Users },
       { tKey: "admin_sidebar.gamification", defaultVi: "Hệ thống điểm", defaultEn: "Gamification", key: "gamification", icon: Award },
-      { tKey: "admin_sidebar.coin_package", defaultVi: "Gói xu", defaultEn: "Coin Package", key: "coin", icon: Coins },
+      { tKey: "admin_sidebar.coin_item", defaultVi: "Vật phẩm Coin", defaultEn: "Coin Item", key: "coin", icon: Coins },
     ],
   },
   {

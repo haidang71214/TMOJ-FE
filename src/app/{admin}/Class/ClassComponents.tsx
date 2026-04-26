@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 import CreateClassModal from "./CreateClassModal";
+import CreateTeacherModal from "./CreateTeacherModal";
 import SlotManagement from "./ClassSemesterManager";
 import { useModal } from "@/Provider/ModalProvider";
 
@@ -102,22 +103,43 @@ export default function ClassComponents() {
           </p>
         </div>
 
-        <Button
-          className="font-semibold text-white"
-          style={{
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
-          }}
-          startContent={
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          }
-          onPress={() => openModal({ content: <CreateClassModal /> })}
-        >
-          Create Class
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            className="font-semibold text-white"
+            style={{
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
+            }}
+            startContent={
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            }
+            onPress={() => openModal({ content: <CreateTeacherModal /> })}
+          >
+            Create Teacher
+          </Button>
+
+          <Button
+            className="font-semibold text-white"
+            style={{
+              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
+            }}
+            startContent={
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+            }
+            onPress={() => openModal({ content: <CreateClassModal /> })}
+          >
+            Create Class
+          </Button>
+        </div>
       </div>
 
       {/* STATS */}

@@ -111,7 +111,8 @@ const ClassEndpoint = {
   DELETE_SLOT_PROBLEMS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/problems`,
   GET_MY_CLASSES_STUDENT: `${API_PREFIX}/Class/my-classes/student`,
   GET_MY_CLASSES_TEACHER: `${API_PREFIX}/Class/my-classes/teacher`,
-  STUDENT_NOT_YET: `${API_PREFIX}/Class/{classSemesterId}/students/available`
+  STUDENT_NOT_YET: `${API_PREFIX}/Class/{classSemesterId}/students/available`,
+  CREATE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

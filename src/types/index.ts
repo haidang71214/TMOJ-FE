@@ -30,7 +30,6 @@ export enum RoleEnums {
   CLIENT = 0,
   ADMIN = 1,
 }
-// ép kiểu đầu ra
 export interface Users {
   userId: string;
   email: string;
@@ -1619,3 +1618,41 @@ export interface ProductPurchaseHistory {
   purchaseDate: string;
   status: "Pending" | "Shipped" | "Completed" | "Cancelled";
 }
+
+export interface SlotRankingProblemItem {
+  problemId: string;
+  alias: string;
+  title: string;
+  isSolved: boolean;
+  attempts: number;
+  penaltyTime: number | null;
+}
+
+export interface SlotRankingUser {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  rank: number;
+  solved: number;
+  penalty: number;
+  problems: SlotRankingProblemItem[];
+}
+
+export interface ClassSlotRankingsResponseData {
+  classSlotId: string;
+  slotTitle: string;
+  slotDescription: string;
+  dueAt: string;
+  rankings: SlotRankingUser[];
+  lastUpdated: string;
+}
+
+export interface ClassSlotRankingsResponse {
+  data: ClassSlotRankingsResponseData;
+  message: string;
+  traceId: string | null;
+}
+
+
+

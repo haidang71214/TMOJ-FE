@@ -32,6 +32,7 @@ import Link from "next/link";
 import { useGetClassesQuery, useExportClassTemplateMutation } from "@/store/queries/Class";
 import CreateSlotForm from "./CreateClassSlotModal";
 import CreateClassModal from "./components/CreateClassModal";
+import CreateTeacherModal from "@/app/{admin}/Class/CreateTeacherModal";
 import { useModal } from "@/Provider/ModalProvider";
 import UpdateTeacherModal from "./UpdateTeacherModal";
 import { useGetALLSemestersQuery } from "@/store/queries/Semester";
@@ -197,8 +198,22 @@ const handleExportTemplateClass = async()=>{
         </div>
         <div className="flex gap-3">
           <Button
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
-            startContent={<Plus size={16} />}
+            className="bg-[#22C55E] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right"
+            startContent={
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            }
+            onPress={() => openModal({ content: <CreateTeacherModal /> })}
+          >
+            CREATE TEACHER
+          </Button>
+          <Button
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right delay-75"
+            startContent={<Plus size={16} strokeWidth={3} />}
             onPress={() => openModal({ content: <CreateClassModal onCreated={() => refetch()} /> })}
           >
             {t('class_management.create_button') || "CREATE NEW CLASS"}

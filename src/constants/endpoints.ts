@@ -291,6 +291,12 @@ const WalletEndpoint = {
   TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
 };
 
+const AnnouncementEndpoint = {
+  GET_ALL: `${API_PREFIX}/announcements`,
+  CREATE: `${API_PREFIX}/announcements`,
+  DELETE: `${API_PREFIX}/announcements/{id}`,
+};
+
 export {
   ProblemTemplateEndPoint,
   ClassSlotEndpoint,
@@ -317,5 +323,6 @@ export {
   GamificationEndpoint,
   AdminGamificationEndpoint,
   PaymentEndpoint,
-  WalletEndpoint
+  WalletEndpoint,
+  AnnouncementEndpoint
 };

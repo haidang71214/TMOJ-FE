@@ -10,6 +10,7 @@ import {
   Button,
   DropdownSection,
   Chip,
+  Spinner,
 } from "@heroui/react";
 import {
   Bell,
@@ -20,91 +21,31 @@ import {
   ArrowUpRight,
   ShieldAlert,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-// --- MOCK DATA ---
-const MOCK_NOTIFICATIONS = [
-  {
-    notification_id: "1",
-    title: "Contest Weekly #12 Started",
-    message: "Join now to earn exclusive coins and badges!",
-    type: "contest",
-    is_read: false,
-    created_at: "2 mins ago",
-  },
-  {
-    notification_id: "2",
-    title: "Submission Accepted",
-    message: "Your code for 'Two Sum' passed all test cases (32ms).",
-    type: "submission",
-    is_read: false,
-    created_at: "10 mins ago",
-  },
-  {
-    notification_id: "3",
-    title: "New Editorial Available",
-    message: "Check out the detailed solution for 'Binary Search'.",
-    type: "problem",
-    is_read: true,
-    created_at: "1 hour ago",
-  },
-  {
-    notification_id: "4",
-    title: "System Maintenance",
-    message: "The system will be down for upgrade at 02:00 AM.",
-    type: "announcement",
-    is_read: true,
-    created_at: "Yesterday",
-  },
-  {
-    notification_id: "5",
-    title: "New Rank Achieved!",
-    message: "Congratulations! You have reached Gold Tier.",
-    type: "badge",
-    is_read: false,
-    created_at: "3 hours ago",
-  },
-  {
-    notification_id: "6",
-    title: "Class Enrollment",
-    message: "Instructor RimND added you to SDN302 class.",
-    type: "class",
-    is_read: true,
-    created_at: "5 hours ago",
-  },
-  {
-    notification_id: "7",
-    title: "Security Alert",
-    message: "New login detected from a different device.",
-    type: "security",
-    is_read: false,
-    created_at: "1 day ago",
-  },
-  {
-    notification_id: "8",
-    title: "Assignment Deadline",
-    message: "Final call for SDN302 project submission tonight!",
-    type: "problem",
-    is_read: false,
-    created_at: "Just now",
-  },
-];
+import { useGetUserNotificationsQuery, useMarkNotificationAsReadMutation } from "@/store/queries/notification";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 const iconByType = (type: string) => {
-  switch (type) {
+  switch (type.toLowerCase()) {
     case "contest":
       return <Trophy size={18} className="text-[#ff5c00]" />;
-    case "submission":
-      return <Code2 size={18} className="text-green-500" />;
+    case "comment":
+    case "class":
+      return <BookOpen size={18} className="text-purple-500" />;
+    case "system":
     case "announcement":
       return <Megaphone size={18} className="text-blue-500" />;
+    case "report":
+      return <ShieldAlert size={18} className="text-rose-500" />;
+    case "submission":
+      return <Code2 size={18} className="text-green-500" />;
     case "badge":
       return <Star size={18} className="text-yellow-500" />;
     case "security":
       return <ShieldAlert size={18} className="text-rose-500" />;
-    case "class":
-      return <BookOpen size={18} className="text-purple-500" />;
     default:
       return <Bell size={18} className="text-[#A4B5C4]" />;
   }
@@ -112,13 +53,28 @@ const iconByType = (type: string) => {
 
 export default function NotificationInNavbar() {
   const router = useRouter();
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.is_read).length;
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(user?.userId || "", {
+    skip: !user?.userId,
+  });
+  const [markAsRead] = useMarkNotificationAsReadMutation();
+
+  const notifications = notificationsData || [];
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleMarkAsRead = async (id: string, isRead: boolean) => {
+    if (isRead) return;
+    try {
+      await markAsRead(id).unwrap();
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+    }
+  };
 
   return (
     <NavbarItem>
       <Dropdown
         placement="bottom-end"
-        // ÉP BORDER: Light mode dùng Blue (#2563eb), Dark mode dùng Green (#22c55e)
         className="p-0 border-2 border-blue-600 dark:border-[#22c55e] shadow-2xl overflow-hidden rounded-[2.5rem] bg-white dark:bg-[#1C2737]"
       >
         <DropdownTrigger>
@@ -187,35 +143,47 @@ export default function NotificationInNavbar() {
           </DropdownSection>
 
           <DropdownSection className="mb-0">
-            {MOCK_NOTIFICATIONS.map((n) => (
-              <DropdownItem
-                key={n.notification_id}
-                textValue={n.title}
-                className={`gap-4 rounded-none px-5 py-5 border-b border-divider dark:border-white/5 last:border-none ${
-                  !n.is_read ? "bg-[#ff5c00]/5" : ""
-                }`}
-              >
-                <div className="flex items-start gap-4 text-black dark:text-white">
-                  <div className="mt-1 p-2 bg-slate-100 dark:bg-white/10 rounded-xl shrink-0 border border-divider dark:border-white/5">
-                    {iconByType(n.type)}
-                  </div>
-                  <div className="flex flex-col gap-1 flex-1">
-                    <span className="font-[1000] text-sm leading-tight italic uppercase tracking-tight">
-                      {n.title}
-                    </span>
-                    <span className="text-xs text-[#667085] dark:text-[#A4B5C4] line-clamp-2 font-bold italic leading-snug">
-                      {n.message}
-                    </span>
-                    <span className="text-[9px] font-black text-[#98A2B3] uppercase italic mt-2">
-                      {n.created_at}
-                    </span>
-                  </div>
-                  {!n.is_read && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#ff5c00] mt-2 shadow-[0_0_10px_#ff5c00] shrink-0" />
-                  )}
+            {isLoading ? (
+              <DropdownItem key="loading" isReadOnly textValue="Loading" className="p-10 flex justify-center">
+                <div className="flex justify-center w-full">
+                  <Spinner color="warning" size="sm" />
                 </div>
               </DropdownItem>
-            ))}
+            ) : notifications.length === 0 ? (
+              <DropdownItem key="no_notif" isReadOnly textValue="No Notifications" className="p-10 text-center font-black uppercase italic text-slate-400 opacity-50">
+                No Notifications
+              </DropdownItem>
+            ) : (
+              notifications.slice(0, 10).map((n) => (
+                <DropdownItem
+                  key={n.notificationId}
+                  textValue={n.title}
+                  className={`gap-4 rounded-none px-5 py-5 border-b border-divider dark:border-white/5 last:border-none ${!n.isRead ? "bg-[#ff5c00]/5" : ""
+                    }`}
+                  onPress={() => handleMarkAsRead(n.notificationId, n.isRead)}
+                >
+                  <div className="flex items-start gap-4 text-black dark:text-white">
+                    <div className="mt-1 p-2 bg-slate-100 dark:bg-white/10 rounded-xl shrink-0 border border-divider dark:border-white/5">
+                      {iconByType(n.type)}
+                    </div>
+                    <div className="flex flex-col gap-1 flex-1">
+                      <span className={`font-[1000] text-sm leading-tight italic uppercase tracking-tight ${!n.isRead ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>
+                        {n.title}
+                      </span>
+                      <span className={`text-xs line-clamp-2 font-bold italic leading-snug ${!n.isRead ? "text-[#667085] dark:text-[#A4B5C4]" : "text-slate-400"}`}>
+                        {n.message}
+                      </span>
+                      <span className="text-[9px] font-black text-[#98A2B3] uppercase italic mt-2">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    {!n.isRead && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5c00] mt-2 shadow-[0_0_10px_#ff5c00] shrink-0" />
+                    )}
+                  </div>
+                </DropdownItem>
+              ))
+            )}
           </DropdownSection>
         </DropdownMenu>
       </Dropdown>

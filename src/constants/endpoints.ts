@@ -139,6 +139,7 @@ const ClassSlotEndpoint = {
 };
 const NotificationEndpoint = {
   CREATE_NOTIFICATION: `/api/notification`,
+  BROADCAST_NOTIFICATION: `/api/notification/broadcast`,
   GET_NOTIFICATION_BY_USER: `/api/notification/user/{userId}`,
   GET_ALL_NOTIFICATION: `/api/notification/all`,
   MARK_AS_READ: `/api/notification/read/{id}`,

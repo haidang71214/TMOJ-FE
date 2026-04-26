@@ -3,9 +3,15 @@ export interface CreateNotificationRequestDto {
   title: string;
   message: string;
   type: "system" | "comment" | "report";
-  scopeType: "comment" | "discussion";
+  scopeType: "comment" | "discussion" | "team" | "study_plan";
   scopeId: string;
   createdBy?: string;
+}
+
+export interface BroadcastNotificationCommand {
+  title: string;
+  message: string;
+  role: string;
 }
 
 export interface NotificationDto {

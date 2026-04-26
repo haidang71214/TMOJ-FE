@@ -7,7 +7,7 @@ import {
   useImportClassMutation,
 } from "@/store/queries/Subject";
 
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Plus, BookOpen, GraduationCap, Archive, Pencil, Trash2, Search, RotateCcw } from "lucide-react";
 
 import {
   Table,
@@ -24,10 +24,11 @@ import {
 import CreateSubjectModal from "./CreateSubjectModal";
 import EditSubjectModal from "./EditSubjectModal";
 import { useModal } from "@/Provider/ModalProvider";
+import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
 
 export default function SubjectComponents() {
   const { openModal } = useModal();
-  const { data, isLoading } = useGetAllSubjectQueryQuery();
+  const { data, isLoading, refetch } = useGetAllSubjectQueryQuery();
   const [getImportTemplate] = useGetImportTemplateMutation();
   const [importClass] = useImportClassMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +41,7 @@ export default function SubjectComponents() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Class_Import_Template.xlsx";
+      a.download = "Subject_Import_Template.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -62,6 +63,7 @@ export default function SubjectComponents() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+      refetch();
     } catch (error) {
       console.error("Failed to import class", error);
     }
@@ -70,27 +72,20 @@ export default function SubjectComponents() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <Spinner size="lg" color="secondary" />
-          <p className="text-sm text-gray-500 animate-pulse">
-            Loading subjects...
-          </p>
-        </div>
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 animate-in fade-in duration-500">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-b border-white/5 pb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            Subject Management
+          <h1 className={ADMIN_H1}>
+            Subject <span style={{ color: "#3B5BFF" }}>Registry</span>
           </h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-            Manage all subjects in the system
-          </p>
+          <p className={ADMIN_SUBTITLE}>Define and manage academic courses and subjects</p>
         </div>
         <div className="flex items-center gap-3">
           <input
@@ -101,218 +96,140 @@ export default function SubjectComponents() {
             onChange={handleImport}
           />
           <Button
-            className="font-semibold text-white bg-blue-500 shadow-md"
+            variant="flat"
+            className="font-black uppercase text-[10px] tracking-widest h-11 px-6 rounded-xl bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
             startContent={<Download size={16} />}
             onPress={handleDownloadTemplate}
           >
             Template
           </Button>
           <Button
-            className="font-semibold text-white bg-purple-500 shadow-md"
+            variant="flat"
+            className="font-black uppercase text-[10px] tracking-widest h-11 px-6 rounded-xl bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
             startContent={<Upload size={16} />}
             onPress={() => fileInputRef.current?.click()}
           >
             Import
           </Button>
           <Button
-            className="font-semibold text-white"
-            style={{
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            boxShadow:
-              "0 4px 15px rgba(99, 102, 241, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2)",
-          }}
-          startContent={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          }
-          onPress={() =>
-            openModal({
-              content: <CreateSubjectModal />,
-            })
-          }
-        >
-          Create Subject
-        </Button>
+            className="font-black uppercase text-[10px] tracking-widest px-8 h-11 rounded-xl text-white shadow-xl active:scale-95 transition-all"
+            style={{ background: "linear-gradient(135deg, #3B5BFF 0%, #6B3BFF 100%)", boxShadow: "0 4px 15px rgba(59, 91, 255, 0.3)" }}
+            startContent={<Plus size={18} strokeWidth={3} />}
+            onPress={() => openModal({ content: <CreateSubjectModal /> })}
+          >
+            Create Subject
+          </Button>
         </div>
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-3 gap-4">
-        <div
-          className="rounded-xl px-5 py-4 border border-indigo-200 dark:border-indigo-500/15"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04))",
-          }}
-        >
-          <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">
-            Total Subjects
-          </p>
-          <p className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">
-            {subjects.length}
-          </p>
-        </div>
-        <div
-          className="rounded-xl px-5 py-4 border border-emerald-200 dark:border-emerald-500/15"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(16, 185, 129, 0.04))",
-          }}
-        >
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-            Active
-          </p>
-          <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-            {subjects.filter((s) => s.isActive).length}
-          </p>
-        </div>
-        <div
-          className="rounded-xl px-5 py-4 border border-red-200 dark:border-red-500/15"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(244, 63, 94, 0.04))",
-          }}
-        >
-          <p className="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wider">
-            Inactive
-          </p>
-          <p className="text-3xl font-extrabold text-red-500 dark:text-red-400 mt-1">
-            {subjects.filter((s) => !s.isActive).length}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: "Total Subjects", value: subjects.length, icon: BookOpen, color: "#3B5BFF", bg: "rgba(59,91,255,0.08)" },
+          { label: "Active Courses", value: subjects.filter(s => s.isActive).length, icon: GraduationCap, color: "#10B981", bg: "rgba(16,185,129,0.08)" },
+          { label: "Archived", value: subjects.filter(s => !s.isActive).length, icon: Archive, color: "#EF4444", bg: "rgba(239,68,68,0.08)" },
+        ].map((stat, i) => (
+          <div 
+            key={i}
+            className="p-6 rounded-[2rem] border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all"
+            style={{ background: "#162035" }}
+          >
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">{stat.label}</p>
+              <p className="text-4xl font-black italic tracking-tighter text-white group-hover:scale-110 transition-transform origin-left">{stat.value}</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: stat.bg }}>
+              <stat.icon size={22} style={{ color: stat.color }} />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* TABLE */}
-      <div
-        className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10"
-        style={{ boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)" }}
-      >
+      <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
         <Table
-          aria-label="Subject table"
+          aria-label="Subject Management Table"
           removeWrapper
           classNames={{
-            th: "bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-white/5 py-3",
-            td: "py-3 text-sm border-b border-gray-100 dark:border-white/[0.03]",
-            tr: "hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors",
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+            td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+            tr: "hover:bg-white/[0.03] transition-colors group/row",
           }}
         >
           <TableHeader>
-            <TableColumn>Code</TableColumn>
-            <TableColumn>Subject Name</TableColumn>
-            <TableColumn>Description</TableColumn>
-            <TableColumn align="center">Status</TableColumn>
-            <TableColumn align="center">Action</TableColumn>
+            <TableColumn>CODE</TableColumn>
+            <TableColumn className="w-[30%]">SUBJECT NAME</TableColumn>
+            <TableColumn>DESCRIPTION</TableColumn>
+            <TableColumn align="center">STATUS</TableColumn>
+            <TableColumn align="center">ACTIONS</TableColumn>
           </TableHeader>
 
           <TableBody
             items={subjects}
             emptyContent={
-              <div className="py-10 text-center">
-                <p className="text-gray-400 text-sm">
-                  No subjects found. Create one to get started.
-                </p>
+              <div className="py-20 text-center flex flex-col items-center gap-4">
+                <BookOpen size={48} className="text-white/10" />
+                <p className="text-white/30 font-bold uppercase tracking-widest text-xs italic">No subjects found in system</p>
               </div>
             }
           >
             {(s) => (
               <TableRow key={s.subjectId}>
                 <TableCell>
-                  <span
-                    className="font-mono font-bold text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-md text-xs"
-                    style={{
-                      background: "rgba(99, 102, 241, 0.1)",
-                      border: "1px solid rgba(99, 102, 241, 0.2)",
-                    }}
-                  >
+                  <span className="font-mono font-black text-[#7B9FFF] bg-[#3B5BFF]/10 border border-[#3B5BFF]/20 px-3 py-1.5 rounded-xl text-xs tracking-wider group-hover/row:bg-[#3B5BFF]/20 transition-all">
                     {s.code}
                   </span>
                 </TableCell>
 
                 <TableCell>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <div className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors text-base tracking-tight">
                     {s.name}
-                  </span>
+                  </div>
                 </TableCell>
 
                 <TableCell>
-                  <span className="text-gray-600 dark:text-slate-400 line-clamp-1 max-w-[280px]">
-                    {s.description || "—"}
-                  </span>
+                  <div className="text-white/40 text-xs line-clamp-1 italic">
+                    {s.description || "No description provided."}
+                  </div>
                 </TableCell>
 
                 <TableCell>
                   <div className="flex justify-center">
                     {s.isActive ? (
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        classNames={{
-                          base: "bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20",
-                          content:
-                            "text-emerald-600 dark:text-emerald-400 text-xs font-bold",
-                        }}
-                        startContent={
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 mr-1 animate-pulse" />
-                        }
-                      >
-                        Active
-                      </Chip>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase text-emerald-500">Available</span>
+                      </div>
                     ) : (
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        classNames={{
-                          base: "bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20",
-                          content:
-                            "text-red-600 dark:text-red-400 text-xs font-bold",
-                        }}
-                      >
-                        Inactive
-                      </Chip>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        <span className="text-[10px] font-black uppercase text-red-500">Disabled</span>
+                      </div>
                     )}
                   </div>
                 </TableCell>
 
                 <TableCell>
-                  <div className="flex justify-center gap-1">
-                    <Tooltip content="Edit" placement="top">
+                  <div className="flex justify-center gap-2">
+                    <Tooltip content="Edit Subject" placement="top">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-gray-100 dark:bg-white/5 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 min-w-7 w-7 h-7 transition-colors"
-                        onPress={() =>
-                          openModal({
-                            content: <EditSubjectModal subject={s} />,
-                          })
-                        }
+                        className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
+                        onPress={() => openModal({ content: <EditSubjectModal subject={s} /> })}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
+                        <Pencil size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content="Delete" placement="top" color="danger">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
+                      >
+                        <Trash2 size={16} />
                       </Button>
                     </Tooltip>
                   </div>

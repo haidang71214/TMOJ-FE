@@ -1675,6 +1675,8 @@ export interface CreateClassContestRequest {
   problems: CreateClassContestProblemItem[];
   slotNo?: number | null;
   slotTitle?: string | null;
+}
+
 export interface RankingGlobalRequest {
   page?: number;
   pageSize?: number;

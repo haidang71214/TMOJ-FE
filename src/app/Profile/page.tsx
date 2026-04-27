@@ -678,7 +678,7 @@ export default function ProfilePage() {
                   {collectionsLoading ? (
                     <div className="flex justify-center py-10"><Spinner color="warning" /></div>
                   ) : userCollections.length > 0 ? (
-                    userCollections.map((col: any) => (
+                    userCollections.slice(0, 4).map((col: any) => (
                       <div
                         key={col.id}
                         className="py-6 flex justify-between items-center group cursor-pointer"
@@ -709,61 +709,32 @@ export default function ProfilePage() {
                   ) : (
                     <div className="py-10 text-center text-slate-400 italic">No collections found.</div>
                   )}
-                  <Button
-                    variant="light"
-                    className="w-full mt-6 font-black uppercase italic text-[10px] text-[#FF5C00] tracking-[0.2em]"
-                    onClick={() => router.push("/Problems/MyLists")}
-                  >
-                    View All Collections →
-                  </Button>
-                </div>
-              </Tab>
-              <Tab key="favorites" title="Favorites">
-                <div className="px-10 pb-10 space-y-8 mt-6">
-                  {/* Problems */}
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase italic text-slate-400 mb-4 tracking-widest">Favorite Problems</h3>
-                    <div className="divide-y divide-slate-100 dark:divide-white/5">
-                      {favProblemsLoading ? (
-                        <Spinner size="sm" color="warning" />
-                      ) : favoriteProblems.length > 0 ? (
-                        favoriteProblems.slice(0, 5).map((p: any) => (
-                          <div key={p.id} className="py-4 flex justify-between items-center group cursor-pointer" onClick={() => router.push(`/Problems/${p.id}`)}>
-                            <p className="text-sm font-black uppercase italic text-[#071739] dark:text-white group-hover:text-blue-600 transition-colors">{p.title}</p>
-                            <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-600" />
-                          </div>
-                        ))
-                      ) : <p className="text-xs italic text-slate-400">No favorite problems.</p>}
-                    </div>
-                  </div>
-
-                  {/* Contests */}
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase italic text-slate-400 mb-4 tracking-widest">Favorite Contests</h3>
-                    <div className="divide-y divide-slate-100 dark:divide-white/5">
-                      {favContestsLoading ? (
-                        <Spinner size="sm" color="warning" />
-                      ) : favoriteContests.length > 0 ? (
-                        favoriteContests.slice(0, 5).map((c: any) => (
-                          <div key={c.id} className="py-4 flex justify-between items-center group cursor-pointer" onClick={() => router.push(`/Contest/${c.id}`)}>
-                            <p className="text-sm font-black uppercase italic text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors">{c.title}</p>
-                            <ChevronRight size={14} className="text-slate-300 group-hover:text-[#FF5C00]" />
-                          </div>
-                        ))
-                      ) : <p className="text-xs italic text-slate-400">No favorite contests.</p>}
-                    </div>
-                  </div>
+                  {userCollections.length > 4 && (
+                    <Button
+                      variant="light"
+                      className="w-full mt-6 font-black uppercase italic text-[10px] text-[#FF5C00] tracking-[0.2em]"
+                      onClick={() => router.push("/Problems/MyLists")}
+                    >
+                      View All Collections ({userCollections.length}) →
+                    </Button>
+                  )}
                 </div>
               </Tab>
               <Tab key="discussion" title="Discussion">
-                <div className="p-12 text-center space-y-4">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
-                    <MessageSquare size={32} />
+                <div className="p-16 text-center space-y-6">
+                  <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto text-[#FF5C00] shadow-sm">
+                    <MessageSquare size={36} />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-black uppercase italic text-slate-400">No discussions participated yet</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Start a discussion on a problem page to see it here</p>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black uppercase italic text-[#071739] dark:text-white leading-none">Your voice matters</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider max-w-xs mx-auto">You haven&apos;t joined any discussions yet. Share your thoughts on a problem to get started!</p>
                   </div>
+                  <Button
+                    className="bg-[#FF5C00] text-white font-black uppercase italic text-[11px] tracking-widest px-8 rounded-2xl h-12"
+                    onClick={() => router.push("/Problems")}
+                  >
+                    Explore Problems
+                  </Button>
                 </div>
               </Tab>
             </Tabs>

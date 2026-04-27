@@ -3,7 +3,7 @@ export interface CreateNotificationRequestDto {
   title: string;
   message: string;
   type: "system" | "comment" | "report";
-  scopeType: "comment" | "discussion" | "team" | "study_plan";
+  scopeType: "system" | "problem" | "contest" | "discussion" | "study_plan" | "team" | "store" | "user";
   scopeId: string;
   createdBy?: string;
 }

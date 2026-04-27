@@ -1,6 +1,6 @@
 "use client";
 
-import { HeroUIProvider } from "@heroui/react"; // Sửa từ @heroui/system
+import { HeroUIProvider } from "@heroui/react";
 import { ToastProvider } from "@heroui/toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
@@ -15,6 +15,7 @@ import { store } from "@/store";
 import { ModalProvider } from "../Provider/ModalProvider";
 import RedirectProvider from "@/Provider/RedirectProvider";
 import LanguageProvider from "@/Provider/LanguageProvider";
+import GamificationProvider from "@/Provider/GamificationProvider";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -27,33 +28,34 @@ declare module "@react-types/shared" {
     >;
   }
 }
+
 export function Providers({ children }: Readonly<ProvidersProps>) {
   const router = useRouter();
   return (
     <Provider store={store}>
-        <HeroUIProvider navigate={router.push}>
+      <HeroUIProvider navigate={router.push}>
+        <GamificationProvider>
           <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-          <GoogleOAuthProvider
-            clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-          >
-            <LanguageProvider>
-              <ModalProvider>
-                <Suspense fallback={null}>
-                  <AutoOpenResetPassModal />
-
-                  <RedirectProvider>
-                    <AuthProvider>
-                      {children}
-                    </AuthProvider>
-                  </RedirectProvider>
-                </Suspense>
-              </ModalProvider>
-            </LanguageProvider>
-
-            <ToastProvider placement="bottom-right" />
-          </GoogleOAuthProvider>
+            <GoogleOAuthProvider
+              clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+            >
+              <LanguageProvider>
+                <ModalProvider>
+                  <Suspense fallback={null}>
+                    <AutoOpenResetPassModal />
+                    <RedirectProvider>
+                      <AuthProvider>
+                        {children}
+                      </AuthProvider>
+                    </RedirectProvider>
+                  </Suspense>
+                </ModalProvider>
+              </LanguageProvider>
+              <ToastProvider placement="bottom-right" />
+            </GoogleOAuthProvider>
           </NextThemesProvider>
-        </HeroUIProvider>
+        </GamificationProvider>
+      </HeroUIProvider>
     </Provider>
   );
 }

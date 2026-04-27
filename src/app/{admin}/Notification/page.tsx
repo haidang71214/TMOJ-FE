@@ -61,6 +61,7 @@ export default function NotificationManagementPage() {
   const [scopeType, setScopeType] = useState<"comment" | "discussion" | "team" | "study_plan">("discussion");
   const [sendToAll, setSendToAll] = useState(true);
   const [targetUserId, setTargetUserId] = useState("");
+  const [scopeId, setScopeId] = useState("");
   const [targetRole, setTargetRole] = useState("All");
 
   const handleSendNotification = async () => {
@@ -94,7 +95,7 @@ export default function NotificationManagementPage() {
           message: message.trim(),
           type: type,
           scopeType: scopeType,
-          scopeId: null,
+          scopeId: scopeId.trim() || null,
         };
 
         // Chỉ gửi createdBy nếu có giá trị thực
@@ -110,6 +111,7 @@ export default function NotificationManagementPage() {
       setTitle("");
       setMessage("");
       setTargetUserId("");
+      setScopeId("");
     } catch (error) {
       addToast({ title: "Lỗi khi gửi thông báo", color: "danger" });
     }
@@ -325,20 +327,6 @@ export default function NotificationManagementPage() {
                 {!sendToAll && (
                   <div className="grid grid-cols-2 gap-4">
                     <Select
-                      label="Type"
-                      placeholder="Select type"
-                      selectedKeys={[type]}
-                      onSelectionChange={(keys) => setType(Array.from(keys)[0] as any)}
-                      classNames={{
-                        trigger: "rounded-xl border-2 focus-within:border-indigo-600",
-                      }}
-                    >
-                      <SelectItem key="system" textValue="system">System</SelectItem>
-                      <SelectItem key="comment" textValue="comment">Comment</SelectItem>
-                      <SelectItem key="report" textValue="report">Report</SelectItem>
-                    </Select>
-
-                    <Select
                       label="Scope"
                       placeholder="Select scope"
                       selectedKeys={[scopeType]}
@@ -347,11 +335,25 @@ export default function NotificationManagementPage() {
                         trigger: "rounded-xl border-2 focus-within:border-indigo-600",
                       }}
                     >
+                      <SelectItem key="system" textValue="system">System</SelectItem>
+                      <SelectItem key="problem" textValue="problem">Problem</SelectItem>
+                      <SelectItem key="contest" textValue="contest">Contest</SelectItem>
                       <SelectItem key="discussion" textValue="discussion">Discussion</SelectItem>
-                      <SelectItem key="comment" textValue="comment">Comment</SelectItem>
-                      <SelectItem key="team" textValue="team">Team</SelectItem>
                       <SelectItem key="study_plan" textValue="study_plan">Study Plan</SelectItem>
+                      <SelectItem key="team" textValue="team">Team</SelectItem>
+                      <SelectItem key="store" textValue="store">Store</SelectItem>
+                      <SelectItem key="user" textValue="user">User</SelectItem>
                     </Select>
+
+                    <Input
+                      label="Target ID"
+                      placeholder="GUID of scope (optional)"
+                      value={scopeId}
+                      onValueChange={setScopeId}
+                      classNames={{
+                        inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600 h-12",
+                      }}
+                    />
                   </div>
                 )}
               </ModalBody>

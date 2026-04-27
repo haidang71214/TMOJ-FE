@@ -1675,6 +1675,49 @@ export interface CreateClassContestRequest {
   problems: CreateClassContestProblemItem[];
   slotNo?: number | null;
   slotTitle?: string | null;
+export interface RankingGlobalRequest {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+export interface RankingGlobalRow {
+  rank: number;
+  userId: string;
+  username: string;
+  fullname: string;
+  avatarUrl: string;
+  rollNumber: string;
+  solved: number;
+  totalAttempts: number;
+  accuracy: number;
+  points: number;
+}
+
+export interface RankingGlobalResponse {
+  data: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    rows: RankingGlobalRow[];
+  };
+  message: string;
+}
+
+export interface RankingContestItem {
+  id: string;
+  title: string;
+  slug: string;
+  startAt: string;
+  endAt: string;
+  rules: string;
+  status: "upcoming" | "running" | "ended";
+}
+
+export interface RankingContestsResponse {
+  data: RankingContestItem[];
+  message: string;
 }
 
 

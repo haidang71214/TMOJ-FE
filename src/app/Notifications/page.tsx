@@ -30,14 +30,20 @@ import {
   Megaphone,
 } from "lucide-react";
 import { useGetUserNotificationsQuery, useMarkNotificationAsReadMutation, useDeleteNotificationMutation } from "@/store/queries/notification";
+import { useLazyGetDiscussionQuery } from "@/store/queries/discussion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { addToast } from "@heroui/toast";
+import { useRouter } from "next/navigation";
+import { NotificationDto } from "@/types/notification";
 
 const getIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case "contest":
       return <Trophy className="text-[#ff5c00]" />;
+    case "problem":
+      return <Code2 className="text-blue-500" />;
+    case "discussion":
     case "comment":
     case "class":
       return <BookOpen className="text-purple-500" />;
@@ -48,6 +54,10 @@ const getIcon = (type: string) => {
       return <ShieldAlert className="text-rose-500" />;
     case "submission":
       return <Code2 className="text-green-500" />;
+    case "store":
+      return <Settings className="text-yellow-500" />;
+    case "user":
+      return <Bell className="text-slate-400" />;
     default:
       return <Bell className="text-slate-400" />;
   }
@@ -55,11 +65,13 @@ const getIcon = (type: string) => {
 
 export default function NotificationsPage() {
   const user = useSelector((state: RootState) => state.auth.user);
+  const router = useRouter();
   const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(user?.userId || "", {
     skip: !user?.userId,
   });
   const [markAsRead] = useMarkNotificationAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
+  const [triggerGetDiscussion] = useLazyGetDiscussionQuery();
 
   const [page, setPage] = useState(1);
   const [filterTab, setFilterTab] = useState("all");
@@ -79,7 +91,10 @@ export default function NotificationsPage() {
             : n.isRead;
 
       const matchCategory =
-        categoryFilter === "all" ? true : n.type.toLowerCase() === categoryFilter.toLowerCase();
+        categoryFilter === "all"
+          ? true
+          : n.type.toLowerCase() === categoryFilter.toLowerCase() ||
+          n.scopeType?.toLowerCase() === categoryFilter.toLowerCase();
 
       return matchTab && matchCategory;
     });
@@ -117,6 +132,69 @@ export default function NotificationsPage() {
       await markAsRead(id).unwrap();
     } catch (error) {
       console.error("Failed to mark as read", error);
+    }
+  };
+
+  const handleNotificationClick = async (n: NotificationDto) => {
+    console.log("🔔 Notification Clicked:", {
+      id: n.notificationId,
+      scopeId: n.scopeId,
+      scopeType: n.scopeType,
+      title: n.title
+    });
+    // 1. Đánh dấu đã đọc
+    handleMarkAsRead(n.notificationId, n.isRead);
+
+    // 2. Điều hướng nếu có scopeId
+    if (!n.scopeId) {
+      console.warn("⚠️ No scopeId found, skipping navigation");
+      return;
+    }
+
+    try {
+      const scopeType = n.scopeType?.toLowerCase();
+      switch (scopeType) {
+        case "discussion":
+          // Cách 1: Fetch problemId từ discussionId
+          const discussionRes = await triggerGetDiscussion({ id: n.scopeId }).unwrap();
+          const problemId = discussionRes?.data?.problemId;
+          if (problemId) {
+            router.push(`/Problems/${problemId}?tab=description&discussionId=${n.scopeId}`);
+          } else {
+            router.push("/"); // Fallback về trang chủ
+          }
+          break;
+        case "problem":
+          router.push(`/Problems/${n.scopeId}`);
+          break;
+        case "contest":
+          router.push(`/Contest/${n.scopeId}`);
+          break;
+        case "study_plan":
+          router.push(`/StudyPlan/${n.scopeId}`);
+          break;
+        case "class":
+          router.push(`/Class/${n.scopeId}`);
+          break;
+        case "team":
+          // router.push(`/Management/Team/${n.scopeId}`);
+          break;
+        case "store":
+          router.push(`/Coin`);
+          break;
+        case "user":
+          router.push(`/Profile/${n.scopeId}`);
+          break;
+        case "system":
+          // Thông báo hệ thống có thể dẫn đến trang chi tiết hoặc giữ nguyên
+          break;
+        default:
+          console.warn("Unknown scopeType:", scopeType);
+          break;
+      }
+    } catch (err) {
+      console.error("Failed to handle navigation", err);
+      addToast({ title: "Không thể tìm thấy nội dung liên kết", color: "danger" });
     }
   };
 
@@ -221,35 +299,29 @@ export default function NotificationsPage() {
                 setPage(1);
               }}
             >
-              <DropdownItem
-                key="all"
-                className="font-bold uppercase italic text-[10px] dark:text-white"
-              >
+              <DropdownItem key="all" className="font-bold uppercase italic text-[10px] dark:text-white">
                 All Categories
               </DropdownItem>
-              <DropdownItem
-                key="comment"
-                className="font-bold uppercase italic text-[10px] dark:text-white text-purple-500"
-              >
-                Comment
-              </DropdownItem>
-              <DropdownItem
-                key="contest"
-                className="font-bold uppercase italic text-[10px] dark:text-white text-[#ff5c00]"
-              >
-                Contests
-              </DropdownItem>
-              <DropdownItem
-                key="system"
-                className="font-bold uppercase italic text-[10px] dark:text-white text-blue-500"
-              >
+              <DropdownItem key="system" className="font-bold uppercase italic text-[10px] text-blue-500">
                 System
               </DropdownItem>
-              <DropdownItem
-                key="report"
-                className="font-bold uppercase italic text-[10px] dark:text-white text-red-500"
-              >
-                Report
+              <DropdownItem key="problem" className="font-bold uppercase italic text-[10px] text-blue-500">
+                Problems
+              </DropdownItem>
+              <DropdownItem key="contest" className="font-bold uppercase italic text-[10px] text-[#ff5c00]">
+                Contests
+              </DropdownItem>
+              <DropdownItem key="discussion" className="font-bold uppercase italic text-[10px] text-purple-500">
+                Discussions
+              </DropdownItem>
+              <DropdownItem key="study_plan" className="font-bold uppercase italic text-[10px] text-indigo-500">
+                Study Plans
+              </DropdownItem>
+              <DropdownItem key="store" className="font-bold uppercase italic text-[10px] text-yellow-500">
+                Store
+              </DropdownItem>
+              <DropdownItem key="report" className="font-bold uppercase italic text-[10px] text-red-500">
+                Reports
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -266,7 +338,7 @@ export default function NotificationsPage() {
               <Card
                 key={n.notificationId}
                 isPressable
-                onPress={() => handleMarkAsRead(n.notificationId, n.isRead)}
+                onPress={() => handleNotificationClick(n)}
                 className={`border-none transition-all shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] rounded-[2rem] overflow-hidden 
                   ${!n.isRead
                     ? "bg-white dark:bg-[#111c35] border-l-8 border-[#ff5c00]"
@@ -280,7 +352,7 @@ export default function NotificationsPage() {
                       : "bg-slate-200 dark:bg-white/5"
                       }`}
                   >
-                    {getIcon(n.type)}
+                    {getIcon(n.scopeType || n.type)}
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
                     <div className="flex justify-between items-start">

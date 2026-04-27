@@ -301,7 +301,13 @@ const AnnouncementEndpoint = {
   DELETE: `${API_PREFIX}/announcements/{id}`,
 };
 
+const RankingEndpoint = {
+  GLOBAL: `${API_PREFIX}/ranking/global`,
+  CONTESTS: `${API_PREFIX}/ranking/contests`,
+};
+
 export {
+  RankingEndpoint,
   ProblemTemplateEndPoint,
   ClassSlotEndpoint,
   authEndpoint,
@@ -328,5 +334,5 @@ export {
   AdminGamificationEndpoint,
   PaymentEndpoint,
   WalletEndpoint,
-  AnnouncementEndpoint
+  AnnouncementEndpoint,
 };

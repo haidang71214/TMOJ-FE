@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import NewsFeed from "./components/NewsFeed";
 import DiscussionsSection from "./components/DiscussionsSection";
 import { useGetContestListQuery, useGetMyContestsQuery } from "@/store/queries/Contest";
+import { useGetGlobalRankingQuery } from "@/store/queries/ranking";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
@@ -65,6 +66,12 @@ export default function Home() {
   // Fetch my contests to check registration status
   const { data: myContestsResponse } = useGetMyContestsQuery({});
   const myContests = myContestsResponse?.data || [];
+
+  const { data: rankingResponse } = useGetGlobalRankingQuery({
+    page: 1,
+    pageSize: 5,
+  });
+  const rankingData = rankingResponse?.data?.rows || [];
 
   const activeContests = (contestsData?.data?.items || [])
     .map(contest => {
@@ -386,25 +393,30 @@ export default function Home() {
                   Ranking
                 </h3>
                 <div className="flex flex-col gap-5">
-                  {[1, 2, 3, 4, 5].map((i) => (
+                  {rankingData.map((row) => (
                     <div
-                      key={i}
+                      key={row.userId}
                       className="flex items-center justify-between group cursor-pointer"
+                      onClick={() => router.push("/Ranking")}
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          style={{ color: i <= 3 ? brandOrange : "#A4B5C4" }}
+                          style={{ color: row.rank <= 3 ? brandOrange : "#A4B5C4" }}
                           className="text-[10px] font-black"
                         >
-                          0{i}
+                          {row.rank.toString().padStart(2, "0")}
                         </span>
-                        <Avatar size="sm" className="h-7 w-7" />
-                        <span className="text-[10px] font-black uppercase italic group-hover:text-[#FF5C00] dark:text-white">
-                          User_{i}x72
+                        <Avatar
+                          size="sm"
+                          className="h-7 w-7"
+                          src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
+                        />
+                        <span className="text-[10px] font-black uppercase italic group-hover:text-[#FF5C00] dark:text-white truncate max-w-[80px]">
+                          {row.fullname || row.username}
                         </span>
                       </div>
                       <span className="text-[9px] font-black text-[#A4B5C4]">
-                        {3000 - i * 200} pts
+                        {row.points.toLocaleString()} pts
                       </span>
                     </div>
                   ))}

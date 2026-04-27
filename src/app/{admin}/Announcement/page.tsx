@@ -40,6 +40,7 @@ export default function AnnouncementManagementPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [pinned, setPinned] = useState(false);
+  const [durationHours, setDurationHours] = useState("24");
 
   const handleCreate = async () => {
     if (!title || !content) {
@@ -52,6 +53,7 @@ export default function AnnouncementManagementPage() {
         title: title.trim(),
         content: content.trim(),
         pinned,
+        durationHours: Number(durationHours),
         scopeType: "system",
         scopeId: null,
       }).unwrap();
@@ -60,6 +62,7 @@ export default function AnnouncementManagementPage() {
       setTitle("");
       setContent("");
       setPinned(false);
+      setDurationHours("24");
     } catch (error) {
       addToast({ title: "Lỗi khi đăng thông báo", color: "danger" });
     }
@@ -223,6 +226,20 @@ export default function AnnouncementManagementPage() {
                 input: "font-bold italic text-white leading-relaxed",
                 inputWrapper: "border-white/10 focus-within:!border-[#ff5c00] rounded-2xl",
               }}
+            />
+            <Input
+              label="Duration (Hours)"
+              placeholder="e.g. 24"
+              type="number"
+              value={durationHours}
+              onValueChange={setDurationHours}
+              variant="bordered"
+              classNames={{
+                label: "font-black uppercase italic text-[10px] text-white/50",
+                input: "font-bold italic text-white",
+                inputWrapper: "border-white/10 focus-within:!border-[#ff5c00] rounded-2xl h-14",
+              }}
+              startContent={<Calendar size={18} className="text-white/20" />}
             />
             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
               <div className="flex gap-3 items-center">

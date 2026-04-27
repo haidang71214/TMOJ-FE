@@ -25,13 +25,18 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetUserNotificationsQuery, useMarkNotificationAsReadMutation } from "@/store/queries/notification";
+import { useLazyGetDiscussionQuery } from "@/store/queries/discussion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { NotificationDto } from "@/types/notification";
 
 const iconByType = (type: string) => {
   switch (type.toLowerCase()) {
     case "contest":
       return <Trophy size={18} className="text-[#ff5c00]" />;
+    case "problem":
+      return <Code2 size={18} className="text-blue-500" />;
+    case "discussion":
     case "comment":
     case "class":
       return <BookOpen size={18} className="text-purple-500" />;
@@ -44,6 +49,10 @@ const iconByType = (type: string) => {
       return <Code2 size={18} className="text-green-500" />;
     case "badge":
       return <Star size={18} className="text-yellow-500" />;
+    case "store":
+      return <Settings size={18} className="text-yellow-500" />;
+    case "user":
+      return <Bell size={18} className="text-[#A4B5C4]" />;
     case "security":
       return <ShieldAlert size={18} className="text-rose-500" />;
     default:
@@ -58,6 +67,7 @@ export default function NotificationInNavbar() {
     skip: !user?.userId,
   });
   const [markAsRead] = useMarkNotificationAsReadMutation();
+  const [triggerGetDiscussion] = useLazyGetDiscussionQuery();
 
   const notifications = notificationsData || [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -68,6 +78,65 @@ export default function NotificationInNavbar() {
       await markAsRead(id).unwrap();
     } catch (error) {
       console.error("Failed to mark as read", error);
+    }
+  };
+
+  const handleNotificationClick = async (n: NotificationDto) => {
+    console.log("🔔 Navbar Notification Clicked:", {
+      id: n.notificationId,
+      scopeId: n.scopeId,
+      scopeType: n.scopeType
+    });
+    // 1. Đánh dấu đã đọc
+    handleMarkAsRead(n.notificationId, n.isRead);
+
+    // 2. Điều hướng nếu có scopeId
+    if (!n.scopeId) {
+      console.warn("⚠️ Navbar: No scopeId found");
+      return;
+    }
+
+    try {
+      const scopeType = n.scopeType?.toLowerCase();
+      switch (scopeType) {
+        case "discussion":
+          const discussionRes = await triggerGetDiscussion({ id: n.scopeId }).unwrap();
+          const problemId = discussionRes?.data?.problemId;
+          if (problemId) {
+            router.push(`/Problems/${problemId}?tab=description&discussionId=${n.scopeId}`);
+          } else {
+            router.push("/");
+          }
+          break;
+        case "problem":
+          router.push(`/Problems/${n.scopeId}`);
+          break;
+        case "contest":
+          router.push(`/Contest/${n.scopeId}`);
+          break;
+        case "study_plan":
+          router.push(`/StudyPlan/${n.scopeId}`);
+          break;
+        case "class":
+          router.push(`/Class/${n.scopeId}`);
+          break;
+        case "team":
+          // router.push(`/Management/Team/${n.scopeId}`);
+          break;
+        case "store":
+          router.push(`/Coin`);
+          break;
+        case "user":
+          router.push(`/Profile/${n.scopeId}`);
+          break;
+        case "system":
+          break;
+        default:
+          console.warn("Unknown scopeType:", scopeType);
+          break;
+      }
+    } catch (err) {
+      console.error("Failed to handle navigation", err);
     }
   };
 
@@ -160,11 +229,11 @@ export default function NotificationInNavbar() {
                   textValue={n.title}
                   className={`gap-4 rounded-none px-5 py-5 border-b border-divider dark:border-white/5 last:border-none ${!n.isRead ? "bg-[#ff5c00]/5" : ""
                     }`}
-                  onPress={() => handleMarkAsRead(n.notificationId, n.isRead)}
+                  onPress={() => handleNotificationClick(n as unknown as NotificationDto)}
                 >
                   <div className="flex items-start gap-4 text-black dark:text-white">
                     <div className="mt-1 p-2 bg-slate-100 dark:bg-white/10 rounded-xl shrink-0 border border-divider dark:border-white/5">
-                      {iconByType(n.type)}
+                      {iconByType(n.scopeType || n.type)}
                     </div>
                     <div className="flex flex-col gap-1 flex-1">
                       <span className={`font-[1000] text-sm leading-tight italic uppercase tracking-tight ${!n.isRead ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>

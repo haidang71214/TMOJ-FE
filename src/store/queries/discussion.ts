@@ -135,6 +135,7 @@ export const {
   useLazyGetProblemDiscussionsQuery,
   useCreateDiscussionMutation,
   useGetDiscussionQuery,
+  useLazyGetDiscussionQuery,
   useUpdateDiscussionMutation,
   useDeleteDiscussionMutation,
   useVoteDiscussionMutation,

@@ -62,8 +62,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
 
   const checkResponse = (resData: any) => {
     // Only throw if data is null AND message doesn't contain "success"
-    const isSuccessMessage = (msg: string) => 
-      msg.toLowerCase().includes("success") || 
+    const isSuccessMessage = (msg: string) =>
+      msg.toLowerCase().includes("success") ||
       msg.toLowerCase().includes("thành công");
 
     if (typeof resData === "string") {
@@ -81,7 +81,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
       throw new Error(resData.message);
     }
   };
-  
+
   const currentUser = useAppSelector((state) => state.auth.user);
   const cid = comment.id || comment.commentId;
   const isTopLevel = !!comment.problemId || (!comment.discussionId && !comment.parentId);
@@ -91,7 +91,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     { skip: !isTopLevel || !cid || (!showReplies && !comment?.replies && !comment?.children && !comment?.comments) }
   );
 
-  const serverReplies = fetchedRepliesData?.data 
+  const serverReplies = fetchedRepliesData?.data
     ? (fetchedRepliesData.data as any[]).map((c: any) => ({ ...c, id: c.id || c.commentId }))
     : null;
   const rawChilds = serverReplies || comment?.children || comment?.comments || comment?.replies || [];
@@ -139,12 +139,12 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   const isMe = myIds.length > 0 && myIds.some(id => commentOwnerIds.includes(id));
   const isReported = myReportsData?.data?.some((r: any) => String(r.targetId) === String(cid));
 
-  const displayName = isMe 
-    ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account") 
+  const displayName = isMe
+    ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account")
     : (comment?.userDisplayName || comment?.userFullName || comment?.user?.displayName || `User ${comment?.userId?.substring(0, 5)}`);
-    
-  const displayAvatar = isMe 
-    ? (currentUser?.avatarUrl || displayName?.[0]) 
+
+  const displayAvatar = isMe
+    ? (currentUser?.avatarUrl || displayName?.[0])
     : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl || displayName?.[0] || "?");
 
   const menuItems = [
@@ -158,8 +158,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
       },
       ...(!isTopLevel ? [{
         key: "hide",
-        label: comment.isHidden 
-          ? (t("discussion.unhide") || (language === "vi" ? "Hủy ẩn (Unhide)" : "Unhide")) 
+        label: comment.isHidden
+          ? (t("discussion.unhide") || (language === "vi" ? "Hủy ẩn (Unhide)" : "Unhide"))
           : (t("discussion.hide") || (language === "vi" ? "Ẩn (Hide)" : "Hide")),
         icon: <EyeOff size={14} />,
         color: "warning" as const,
@@ -207,7 +207,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   if (localIsDeleted) return null;
 
   return (
-    <div className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
+    <div id={`comment-${cid}`} className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
       <Avatar
         size="sm"
         name={displayAvatar}
@@ -221,7 +221,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             </span>
             <span className="text-[11px] text-gray-400 dark:text-[#667085] font-bold">
               | {new Date(comment.createdAt).toLocaleDateString()}
-              {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) && 
+              {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) &&
                 (t("discussion.edited") || (language === "vi" ? " (Đã chỉnh sửa)" : " (Edited)"))}
             </span>
           </div>
@@ -264,19 +264,19 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
               discussionId={discussionId}
               userId={currentUserId}
               onCancel={() => setIsEditing(false)}
-                onSaveEdit={async (newContent) => {
+              onSaveEdit={async (newContent) => {
                 try {
                   let res;
                   if (isTopLevel) {
-                    res = await updateDiscussion({ 
-                      id: cid, 
-                      content: newContent, 
-                      title: comment.title || "Discussion" 
+                    res = await updateDiscussion({
+                      id: cid,
+                      content: newContent,
+                      title: comment.title || "Discussion"
                     }).unwrap();
                   } else {
-                    res = await updateComment({ 
-                      commentId: cid, 
-                      content: newContent 
+                    res = await updateComment({
+                      commentId: cid,
+                      content: newContent
                     }).unwrap();
                   }
                   checkResponse(res);
@@ -308,11 +308,10 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                 const newVote = comment.userVote === 1 ? 0 : 1;
                 onLike(cid, newVote);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer transition-colors border-r border-gray-100 dark:border-[#334155] hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-l-lg ${
-                comment.userVote === 1
-                  ? "text-blue-600 dark:text-[#E3C39D] font-black"
-                  : "hover:text-blue-500"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 cursor-pointer transition-colors border-r border-gray-100 dark:border-[#334155] hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-l-lg ${comment.userVote === 1
+                ? "text-blue-600 dark:text-[#E3C39D] font-black"
+                : "hover:text-blue-500"
+                }`}
             >
               <ThumbsUp
                 size={14}
@@ -333,11 +332,10 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
                 const newVote = comment.userVote === -1 ? 0 : -1;
                 onDownvote(cid, newVote);
               }}
-              className={`px-3 py-1 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-r-lg ${
-                comment.userVote === -1
-                  ? "text-red-500 font-black"
-                  : "hover:text-red-500"
-              }`}
+              className={`px-3 py-1 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-[#1C2737] rounded-r-lg ${comment.userVote === -1
+                ? "text-red-500 font-black"
+                : "hover:text-red-500"
+                }`}
             >
               <ThumbsDown
                 size={14}
@@ -354,7 +352,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
             >
               <MessageCircle size={14} />
               <span className="text-[11px] font-bold uppercase tracking-tighter">
-                {showReplies 
+                {showReplies
                   ? (t("discussion.hide_replies") || (language === "vi" ? "Ẩn câu trả lời" : "Hide Replies"))
                   : `${t("discussion.show") || (language === "vi" ? "Xem" : "Show")} ${comment.repliesCount || processedChildren?.length || 0} ${t("discussion.replies") || (language === "vi" ? "câu trả lời" : "Replies")}`}
               </span>
@@ -364,9 +362,8 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
           {depth < 3 && (
             <div
               onClick={() => setIsReplying(!isReplying)}
-              className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${
-                isReplying ? "text-blue-600 dark:text-[#E3C39D]" : ""
-              }`}
+              className={`flex items-center gap-1.5 cursor-pointer hover:text-blue-500 dark:hover:text-[#E3C39D] font-black text-[11px] uppercase tracking-tighter transition-colors ${isReplying ? "text-blue-600 dark:text-[#E3C39D]" : ""
+                }`}
             >
               <Share2 size={14} className="-scale-x-100" /> {t("discussion.reply_btn") || (language === "vi" ? "Trả lời" : "Reply")}
             </div>

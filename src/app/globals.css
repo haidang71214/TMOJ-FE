@@ -2,8 +2,10 @@
 
 @import "tailwindcss";
 @config "../../tailwind.config.js";
+
 html {
-  font-size: 85.5%; /* ~14px thay vì 16px */
+  font-size: 85.5%;
+  /* ~14px thay vì 16px */
 }
 
 *::-webkit-scrollbar {
@@ -25,8 +27,9 @@ html {
 
 /* set button(top and bottom of the scrollbar) */
 *::-webkit-scrollbar-button {
-  display:none;
+  display: none;
 }
+
 :root {
   --font-sans: "Montserrat", sans-serif;
   --font-mono: "Menlo", monospace;
@@ -42,11 +45,13 @@ html {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .animate-fade-in-up {
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -57,11 +62,13 @@ html {
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .animate-fade-in-down {
   animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -72,11 +79,13 @@ html {
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 .animate-fade-in-left {
   animation: fadeInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -87,11 +96,13 @@ html {
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 .animate-fade-in-right {
   animation: fadeInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -102,48 +113,75 @@ html {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
+
 .animate-zoom-in {
   animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* 6. Hiệu ứng nổi lơ lửng (Floating) - Cho việc flex cực mạnh */
 @keyframes floating {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
 }
+
 .animate-float {
   animation: floating 3s ease-in-out infinite;
 }
 
 /* 7. Hiệu ứng nhịp đập nhẹ (Soft Pulse) */
 @keyframes softPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.02);
   }
 }
+
 .animate-soft-pulse {
   animation: softPulse 2s ease-in-out infinite;
 }
 
 /* Utilities cho độ trễ (Delays) để code flex mượt hơn */
-.delay-75 { animation-delay: 75ms; }
-.delay-100 { animation-delay: 100ms; }
-.delay-150 { animation-delay: 150ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-500 { animation-delay: 500ms; }
+.delay-75 {
+  animation-delay: 75ms;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-150 {
+  animation-delay: 150ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
 
 /* =========================================
    INTERACTION ANIMATIONS (ON CLICK / HOVER)
@@ -153,6 +191,7 @@ html {
 .active-bump {
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .active-bump:active {
   transform: translateY(-4px) scale(1.02) !important;
 }
@@ -161,7 +200,27 @@ html {
 .active-press {
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .active-press:active {
   transform: translateY(2px) scale(0.98) !important;
 }
 
+/* 8. Highlight comment animation */
+@keyframes highlightFlash {
+  0% {
+    background-color: transparent;
+  }
+
+  20% {
+    background-color: rgba(255, 92, 0, 0.15);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-comment {
+  animation: highlightFlash 3s ease-out forwards;
+  border-radius: 1rem;
+}

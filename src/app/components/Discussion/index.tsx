@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Pagination, PaginationItemType, Spinner } from "@heroui/react";
 import { MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { CommentInput } from "./CommentInput";
@@ -36,7 +37,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
   const [voteDiscussion] = useVoteDiscussionMutation();
   const [deleteDiscussion] = useDeleteDiscussionMutation();
   const [deleteComment] = useDeleteCommentMutation();
-  
+
   const [comments, setComments] = useState<any[]>([]);
   const [discussionId, setDiscussionId] = useState<string>("");
 
@@ -60,9 +61,12 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       } else {
         setComments([]);
       }
-      setDiscussionId(problemId); 
+      setDiscussionId(problemId);
     }
   }, [discussionResponse, problemId]);
+
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("discussionId");
 
   // Centralized optimistic state updater
   const updateCommentState = (
@@ -75,33 +79,33 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       const currentId = c.commentId || c.id;
       if (currentId === id) {
         if (action === "like" || action === "dislike") {
-           const oldVote = c.userVote || 0;
-           const newVote = payload; // voteType from payload
-           const voteDiff = newVote - oldVote;
-           return {
-             ...c,
-             voteCount: (c.voteCount || 0) + voteDiff,
-             userVote: newVote,
-             isHidden: (action === "dislike" && newVote === -1) ? true : c.isHidden,
-           };
-         }
-         if (action === "edit") {
-           return { ...c, content: payload, updatedAt: new Date().toISOString() };
-         }
-         if (action === "hideToggle") {
-           return { ...c, isHidden: payload };
-         }
-         if (action === "addReply") {
-           const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
-           const childs = c[repliesKey] || [];
-           return {
-             ...c,
-             repliesCount: (c.repliesCount || 0) + 1,
-             [repliesKey]: [...childs, payload],
-           };
-         }
+          const oldVote = c.userVote || 0;
+          const newVote = payload; // voteType from payload
+          const voteDiff = newVote - oldVote;
+          return {
+            ...c,
+            voteCount: (c.voteCount || 0) + voteDiff,
+            userVote: newVote,
+            isHidden: (action === "dislike" && newVote === -1) ? true : c.isHidden,
+          };
+        }
+        if (action === "edit") {
+          return { ...c, content: payload, updatedAt: new Date().toISOString() };
+        }
+        if (action === "hideToggle") {
+          return { ...c, isHidden: payload };
+        }
+        if (action === "addReply") {
+          const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
+          const childs = c[repliesKey] || [];
+          return {
+            ...c,
+            repliesCount: (c.repliesCount || 0) + 1,
+            [repliesKey]: [...childs, payload],
+          };
+        }
       }
-      
+
       const childArray = c.children || c.comments || c.replies;
       if (childArray) {
         const repliesKey = c.children !== undefined ? 'children' : c.comments !== undefined ? 'comments' : 'replies';
@@ -115,18 +119,18 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     try {
       const isUnvote = voteType === 0;
       setComments((prev) => updateCommentState(prev, id, "like", voteType));
-      
+
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
         await voteDiscussion({ id, voteType }).unwrap();
       } else {
         await voteComment({ id, voteType }).unwrap();
       }
-      
+
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
+      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
     }
   };
 
@@ -134,18 +138,18 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
     try {
       const isUnvote = voteType === 0;
       setComments((prev) => updateCommentState(prev, id, "dislike", voteType));
-      
+
       const isTopLevel = comments.some(c => (c.id || c.commentId) === id);
       if (isTopLevel) {
         await voteDiscussion({ id, voteType }).unwrap();
       } else {
         await voteComment({ id, voteType }).unwrap();
       }
-      
+
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
+      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
     }
   };
 
@@ -181,7 +185,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       toast.success("Đã xóa thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi xóa: " + (apiError?.data?.data?.message  || "Thao tác thất bại"));
+      toast.error("Lỗi xóa: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
     }
   };
 
@@ -218,7 +222,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
         ].filter(v => v && v !== "undefined" && v !== "null");
 
         const isOwner = myIds.length > 0 && myIds.some(id => cOwnerIds.includes(id));
-        
+
         if (c.isHidden && !isOwner) return false;
         return true;
       })
@@ -238,6 +242,29 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
   const safeComments = useMemo(() => {
     return Array.isArray(comments) ? processComments(comments) : [];
   }, [comments]);
+
+  useEffect(() => {
+    if (highlightId && safeComments.length > 0) {
+      // Tìm xem bình luận nằm ở trang nào
+      const index = safeComments.findIndex(c => (c.id || c.commentId) === highlightId);
+      if (index !== -1) {
+        const targetPage = Math.floor(index / itemsPerPage) + 1;
+        if (currentPage !== targetPage) {
+          setCurrentPage(targetPage);
+        } else {
+          // Đã ở đúng trang, thực hiện cuộn
+          setTimeout(() => {
+            const element = document.getElementById(`comment-${highlightId}`);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+              element.classList.add("highlight-comment");
+              setTimeout(() => element.classList.remove("highlight-comment"), 3000);
+            }
+          }, 800);
+        }
+      }
+    }
+  }, [highlightId, safeComments, currentPage, itemsPerPage]);
 
   const currentTableData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -261,13 +288,13 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
           ({safeComments.length})
         </span>
       </h3>
-    {currentUserId?
-     <CommentInput 
-        discussionId={discussionId} 
-        userId={currentUserId} 
-        onSuccess={(newComment) => handleAddReply(null, newComment)}
-      />
-    :<div className="opacity-70 text-sm">{t("discussion.login_required") || (language === "vi" ? "Phải đăng nhập mới bình luận được" : "Login required to comment")}</div>}
+      {currentUserId ?
+        <CommentInput
+          discussionId={discussionId}
+          userId={currentUserId}
+          onSuccess={(newComment) => handleAddReply(null, newComment)}
+        />
+        : <div className="opacity-70 text-sm">{t("discussion.login_required") || (language === "vi" ? "Phải đăng nhập mới bình luận được" : "Login required to comment")}</div>}
 
       <div className="space-y-2 min-h-[400px]">
         {currentTableData.map((comment) => (
@@ -351,11 +378,10 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
                   key={key}
                   ref={ref}
                   onClick={() => setCurrentPage(value as number)}
-                  className={`${className} ${commonProps} ${
-                    isActive
-                      ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828] shadow-lg shadow-black/10"
-                      : "text-gray-400 dark:text-[#94A3B8] dark:hover:bg-[#1C2737] hover:text-black dark:hover:text-white"
-                  }`}
+                  className={`${className} ${commonProps} ${isActive
+                    ? "bg-gray-100 dark:bg-[#E3C39D] text-black dark:text-[#101828] shadow-lg shadow-black/10"
+                    : "text-gray-400 dark:text-[#94A3B8] dark:hover:bg-[#1C2737] hover:text-black dark:hover:text-white"
+                    }`}
                 >
                   {value}
                 </button>

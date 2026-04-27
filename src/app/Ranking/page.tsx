@@ -131,20 +131,47 @@ const CHART_DATA = [
   },
 ];
 
+import { useGetGlobalRankingQuery, useGetPublicContestsQuery } from "@/store/queries/ranking";
+
 export default function RankingPage() {
   const [mounted, setMounted] = useState(false);
   const [viewMode, setViewMode] = useState("table");
   const [chartType, setChartType] = useState("line");
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+
+  const { data: rankingResponse, isLoading } = useGetGlobalRankingQuery({
+    page,
+    pageSize: 20,
+    search: search || undefined,
+  });
+
+  const { data: contestsResponse } = useGetPublicContestsQuery();
+
+  const combinedContests = useMemo(() => {
+    const publicContests = contestsResponse?.data || [];
+    return [{ id: "global", title: "Global Rank" }, ...publicContests];
+  }, [contestsResponse]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const podium = useMemo(
-    () => [RANKING_DATA[1], RANKING_DATA[0], RANKING_DATA[2]],
-    []
-  );
+  const rankingData = rankingResponse?.data?.rows || [];
+  const totalPages = rankingResponse?.data?.totalPages || 1;
+
+  const podium = useMemo(() => {
+    const p1 = rankingData[0] || null;
+    const p2 = rankingData[1] || null;
+    const p3 = rankingData[2] || null;
+    return [p2, p1, p3]; // Order: [Silver, Gold, Bronze]
+  }, [rankingData]);
+
+  const handleSearch = () => {
+    setSearch(searchInput);
+    setPage(1);
+  };
 
   if (!mounted) return null;
 
@@ -166,11 +193,10 @@ export default function RankingPage() {
             <Button
               size="sm"
               onClick={() => setViewMode("table")}
-              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${
-                viewMode === "table"
-                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                  : "bg-transparent text-slate-400"
-              }`}
+              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "table"
+                ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
+                : "bg-transparent text-slate-400"
+                }`}
               startContent={<LayoutList size={16} />}
             >
               Leaderboard
@@ -178,11 +204,10 @@ export default function RankingPage() {
             <Button
               size="sm"
               onClick={() => setViewMode("chart")}
-              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${
-                viewMode === "chart"
-                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                  : "bg-transparent text-slate-400"
-              }`}
+              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "chart"
+                ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
+                : "bg-transparent text-slate-400"
+                }`}
               startContent={<BarChart3 size={16} />}
             >
               Analytics
@@ -194,6 +219,7 @@ export default function RankingPage() {
         {viewMode === "table" && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-[1000px] mx-auto w-full animate-in fade-in zoom-in duration-700 mb-8 pt-10">
             {podium.map((student, index) => {
+              if (!student) return <div key={`empty-${index}`} className="hidden md:block h-full" />;
               const isFirst = index === 1;
               const isSecond = index === 0;
               const isThird = index === 2;
@@ -201,17 +227,17 @@ export default function RankingPage() {
               // Styles cho viền nhất, nhì, ba
               const rankStyles = isFirst
                 ? {
-                    border: "border-amber-400",
-                    shadow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
-                    badge: "bg-amber-400",
-                  }
+                  border: "border-amber-400",
+                  shadow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]",
+                  badge: "bg-amber-400",
+                }
                 : isSecond
-                ? {
+                  ? {
                     border: "border-slate-300",
                     shadow: "shadow-[0_0_20px_rgba(203,213,225,0.3)]",
                     badge: "bg-slate-300",
                   }
-                : {
+                  : {
                     border: "border-orange-700",
                     shadow: "shadow-[0_0_20px_rgba(194,65,12,0.3)]",
                     badge: "bg-orange-700",
@@ -219,14 +245,12 @@ export default function RankingPage() {
 
               return (
                 <Card
-                  key={student.rank}
-                  className={`rounded-[3rem] transition-all duration-500 overflow-visible border-4 ${
-                    rankStyles.border
-                  } ${rankStyles.shadow} ${
-                    isFirst
+                  key={student.userId}
+                  className={`rounded-[3rem] transition-all duration-500 overflow-visible border-4 ${rankStyles.border
+                    } ${rankStyles.shadow} ${isFirst
                       ? "bg-linear-to-br from-[#071739] to-[#1a2a4a] text-white scale-110 z-20 h-[360px]"
                       : "bg-white dark:bg-[#1C2737] h-[280px] z-10"
-                  }`}
+                    }`}
                 >
                   <CardBody className="p-6 flex flex-col items-center justify-center text-center gap-3 relative">
                     <div
@@ -242,47 +266,42 @@ export default function RankingPage() {
                     </div>
 
                     <Avatar
-                      src={`https://i.pravatar.cc/150?u=${student.id}`}
-                      className={`w-20 h-20 ring-4 ${
-                        isFirst
-                          ? "ring-amber-400/50"
-                          : isSecond
+                      src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.userId}`}
+                      className={`w-20 h-20 ring-4 ${isFirst
+                        ? "ring-amber-400/50"
+                        : isSecond
                           ? "ring-slate-400/20"
                           : "ring-orange-700/20"
-                      }`}
+                        }`}
                     />
 
                     <div className="space-y-0.5">
                       <h3
-                        className={`text-lg font-[1000] italic uppercase leading-tight ${
-                          isFirst
-                            ? "text-white"
-                            : "text-[#071739] dark:text-white"
-                        }`}
+                        className={`text-lg font-[1000] italic uppercase leading-tight ${isFirst
+                          ? "text-white"
+                          : "text-[#071739] dark:text-white"
+                          }`}
                       >
-                        {student.name}
+                        {student.fullname || student.username}
                       </h3>
                       <p
-                        className={`text-[10px] font-bold uppercase tracking-widest ${
-                          isFirst ? "text-white/70" : "text-slate-400"
-                        }`}
+                        className={`text-[10px] font-bold uppercase tracking-widest ${isFirst ? "text-white/70" : "text-slate-400"
+                          }`}
                       >
-                        {student.id}
+                        {student.rollNumber || student.username}
                       </p>
                     </div>
 
                     <div
-                      className={`grid grid-cols-2 gap-3 w-full pt-4 border-t ${
-                        isFirst
-                          ? "border-white/20"
-                          : "border-slate-100 dark:border-white/5"
-                      }`}
+                      className={`grid grid-cols-2 gap-3 w-full pt-4 border-t ${isFirst
+                        ? "border-white/20"
+                        : "border-slate-100 dark:border-white/5"
+                        }`}
                     >
                       <div className="text-center">
                         <p
-                          className={`text-[8px] font-black uppercase italic ${
-                            isFirst ? "text-[#FF5C00]" : "text-[#FF5C00]"
-                          }`}
+                          className={`text-[8px] font-black uppercase italic ${isFirst ? "text-[#FF5C00]" : "text-[#FF5C00]"
+                            }`}
                         >
                           Solved
                         </p>
@@ -292,9 +311,8 @@ export default function RankingPage() {
                       </div>
                       <div className="text-center">
                         <p
-                          className={`text-[8px] font-black uppercase italic ${
-                            isFirst ? "text-[#FF5C00]" : "text-[#FF5C00]"
-                          }`}
+                          className={`text-[8px] font-black uppercase italic ${isFirst ? "text-[#FF5C00]" : "text-[#FF5C00]"
+                            }`}
                         >
                           Points
                         </p>
@@ -316,22 +334,15 @@ export default function RankingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <Input
                 placeholder="Search name/ID..."
+                value={searchInput}
+                onValueChange={setSearchInput}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 startContent={<Search size={18} className="text-slate-400" />}
                 classNames={{
                   inputWrapper:
                     "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12 shadow-none font-bold italic",
                 }}
               />
-              <Select
-                placeholder="Class"
-                startContent={<Users size={16} />}
-                classNames={{
-                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
-                }}
-              >
-                <SelectItem key="sdn302">SDN302</SelectItem>
-                <SelectItem key="prf192">PRF192</SelectItem>
-              </Select>
               <Select
                 placeholder="Semester"
                 startContent={<RefreshCw size={16} />}
@@ -354,18 +365,24 @@ export default function RankingPage() {
               </Select>
               <Select
                 placeholder="Contest"
+                items={combinedContests}
                 startContent={<Trophy size={16} />}
                 classNames={{
                   trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
                 }}
               >
-                <SelectItem key="all">Global Rank</SelectItem>
+                {(contest) => (
+                  <SelectItem key={contest.id}>{contest.title}</SelectItem>
+                )}
               </Select>
               <div className="flex gap-2">
-                <Button className="flex-1 bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] shadow-lg">
+                <Button
+                  onClick={handleSearch}
+                  className="flex-1 bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] shadow-lg"
+                >
                   Search
                 </Button>
-                <Button 
+                <Button
                   isIconOnly
                   title="Reset Ranking (Admin)"
                   className="bg-red-500/10 text-red-500 border border-red-500/20 font-[1000] italic h-12 w-12 shrink-0 rounded-2xl uppercase shadow-lg hover:bg-red-500 hover:text-white transition-colors"
@@ -401,9 +418,9 @@ export default function RankingPage() {
                   </TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {RANKING_DATA.map((row) => (
+                  {rankingData.map((row) => (
                     <TableRow
-                      key={row.rank}
+                      key={row.userId}
                       className="border-b border-slate-50 dark:border-white/5 last:border-none hover:bg-[#F0F2F5] dark:hover:bg-[#0A0F1C] transition-all h-20 group"
                     >
                       <TableCell className="px-10 font-[1000] italic text-2xl leading-none">
@@ -412,10 +429,10 @@ export default function RankingPage() {
                             row.rank === 1
                               ? "text-amber-500"
                               : row.rank === 2
-                              ? "text-slate-400"
-                              : row.rank === 3
-                              ? "text-orange-700"
-                              : "text-slate-300"
+                                ? "text-slate-400"
+                                : row.rank === 3
+                                  ? "text-orange-700"
+                                  : "text-slate-300"
                           }
                         >
                           {row.rank.toString().padStart(2, "0")}
@@ -426,19 +443,19 @@ export default function RankingPage() {
                           <Avatar
                             radius="full"
                             size="sm"
-                            src={`https://i.pravatar.cc/150?u=${row.id}`}
+                            src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
                           />
                           <div className="flex flex-col">
                             <span className="font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors">
-                              {row.name}
+                              {row.fullname || row.username}
                             </span>
                             <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
-                              {row.id}
+                              {row.rollNumber || row.username}
                             </span>
                           </div>
                         </div>
                       </TableCell>
-                   
+
                       <TableCell className="text-center font-black italic text-sm">
                         {row.solved}
                       </TableCell>
@@ -458,7 +475,7 @@ export default function RankingPage() {
               </Table>
               <div className="flex justify-center p-10 border-t border-divider">
                 <Pagination
-                  total={5}
+                  total={totalPages}
                   page={page}
                   onChange={setPage}
                   classNames={{
@@ -475,33 +492,30 @@ export default function RankingPage() {
             <div className="flex justify-center gap-3">
               <Button
                 isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${
-                  chartType === "line"
-                    ? "border-[#FF5C00] bg-orange-500/10 text-[#FF5C00]"
-                    : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                }`}
+                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "line"
+                  ? "border-[#FF5C00] bg-orange-500/10 text-[#FF5C00]"
+                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
+                  }`}
                 onClick={() => setChartType("line")}
               >
                 <LineChartIcon size={20} />
               </Button>
               <Button
                 isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${
-                  chartType === "bar"
-                    ? "border-blue-600 bg-blue-500/10 text-blue-600"
-                    : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                }`}
+                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "bar"
+                  ? "border-blue-600 bg-blue-500/10 text-blue-600"
+                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
+                  }`}
                 onClick={() => setChartType("bar")}
               >
                 <BarChart3 size={20} />
               </Button>
               <Button
                 isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${
-                  chartType === "area"
-                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                    : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                }`}
+                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "area"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
+                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
+                  }`}
                 onClick={() => setChartType("area")}
               >
                 <AreaChartIcon size={20} />

@@ -263,6 +263,14 @@ joinClass: builder.mutation<void, { inviteCode: string | null }>({
       }),
       providesTags: ["MyClass"],    
     }),
+    importClass: builder.mutation<void, FormData>({
+      query: (data) => ({
+        url: ClassEndpoint.IMPORT_CLASS,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Class"],
+    }),
   }),
 });
 
@@ -289,4 +297,5 @@ export const {
    useUpdateClassSemesterMutation,
    useJoinClassMutation,
    useGetStudentsNotYetQuery,
+   useImportClassMutation,
 } = classApi;

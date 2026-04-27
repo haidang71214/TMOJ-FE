@@ -58,7 +58,8 @@ interface DisplayProblem {
   visible: boolean;
   access: boolean;                 // giả sử public nếu published
   contest: string;                 // tạm để "None" vì API chưa có
-  tags: string[];                  // API chưa trả tags → để rỗng hoặc xử lý sau
+  tags: { id: string; name: string }[];
+  problemMode: string;
 }
 
 export default function GlobalProblemListPage() {
@@ -162,7 +163,8 @@ export default function GlobalProblemListPage() {
       visible: p.statusCode === "published",
       access: p.statusCode === "published", // giả sử published = public
       contest: "None", // field này chưa có trong API response
-      tags: [], // API chưa trả tags → để sau khi có endpoint tag
+      tags: p.tags?.map(t => ({ id: t.id, name: t.name })) || [],
+      problemMode: p.problemMode || "amateur",
     }));
   }, [apiResponse]);
 
@@ -392,8 +394,8 @@ export default function GlobalProblemListPage() {
             <TableColumn>{t('problem_management.problem_title') || "PROBLEM TITLE"}</TableColumn>
             <TableColumn>{t('problem_management.tags') || "TAGS"}</TableColumn>
             <TableColumn>{t('problem_management.difficulty') || "DIFFICULTY"}</TableColumn>
-            <TableColumn className="text-center">{t('problem_management.source') || "SOURCE"}</TableColumn>
-            <TableColumn>{t('problem_management.visible') || "VISIBLE"}</TableColumn>
+            <TableColumn className="text-center">{t('problem_management.mode') || "MODE"}</TableColumn>
+            <TableColumn>{t('problem_management.source') || "SOURCE"}</TableColumn>
             <TableColumn>{t('problem_management.access') || "ACCESS"}</TableColumn>
             <TableColumn className="text-right">{t('problem_management.operations') || "OPERATIONS"}</TableColumn>
           </TableHeader>
@@ -415,17 +417,19 @@ export default function GlobalProblemListPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 max-w-[200px]">
                     {p.tags.length === 0 ? (
                       <span className="text-[8px] text-slate-400 italic">—</span>
                     ) : (
                       p.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5"
+                        <Chip
+                          key={tag.id}
+                          variant="flat"
+                          size="sm"
+                          className="text-[9px] font-black uppercase bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-5"
                         >
-                          {tag}
-                        </span>
+                          {tag.name}
+                        </Chip>
                       ))
                     )}
                   </div>
@@ -462,6 +466,19 @@ export default function GlobalProblemListPage() {
                     </DropdownMenu>
                   </Dropdown>
                 </TableCell>
+                <TableCell className="text-center">
+                  <Chip
+                    variant="flat"
+                    size="sm"
+                    className={`font-black uppercase text-[9px] ${
+                      p.problemMode === "pro"
+                        ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
+                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                    }`}
+                  >
+                    {p.problemMode}
+                  </Chip>
+                </TableCell>
                 <TableCell>
                   <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
                     <span
@@ -472,16 +489,6 @@ export default function GlobalProblemListPage() {
                       <span className="text-[9px] font-black uppercase tracking-wider">PDF</span>
                     </span>
                   </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <Switch
-                    isSelected={p.visible}
-                    size="sm"
-                    isReadOnly // nếu chưa có API toggle thì để read-only
-                    classNames={{
-                      wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
-                    }}
-                  />
                 </TableCell>
                 <TableCell>
                   <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">

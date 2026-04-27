@@ -386,7 +386,7 @@ export default function ModerationManagementPage() {
                             }
                           }}
                         >
-                          {(reportDetail as any)?.problemId || "N/A"}
+                          View Report Target
                         </p>
                         <div>
                           <div className="font-bold text-xs text-slate-500">Status</div>

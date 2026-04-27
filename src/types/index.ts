@@ -1654,5 +1654,28 @@ export interface ClassSlotRankingsResponse {
   traceId: string | null;
 }
 
+export interface CreateClassContestProblemItem {
+  problemId: string;
+  ordinal?: number | null;
+  alias?: string | null;
+  points?: number | null;
+  maxScore?: number | null;
+  timeLimitMs?: number | null;
+  memoryLimitKb?: number | null;
+}
+
+export interface CreateClassContestRequest {
+  title: string | null;
+  slug: string | null;
+  descriptionMd: string | null;
+  startAt: string;
+  endAt: string;
+  freezeAt?: string | null;
+  rules?: string | null;
+  problems: CreateClassContestProblemItem[];
+  slotNo?: number | null;
+  slotTitle?: string | null;
+}
+
 
 

@@ -70,7 +70,7 @@ export default function ProblemManagementPage() {
 
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
   const apiProblems: Problem[] = problemListData?.data || [];
-
+  console.log("apiProblems", problemListData);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
@@ -124,9 +124,10 @@ export default function ProblemManagementPage() {
     return matchesSearch && matchesDifficulty && matchesType;
   });
 
-  const pendingProblems = filteredProblems.filter((p) => p.statusCode === "draft");
-  const approvedProblems = filteredProblems.filter((p) => p.statusCode === "published");
-
+  const pendingProblems = filteredProblems;
+  const approvedProblems = filteredProblems;
+  console.log("approvedProblems", approvedProblems);
+  console.log("pendingProblems", pendingProblems);
   const handleApprove = (problem: Problem) => {
     setSelectedProblem(problem);
     setIsApproveModalOpen(true);
@@ -483,19 +484,8 @@ export default function ProblemManagementPage() {
   };
 
 
-  const ActionButtons = ({ prob, isPending }: { prob: Problem; isPending: boolean }) => (
+  const ActionButtons = ({ prob }: { prob: Problem }) => (
     <div className="flex items-center gap-1">
-      {isPending && (
-        <>
-          <Tooltip content="Approve" className="font-bold text-[10px]">
-            <button onClick={() => handleApprove(prob)} className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all"><CheckCircle2 size={14} /></button>
-          </Tooltip>
-          <Tooltip content="Reject" className="font-bold text-[10px]" color="danger">
-            <button onClick={() => { setSelectedProblem(prob); setIsRejectModalOpen(true); }} className="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"><XCircle size={14} /></button>
-          </Tooltip>
-        </>
-      )}
-
       <Tooltip content="Tags" className="font-bold text-[10px]">
         <button onClick={() => handleOpenTags(prob)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all"><Tags size={14} /></button>
       </Tooltip>
@@ -506,10 +496,9 @@ export default function ProblemManagementPage() {
         </DropdownTrigger>
         <DropdownMenu aria-label="More Actions" classNames={{ base: "dark bg-[#1E2B42] text-white border border-white/10 rounded-xl" }}>
           <DropdownItem key="edit" startContent={<Pencil size={14} />} onClick={() => setEditProblemId(prob.id)}>Edit Details</DropdownItem>
-          <DropdownItem key="view" startContent={<Eye size={14} />} onClick={() => router.push(`/Problem/${prob.id}`)}>View Problem</DropdownItem>
           <DropdownItem key="remix" startContent={<Flame size={14} />} onClick={() => setRemixProblemId(prob.id)}>Remix Problem</DropdownItem>
           <DropdownItem key="template" startContent={<Code size={14} />} onClick={() => setTemplateProblemId(prob.id)}>Code Template</DropdownItem>
-          <DropdownItem key="editorial" startContent={<BookOpen size={14} />} onClick={() => router.push(`/Problem/${prob.id}/Editorial`)}>Editorial</DropdownItem>
+          <DropdownItem key="editorial" startContent={<BookOpen size={14} />} onClick={() => handleOpenEditorial(prob)}>Editorial</DropdownItem>
           <DropdownItem key="archive" startContent={<Archive size={14} />} className="text-red-400" onClick={() => handleOpenArchive(prob)}>Archive</DropdownItem>
         </DropdownMenu>
       </Dropdown>
@@ -582,173 +571,82 @@ export default function ProblemManagementPage() {
         </div>
       </div>
 
-      {/* TABS */}
-      <Tabs
-        color="primary"
-        variant="underlined"
-        classNames={{
-          tabList: "gap-10 pb-2 border-b border-white/5",
-          tab: "h-12 text-[11px] font-black uppercase tracking-[0.2em] text-white/30 data-[selected=true]:text-[#3B5BFF]",
-          cursor: "h-0.5 rounded-full bg-[#3B5BFF] shadow-[0_0_12px_rgba(59,91,255,0.8)]",
-          tabContent: "group-data-[selected=true]:text-[#3B5BFF]",
-        }}
-      >
-        <Tab key="pending" title={`Pending Approval (${pendingProblems.length})`}>
-          <div className="rounded-[2.5rem] overflow-hidden border border-white/5 mt-6" style={{ background: "#162035" }}>
-            <Table
-              aria-label="Pending Table"
-              removeWrapper
-              classNames={{
-                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
-                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
-                tr: "hover:bg-white/[0.03] transition-colors group/row",
-              }}
-            >
-              <TableHeader>
-                <TableColumn className="w-[40%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
-                <TableColumn>Type</TableColumn>
-                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
-                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
-                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
-                <TableColumn className="w-[40%]">TITLE & SLUG</TableColumn>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>DIFFICULTY</TableColumn>
-                <TableColumn>SUBMITTED</TableColumn>
-                <TableColumn align="center">ACTIONS</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent="No problems waiting for approval">
-                {pendingProblems.map((prob) => (
-                  <TableRow key={prob.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{prob.title}</span>
-                        <span className="text-[10px] font-mono text-white/20 uppercase tracking-tighter">{prob.slug}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-[10px] font-black uppercase italic text-white/30 border border-white/5 px-2 py-0.5 rounded-md bg-white/5">Algorithm</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border" style={difficultyStyle(prob.difficulty)}>{prob.difficulty}</div>
-                    </TableCell>
-                    <TableCell className="text-white/30 font-bold text-[11px]">{new Date(prob.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell><ActionButtons prob={prob} isPending={true} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Tab>
-
-        <Tab key="approved" title={`Published Problems (${approvedProblems.length})`}>
-          <div className="rounded-[2.5rem] overflow-hidden border border-white/5 mt-6" style={{ background: "#162035" }}>
-            <Table
-              aria-label="Approved Table"
-              removeWrapper
-              classNames={{
-                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
-                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
-                tr: "hover:bg-white/[0.03] transition-colors group/row",
-              }}
-            >
-              <TableHeader>
-                <TableColumn className="w-[30%]">{language === "vi" ? "Tiêu đề" : "Title"}</TableColumn>
-                <TableColumn>Type</TableColumn>
-                <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
-                <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
-                <TableColumn>Time / Memory</TableColumn>
-                <TableColumn>Stats</TableColumn>
-                <TableColumn>Accept %</TableColumn>
-                <TableColumn>Status</TableColumn>
-                <TableColumn>{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
-                <TableColumn className="w-[30%]">PROBLEM</TableColumn>
-                <TableColumn>LEVEL</TableColumn>
-                <TableColumn>LIMITS</TableColumn>
-                <TableColumn align="center">ACCEPTANCE</TableColumn>
-                <TableColumn align="center">VISIBILITY</TableColumn>
-                <TableColumn align="center">ACTIONS</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent="No published problems found">
-                {approvedProblems.map((prob) => (
-                  <TableRow key={prob.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{prob.title}</span>
-                        <span className="text-[10px] font-mono text-white/20 uppercase tracking-tighter">{prob.slug}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border" style={difficultyStyle(prob.difficulty)}>{prob.difficulty}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Clock size={11} /> {(prob.timeLimitMs / 1000).toFixed(1)}s</div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Database size={11} /> {(prob.memoryLimitKb / 1024).toFixed(0)}MB</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="text-xs font-black italic" style={{ color: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }}>
-                          {prob.acceptancePercent?.toFixed(1) || "0.0"}%
-                        </div>
-                        <div className="w-16 h-1 rounded-full bg-white/5 overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${prob.acceptancePercent || 0}%`, background: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }} />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center"><Switch isSelected={prob.statusCode === "published"} size="sm" classNames={{ wrapper: "group-data-[selected=true]:bg-[#3B5BFF]" }} /></div>
-                    </TableCell>
-                    <TableCell><ActionButtons prob={prob} isPending={false} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Tab>
-      </Tabs>
-
-      {/* MODALS remain mostly same but with refined dark styles */}
-      <Modal isOpen={isApproveModalOpen} onOpenChange={setIsApproveModalOpen} size="sm" classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-lg font-black uppercase flex items-center gap-3">
-                <CheckCircle2 className="text-emerald-500" size={24} /> Approve Problem
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-white/60">Are you sure to <strong>APPROVE</strong> and publish:</p>
-                <p className="font-bold text-white mt-2 text-lg italic tracking-tight">{selectedProblem?.title}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" className="bg-white/5 text-white" onPress={onClose}>Cancel</Button>
-                <Button className="bg-emerald-500 text-white font-bold" onPress={confirmApprove}>Confirm & Publish</Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      <Modal isOpen={isRejectModalOpen} onOpenChange={setIsRejectModalOpen} size="md" classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-lg font-black uppercase flex items-center gap-3">
-                <XCircle className="text-red-500" size={24} /> Reject Problem
-              </ModalHeader>
-              <ModalBody className="space-y-4">
-                <p className="text-white/60">Provide reason for rejecting:</p>
-                <p className="font-bold text-white text-lg italic">{selectedProblem?.title}</p>
-                <Textarea minRows={3} placeholder="Explain what needs to be improved..." value={rejectionReason} onValueChange={setRejectionReason} classNames={{ input: "text-white", inputWrapper: "bg-white/5 border border-white/10 focus-within:!border-red-500" }} />
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" className="bg-white/5 text-white" onPress={onClose}>Cancel</Button>
-                <Button color="danger" className="font-bold" onPress={confirmReject} isDisabled={!rejectionReason.trim()}>Confirm Reject</Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      {/* TABLE */}
+      <div className="rounded-[2.5rem] overflow-hidden border border-white/5 mt-6" style={{ background: "#162035" }}>
+        <Table
+          aria-label="Problems Table"
+          removeWrapper
+          classNames={{
+            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+            td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+            tr: "hover:bg-white/[0.03] transition-colors group/row",
+          }}
+        >
+          <TableHeader>
+            <TableColumn className="w-[30%]">{language === "vi" ? "Tiêu đề & Slug" : "Title & Slug"}</TableColumn>
+            <TableColumn>{language === "vi" ? "Độ khó" : "Difficulty"}</TableColumn>
+            <TableColumn>{language === "vi" ? "Gắn thẻ" : "Tags"}</TableColumn>
+            <TableColumn>Mode</TableColumn>
+            <TableColumn>Time / Memory</TableColumn>
+            <TableColumn>Accept %</TableColumn>
+            <TableColumn align="center">{language === "vi" ? "Thao tác" : "Actions"}</TableColumn>
+          </TableHeader>
+          <TableBody emptyContent={isLoading || isQueryLoading ? "Loading..." : "No problems found"}>
+            {filteredProblems.map((prob, index) => (
+              <TableRow key={prob.id} className="opacity-0 animate-fade-in-up" style={{ animationFillMode: "both", animationDelay: `${index * 50 + 100}ms` }}>
+                <TableCell>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{prob.title}</span>
+                    <span className="text-[10px] font-mono text-white/20 uppercase tracking-tighter">{prob.slug}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-black uppercase border" style={difficultyStyle(prob.difficulty)}>{prob.difficulty}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1 max-w-[150px]">
+                    {prob.tags && prob.tags.length > 0 ? (
+                      prob.tags.map((tag: any) => (
+                        <span key={tag.id || tag} className="text-[8px] font-black uppercase px-2 py-0.5 bg-white/5 text-white/40 rounded-md tracking-tighter border border-white/5">
+                          {tag.name || tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[8px] text-white/20 italic">—</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Chip size="sm" variant="flat" color={prob.problemMode === "pro" ? "warning" : "default"} className="font-black italic uppercase text-[9px]">
+                    {prob.problemMode || "amateur"}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Clock size={11} /> {(prob.timeLimitMs / 1000).toFixed(1)}s</div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 italic"><Database size={11} /> {(prob.memoryLimitKb / 1024).toFixed(0)}MB</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs font-black italic" style={{ color: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }}>
+                      {prob.acceptancePercent?.toFixed(1) || "0.0"}%
+                    </div>
+                    <div className="w-16 h-1 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${prob.acceptancePercent || 0}%`, background: (prob.acceptancePercent ?? 0) > 60 ? "#10B981" : "#F59E0B" }} />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-center">
+                    <ActionButtons prob={prob} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <AttachTagsModal
         isOpen={tagsModal.isOpen}

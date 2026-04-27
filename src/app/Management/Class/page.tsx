@@ -22,23 +22,22 @@ import {
   Filter,
   ChevronDown,
   SortAsc,
-  BookOpen,
-  Users,
   CalendarPlus,
-  UserCog,
   Download,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
-import { useGetClassesQuery, useExportClassTemplateMutation } from "@/store/queries/Class";
+import { useGetClassesQuery, useExportClassTemplateMutation, useImportClassMutation } from "@/store/queries/Class";
+import { toast } from "sonner";
 import CreateSlotForm from "./CreateClassSlotModal";
 import CreateClassModal from "./components/CreateClassModal";
 import CreateTeacherModal from "@/app/{admin}/Class/CreateTeacherModal";
-import { useModal } from "@/Provider/ModalProvider";
 import UpdateTeacherModal from "./UpdateTeacherModal";
 import { useGetALLSemestersQuery } from "@/store/queries/Semester";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { ClassItem, SemesterItem } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useModal } from "@/Provider/ModalProvider";
 
 
 
@@ -53,8 +52,9 @@ export default function ClassListPage() {
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
-
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { openModal } = useModal();
+  const [importClass, { isLoading: isImporting }] = useImportClassMutation();
   const { data: semestersData } = useGetALLSemestersQuery();
   const semesters = semestersData?.data?.items || [];
   
@@ -116,11 +116,6 @@ export default function ClassListPage() {
     return `${semester.name}`.trim();
   };
 
-  const openCreateSlotModal = (semesterId: string) => {
-    openModal({
-      content: <CreateSlotForm semesterId={semesterId} />,
-    });
-  };
   const filter = ()=> {
     if(selectedSemesterName == "All semesters" || selectedSemesterName == null){
       return null;
@@ -134,16 +129,6 @@ export default function ClassListPage() {
                         </Chip>;
     }
   }
-  const openUpdateTeacherForClass = (classId: string, currentTeacherId?: string) => {
-    openModal({
-      content: (
-        <UpdateTeacherModal
-          classId={classId}
-          currentTeacherId={currentTeacherId}
-        />
-      ),
-    });
-  };
 
   if (userProfile && !isManagerOrAdmin) {
     return (
@@ -181,6 +166,30 @@ const handleExportTemplateClass = async()=>{
     console.error("Download failed", error);
   }
   }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("package", file);
+
+    try {
+      await importClass(formData).unwrap();
+      toast.success(t("class_management.import_success") || "Classes imported successfully");
+      refetch();
+    } catch (error: any) {
+      console.error("Import failed", error);
+      const errorMessage = error?.data?.message || t("class_management.import_failed") || "Failed to import classes";
+      toast.error(errorMessage);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
   return (
     <div className="flex flex-col h-full gap-8 p-2">
       {/* HEADER SECTION */}
@@ -228,6 +237,24 @@ const handleExportTemplateClass = async()=>{
           >
             {t('class_management.export_button') || "EXPORT TEMPLATE IMPORT"}
           </Button>
+          <Button
+            startContent={<Upload size={16} strokeWidth={3} />}
+            size="lg"
+            color="primary"
+            variant="flat"
+            isLoading={isImporting}
+            onPress={handleImportClick}
+            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active-bump animate-fade-in-right delay-125"
+          >
+            {t('class_management.import_button') || "IMPORT CLASS"}
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept=".zip,.xlsx,.xls"
+          />
         </div>
       </div>
 
@@ -379,6 +406,7 @@ const handleExportTemplateClass = async()=>{
                         >
                           {cls.isActive ? t('class_management.active') || "ACTIVE" : t('class_management.inactive') || "INACTIVE"}
                         </Chip>
+                        
                       </div>
 
                       {/* Details row */}

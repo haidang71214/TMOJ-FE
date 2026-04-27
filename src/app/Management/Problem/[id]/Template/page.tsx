@@ -201,7 +201,7 @@ export default function ProblemTemplatePage({ inlineProblemId, onCancel }: Probl
         {/* Header & Breadcrumbs */}
         <div className="flex flex-col gap-4">
           <Breadcrumbs variant="light">
-            <BreadcrumbItem href="/Management/Problem">Problems</BreadcrumbItem>
+            <BreadcrumbItem onClick={() => onCancel ? onCancel() : router.back()} className="cursor-pointer">Problems</BreadcrumbItem>
             <BreadcrumbItem>Template Management</BreadcrumbItem>
           </Breadcrumbs>
           

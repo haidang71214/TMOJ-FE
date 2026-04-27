@@ -33,6 +33,7 @@ import {
   Download,
   Upload,
   Trash2,
+  Trophy,
 } from "lucide-react";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -49,6 +50,8 @@ import InviteCodeCard from "@/app/Management/ClassSemester/[id]/InviteCodeCard";
 import AddStudentModal from "@/app/Management/Class/[id]/Member/AddStudentToCLass";
 import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
+import CreateClassContestModal from "@/app/Management/Class/components/CreateClassContestModal";
+import { useGetClassContestsQuery } from "@/store/queries/ClassContest";
 
 export default function TeacherClassDetail({ semesterId }: { semesterId: string }) {
   const { t, language } = useTranslation();
@@ -70,6 +73,9 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
   const [slotPage, setSlotPage] = useState(1);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
 
+  const { data: contestsData, isLoading: isLoadingContests } = useGetClassContestsQuery({ classSemesterId: semesterId });
+  console.log("[Contests]", contestsData);
+
   const { openModal, closeModal } = useModal();
   const rowsPerPage = 10;
 
@@ -77,7 +83,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
     setMounted(true);
   }, []);
 
-  const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
+  const { data: slotData, isLoading: slotLoading, refetch: refetchSlots } = useGetClassSlotsQuery(semesterId, {
     skip: !mounted || !semesterId,
   });
   const slots = slotData?.data ?? [];
@@ -85,6 +91,13 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
   const openCreateSlotModal = () => {
     openModal({
       content: <CreateSlotForma semesterId={semesterId} />,
+    });
+  };
+// ở đây
+  const openCreateContestModal = () => {
+    openModal({
+      size: "full",
+      content: <CreateClassContestModal classSemesterId={semesterId} onCreated={() => refetchSlots()} />,
     });
   };
 
@@ -299,6 +312,16 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
               style={{ animationFillMode: 'both', animationDelay: '350ms' }}
             >
               {t('class_semester.new_slot') || "NEW EXAM"}
+            </Button>
+
+            <Button
+              startContent={<Trophy size={16} strokeWidth={2.5} />}
+              size="md"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-9 px-4 rounded-lg shadow-sm uppercase text-[11px] tracking-wide transition-all active-bump animate-fade-in-up"
+              onPress={openCreateContestModal}
+              style={{ animationFillMode: 'both', animationDelay: '400ms' }}
+            >
+              {t('class_semester.new_contest') || "NEW CONTEST"}
             </Button>
           </div>
         </div>
@@ -631,6 +654,18 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
 
         <Tab key="members" title={t('class_semester.members') || "Members"}>
           <ClassMembersPage classSemesterId={semesterId} />
+        </Tab>
+
+        <Tab key="contests" title="Contests">
+          <div className="py-6">
+            {isLoadingContests ? (
+              <div className="flex justify-center py-10"><Spinner color="primary" /></div>
+            ) : (
+              <pre className="text-xs bg-slate-50 dark:bg-white/5 rounded-2xl p-6 overflow-auto max-h-[500px] whitespace-pre-wrap">
+                {JSON.stringify(contestsData, null, 2)}
+              </pre>
+            )}
+          </div>
         </Tab>
       </Tabs>
     </div>

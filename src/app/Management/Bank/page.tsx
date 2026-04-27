@@ -80,7 +80,7 @@ export default function BankProblemListPage() {
     search: searchQuery,
     difficulty: filterDifficulty === "all" ? "" : filterDifficulty,
   });
-  
+  console.log(apiResponse?.data)
   const [updateDifficulty] = useUpdateProblemDifficultyMutation();
 
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {

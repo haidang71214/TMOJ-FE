@@ -7,6 +7,7 @@ interface ModalConfig {
   title?: string;
   content?: ReactNode;
   actions?: ReactNode;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
 }
 
 interface ModalContextType {
@@ -39,6 +40,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         onClose={closeModal}
         backdrop="blur"
         placement="center"
+        size={modalConfig.size || "md"}
         hideCloseButton={true}
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-md",

@@ -42,7 +42,7 @@ const AdminUserEndPoint = {
 const ProblemEndPoint = {
   // làm lại cái public problm cho student -> draft cho manager/teacher/admin thấy
   GET_LIST_PROBLEM_PUBLIC: `${API_LON}/Problems/public`, // public là để public thuộc status code. ok, auto published. cho sinh viên, 
-  GET_LIST_PROBLEM: `${API_PREFIX}/Problems`, // cái ni đang là lấy hết. // visibility code = published/
+  GET_LIST_PROBLEM: `${API_LON}/Problems/public`, // cái ni đang là lấy hết. // visibility code = published/
   CREATE_PROBLEM_DAFT: `${API_LON}/Problems`, // bỏ create mặc định thành cái này
   UPDATE_PROBLEM: `${API_LON}/Problems/{problemId}/content`,
   CREATE_TESTSET_PROBLEM: `${API_PREFIX}/problems/{id}/testsets`,
@@ -97,6 +97,8 @@ const ClassEndpoint = {
   JOIN_CLASS_BY_INVITECODE: `${API_PREFIX}/Class/join`,
   EXPORT_CLASS: `${API_PREFIX}/Class/{classSemesterId}/report/export`,
   EXPORT_TEMPLATE_CLASS: `${API_PREFIX}/Class/export/template`,
+  IMPORT_CLASS: `${API_PREFIX}/Class/import`,
+  IMPORT_TEMPLATE: `${API_PREFIX}/Class/import/template`,
   IMPORT_PROBLEM_CLASS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/problems`,
 
 
@@ -113,6 +115,8 @@ const ClassEndpoint = {
   GET_MY_CLASSES_TEACHER: `${API_PREFIX}/Class/my-classes/teacher`,
   STUDENT_NOT_YET: `${API_PREFIX}/Class/{classSemesterId}/students/available`,
   CREATE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests`,
+  GET_CLASS_CONTESTS: `${API_PREFIX}/Class/{classSemesterId}/contests`,
+  GET_CLASS_CONTEST_DETAIL: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

@@ -59,23 +59,33 @@ export default function LibraryPage() {
   const [sortBy, setSortBy] = useState<string>("title");
   const [sortOrder, setSortOrder] = useState<string>("asc");
 
+  const PAGE_SIZE = 10;
+
+  // When tag filtering client-side, fetch all data at once; otherwise use server pagination
   const { data: problemResponse, isLoading } = useGetProblemListPublicQuery({
-    page: page,
-    pageSize: 10,
+    page: selectedTagId ? 1 : page,
+    pageSize: selectedTagId ? 1000 : PAGE_SIZE,
     search: searchQuery.trim() !== "" ? searchQuery.trim() : undefined,
     difficulty: selectedDifficulty,
-    tags: selectedTagId || undefined,
     sortBy: sortBy,
-    sortOrder: sortOrder
+    sortOrder: sortOrder,
   });
 
   const rawProblems = problemResponse?.data || [];
-  const totalPages = problemResponse?.pagination?.totalPages || 1;
+  const serverTotalPages = problemResponse?.pagination?.totalPages || 1;
   const totalCount = problemResponse?.pagination?.totalCount || 0;
 
-  // Client-side sorting as a fallback/enhancement for the current page
-  const problems = useMemo(() => {
+  // Filter + sort, then paginate client-side when tag filter is active
+  const filteredProblems = useMemo(() => {
     let result = [...rawProblems];
+
+    // Client-side tag filtering: filter by checking nested tags array
+    if (selectedTagId) {
+      result = result.filter((p) =>
+        (p as any).tags?.some((t: { id: string }) => t.id === selectedTagId)
+      );
+    }
+
     if (sortBy === "title") {
       result.sort((a, b) => sortOrder === "asc" ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
     } else if (sortBy === "acceptancePercent") {
@@ -92,7 +102,17 @@ export default function LibraryPage() {
       });
     }
     return result;
-  }, [rawProblems, sortBy, sortOrder]);
+  }, [rawProblems, sortBy, sortOrder, selectedTagId]);
+
+  // Effective pagination values
+  const totalPages = selectedTagId
+    ? Math.max(1, Math.ceil(filteredProblems.length / PAGE_SIZE))
+    : serverTotalPages;
+
+  // Current page items
+  const problems = selectedTagId
+    ? filteredProblems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    : filteredProblems;
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -281,16 +301,18 @@ export default function LibraryPage() {
                       page={page}
                       pageSize={10}
                     />
-                    <div className="flex justify-center pb-2">
-                      <Pagination
-                        isCompact
-                        showControls
-                        color="warning"
-                        page={page}
-                        total={totalPages}
-                        onChange={setPage}
-                      />
-                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex justify-center pb-2">
+                        <Pagination
+                          isCompact
+                          showControls
+                          color="warning"
+                          page={page}
+                          total={totalPages}
+                          onChange={setPage}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center p-20 text-gray-400 dark:text-[#98A2B3] font-medium flex-col gap-2">

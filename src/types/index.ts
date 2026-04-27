@@ -1675,6 +1675,7 @@ export interface CreateClassContestRequest {
   problems: CreateClassContestProblemItem[];
   slotNo?: number | null;
   slotTitle?: string | null;
+
 }
 
 export interface RankingGlobalRequest {
@@ -1722,5 +1723,42 @@ export interface RankingContestsResponse {
   message: string;
 }
 
+// types/contest.ts  (hoặc file types bạn đang dùng)
 
+export interface ContestProblem {
+  contestProblemId: string;
+  problemId: string;
+  problemTitle: string;
+  problemSlug: string;
+  alias: string;
+  ordinal: number;
+  points: number;
+  maxScore: number | null;
+  timeLimitMs: number | null;
+  memoryLimitKb: number | null;
+}
+
+export interface ContestDetail {
+  contestId: string;
+  classId: string;
+  slotId: string;
+  title: string;
+  slug: string;
+  descriptionMd: string;
+  rules: string;
+  startAt: string;           // ISO date string
+  endAt: string;             // ISO date string
+  freezeAt: string;          // ISO date string
+  isActive: boolean;
+  isJoined: boolean;
+  timeRemainingSeconds: number;
+  createdAt: string;         // ISO date string
+  problems: ContestProblem[];
+}
+
+export interface ClassContestDetailResponse {
+  data: ContestDetail;
+  message: string;
+  traceId: string | null;
+}
 

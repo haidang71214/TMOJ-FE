@@ -105,7 +105,7 @@ export default function ProblemDetailsPage() {
     { submissionId: submissionId! },
     { skip: !submissionId }
   );
-
+  console.log(submissionData)
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
   const { size: leftWidth, onMouseDown: onHDrag } = useResize(
@@ -300,22 +300,50 @@ export default function ProblemDetailsPage() {
                     <div className="animate-fade-in">
                       {(() => {
                         const data = submissionData?.data as any;
+                        const results = data?.results || [];
+                        const isCE = data?.verdictCode?.toLowerCase() === "ce";
+                        const totalTestcases = isCE ? 0 : results.length;
+                        const passedTestcases = isCE ? 0 : results.filter((r: any) => 
+                          r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
+                        ).length;
+
+                        const firstFailedResult = data?.failed?.[0] || results.find((r: any) => r.statusCode !== "ac");
+
+                        const getVerdictLabel = (code: string) => {
+                          const normalized = code.toLowerCase();
+                          const labels: Record<string, string> = {
+                            "ac": "Accepted",
+                            "wa": "Wrong Answer",
+                            "tle": "Time Limit Exceeded",
+                            "mle": "Memory Limit Exceeded",
+                            "rte": "Runtime Error",
+                            "re": "Runtime Error",
+                            "ce": "Compile Error",
+                            "ie": "Internal Error",
+                            "ir": "Invalid Return",
+                            "ole": "Output Limit Exceeded",
+                          };
+                          return labels[normalized] || code.toUpperCase();
+                        };
+
                         return (
                           <>
                             {/* Result Header */}
                             <div className="flex items-center justify-between mb-6">
                               <div className="flex items-center gap-3">
-                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : "text-rose-500"
-                                  }`}>
-                                  {data?.verdictCode?.toUpperCase() || "PENDING"}
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${
+                                  data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : 
+                                  data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                }`}>
+                                  {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
                                 </h2>
                                 <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
-                                  Runtime: {data?.summary?.timeMs || 0}ms
+                                  Runtime: {data?.timeMs || 0}ms
                                 </Chip>
                               </div>
                               <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                 <Clock size={12} />
-                                Submited just now
+                                Submitted {data?.createdAt ? new Date(data.createdAt).toLocaleTimeString() : "just now"}
                               </div>
                             </div>
 
@@ -323,11 +351,18 @@ export default function ProblemDetailsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
                                 <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
-                                  <Database size={14} />
-                                  Memory Usage
+                                  <Clock size={14} />
+                                  Total Runtime
                                 </div>
-                                <div className="text-xl font-black">24.5 MB</div>
-                                <Progress size="sm" value={30} color="primary" className="mt-2" />
+                                <div className="text-xl font-black">
+                                  {data?.timeMs || 0} ms
+                                </div>
+                                <Progress 
+                                  size="sm" 
+                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)} 
+                                  color="primary" 
+                                  className="mt-2" 
+                                />
                               </div>
                               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
                                 <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
@@ -335,19 +370,34 @@ export default function ProblemDetailsPage() {
                                   Testcases Passed
                                 </div>
                                 <div className="text-xl font-black">
-                                  {data?.summary?.passed || 0} / {data?.summary?.total || 0}
+                                  {passedTestcases} / {totalTestcases}
                                 </div>
                                 <Progress
                                   size="sm"
-                                  value={((data?.summary?.passed || 0) / (data?.summary?.total || 1)) * 100}
+                                  value={(passedTestcases / (totalTestcases || 1)) * 100}
                                   color="success"
                                   className="mt-2"
                                 />
                               </div>
                             </div>
 
+                            {/* Compile Error Detail */}
+                            {data?.verdictCode === VerdictCode.CE && (
+                              <div className="space-y-4">
+                                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
+                                    <TriangleAlert size={16} />
+                                    Compilation Error
+                                  </div>
+                                  <pre className="p-4 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed text-rose-400">
+                                    {data.compile?.stderr || data.compile?.stdout || "No error details available."}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Failed Testcase Detail (if any) */}
-                            {data?.verdictCode !== VerdictCode.AC && (
+                            {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
                               <div className="space-y-4">
                                 <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
                                   <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
@@ -356,31 +406,33 @@ export default function ProblemDetailsPage() {
                                   </div>
 
                                   <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Input</p>
-                                      <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5">nums = [2,7,11,15], target = 9</pre>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
                                       <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Expected</p>
-                                        <pre className="p-3 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-mono border border-emerald-500/10">[0,1]</pre>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Error Message</p>
+                                        <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed">
+                                          {firstFailedResult?.message || firstFailedResult?.checkerMessage || "Wrong Answer: Output does not match expected output."}
+                                        </pre>
                                       </div>
-                                      <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Your Output</p>
-                                        <pre className="p-3 bg-rose-500/5 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-mono border border-rose-500/10">null</pre>
+                                    ) : (
+                                      <div className="py-2 text-slate-400 italic text-xs uppercase tracking-widest font-bold">
+                                        No detail available for this failure.
                                       </div>
-                                    </div>
+                                    )}
                                   </div>
                                 </div>
+                              </div>
+                            )}
 
-                                {/* AI DEBUG ASSISTANT INTEGRATION */}
+                            {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
+                            {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
+                              <div className="mb-6">
                                 <AiDebugAssistant
-                                  verdict={data?.verdictCode}
-                                  testcase={{
-                                    input: "nums = [2,7,11,15], target = 9",
-                                    expected: "[0,1]",
-                                    actual: "null"
-                                  }}
+                                  verdict={getVerdictLabel(data?.verdictCode)}
+                                  testcase={firstFailedResult ? {
+                                    input: firstFailedResult.input || "Check message",
+                                    expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
+                                    actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
+                                  } : undefined}
                                 />
                               </div>
                             )}

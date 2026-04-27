@@ -11,8 +11,14 @@ import {
   TriangleAlert,
   FlaskConical,
   CheckSquare,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Chip, Progress, Skeleton } from "@heroui/react";
+import { VerdictCode } from "@/types";
+import { useGetSubmissionQuery } from "@/store/queries/Submittion";
+import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import CompileErrorTab from "./CompileError/page";
@@ -20,7 +26,6 @@ import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import SolutionsTab from "./Solutions/page";
 
-// ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
   { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
   { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
@@ -91,6 +96,17 @@ export default function ProblemDetailsPage() {
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
+
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const { data: submissionData, isLoading: isSubmissionLoading } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { skip: !submissionId, pollingInterval: 3000 }
+  );
+
+  const onSubmissionIdChange = (id: string | null) => {
+    setSubmissionId(id);
+    if (id) setActiveBottomTab("result");
+  };
 
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
@@ -193,8 +209,9 @@ export default function ProblemDetailsPage() {
 <SolutionSubmittion
   editorHeight={editorHeight}
   problemId={problemId}
-    classSlotId={classSlotId}
-  onSubmitSuccess={() => setActiveLeftTab("submissions")}  // ← thêm dòng này
+  classSlotId={classSlotId}
+  onSubmitSuccess={() => setActiveLeftTab("submissions")}
+  onSubmissionIdChange={onSubmissionIdChange}
 />
 
           {/* ── VERTICAL DRAG HANDLE ── */}
@@ -275,12 +292,178 @@ export default function ProblemDetailsPage() {
                   ))}
                 </div>
               ) : (
-                /* Test Result placeholder */
-                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
-                  <CheckSquare size={36} strokeWidth={1.5} />
-                  <p className="text-[12px] font-bold uppercase tracking-widest">
-                    Run your code to see results
-                  </p>
+                /* Test Result detailed view */
+                <div className="h-full overflow-y-auto no-scrollbar">
+                  {!submissionId ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                      <CheckSquare size={36} strokeWidth={1.5} />
+                      <p className="text-[12px] font-bold uppercase tracking-widest">
+                        Run your code to see results
+                      </p>
+                    </div>
+                  ) : isSubmissionLoading && !submissionData ? (
+                    <div className="space-y-6 animate-pulse p-4">
+                      <Skeleton className="h-8 w-1/3 rounded-lg" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-fade-in p-4">
+                      {(() => {
+                        const data = submissionData?.data as any;
+                        const results = data?.results || [];
+                        const isCE = data?.verdictCode?.toLowerCase() === "ce";
+                        const totalTestcases = isCE ? 0 : results.length;
+                        const passedTestcases = isCE ? 0 : results.filter((r: any) => 
+                          r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
+                        ).length;
+
+                        const firstFailedResult = data?.failed?.[0] || results.find((r: any) => r.statusCode !== "ac");
+
+                        const getVerdictLabel = (code: string) => {
+                          const normalized = code.toLowerCase();
+                          const labels: Record<string, string> = {
+                            "ac": "Accepted",
+                            "wa": "Wrong Answer",
+                            "tle": "Time Limit Exceeded",
+                            "mle": "Memory Limit Exceeded",
+                            "rte": "Runtime Error",
+                            "re": "Runtime Error",
+                            "ce": "Compile Error",
+                            "ie": "Internal Error",
+                            "ir": "Invalid Return",
+                            "ole": "Output Limit Exceeded",
+                          };
+                          return labels[normalized] || code.toUpperCase();
+                        };
+
+                        return (
+                          <>
+                            {/* Result Header */}
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${
+                                  data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : 
+                                  data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                }`}>
+                                  {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
+                                </h2>
+                                <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
+                                  Runtime: {data?.timeMs || 0}ms
+                                </Chip>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <Clock size={12} />
+                                Submitted {data?.createdAt ? new Date(data.createdAt).toLocaleTimeString() : "just now"}
+                              </div>
+                            </div>
+
+                            {/* Stats Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <Clock size={14} />
+                                  Total Runtime
+                                </div>
+                                <div className="text-xl font-black">
+                                  {data?.timeMs || 0} ms
+                                </div>
+                                <Progress 
+                                  size="sm" 
+                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)} 
+                                  color="primary" 
+                                  className="mt-2" 
+                                />
+                              </div>
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <CheckSquare size={14} />
+                                  Testcases Passed
+                                </div>
+                                <div className="text-xl font-black">
+                                  {passedTestcases} / {totalTestcases}
+                                </div>
+                                <Progress
+                                  size="sm"
+                                  value={(passedTestcases / (totalTestcases || 1)) * 100}
+                                  color="success"
+                                  className="mt-2"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Compile Error Detail */}
+                            {data?.verdictCode === VerdictCode.CE && (
+                              <div className="space-y-4 mb-6">
+                                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
+                                    <TriangleAlert size={16} />
+                                    Compilation Error
+                                  </div>
+                                  <pre className="p-4 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed text-rose-400">
+                                    {data.compile?.stderr || data.compile?.stdout || "No error details available."}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Failed Testcase Detail (if any) */}
+                            {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
+                              <div className="space-y-4 mb-6">
+                                <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
+                                    <AlertCircle size={16} />
+                                    Failed Testcase Detail
+                                  </div>
+
+                                  <div className="grid grid-cols-1 gap-4">
+                                    {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
+                                      <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Error Message</p>
+                                        <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed">
+                                          {firstFailedResult?.message || firstFailedResult?.checkerMessage || "Wrong Answer: Output does not match expected output."}
+                                        </pre>
+                                      </div>
+                                    ) : (
+                                      <div className="py-2 text-slate-400 italic text-xs uppercase tracking-widest font-bold">
+                                        No detail available for this failure.
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
+                            {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
+                              <div className="mb-6">
+                                <AiDebugAssistant
+                                  verdict={getVerdictLabel(data?.verdictCode)}
+                                  testcase={firstFailedResult ? {
+                                    input: firstFailedResult.input || "Check message",
+                                    expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
+                                    actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
+                                  } : undefined}
+                                />
+                              </div>
+                            )}
+
+                            {data?.verdictCode === VerdictCode.AC && (
+                              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
+                                  <CheckSquare size={40} />
+                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
+                                <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -32,6 +32,7 @@ const getStatusLabel = (verdict: string | null, status: string | null) => {
   if (verdict === "tle") return "Time Limit";
   if (verdict === "mle") return "Memory Limit";
   if (verdict === "rte") return "Runtime Error";
+  if (verdict === "re") return "Runtime Error";
   if (!verdict && status) return status.charAt(0).toUpperCase() + status.slice(1);
   return "Pending";
 };

@@ -656,14 +656,91 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
           <ClassMembersPage classSemesterId={semesterId} />
         </Tab>
 
-        <Tab key="contests" title="Contests">
-          <div className="py-6">
-            {isLoadingContests ? (
-              <div className="flex justify-center py-10"><Spinner color="primary" /></div>
-            ) : (
-              <pre className="text-xs bg-slate-50 dark:bg-white/5 rounded-2xl p-6 overflow-auto max-h-[500px] whitespace-pre-wrap">
-                {JSON.stringify(contestsData, null, 2)}
-              </pre>
+        <Tab key="contests" title={t('class_semester.contests') || "Contests"}>
+          <div className="flex flex-col gap-4 mt-8">
+            {isLoadingContests && (
+              <div className="flex justify-center py-20">
+                <Spinner />
+              </div>
+            )}
+            
+            {!isLoadingContests && (!contestsData?.data || contestsData.data.length === 0) && (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up">
+                <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-full mb-4">
+                  <Trophy size={48} className="opacity-50" />
+                </div>
+                <h3 className="font-black text-xl italic uppercase tracking-wider mb-2 text-[#071739] dark:text-white">No Contests Found</h3>
+                <p className="font-bold text-sm">Create a new contest for this class to get started.</p>
+              </div>
+            )}
+
+            {!isLoadingContests && contestsData?.data && contestsData.data.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {contestsData.data.map((contest: any, idx: number) => (
+                  <Card 
+                    key={contest.contestId} 
+                    className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm border border-transparent hover:border-[#FF5C00]/30 transition-all animate-fade-in-up"
+                    style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
+                  >
+                    <CardBody className="p-6 flex flex-col gap-5">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 rounded-2xl bg-orange-100 text-[#FF5C00] dark:bg-orange-500/10 shrink-0">
+                            <Trophy size={28} />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors line-clamp-1" title={contest.title}>
+                              {contest.title}
+                            </h4>
+                            <Chip 
+                              size="sm" 
+                              variant="flat" 
+                              color={contest.isActive ? "success" : "default"}
+                              className="font-black tracking-widest text-[9px] uppercase h-5 mt-1"
+                            >
+                              {contest.isActive ? "Active" : "Inactive"}
+                            </Chip>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Starts</span>
+                          <span className="text-xs font-bold">{new Date(contest.startAt).toLocaleString()}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ends</span>
+                          <span className="text-xs font-bold">{new Date(contest.endAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center border-t border-divider pt-5">
+                        <div className="flex gap-6">
+                          <div className="flex flex-col items-center">
+                            <span className="text-2xl font-black italic text-blue-600 dark:text-blue-400 leading-none">{contest.problemCount}</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Problems</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className="text-2xl font-black italic text-emerald-600 dark:text-emerald-400 leading-none">{contest.participantCount}</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Participants</span>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          color="primary" 
+                          variant="flat"
+                          className="font-bold uppercase tracking-wider text-[11px] rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10"
+                          // chú ý chỗ này
+                          onPress={() => router.push(`/Management/ClassSemester/${semesterId}/Contest/${contest.contestId}`)}
+                        >
+                          Manage
+                        </Button>
+                      </div>
+                    </CardBody>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
         </Tab>

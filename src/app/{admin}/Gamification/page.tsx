@@ -48,6 +48,7 @@ import {
 } from "@/store/queries/gamification";
 import { AdminBadge, AdminBadgeRule } from "@/types/gamification";
 import { addToast } from "@heroui/toast";
+import { useGamification } from "@/Provider/GamificationProvider";
 
 import {
   Area,
@@ -104,6 +105,7 @@ const MOCK_STREAK_CHART = [
 ];
 
 export default function GamificationManagementPage() {
+  const { showCelebration } = useGamification();
   const { data: badgesData, isLoading: isLoadingBadges } = useGetAdminBadgesQuery();
   const { data: rulesData, isLoading: isLoadingRules } = useGetAdminBadgeRulesQuery();
 
@@ -293,13 +295,22 @@ export default function GamificationManagementPage() {
             Configure badges, rules, events, streaks & rewards
           </p>
         </div>
-        <Button
-          className="bg-[#0B1C3D] text-white font-black"
-          startContent={<Plus size={16} />}
-          onPress={() => setIsCreateBadgeOpen(true)}
-        >
-          Create New Badge
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="flat"
+            className="bg-white/5 text-white/60 border border-white/10"
+            onPress={() => showCelebration({ badgeId: "test", name: "Test Badge", awardedAt: new Date().toISOString() })}
+          >
+            Test Celebration
+          </Button>
+          <Button
+            className="bg-[#0B1C3D] text-white font-black"
+            startContent={<Plus size={16} />}
+            onPress={() => setIsCreateBadgeOpen(true)}
+          >
+            Create New Badge
+          </Button>
+        </div>
       </div>
 
       {/* STATS OVERVIEW */}

@@ -1,6 +1,6 @@
 import { ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { CreateClassContestRequest } from "@/types";
+import { CreateClassContestRequest, ClassContestDetailResponse } from "@/types";
 
 export const classContestApi = baseApi.injectEndpoints({
   overrideExisting: true,
@@ -22,7 +22,7 @@ export const classContestApi = baseApi.injectEndpoints({
       providesTags: ["Contest"],
     }),
 
-    getClassContestDetail: builder.query<any, { classSemesterId: string; contestId: string }>({
+    getClassContestDetail: builder.query<ClassContestDetailResponse, { classSemesterId: string; contestId: string }>({
       query: ({ classSemesterId, contestId }) => ({
         url: ClassEndpoint.GET_CLASS_CONTEST_DETAIL
           .replace("{classSemesterId}", classSemesterId)

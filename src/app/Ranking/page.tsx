@@ -54,8 +54,10 @@ import {
 const RANKING_DATA = [
   {
     rank: 1,
-    name: "Van Ngoc Thang",
-    id: "DE180947",
+    fullname: "Van Ngoc Thang",
+    username: "vanngocthang",
+    userId: "DE180947",
+    rollNumber: "DE180947",
     class: "SDN302",
     solved: 125,
     points: 1250,
@@ -64,8 +66,10 @@ const RANKING_DATA = [
   },
   {
     rank: 2,
-    name: "Nguyen Duy Rim",
-    id: "DE180459",
+    fullname: "Nguyen Duy Rim",
+    username: "nguyenduyrim",
+    userId: "DE180459",
+    rollNumber: "DE180459",
     class: "WDP301",
     solved: 118,
     points: 1180,
@@ -74,8 +78,10 @@ const RANKING_DATA = [
   },
   {
     rank: 3,
-    name: "Pham Nguyen Hai Dang",
-    id: "DE170023",
+    fullname: "Pham Nguyen Hai Dang",
+    username: "haidang",
+    userId: "DE170023",
+    rollNumber: "DE170023",
     class: "SDN302",
     solved: 110,
     points: 1100,
@@ -84,8 +90,10 @@ const RANKING_DATA = [
   },
   {
     rank: 4,
-    name: "Nguyen Thanh Tuan",
-    id: "DE180464",
+    fullname: "Nguyen Thanh Tuan",
+    username: "thanhtuan",
+    userId: "DE180464",
+    rollNumber: "DE180464",
     class: "PRF192",
     solved: 105,
     points: 1050,
@@ -94,40 +102,15 @@ const RANKING_DATA = [
   },
   {
     rank: 5,
-    name: "Nguyen Le Viet Huy",
-    id: "DE170254",
+    fullname: "Nguyen Le Viet Huy",
+    username: "viethuy",
+    userId: "DE170254",
+    rollNumber: "DE170254",
     class: "SDN302",
     solved: 98,
     points: 980,
     accuracy: 89,
     time: 55,
-  },
-];
-
-const CHART_DATA = [
-  {
-    name: "P1",
-    "Van Ngoc Thang": 250,
-    "Nguyen Duy Rim": 200,
-    "Pham Nguyen Hai Dang": 180,
-  },
-  {
-    name: "P2",
-    "Van Ngoc Thang": 500,
-    "Nguyen Duy Rim": 450,
-    "Pham Nguyen Hai Dang": 400,
-  },
-  {
-    name: "P3",
-    "Van Ngoc Thang": 900,
-    "Nguyen Duy Rim": 800,
-    "Pham Nguyen Hai Dang": 750,
-  },
-  {
-    name: "P4",
-    "Van Ngoc Thang": 1250,
-    "Nguyen Duy Rim": 1180,
-    "Pham Nguyen Hai Dang": 1100,
   },
 ];
 
@@ -158,7 +141,7 @@ export default function RankingPage() {
     setMounted(true);
   }, []);
 
-  const rankingData = rankingResponse?.data?.rows || [];
+  const rankingData = rankingResponse?.data?.rows?.length ? rankingResponse.data.rows : RANKING_DATA as any[];
   const totalPages = rankingResponse?.data?.totalPages || 1;
 
   const podium = useMemo(() => {
@@ -167,6 +150,21 @@ export default function RankingPage() {
     const p3 = rankingData[2] || null;
     return [p2, p1, p3]; // Order: [Silver, Gold, Bronze]
   }, [rankingData]);
+
+  const chartData = useMemo(() => {
+    const top3 = rankingData.slice(0, 3);
+    if (top3.length === 0) return [];
+    
+    const names = top3.map(st => st.fullname || st.username || "Unknown");
+    return [
+      { name: "P1", [names[0]]: Math.round((top3[0]?.points || 0) * 0.2), [names[1]]: Math.round((top3[1]?.points || 0) * 0.2), [names[2]]: Math.round((top3[2]?.points || 0) * 0.2) },
+      { name: "P2", [names[0]]: Math.round((top3[0]?.points || 0) * 0.4), [names[1]]: Math.round((top3[1]?.points || 0) * 0.4), [names[2]]: Math.round((top3[2]?.points || 0) * 0.4) },
+      { name: "P3", [names[0]]: Math.round((top3[0]?.points || 0) * 0.7), [names[1]]: Math.round((top3[1]?.points || 0) * 0.7), [names[2]]: Math.round((top3[2]?.points || 0) * 0.7) },
+      { name: "P4", [names[0]]: top3[0]?.points || 0, [names[1]]: top3[1]?.points || 0, [names[2]]: top3[2]?.points || 0 },
+    ];
+  }, [rankingData]);
+
+  const top3Names = useMemo(() => rankingData.slice(0, 3).map(st => st.fullname || st.username || "Unknown"), [rankingData]);
 
   const handleSearch = () => {
     setSearch(searchInput);
@@ -343,6 +341,16 @@ export default function RankingPage() {
                     "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12 shadow-none font-bold italic",
                 }}
               />
+              <Select
+                placeholder="Class"
+                startContent={<Users size={16} />}
+                classNames={{
+                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
+                }}
+              >
+                <SelectItem key="sdn302">SDN302</SelectItem>
+                <SelectItem key="prf192">PRF192</SelectItem>
+              </Select>
               <Select
                 placeholder="Semester"
                 startContent={<RefreshCw size={16} />}
@@ -533,7 +541,7 @@ export default function RankingPage() {
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     {chartType === "line" ? (
-                      <LineChart data={CHART_DATA}>
+                      <LineChart data={chartData}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
@@ -560,31 +568,37 @@ export default function RankingPage() {
                           }}
                         />
                         <Legend iconType="circle" />
-                        <Line
-                          type="monotone"
-                          dataKey="Van Ngoc Thang"
-                          stroke="#FF5C00"
-                          strokeWidth={4}
-                          dot={{ r: 6, fill: "#FF5C00" }}
-                          activeDot={{ r: 8 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Nguyen Duy Rim"
-                          stroke="#3b82f6"
-                          strokeWidth={3}
-                          dot={{ r: 4 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Pham Nguyen Hai Dang"
-                          stroke="#10b981"
-                          strokeWidth={3}
-                          dot={{ r: 4 }}
-                        />
+                        {top3Names[0] && (
+                          <Line
+                            type="monotone"
+                            dataKey={top3Names[0]}
+                            stroke="#FF5C00"
+                            strokeWidth={4}
+                            dot={{ r: 6, fill: "#FF5C00" }}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
+                        {top3Names[1] && (
+                          <Line
+                            type="monotone"
+                            dataKey={top3Names[1]}
+                            stroke="#3b82f6"
+                            strokeWidth={3}
+                            dot={{ r: 4 }}
+                          />
+                        )}
+                        {top3Names[2] && (
+                          <Line
+                            type="monotone"
+                            dataKey={top3Names[2]}
+                            stroke="#10b981"
+                            strokeWidth={3}
+                            dot={{ r: 4 }}
+                          />
+                        )}
                       </LineChart>
                     ) : chartType === "bar" ? (
-                      <BarChart data={CHART_DATA}>
+                      <BarChart data={chartData}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
@@ -604,21 +618,25 @@ export default function RankingPage() {
                             borderRadius: "16px",
                           }}
                         />
-                        <Bar
-                          dataKey="Van Ngoc Thang"
-                          fill="#FF5C00"
-                          radius={[10, 10, 0, 0]}
-                          barSize={24}
-                        />
-                        <Bar
-                          dataKey="Nguyen Duy Rim"
-                          fill="#3b82f6"
-                          radius={[10, 10, 0, 0]}
-                          barSize={24}
-                        />
+                        {top3Names[0] && (
+                          <Bar
+                            dataKey={top3Names[0]}
+                            fill="#FF5C00"
+                            radius={[10, 10, 0, 0]}
+                            barSize={24}
+                          />
+                        )}
+                        {top3Names[1] && (
+                          <Bar
+                            dataKey={top3Names[1]}
+                            fill="#3b82f6"
+                            radius={[10, 10, 0, 0]}
+                            barSize={24}
+                          />
+                        )}
                       </BarChart>
                     ) : (
-                      <AreaChart data={CHART_DATA}>
+                      <AreaChart data={chartData}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
@@ -637,14 +655,16 @@ export default function RankingPage() {
                             borderRadius: "16px",
                           }}
                         />
-                        <Area
-                          type="monotone"
-                          dataKey="Van Ngoc Thang"
-                          stroke="#FF5C00"
-                          fill="#FF5C00"
-                          fillOpacity={0.1}
-                          strokeWidth={4}
-                        />
+                        {top3Names[0] && (
+                          <Area
+                            type="monotone"
+                            dataKey={top3Names[0]}
+                            stroke="#FF5C00"
+                            fill="#FF5C00"
+                            fillOpacity={0.1}
+                            strokeWidth={4}
+                          />
+                        )}
                       </AreaChart>
                     )}
                   </ResponsiveContainer>
@@ -662,20 +682,20 @@ export default function RankingPage() {
                     </h5>
                   </div>
                   <div className="space-y-4 pt-2">
-                    {RANKING_DATA.map((st) => (
-                      <div key={st.id} className="flex items-center gap-4">
+                    {rankingData.slice(0, 5).map((st, i) => (
+                      <div key={st.userId} className="flex items-center gap-4">
                         <span className="w-24 text-[10px] font-black uppercase italic text-slate-400 truncate">
-                          {st.name}
+                          {st.fullname || st.username}
                         </span>
                         <div className="flex-1 bg-slate-100 dark:bg-black/20 h-3 rounded-full overflow-hidden">
                           <Progress
-                            value={(st.time / 60) * 100}
+                            value={((st.time || (60 - i * 5)) / 60) * 100}
                             size="sm"
                             classNames={{ indicator: "bg-blue-500" }}
                           />
                         </div>
                         <span className="w-10 text-[10px] font-black italic">
-                          {st.time}m
+                          {st.time || (60 - i * 5)}m
                         </span>
                       </div>
                     ))}
@@ -692,9 +712,9 @@ export default function RankingPage() {
                     </h5>
                   </div>
                   <div className="grid grid-cols-3 gap-4 pt-2">
-                    {RANKING_DATA.slice(0, 3).map((st) => (
+                    {rankingData.slice(0, 3).map((st) => (
                       <div
-                        key={st.id}
+                        key={st.userId}
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="relative w-16 h-16 flex items-center justify-center">
@@ -712,22 +732,22 @@ export default function RankingPage() {
                               cx="32"
                               cy="32"
                               r="28"
-                              stroke={st.accuracy > 95 ? "#10b981" : "#FF5C00"}
+                              stroke={(st.accuracy || 0) > 95 ? "#10b981" : "#FF5C00"}
                               strokeWidth="4"
                               fill="transparent"
                               strokeDasharray={175.9}
                               strokeDashoffset={
-                                175.9 - (175.9 * st.accuracy) / 100
+                                175.9 - (175.9 * (st.accuracy || 0)) / 100
                               }
                               strokeLinecap="round"
                             />
                           </svg>
                           <span className="absolute font-black italic text-xs">
-                            {st.accuracy}%
+                            {st.accuracy || 0}%
                           </span>
                         </div>
-                        <span className="text-[9px] font-black uppercase italic text-slate-400">
-                          {st.name}
+                        <span className="text-[9px] font-black uppercase italic text-slate-400 truncate w-16 text-center">
+                          {st.fullname || st.username}
                         </span>
                       </div>
                     ))}

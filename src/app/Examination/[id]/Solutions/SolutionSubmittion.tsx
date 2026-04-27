@@ -19,6 +19,7 @@ interface SolutionSubmittionProps {
   problemId: string;
   onSubmitSuccess?: () => void;
   classSlotId?: string;
+  onSubmissionIdChange?: (id: string | null) => void;
 }
 
 const TEMPLATES: Record<string, string> = {
@@ -74,6 +75,7 @@ export default function SolutionSubmittion({
   problemId,
   onSubmitSuccess,
   classSlotId,
+  onSubmissionIdChange,
 }: SolutionSubmittionProps) {
   const { t, language } = useTranslation();
   console.log("classSlotId", classSlotId);
@@ -272,6 +274,7 @@ export default function SolutionSubmittion({
 
       // Set submissionId mới
       setSubmissionId(newSubmissionId)
+      if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
 
       // Toast thông báo đã nộp
       addToast({
@@ -319,6 +322,7 @@ export default function SolutionSubmittion({
       }
 
       setSubmissionId(newSubmissionId)
+      if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
       addToast({
         title: "Đã nộp bài cho slot! Đang chờ kết quả...",
         color: "success"

@@ -1,6 +1,6 @@
-import { API_PREFIX, ClassEndpoint } from "@/constants/endpoints";
+import { API_PREFIX, ClassEndpoint, ClassSlotEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { addClassMemberRequest, DeleteClassStudentRequest, UpdateClassMemberStatusRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse } from "@/types";
+import { addClassMemberRequest, DeleteClassStudentRequest, UpdateClassMemberStatusRequest, ClassItem, ClassMemberResponse, ClassResponse, CreateClassRequest, ImportProblemClassRequest, UpdateClassTeacherPayload, UpdateSlotProblemRequest, UpdateSlotProblemResponse, StudentsNotYetResponse, ClassTotalRankingResponse } from "@/types";
 export const classApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
@@ -271,6 +271,15 @@ joinClass: builder.mutation<void, { inviteCode: string | null }>({
       }),
       invalidatesTags: ["Class"],
     }),
+  //aaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+// cái này thay đổi khi student có submmition, nên đánh submmition ở examination và submittion ở contest có cờ này cho nó thay đổi
+    getClassTotalRanking: builder.query<ClassTotalRankingResponse, { classId: string; semesterId: string }>({
+      query: ({ classId, semesterId }) => ({
+        url: ClassSlotEndpoint.GET_CLASS_TOTAL_RANKING.replace("{classId}", classId).replace("{semesterId}", semesterId),
+        method: "GET",
+      }),
+      providesTags: ["Ranking"],
+    }),
   }),
 });
 
@@ -298,4 +307,5 @@ export const {
    useJoinClassMutation,
    useGetStudentsNotYetQuery,
    useImportClassMutation,
+   useGetClassTotalRankingQuery,
 } = classApi;

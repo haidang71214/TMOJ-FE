@@ -31,6 +31,16 @@ export const classContestApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Contest"],
     }),
+
+    getClassContestScoreboard: builder.query<any, { classSemesterId: string; contestId: string }>({
+      query: ({ classSemesterId, contestId }) => ({
+        url: ClassEndpoint.GET_CLASS_CONTEST_SCOREBOARD
+          .replace("{classSemesterId}", classSemesterId)
+          .replace("{contestId}", contestId),
+        method: "GET",
+      }),
+      providesTags: ["Contest"],
+    }),
   }),
 });
 
@@ -38,4 +48,5 @@ export const {
   useCreateClassContestMutation,
   useGetClassContestsQuery,
   useGetClassContestDetailQuery,
+  useGetClassContestScoreboardQuery,
 } = classContestApi;

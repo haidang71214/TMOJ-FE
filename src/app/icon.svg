@@ -1,0 +1,35 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="32" y2="32">
+      <stop offset="0%" stop-color="#FF6200" />
+      <stop offset="100%" stop-color="#FFB74D" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M16 6V26M10 26H22"
+    stroke="url(#grad)"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+  <path
+    d="M5 11L16 8L27 11"
+    stroke="url(#grad)"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M5 11L2 19C2 19 3.5 21 6.5 21C9.5 21 11 19 11 19L8 11"
+    stroke="url(#grad)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M27 11L30 19C30 19 28.5 21 25.5 21C22.5 21 21 19 21 19L24 11"
+    stroke="url(#grad)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

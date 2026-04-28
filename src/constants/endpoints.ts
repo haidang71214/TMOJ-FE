@@ -117,6 +117,7 @@ const ClassEndpoint = {
   CREATE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests`,
   GET_CLASS_CONTESTS: `${API_PREFIX}/Class/{classSemesterId}/contests`,
   GET_CLASS_CONTEST_DETAIL: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}`,
+  GET_CLASS_CONTEST_SCOREBOARD: `${API_PREFIX}/class/{classSemesterId}/contests/{contestId}/scoreboard`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,
@@ -140,6 +141,7 @@ const ClassSlotEndpoint = {
   GET_SLOT_SCORES: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/scores`,
   GET_USER_SUBMISSION: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/submissions/{userId}`,
   GET_SLOT_RANKINGS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/rankings`,
+  GET_CLASS_TOTAL_RANKING: `${API_PREFIX}/Class/{classId}/semester/{semesterId}/rankings`,
 };
 const NotificationEndpoint = {
   CREATE_NOTIFICATION: `/api/notification`,

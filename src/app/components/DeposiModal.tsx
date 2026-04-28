@@ -12,16 +12,8 @@ import {
   Link,
   Input,
 } from "@heroui/react";
-import {
-  Copy,
-  AlertCircle,
-  QrCode,
-  Info,
-  Crown,
-  ChevronRight,
-  CreditCard,
-} from "lucide-react";
-import { useCreateVNPayPaymentMutation } from "@/store/queries/payment";
+import { Crown, ChevronRight, CreditCard, Zap } from "lucide-react";
+import { useCreatePayOsPaymentMutation } from "@/store/queries/payment";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
 
@@ -30,37 +22,18 @@ interface DepositModalProps {
   onOpenChange: () => void;
 }
 
-export default function DepositModal({
-  isOpen,
-  onOpenChange,
-}: DepositModalProps) {
+export default function DepositModal({ isOpen, onOpenChange }: DepositModalProps) {
   const [amount, setAmount] = React.useState<string>("10000");
-  const [createPayment, { isLoading: isCreatingPayment }] = useCreateVNPayPaymentMutation();
+  const [createPayOsPayment, { isLoading }] = useCreatePayOsPaymentMutation();
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
-  };
-
-  const accountInfo = {
-    bank: "MB BANK",
-    number: "0345678999",
-    name: "NGUYEN DUY RIM",
-    content: "TMOJ DEPOSIT [USER_ID]",
-  };
-
-  const handleVNPayDeposit = async () => {
+  const handleDeposit = async () => {
     const numAmount = parseInt(amount);
     if (isNaN(numAmount) || numAmount < 10000) {
       toast.error("Minimum deposit is 10,000 VND");
       return;
     }
-
     try {
-      const response = await createPayment({
-        amount: numAmount,
-        returnUrl: window.location.origin + "/payment-result"
-      }).unwrap();
+      const response = await createPayOsPayment({ amount: numAmount }).unwrap();
       if (response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       }
@@ -74,7 +47,7 @@ export default function DepositModal({
     <Modal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="2xl"
+      size="lg"
       backdrop="blur"
       placement="top"
       hideCloseButton={true}
@@ -83,77 +56,77 @@ export default function DepositModal({
         backdrop: "z-[9998] bg-[#071739]/50 backdrop-blur-md",
         base: "bg-white dark:bg-[#111c35] rounded-[2.5rem] my-8",
         header: "border-b border-divider dark:border-white/5",
-        closeButton:
-          "hover:bg-[#FF5C00]/10 hover:text-[#FF5C00] transition-all",
       }}
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
+            <ModalHeader>
               <h2 className="text-2xl font-[1000] italic uppercase text-[#071739] dark:text-white">
                 DEPOSIT <span className="text-[#FF5C00]">TMOJ COINS</span>
               </h2>
             </ModalHeader>
+
             <ModalBody className="py-6 overflow-y-auto custom-scrollbar">
-              {/* ENHANCED BANNER */}
-              <div className="relative w-full h-44 rounded-3xl overflow-hidden mb-8 group border border-divider dark:border-white/5 shadow-xl">
+              {/* BANNER */}
+              <div className="relative w-full h-36 rounded-3xl overflow-hidden mb-6 group border border-divider dark:border-white/5 shadow-xl">
                 <Image
                   src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2000"
                   alt="Deposit Banner"
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-[2000ms]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#071739] via-[#071739]/40 to-transparent flex flex-col justify-center items-center text-white z-10 p-6 text-center">
-                  <p className="font-black italic text-[10px] uppercase tracking-[0.3em] text-[#FF5C00] mb-2">
-                    Automated Payment
+                  <p className="font-black italic text-[10px] uppercase tracking-[0.3em] text-[#FF5C00] mb-1">
+                    Instant Deposit
                   </p>
-                  <h3 className="text-4xl font-[1000] italic uppercase leading-none drop-shadow-lg">
-                    1,000 VND{" "}
-                    <span className="text-xl mx-2 text-slate-300">=</span> 1,000
-                    COINS
+                  <h3 className="text-3xl font-[1000] italic uppercase leading-none drop-shadow-lg">
+                    1,000 VND <span className="text-xl mx-2 text-slate-300">=</span> 1,000 COINS
                   </h3>
                 </div>
               </div>
 
-              {/* MEMBERSHIP SECTION (Dẫn đến /Premium) */}
-              <div className="mb-8 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-[2rem] border border-amber-200 dark:border-amber-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/40">
-                    <Crown size={24} />
+              {/* MEMBERSHIP BANNER */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-2xl border border-amber-200 dark:border-amber-500/20 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-amber-500/40">
+                    <Crown size={20} />
                   </div>
                   <div>
-                    <h4 className="font-[1000] italic uppercase text-sm text-amber-700 dark:text-amber-400">
+                    <h4 className="font-[1000] italic uppercase text-xs text-amber-700 dark:text-amber-400">
                       Buy Membership Plan
                     </h4>
-                    <p className="text-[10px] font-bold uppercase text-amber-600/70 dark:text-amber-500/70">
-                      Step 1: Deposit Coins → Step 2: Buy Plan
+                    <p className="text-[9px] font-bold uppercase text-amber-600/70 dark:text-amber-500/70">
+                      Step 1: Deposit → Step 2: Buy Plan
                     </p>
                   </div>
                 </div>
                 <Button
                   as={Link}
                   href="/Premium"
-                  className="bg-amber-500 text-white font-[1000] uppercase italic rounded-xl px-6 h-10 shadow-md hover:bg-amber-600"
-                  endContent={<ChevronRight size={16} />}
+                  size="sm"
+                  className="bg-amber-500 text-white font-[1000] uppercase italic rounded-xl px-4 shadow-md hover:bg-amber-600"
+                  endContent={<ChevronRight size={14} />}
                 >
-                  View Plans
+                  Plans
                 </Button>
               </div>
 
-              {/* VNPAY SECTION */}
-              <div className="mb-8 p-6 bg-blue-500/5 dark:bg-blue-500/10 rounded-[2.5rem] border border-blue-500/20 flex flex-col items-center gap-4 text-center">
+              {/* PAYOS SECTION */}
+              <div className="p-6 bg-[#00c853]/5 dark:bg-[#00c853]/10 rounded-[2.5rem] border border-[#00c853]/20 flex flex-col items-center gap-5">
+                {/* Logo / Label */}
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                    <CreditCard size={28} />
+                  <div className="w-14 h-14 bg-[#00c853] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                    <Zap size={28} />
                   </div>
-                  <h4 className="font-[1000] italic uppercase text-lg text-blue-600 dark:text-blue-400 mt-2">
-                    Instant Deposit via VNPay
+                  <h4 className="font-[1000] italic uppercase text-lg text-[#00c853]">
+                    Pay with PayOS
                   </h4>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 max-w-sm">
-                    Fast, secure, and automated. Your coins will be added immediately after successful payment.
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center">
+                    QR Code · ATM · Internet Banking · E-Wallet
                   </p>
                 </div>
 
+                {/* Amount Input */}
                 <div className="w-full max-w-xs space-y-2">
                   <Input
                     type="number"
@@ -169,111 +142,24 @@ export default function DepositModal({
                       inputWrapper: "rounded-2xl border-divider dark:border-white/10 h-14",
                     }}
                   />
-                  <p className="text-[10px] font-black uppercase text-blue-500/60 italic tracking-widest text-left px-2">
+                  <p className="text-[10px] font-black uppercase text-[#00c853]/60 italic tracking-widest text-left px-2">
                     Minimum deposit: 10,000 VND
                   </p>
                 </div>
 
+                {/* Button */}
                 <Button
-                  className="bg-blue-600 text-white font-[1000] uppercase italic rounded-2xl px-10 h-12 shadow-xl shadow-blue-600/20 hover:scale-105 transition-all w-full sm:w-auto"
-                  isLoading={isCreatingPayment}
-                  onClick={handleVNPayDeposit}
-                  startContent={!isCreatingPayment && <CreditCard size={18} />}
+                  className="bg-[#00c853] text-white font-[1000] uppercase italic rounded-2xl px-10 h-12 shadow-xl shadow-green-500/20 hover:scale-105 transition-all w-full"
+                  isLoading={isLoading}
+                  onClick={handleDeposit}
+                  startContent={!isLoading && <CreditCard size={18} />}
                 >
                   Deposit Now
                 </Button>
               </div>
-
-              <div className="flex items-center gap-4 mb-8">
-                <div className="h-[1px] flex-1 bg-divider" />
-                <span className="text-[10px] font-black text-slate-400 uppercase italic tracking-[0.2em]">OR TRANSFER MANUALLY</span>
-                <div className="h-[1px] flex-1 bg-divider" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-2 mb-6">
-                {/* ACCOUNT INFO */}
-                <div className="space-y-4">
-                  <h4 className="font-[1000] italic uppercase text-[10px] text-slate-400 flex items-center gap-2 tracking-widest">
-                    <Info size={14} className="text-blue-500" /> TRANSFER
-                    DETAILS
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      { label: "BANKING", value: accountInfo.bank },
-                      { label: "ACCOUNT NO.", value: accountInfo.number },
-                      { label: "RECIPIENT", value: accountInfo.name },
-                      { label: "REFERENCE", value: accountInfo.content },
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-divider dark:border-white/5 flex justify-between items-center group transition-all"
-                      >
-                        <div className="overflow-hidden">
-                          <p className="text-[9px] font-black text-slate-400 uppercase italic leading-none mb-2">
-                            {item.label}
-                          </p>
-                          <p className="text-xs font-[1000] uppercase text-[#071739] dark:text-white truncate">
-                            {item.value}
-                          </p>
-                        </div>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          className="bg-white dark:bg-white/5 text-slate-400 hover:text-[#FF5C00] rounded-xl"
-                          onClick={() => copyToClipboard(item.value)}
-                        >
-                          <Copy size={14} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* QR CODE */}
-                <div className="flex flex-col items-center gap-5">
-                  <h4 className="font-[1000] italic uppercase text-[10px] text-slate-400 flex items-center gap-2 w-full tracking-widest">
-                    <QrCode size={14} className="text-[#FF5C00]" /> QUICK SCAN
-                    (VIETQR)
-                  </h4>
-                  <div className="p-5 bg-white rounded-[2rem] shadow-xl border-4 border-[#FF5C00]/10">
-                    <Image
-                      src={`https://api.vietqr.io/image/970422-0345678999-mUInGfP.jpg?accountName=NGUYEN%20DUY%20RIM&amount=50000&addInfo=${encodeURIComponent(
-                        accountInfo.content
-                      )}`}
-                      alt="Payment QR"
-                      width={200}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* IMPORTANT NOTES (Dài ngang ra) */}
-              <div className="bg-blue-50 dark:bg-blue-500/5 p-5 rounded-[2rem] border border-blue-100 dark:border-blue-500/10 flex flex-col gap-3 shadow-inner mx-2">
-                <div className="flex items-center gap-2 border-b border-blue-200/50 dark:border-blue-500/20 pb-2">
-                  <AlertCircle size={18} className="text-blue-500" />
-                  <h4 className="font-[1000] italic uppercase text-[10px] text-blue-700 dark:text-blue-400 tracking-widest">
-                    Important Notes
-                  </h4>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6">
-                  {[
-                    "Enter the EXACT Reference content",
-                    "Wait 1-5 minutes for processing",
-                    "Avoid transfers at 23:59 (Bank Sync)",
-                    "Support Contact: Meiying",
-                  ].map((note, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div className="w-1 h-1 rounded-full bg-blue-400" />
-                      <p className="text-[10px] font-bold text-blue-900/70 dark:text-blue-300/70 uppercase italic tracking-tight">
-                        {note}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </ModalBody>
-            <ModalFooter className="pb-8 pt-4">
+
+            <ModalFooter className="pb-6 pt-3">
               <Button
                 variant="light"
                 onPress={onClose}

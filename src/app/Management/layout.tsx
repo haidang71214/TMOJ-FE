@@ -63,6 +63,13 @@ export default function ManagementLayout({
     }
   }, [pathname]);
 
+  // Bảo vệ route: Nếu user là student thì đá ra ngoài
+  useEffect(() => {
+    if (user && user.role?.toLowerCase() === "student") {
+      router.push("/");
+    }
+  }, [user, router]);
+
   if (!mounted) return null;
 
   return (

@@ -52,6 +52,8 @@ import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
 import CreateClassContestModal from "@/app/Management/Class/components/CreateClassContestModal";
 import { useGetClassContestsQuery } from "@/store/queries/ClassContest";
+import { useGetClassDetailQuery } from "@/store/queries/Class";
+import ClassTotalRanking from "./ClassTotalRanking";
 
 export default function TeacherClassDetail({ semesterId }: { semesterId: string }) {
   const { t, language } = useTranslation();
@@ -60,7 +62,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
   const searchParams = useSearchParams();
   const classCode = searchParams.get("classCode") || "Unknown";
   const semesterCode = searchParams.get("semesterCode") || "";
-
+  const classId = searchParams.get("classId") || "Unknown";
   const [publishSlot] = usePublishClassSlotMutation();
   const [deleteProblems] = useDeleteSlotProblemsMutation();
   const [exportTemplate, { isLoading: isExportingTemplate }] = useExportStudentsImportTemplateMutation();
@@ -74,7 +76,9 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
 
   const { data: contestsData, isLoading: isLoadingContests } = useGetClassContestsQuery({ classSemesterId: semesterId });
-  console.log("[Contests]", contestsData);
+  const { data: classDetailResponse } = useGetClassDetailQuery({ id: semesterId });
+  const classItem = classDetailResponse?.data;
+  const currentInstance = classItem?.instances?.find((inst: any) => inst.classSemesterId === semesterId);
 
   const { openModal, closeModal } = useModal();
   const rowsPerPage = 10;
@@ -656,6 +660,15 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
           <ClassMembersPage classSemesterId={semesterId} />
         </Tab>
 
+        <Tab key="ranking" title={t('class_semester.ranking') || "Ranking"}>
+          <div className="mt-8">
+            <ClassTotalRanking 
+              classId={classId} 
+              semesterId={semesterId} 
+            />
+          </div>
+        </Tab>
+
         <Tab key="contests" title={t('class_semester.contests') || "Contests"}>
           <div className="flex flex-col gap-4 mt-8">
             {isLoadingContests && (
@@ -732,7 +745,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                           variant="flat"
                           className="font-bold uppercase tracking-wider text-[11px] rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10"
                           // chú ý chỗ này
-                          onPress={() => router.push(`/Management/ClassSemester/${semesterId}/Contest/${contest.contestId}`)}
+                          onPress={() => router.push(`/ContestSlotExamintion/${semesterId}/Contest/${contest.contestId}`)}
                         >
                           Manage
                         </Button>

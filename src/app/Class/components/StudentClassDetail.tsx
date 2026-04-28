@@ -37,8 +37,10 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
+import { useGetClassDetailQuery } from "@/store/queries/Class";
 import { ClassSlotResponse } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import ClassTotalRanking from "./ClassTotalRanking";
 
 export default function StudentClassDetail({ semesterId }: { semesterId: string }) {
   const router = useRouter();
@@ -60,6 +62,10 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
   const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
     skip: !mounted || !semesterId,
   });
+  const { data: classDetailResponse } = useGetClassDetailQuery({ id: semesterId });
+  const classItem = classDetailResponse?.data;
+  const currentInstance = classItem?.instances?.find((inst: any) => inst.classSemesterId === semesterId);
+  
   const slots = slotData?.data ?? [];
 
   /* ---------------- MOCK DATA ---------------- */
@@ -288,6 +294,22 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                   }}
                 />
               </div>
+            </div>
+          </Tab>
+
+          {/* --- TAB: CLASS RANKING --- */}
+          <Tab key="ranking" title={t('class_semester.ranking') || "Class Ranking"}>
+            <div className="mt-8">
+              {classItem && currentInstance ? (
+                <ClassTotalRanking 
+                  classId={classItem.classId} 
+                  semesterId={currentInstance.semesterId} 
+                />
+              ) : (
+                <div className="flex justify-center py-20">
+                  <Spinner />
+                </div>
+              )}
             </div>
           </Tab>
 

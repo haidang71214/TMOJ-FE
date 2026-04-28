@@ -1762,3 +1762,41 @@ export interface ClassContestDetailResponse {
   traceId: string | null;
 }
 
+export interface ClassTotalRankingSlotStat {
+  slotId: string;
+  slotTitle: string;
+  solved: number;
+  penalty: number;
+}
+
+export interface ClassTotalRankingRow {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  rank: number;
+  totalSolved: number;
+  totalPenalty: number;
+  slotStats: ClassTotalRankingSlotStat[];
+}
+
+export interface ClassTotalRankingSlot {
+  slotId: string;
+  slotNo: number;
+  title: string;
+  dueAt: string;
+}
+
+export interface ClassTotalRankingData {
+  className: string;
+  classSemesterId: string;
+  lastUpdated: string;
+  subjectName: string;
+  rankings: ClassTotalRankingRow[];
+  slots: ClassTotalRankingSlot[];
+}
+
+export interface ClassTotalRankingResponse {
+  data: ClassTotalRankingData;
+  message: string;
+}

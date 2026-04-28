@@ -9,17 +9,31 @@ import {
   StoreResponse,
 } from "@/types/store";
 
+const normalizeStoreItem = (item: any): StoreItem => ({
+  itemId: item.itemId || item.ItemId,
+  name: item.name || item.Name,
+  description: item.description || item.Description,
+  itemType: item.itemType || item.ItemType,
+  priceCoin: item.priceCoin !== undefined ? item.priceCoin : item.PriceCoin,
+  imageUrl: item.imageUrl || item.ImageUrl,
+  durationDays: item.durationDays !== undefined ? item.durationDays : item.DurationDays,
+  stockQuantity: item.stockQuantity !== undefined ? item.stockQuantity : item.StockQuantity,
+  metaJson: typeof item.metaJson === 'string' ? JSON.parse(item.metaJson) : (item.metaJson || item.MetaJson),
+  isActive: item.isActive !== undefined ? item.isActive : item.IsActive,
+});
+
 export const storeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // USER APIs
     getStoreItems: builder.query<StoreItem[], void>({
       query: () => StoreEndpoint.ITEMS,
-      transformResponse: (response: StoreResponse<StoreItem[]>) => response.data,
+      transformResponse: (response: StoreResponse<any[]>) =>
+        (response.data || []).map(normalizeStoreItem),
       providesTags: ["Store"],
     }),
     getStoreItemDetail: builder.query<StoreItem, string>({
       query: (itemId) => StoreEndpoint.ITEM_DETAIL.replace("{itemId}", itemId),
-      transformResponse: (response: StoreResponse<StoreItem>) => response.data,
+      transformResponse: (response: StoreResponse<any>) => normalizeStoreItem(response.data),
       providesTags: (result, error, itemId) => [{ type: "Store", id: itemId }],
     }),
     buyItem: builder.mutation<void, BuyItemRequest>({
@@ -34,12 +48,33 @@ export const storeApi = baseApi.injectEndpoints({
     // INVENTORY APIs
     getMyInventory: builder.query<InventoryItem[], void>({
       query: () => StoreEndpoint.MY_INVENTORY,
-      transformResponse: (response: StoreResponse<InventoryItem[]>) => response.data,
+      transformResponse: (response: StoreResponse<any[]>) =>
+        (response.data || []).map(item => ({
+          inventoryId: item.inventoryId || item.InventoryId,
+          itemId: item.itemId || item.ItemId,
+          itemName: item.itemName || item.ItemName,
+          itemImageUrl: item.itemImageUrl || item.ItemImageUrl,
+          itemType: item.itemType || item.ItemType,
+          acquiredAt: item.acquiredAt || item.AcquiredAt,
+          expiresAt: item.expiresAt || item.ExpiresAt,
+          isEquipped: item.isEquipped !== undefined ? item.isEquipped : item.IsEquipped,
+          isExpired: item.isExpired !== undefined ? item.isExpired : item.IsExpired,
+        })),
       providesTags: ["Inventory"],
     }),
     getInventoryDetail: builder.query<InventoryItem, string>({
       query: (inventoryId) => StoreEndpoint.INVENTORY_DETAIL.replace("{inventoryId}", inventoryId),
-      transformResponse: (response: StoreResponse<InventoryItem>) => response.data,
+      transformResponse: (response: StoreResponse<any>) => ({
+        inventoryId: response.data.inventoryId || response.data.InventoryId,
+        itemId: response.data.itemId || response.data.ItemId,
+        itemName: response.data.itemName || response.data.ItemName,
+        itemImageUrl: response.data.itemImageUrl || response.data.ItemImageUrl,
+        itemType: response.data.itemType || response.data.ItemType,
+        acquiredAt: response.data.acquiredAt || response.data.AcquiredAt,
+        expiresAt: response.data.expiresAt || response.data.ExpiresAt,
+        isEquipped: response.data.isEquipped !== undefined ? response.data.isEquipped : response.data.IsEquipped,
+        isExpired: response.data.isExpired !== undefined ? response.data.isExpired : response.data.IsExpired,
+      }),
       providesTags: (result, error, inventoryId) => [{ type: "Inventory", id: inventoryId }],
     }),
     equipItem: builder.mutation<void, { inventoryId: string; isEquipped: boolean }>({

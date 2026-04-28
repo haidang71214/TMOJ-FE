@@ -24,76 +24,15 @@ import {
   Image,
   Tooltip,
 } from "@heroui/react";
-import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon, TrendingUp, History, User, Coins, Clock } from "lucide-react";
+import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon, History, Coins, Clock } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
 import CoinItemModal from "./CoinItemModal";
-import { CoinItem, ProductPurchaseHistory } from "@/types";
 import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
+import { useGetStoreItemsQuery, useDeleteStoreItemMutation } from "@/store/queries/store";
+import { StoreItem } from "@/types/store";
+import { toast } from "sonner";
 
-const MOCK_ITEMS: CoinItem[] = [
-  {
-    id: 1,
-    name: "Áo Polo FPT Cam",
-    description: "Đồng phục Polo FPT màu cam năng động, chất liệu thoáng mát.",
-    price: 80000,
-    image: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
-    category: "Fashion",
-    stock: 100,
-    sales: 45,
-    createdAt: "2026-01-10",
-    active: true,
-  },
-  {
-    id: 2,
-    name: "Áo Polo FPT Trắng Phối Cam",
-    description: "Áo Polo FPT màu trắng phối cam thanh lịch.",
-    price: 90000,
-    image: "https://dongphuccati.com/images/products/2020/05/18/original/2-1.jpg",
-    category: "Fashion",
-    stock: 80,
-    sales: 32,
-    createdAt: "2026-01-12",
-    active: true,
-  },
-  {
-    id: 3,
-    name: "Balo FPT Software",
-    description: "Balo laptop FPT Software cao cấp, chống nước.",
-    price: 250000,
-    image: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
-    category: "Accessories",
-    stock: 50,
-    sales: 120,
-    createdAt: "2026-02-05",
-    active: true,
-  },
-  {
-    id: 4,
-    name: "Cặp FPT",
-    description: "Cặp FPT thời trang, bền đẹp.",
-    price: 300000,
-    image: "https://5.imimg.com/data5/ANDROID/Default/2022/8/ND/IF/PO/22020579/product-jpeg-500x500.jpg",
-    category: "Accessories",
-    stock: 500,
-    sales: 230,
-    createdAt: "2026-01-05",
-    active: true,
-  },
-  {
-    id: 5,
-    name: "Bút FPT Excellence",
-    description: "Bút vinh danh dành cho sinh viên xuất sắc.",
-    price: 30000,
-    image: "https://tse1.mm.bing.net/th/id/OIP.6s4XuaMBVNzZBi9C_Rl_CQHaFj?w=700&h=525&rs=1&pid=ImgDetMain&o=7&rm=3",
-    category: "Collection",
-    stock: 20,
-    sales: 5,
-    createdAt: "2026-03-20",
-    active: true,
-  },
-];
-
-const MOCK_HISTORY: ProductPurchaseHistory[] = [
+const MOCK_HISTORY = [
   {
     id: "ORD-001",
     itemName: "Áo Polo FPT Cam",
@@ -114,27 +53,18 @@ const MOCK_HISTORY: ProductPurchaseHistory[] = [
     purchaseDate: "2026-04-21 14:15",
     status: "Shipped",
   },
-  {
-    id: "ORD-003",
-    itemName: "Dây đeo thẻ FPT",
-    itemImage: "https://5.imimg.com/data5/ANDROID/Default/2022/8/ND/IF/PO/22020579/product-jpeg-500x500.jpg",
-    buyerName: "Lê Văn C",
-    buyerEmail: "clv@fpt.edu.vn",
-    price: 100,
-    purchaseDate: "2026-04-22 09:00",
-    status: "Pending",
-  },
 ];
 
 const formatVND = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 export default function CoinManagerPage() {
-  const [items, setItems] = useState<CoinItem[]>(MOCK_ITEMS);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editing, setEditing] = useState<CoinItem | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<CoinItem | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<StoreItem | null>(null);
   const [activeTab, setActiveTab] = useState("items");
+
+  const { data: items = [], isLoading } = useGetStoreItemsQuery();
+  const [deleteItem, { isLoading: isDeleting }] = useDeleteStoreItemMutation();
 
   const { openModal } = useModal();
 
@@ -144,16 +74,21 @@ export default function CoinManagerPage() {
     );
   }, [items, searchQuery]);
 
-  const openDeleteModal = (item: CoinItem) => {
+  const openDeleteModal = (item: StoreItem) => {
     setItemToDelete(item);
     setDeleteModalOpen(true);
   };
 
-  const removeItem = () => {
+  const handleRemoveItem = async () => {
     if (!itemToDelete) return;
-    setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
-    setDeleteModalOpen(false);
-    setItemToDelete(null);
+    try {
+      await deleteItem(itemToDelete.itemId).unwrap();
+      toast.success("Item deleted successfully");
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete item");
+    }
   };
 
   return (
@@ -171,7 +106,7 @@ export default function CoinManagerPage() {
           <Button
             variant="flat"
             className="font-black uppercase text-[10px] tracking-widest h-11 px-6 rounded-xl bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
-            onPress={() => alert("Sales Report Downloaded")}
+            onPress={() => toast.info("Feature coming soon")}
             startContent={<Download size={16} />}
           >
             Export Report
@@ -222,94 +157,107 @@ export default function CoinManagerPage() {
             </div>
 
             {/* GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {filteredItems.map((item) => (
-                <Card
-                  key={item.id}
-                  className="bg-[#162035] border border-white/5 rounded-[2rem] overflow-hidden hover:border-[#3B5BFF]/30 transition-all group shadow-2xl"
-                >
-                  <CardBody className="p-0">
-                    <div className="relative h-48 w-full overflow-hidden">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        removeWrapper
-                      />
-                      <div className="absolute top-4 right-4 z-10">
-                        <Chip
-                          size="sm"
-                          className={`font-black text-[9px] border-none shadow-xl ${item.active ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}
-                        >
-                          {item.active ? "ACTIVE" : "DISABLED"}
-                        </Chip>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="h-64 bg-[#162035] animate-pulse rounded-[2rem]" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {filteredItems.map((item) => (
+                  <Card
+                    key={item.itemId}
+                    className="bg-[#162035] border border-white/5 rounded-[2rem] overflow-hidden hover:border-[#3B5BFF]/30 transition-all group shadow-2xl"
+                  >
+                    <CardBody className="p-0">
+                      <div className="relative h-48 w-full overflow-hidden">
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          removeWrapper
+                        />
+                        <div className="absolute top-4 right-4 z-10">
+                          <Chip
+                            size="sm"
+                            className={`font-black text-[9px] border-none shadow-xl ${!item.isActive
+                              ? "bg-red-500 text-white"
+                              : item.stockQuantity === 0
+                                ? "bg-amber-500 text-white"
+                                : "bg-emerald-500 text-white"
+                              }`}
+                          >
+                            {!item.isActive ? "DISABLED" : item.stockQuantity === 0 ? "OUT OF STOCK" : "ACTIVE"}
+                          </Chip>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#162035] to-transparent" />
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#162035] to-transparent" />
-                    </div>
 
-                    <div className="p-6 space-y-4">
-                      <div>
-                        <Chip size="sm" variant="flat" className="bg-[#3B5BFF]/10 text-[#7B9FFF] font-black text-[9px] uppercase mb-2 border-none">
-                          {item.category}
-                        </Chip>
-                        <h3 className="font-black text-xl text-white italic tracking-tight leading-tight">
-                          {item.name}
-                        </h3>
-                      </div>
-
-                      <p className="text-xs text-white/40 line-clamp-2 italic font-medium leading-relaxed">
-                        {item.description}
-                      </p>
-
-                      <div className="flex justify-between items-end pt-4 border-t border-white/5">
+                      <div className="p-6 space-y-4">
                         <div>
-                          <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">
-                            Market Price
-                          </p>
-                          <div className="flex items-center gap-1.5">
-                            <Coins size={16} className="text-[#3B5BFF]" />
-                            <p className="text-2xl font-black text-white italic">
-                              {formatVND(item.price)}
+                          <Chip size="sm" variant="flat" className="bg-[#3B5BFF]/10 text-[#7B9FFF] font-black text-[9px] uppercase mb-2 border-none">
+                            {item.itemType}
+                          </Chip>
+                          <h3 className="font-black text-xl text-white italic tracking-tight leading-tight">
+                            {item.name}
+                          </h3>
+                        </div>
+
+                        <p className="text-xs text-white/40 line-clamp-2 italic font-medium leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        <div className="flex justify-between items-end pt-4 border-t border-white/5">
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">
+                              Market Price
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <Coins size={16} className="text-[#3B5BFF]" />
+                              <p className="text-2xl font-black text-white italic">
+                                {formatVND(item.priceCoin)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">
+                              Stock Quantity
+                            </p>
+                            <p className="font-black text-white/80">
+                              {item.stockQuantity ?? 0} <span className="text-[10px] text-white/30 uppercase">Units</span>
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] mb-1">
-                            Inventory
-                          </p>
-                          <p className="font-black text-white/80">
-                            {item.stock} <span className="text-[10px] text-white/30 uppercase">Units</span>
-                          </p>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                          <Tooltip content="Edit Item" className="font-bold text-[10px]">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
+                              onPress={() => openModal({ content: <CoinItemModal initialData={item} /> })}
+                            >
+                              <Edit size={16} />
+                            </Button>
+                          </Tooltip>
+                          <Tooltip content="Delete" className="font-bold text-[10px]" color="danger">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
+                              onPress={() => openDeleteModal(item)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </Tooltip>
                         </div>
                       </div>
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <Tooltip content="Edit Item" className="font-bold text-[10px]">
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
-                            onClick={() => setEditing(item)}
-                          >
-                            <Edit size={16} />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip content="Delete" className="font-bold text-[10px]" color="danger">
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
-                            onClick={() => openDeleteModal(item)}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
+                    </CardBody>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </Tab>
 
@@ -407,94 +355,6 @@ export default function CoinManagerPage() {
         </Tab>
       </Tabs>
 
-      {/* EDIT MODAL */}
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
-        <ModalContent>
-          <ModalHeader className="font-black uppercase tracking-tighter text-2xl italic border-b border-white/5 pb-4">Edit <span className="text-[#3B5BFF] ml-2">Market Item</span></ModalHeader>
-          <ModalBody className="space-y-6 pt-6">
-            <Input
-              label="Item Display Name"
-              labelPlacement="outside"
-              placeholder="e.g. FPT Hoodie Special Edition"
-              defaultValue={editing?.name}
-              onChange={(e) =>
-                setEditing((prev) =>
-                  prev ? { ...prev, name: e.target.value } : null
-                )
-              }
-              classNames={{ inputWrapper: "bg-white/5 border border-white/10 h-12 rounded-xl focus-within:!border-[#3B5BFF]", label: "text-white/40 font-black uppercase text-[10px] tracking-widest", input: "text-white font-bold" }}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Price (Coins)"
-                type="number"
-                labelPlacement="outside"
-                defaultValue={editing?.price?.toString()}
-                startContent={<Coins size={16} className="text-[#3B5BFF]" />}
-                onChange={(e) =>
-                  setEditing((prev) =>
-                    prev
-                      ? { ...prev, price: Number(e.target.value) || 0 }
-                      : null
-                  )
-                }
-                classNames={{ inputWrapper: "bg-white/5 border border-white/10 h-12 rounded-xl focus-within:!border-[#3B5BFF]", label: "text-white/40 font-black uppercase text-[10px] tracking-widest", input: "text-white font-bold" }}
-              />
-              <Input
-                label="Stock Units"
-                type="number"
-                labelPlacement="outside"
-                defaultValue={editing?.stock?.toString()}
-                startContent={<PackageIcon size={16} className="text-[#3B5BFF]" />}
-                onChange={(e) =>
-                  setEditing((prev) =>
-                    prev
-                      ? { ...prev, stock: Number(e.target.value) || 0 }
-                      : null
-                  )
-                }
-                classNames={{ inputWrapper: "bg-white/5 border border-white/10 h-12 rounded-xl focus-within:!border-[#3B5BFF]", label: "text-white/40 font-black uppercase text-[10px] tracking-widest", input: "text-white font-bold" }}
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-              <div className="flex flex-col">
-                <span className="font-black uppercase text-[10px] tracking-widest text-white/80">Marketplace Visibility</span>
-                <span className="text-[10px] text-white/30 italic">Hide or show item in user shop</span>
-              </div>
-              <Switch
-                isSelected={editing?.active ?? true}
-                onValueChange={(value) => {
-                  setEditing((prev) =>
-                    prev ? { ...prev, active: value } : null
-                  );
-                }}
-                classNames={{ wrapper: "group-data-[selected=true]:bg-[#3B5BFF]" }}
-              />
-            </div>
-          </ModalBody>
-          <ModalFooter className="border-t border-white/5 mt-4">
-            <Button variant="flat" className="bg-white/5 text-white/50 font-bold uppercase text-[10px]" onClick={() => setEditing(null)}>
-              Discard
-            </Button>
-            <Button
-              className="bg-[#3B5BFF] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-widest"
-              onPress={() => {
-                if (editing) {
-                  setItems((prev) =>
-                    prev.map((i) =>
-                      i.id === editing.id ? { ...i, ...editing } : i
-                    )
-                  );
-                }
-                setEditing(null);
-              }}
-            >
-              Update Changes
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
       {/* DELETE MODAL */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} classNames={{ base: "dark bg-[#0E1420] text-white border border-white/10" }}>
         <ModalContent>
@@ -514,11 +374,9 @@ export default function CoinManagerPage() {
               Back
             </Button>
             <Button
+              isLoading={isDeleting}
               className="bg-red-500 text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-widest"
-              onPress={() => {
-                if (itemToDelete) removeItem();
-                setDeleteModalOpen(false);
-              }}
+              onPress={handleRemoveItem}
             >
               Delete Item
             </Button>

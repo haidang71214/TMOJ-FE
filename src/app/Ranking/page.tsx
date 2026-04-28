@@ -154,7 +154,7 @@ export default function RankingPage() {
   const chartData = useMemo(() => {
     const top3 = rankingData.slice(0, 3);
     if (top3.length === 0) return [];
-    
+
     const names = top3.map(st => st.fullname || st.username || "Unknown");
     return [
       { name: "P1", [names[0]]: Math.round((top3[0]?.points || 0) * 0.2), [names[1]]: Math.round((top3[1]?.points || 0) * 0.2), [names[2]]: Math.round((top3[2]?.points || 0) * 0.2) },
@@ -168,6 +168,12 @@ export default function RankingPage() {
 
   const handleSearch = () => {
     setSearch(searchInput);
+    setPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchInput("");
+    setSearch("");
     setPage(1);
   };
 
@@ -342,16 +348,6 @@ export default function RankingPage() {
                 }}
               />
               <Select
-                placeholder="Class"
-                startContent={<Users size={16} />}
-                classNames={{
-                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
-                }}
-              >
-                <SelectItem key="sdn302">SDN302</SelectItem>
-                <SelectItem key="prf192">PRF192</SelectItem>
-              </Select>
-              <Select
                 placeholder="Semester"
                 startContent={<RefreshCw size={16} />}
                 classNames={{
@@ -392,7 +388,8 @@ export default function RankingPage() {
                 </Button>
                 <Button
                   isIconOnly
-                  title="Reset Ranking (Admin)"
+                  onClick={handleReset}
+                  title="Reset Filters"
                   className="bg-red-500/10 text-red-500 border border-red-500/20 font-[1000] italic h-12 w-12 shrink-0 rounded-2xl uppercase shadow-lg hover:bg-red-500 hover:text-white transition-colors"
                 >
                   <RotateCcw size={16} />

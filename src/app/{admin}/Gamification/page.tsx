@@ -48,6 +48,7 @@ import {
 } from "@/store/queries/gamification";
 import { AdminBadge, AdminBadgeRule } from "@/types/gamification";
 import { addToast } from "@heroui/toast";
+import { useGamification } from "@/Provider/GamificationProvider";
 
 import {
   Area,
@@ -104,6 +105,7 @@ const MOCK_STREAK_CHART = [
 ];
 
 export default function GamificationManagementPage() {
+  const { showCelebration } = useGamification();
   const { data: badgesData, isLoading: isLoadingBadges } = useGetAdminBadgesQuery();
   const { data: rulesData, isLoading: isLoadingRules } = useGetAdminBadgeRulesQuery();
 
@@ -289,17 +291,26 @@ export default function GamificationManagementPage() {
           <h1 className="text-3xl font-black uppercase">
             Gamification <span className="text-[#FF5C00]">Management</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-500">
+          <p className="text-xs uppercase tracking-widest text-white/40">
             Configure badges, rules, events, streaks & rewards
           </p>
         </div>
-        <Button
-          className="bg-[#0B1C3D] text-white font-black"
-          startContent={<Plus size={16} />}
-          onPress={() => setIsCreateBadgeOpen(true)}
-        >
-          Create New Badge
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="flat"
+            className="bg-white/5 text-white/60 border border-white/10"
+            onPress={() => showCelebration({ badgeId: "test", name: "Test Badge", awardedAt: new Date().toISOString() })}
+          >
+            Test Celebration
+          </Button>
+          <Button
+            className="bg-[#0B1C3D] text-white font-black"
+            startContent={<Plus size={16} />}
+            onPress={() => setIsCreateBadgeOpen(true)}
+          >
+            Create New Badge
+          </Button>
+        </div>
       </div>
 
       {/* STATS OVERVIEW */}
@@ -307,7 +318,7 @@ export default function GamificationManagementPage() {
         <Card className="bg-linear-to-br from-orange-500/10 to-yellow-500/10 border-none shadow-none">
           <CardBody className="text-center py-8">
             <div className="text-5xl font-black text-orange-500">{isLoadingBadges ? "..." : badges.length}</div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mt-2 flex items-center justify-center gap-2 font-bold">
+            <div className="text-xs uppercase tracking-widest text-orange-500/60 mt-2 flex items-center justify-center gap-2 font-bold">
               <Award size={16} /> Total Badges Created
             </div>
           </CardBody>
@@ -316,8 +327,8 @@ export default function GamificationManagementPage() {
 
       {/* NEW: CHARTS SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white border border-slate-200 dark:bg-black/40 dark:border-white/10 shadow-sm p-6 rounded-2xl">
-          <h3 className="font-black uppercase tracking-widest text-xs mb-6 text-fuchsia-500">
+        <Card className="bg-white/[0.03] border-white/[0.07] backdrop-blur-sm shadow-none p-6 rounded-2xl">
+          <h3 className="font-black uppercase tracking-widest text-[10px] mb-6 text-fuchsia-500/80">
             Overall Achievements (By Level)
           </h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -330,8 +341,8 @@ export default function GamificationManagementPage() {
           </ResponsiveContainer>
         </Card>
 
-        <Card className="bg-white border border-slate-200 dark:bg-black/40 dark:border-white/10 shadow-sm p-6 rounded-2xl">
-          <h3 className="font-black uppercase tracking-widest text-xs mb-6 text-[#22C55E]">
+        <Card className="bg-white/[0.03] border-white/[0.07] backdrop-blur-sm shadow-none p-6 rounded-2xl">
+          <h3 className="font-black uppercase tracking-widest text-[10px] mb-6 text-[#22C55E]/80">
             Learning Streak Distribution
           </h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -356,8 +367,16 @@ export default function GamificationManagementPage() {
         <Tab title="Badges & Rules">
           <div className="space-y-8">
             {/* BADGES TABLE */}
-            <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 overflow-hidden">
-              <Table aria-label="Badges" removeWrapper>
+            <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm overflow-hidden">
+              <Table
+                aria-label="Badges"
+                removeWrapper
+                classNames={{
+                  th: "bg-white/[0.05] text-slate-300 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+                  td: "text-white/75 border-b border-white/[0.05] py-3",
+                  tr: "hover:bg-white/[0.03] transition-colors",
+                }}
+              >
                 <TableHeader>
                   <TableColumn>ICON</TableColumn>
                   <TableColumn>NAME / CODE</TableColumn>
@@ -385,17 +404,30 @@ export default function GamificationManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Chip size="sm" variant="flat" className="font-black italic uppercase text-[9px]">
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={
+                            b.badgeCategory === "contest" ? "warning" :
+                              b.badgeCategory === "course" ? "primary" :
+                                b.badgeCategory === "streak" ? "danger" :
+                                  b.badgeCategory === "problem" ? "success" : "secondary"
+                          }
+                          className="font-bold uppercase text-[10px] border-white/5 bg-white/5"
+                        >
                           {b.badgeCategory}
                         </Chip>
                       </TableCell>
                       <TableCell>
-                        <span className="font-black italic text-xs">Lv {b.badgeLevel}</span>
+                        <span className="font-black italic text-xs text-white/90">Lv {b.badgeLevel}</span>
                       </TableCell>
                       <TableCell>
-                        <Chip color={b.isRepeatable ? "success" : "default"} size="sm" variant="flat">
-                          {b.isRepeatable ? "Yes" : "No"}
-                        </Chip>
+                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border w-fit ${b.isRepeatable ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-white/10 bg-white/5 text-white/40"}`}>
+                          <div className={`w-1 h-1 rounded-full ${b.isRepeatable ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">
+                            {b.isRepeatable ? "Repeatable" : "Once"}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-[10px] font-bold text-slate-400">
@@ -403,12 +435,24 @@ export default function GamificationManagementPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button isIconOnly size="sm" variant="light" onPress={() => openEditBadgeModal(b)}>
-                            <Pencil size={16} />
+                        <div className="flex gap-1">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="w-8 h-8 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                            onPress={() => openEditBadgeModal(b)}
+                          >
+                            <Pencil size={14} />
                           </Button>
-                          <Button isIconOnly size="sm" variant="light" onPress={() => handleDeleteBadge(b.badgeId)}>
-                            <Trash2 size={16} className="text-danger" />
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="w-8 h-8 rounded-lg text-red-400/40 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                            onPress={() => handleDeleteBadge(b.badgeId)}
+                          >
+                            <Trash2 size={14} />
                           </Button>
                         </div>
                       </TableCell>
@@ -419,18 +463,28 @@ export default function GamificationManagementPage() {
             </div>
 
             {/* BADGE RULES */}
-            <div className="rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 p-6">
+            <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-black uppercase">Badge Award Rules</h2>
+                <h2 className="text-xl font-black uppercase text-white">Badge Award Rules</h2>
                 <Button
                   startContent={<Plus size={16} />}
                   size="sm"
+                  variant="flat"
+                  className="bg-white/[0.05] hover:bg-white/[0.1] text-white"
                   onPress={() => setIsCreateRuleModalOpen(true)}
                 >
                   Add Rule
                 </Button>
               </div>
-              <Table aria-label="Badge Rules">
+              <Table
+                aria-label="Badge Rules"
+                removeWrapper
+                classNames={{
+                  th: "bg-white/[0.05] text-slate-300 text-[11px] font-black uppercase tracking-wider border-b border-white/[0.08]",
+                  td: "text-white/75 border-b border-white/[0.05] py-3",
+                  tr: "hover:bg-white/[0.03] transition-colors",
+                }}
+              >
                 <TableHeader>
                   <TableColumn>Badge</TableColumn>
                   <TableColumn>Rule Type</TableColumn>
@@ -458,36 +512,57 @@ export default function GamificationManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-xs font-bold uppercase">{r.ruleType}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-[10px] text-slate-400 uppercase font-black">{r.targetEntity}</span>
-                      </TableCell>
-                      <TableCell className="font-black italic text-orange-500">
-                        {r.targetValue}
+                        <div className="px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 w-fit">
+                          <span className="text-[10px] font-black uppercase text-indigo-400 tracking-wider">
+                            {r.ruleType.replace("_", " ")}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Chip
                           size="sm"
-                          variant="dot"
-                          color={r.isActive ? "success" : "default"}
-                          className="font-black italic uppercase text-[9px]"
+                          variant="flat"
+                          color={
+                            r.targetEntity === "contest" ? "warning" :
+                              r.targetEntity === "course" ? "primary" :
+                                r.targetEntity === "streak" ? "danger" :
+                                  r.targetEntity === "problem" ? "success" : "secondary"
+                          }
+                          className="font-bold uppercase text-[10px] border-white/5 bg-white/5"
                         >
-                          {r.isActive ? "Active" : "Inactive"}
+                          {r.targetEntity}
                         </Chip>
                       </TableCell>
+                      <TableCell className="font-black italic text-orange-500 text-sm">
+                        {r.targetValue}
+                      </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border w-fit ${r.isActive ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-white/10 bg-white/5 text-white/40"}`}>
+                          <div className={`w-1 h-1 rounded-full ${r.isActive ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">
+                            {r.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
                           <Button
                             isIconOnly
                             size="sm"
-                            variant="flat"
+                            variant="light"
+                            className="w-8 h-8 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
                             onPress={() => openEditRuleModal(r)}
                           >
-                            <Pencil size={16} />
+                            <Pencil size={14} />
                           </Button>
-                          <Button isIconOnly size="sm" color="danger" onPress={() => handleDeleteRule(r.id)}>
-                            <Trash2 size={16} />
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="w-8 h-8 rounded-lg text-red-400/40 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                            onPress={() => handleDeleteRule(r.id)}
+                          >
+                            <Trash2 size={14} />
                           </Button>
                         </div>
                       </TableCell>

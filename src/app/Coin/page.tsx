@@ -245,9 +245,9 @@ function CoinShopContent() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
 
-  const { data: balanceData, isLoading: isBalanceLoading } = useGetWalletBalanceQuery();
-  const { data: walletTransactionsData, isLoading: isWalletLoading } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
-  const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
+  const { data: balanceData, isLoading: isBalanceLoading, refetch: refetchBalance } = useGetWalletBalanceQuery();
+  const { data: walletTransactionsData, isLoading: isWalletLoading, refetch: refetchTransactions } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
+  const { data: paymentHistoryData, isLoading: isPaymentLoading, refetch: refetchPaymentHistory } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
   const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
   const { data: storeItems, isLoading: isStoreLoading } = useGetStoreItemsQuery();
@@ -298,6 +298,12 @@ function CoinShopContent() {
       setSelectedTab("earnings");
     } else if (tab === "inventory") {
       setSelectedTab("inventory");
+    }
+    // Refetch nếu vừa redirect về từ PayOS
+    if (searchParams.get("refresh") === "1") {
+      refetchBalance();
+      refetchTransactions();
+      refetchPaymentHistory();
     }
   }, [searchParams]);
 
@@ -678,6 +684,11 @@ function CoinShopContent() {
                         <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
                           Status: {h.status}
                         </p>
+                        {h.createdAt && (
+                          <p className="text-[10px] font-bold text-slate-300 dark:text-slate-500 mt-0.5 italic tracking-widest">
+                            {new Date(h.createdAt).toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">

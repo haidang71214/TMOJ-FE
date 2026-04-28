@@ -32,6 +32,21 @@ export interface StoreItem {
   isActive?: boolean;
 }
 
+export interface CartItem {
+  cartItemId: string;
+  itemId: string;
+  name: string;
+  imageUrl: string;
+  priceCoin: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface AddToCartRequest {
+  itemId: string;
+  quantity: number;
+}
+
 export interface CreateStoreItemRequest {
   name: string;
   description: string;
@@ -60,6 +75,7 @@ export interface InventoryItem {
   itemType: ItemType;
   acquiredAt: string;
   expiresAt: string | null;
+  quantity: number;
   isEquipped: boolean;
   isExpired: boolean;
 }

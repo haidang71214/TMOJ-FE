@@ -7,6 +7,8 @@ import {
   BuyItemRequest,
   InventoryItem,
   StoreResponse,
+  CartItem,
+  AddToCartRequest,
 } from "@/types/store";
 
 const normalizeStoreItem = (item: any): StoreItem => ({
@@ -57,6 +59,7 @@ export const storeApi = baseApi.injectEndpoints({
           itemType: item.itemType || item.ItemType,
           acquiredAt: item.acquiredAt || item.AcquiredAt,
           expiresAt: item.expiresAt || item.ExpiresAt,
+          quantity: item.quantity !== undefined ? item.quantity : item.Quantity,
           isEquipped: item.isEquipped !== undefined ? item.isEquipped : item.IsEquipped,
           isExpired: item.isExpired !== undefined ? item.isExpired : item.IsExpired,
         })),
@@ -72,6 +75,7 @@ export const storeApi = baseApi.injectEndpoints({
         itemType: response.data.itemType || response.data.ItemType,
         acquiredAt: response.data.acquiredAt || response.data.AcquiredAt,
         expiresAt: response.data.expiresAt || response.data.ExpiresAt,
+        quantity: response.data.quantity !== undefined ? response.data.quantity : response.data.Quantity,
         isEquipped: response.data.isEquipped !== undefined ? response.data.isEquipped : response.data.IsEquipped,
         isExpired: response.data.isExpired !== undefined ? response.data.isExpired : response.data.IsExpired,
       }),
@@ -117,6 +121,36 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Store"],
     }),
+
+    // CART APIs
+    getCart: builder.query<CartItem[], void>({
+      query: () => StoreEndpoint.CART,
+      transformResponse: (response: StoreResponse<CartItem[]>) => response.data || [],
+      providesTags: ["Cart"],
+    }),
+    addToCart: builder.mutation<void, AddToCartRequest>({
+      query: (body) => ({
+        url: StoreEndpoint.CART,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+    removeFromCart: builder.mutation<void, string>({
+      query: (cartItemId) => ({
+        url: StoreEndpoint.CART_ITEM.replace("{cartItemId}", cartItemId),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+    checkout: builder.mutation<void, void>({
+      query: () => ({
+        url: StoreEndpoint.CHECKOUT,
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["Cart", "Inventory", "Wallet", "Store"],
+    }),
   }),
 });
 
@@ -131,4 +165,8 @@ export const {
   useCreateStoreItemMutation,
   useUpdateStoreItemMutation,
   useDeleteStoreItemMutation,
+  useGetCartQuery,
+  useAddToCartMutation,
+  useRemoveFromCartMutation,
+  useCheckoutMutation,
 } = storeApi;

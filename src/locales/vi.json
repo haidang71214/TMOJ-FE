@@ -32,6 +32,13 @@
   "signout": "Đăng xuất",
   "adminpanel": "Bảng quản trị",
   "backhome": "Trang chủ",
+  "cart": "Giỏ hàng",
+  "checkout": "Thanh toán",
+  "inventory": "Kho đồ của tôi",
+  "add_to_cart": "Thêm vào giỏ",
+  "buy_now": "Mua ngay",
+  "view_detail": "Xem chi tiết",
+  "total_amount": "Tổng cộng",
   "class_create": {
     "title1": "TẠO MỚI",
     "title2": "LỚP HỌC",

@@ -10,7 +10,7 @@ import {
   Input,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
-import {  Search as SearchIcon, Globe } from "lucide-react";
+import { Search as SearchIcon, Globe } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import ThemeToggle from "./ThemeToggle";
 import InformationInNavbar from "./InformationInNavbar";
@@ -19,6 +19,8 @@ import LoginModal from "@/app/Modal/LoginModal";
 import { useModal } from "./ModalProvider";
 import NotificationInNavbar from "./Notification";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import CartInNavbar from "./CartInNavbar";
+import CoinBalanceInNavbar from "./CoinBalanceInNavbar";
 
 export default function NavbarProvider() {
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function NavbarProvider() {
   const { data: user } = useGetUserInformationQuery();
   const { t, language, setLanguage } = useTranslation();
   console.log(user);
-  
+
   const { openModal } = useModal();
 
   const handleLink = (link: string) => router.push(link);
@@ -126,7 +128,7 @@ export default function NavbarProvider() {
               link = "/Class";
             }
             if (item === "Ranking") link = "/Ranking";
-            if (item === "Management") { 
+            if (item === "Management") {
               if (user?.role?.toLowerCase() === "teacher") {
                 link = "/Management/Contest";
               } else if (
@@ -135,7 +137,7 @@ export default function NavbarProvider() {
               ) {
                 link = "/Management/Problem";
               } else {
-                return null; 
+                return null;
               }
             }
             if (item === "Coin") link = "/Coin";
@@ -143,19 +145,18 @@ export default function NavbarProvider() {
             const isActive = pathname.startsWith(`/${item}`);
 
             return (
-              <NavbarItem 
+              <NavbarItem
                 key={item}
                 className="animate-fade-in-up"
                 style={{ animationFillMode: "both", animationDelay: `${index * 100}ms` }}
               >
                 <Link
                   onClick={() => handleLink(link)}
-                  style={{marginRight:20}}
-                  className={`font-black text-[16px] cursor-pointer transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-[#ff8904] after:left-1/2 after:-translate-x-1/2 after:-bottom-[20px] hover:after:w-full after:transition-all after:duration-300 ${
-                    isActive
-                      ? "text-[#ff8904] after:w-full"
-                      : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
-                  }`}
+                  style={{ marginRight: 20 }}
+                  className={`font-black text-[16px] cursor-pointer transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-[#ff8904] after:left-1/2 after:-translate-x-1/2 after:-bottom-[20px] hover:after:w-full after:transition-all after:duration-300 ${isActive
+                    ? "text-[#ff8904] after:w-full"
+                    : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
+                    }`}
                 >
                   {t(item.toLowerCase()) || item}
                 </Link>
@@ -183,13 +184,15 @@ export default function NavbarProvider() {
         </NavbarItem>
 
         {user ? (
-          <div className="flex">
-           <InformationInNavbar  />
+          <div className="flex items-center gap-1">
+            <CoinBalanceInNavbar />
+            <CartInNavbar />
+            <InformationInNavbar />
             <NotificationInNavbar />
           </div>
         ) : (
           <div className="flex gap-2">
-            <NavbarItem 
+            <NavbarItem
               className="opacity-0 animate-fade-in-up"
               style={{ animationDelay: "100ms", animationFillMode: "both" }}
             >
@@ -205,7 +208,7 @@ export default function NavbarProvider() {
               </Button>
             </NavbarItem>
 
-            <NavbarItem 
+            <NavbarItem
               className="opacity-0 animate-fade-in-up"
               style={{ animationDelay: "200ms", animationFillMode: "both" }}
             >

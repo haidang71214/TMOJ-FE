@@ -313,6 +313,10 @@ const StoreEndpoint = {
   MY_INVENTORY: `${API_PREFIX}/store/my-inventory`,
   INVENTORY_DETAIL: `${API_PREFIX}/store/my-inventory/{inventoryId}`,
   EQUIP: `${API_PREFIX}/store/my-inventory/{inventoryId}/equip`,
+  // Cart Endpoints
+  CART: `${API_PREFIX}/store/cart`,
+  CART_ITEM: `${API_PREFIX}/store/cart/{cartItemId}`,
+  CHECKOUT: `${API_PREFIX}/store/checkout`,
 };
 
 const RankingEndpoint = {

@@ -242,9 +242,9 @@ function CoinShopContent() {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
 
-  const { data: balanceData, isLoading: isBalanceLoading } = useGetWalletBalanceQuery();
-  const { data: walletTransactionsData, isLoading: isWalletLoading } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
-  const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
+  const { data: balanceData, isLoading: isBalanceLoading, refetch: refetchBalance } = useGetWalletBalanceQuery();
+  const { data: walletTransactionsData, isLoading: isWalletLoading, refetch: refetchTransactions } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
+  const { data: paymentHistoryData, isLoading: isPaymentLoading, refetch: refetchPaymentHistory } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
   const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -282,12 +282,17 @@ function CoinShopContent() {
   );
   useEffect(() => {
     setMounted(true);
-    // LOGIC QUAN TRỌNG: Kiểm tra tham số tab trên URL
     const tab = searchParams.get("tab");
     if (tab === "purchases") {
       setSelectedTab("purchases");
     } else if (tab === "earnings") {
       setSelectedTab("earnings");
+    }
+    // Refetch nếu vừa redirect về từ PayOS
+    if (searchParams.get("refresh") === "1") {
+      refetchBalance();
+      refetchTransactions();
+      refetchPaymentHistory();
     }
   }, [searchParams]);
 
@@ -588,6 +593,11 @@ function CoinShopContent() {
                         <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
                           Status: {h.status}
                         </p>
+                        {h.createdAt && (
+                          <p className="text-[10px] font-bold text-slate-300 dark:text-slate-500 mt-0.5 italic tracking-widest">
+                            {new Date(h.createdAt).toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">

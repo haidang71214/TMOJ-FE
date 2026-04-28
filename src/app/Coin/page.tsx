@@ -29,6 +29,7 @@ import {
   Search,
   PlusCircle,
   CalendarDays,
+  CheckCircle2,
 } from "lucide-react";
 import DepositModal from "../components/DeposiModal";
 import Link from "next/link";
@@ -36,7 +37,9 @@ import { useSearchParams } from "next/navigation"; // Import useSearchParams
 import { useGetWalletBalanceQuery, useGetWalletTransactionsQuery } from "@/store/queries/wallet";
 import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
 import { useGetStreakQuery } from "@/store/queries/gamification";
+import { useGetStoreItemsQuery, useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
 import { WalletTransaction, PaymentHistoryItem } from "@/types";
+import { toast } from "sonner";
 
 interface MissionItem {
   id: number;
@@ -247,7 +250,12 @@ function CoinShopContent() {
   const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
   const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
+  const { data: storeItems, isLoading: isStoreLoading } = useGetStoreItemsQuery();
+  const { data: inventoryData, isLoading: isInventoryLoading } = useGetMyInventoryQuery();
+  const [equipItem] = useEquipItemMutation();
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const MissionCard = ({ mission }: { mission: MissionItem }) => (
     <Card className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all group">
       <CardBody className="p-5 flex flex-row items-center gap-4">
@@ -280,36 +288,34 @@ function CoinShopContent() {
       </CardBody>
     </Card>
   );
+
   useEffect(() => {
     setMounted(true);
-    // LOGIC QUAN TRỌNG: Kiểm tra tham số tab trên URL
     const tab = searchParams.get("tab");
     if (tab === "purchases") {
       setSelectedTab("purchases");
     } else if (tab === "earnings") {
       setSelectedTab("earnings");
+    } else if (tab === "inventory") {
+      setSelectedTab("inventory");
     }
   }, [searchParams]);
 
   const { paginatedItems, totalPages } = useMemo(() => {
-    const filtered = SHOP_ITEMS.filter((item) =>
+    if (!storeItems) return { paginatedItems: [], totalPages: 0 };
+    const filtered = storeItems.filter((item) =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     const sorted = [...filtered];
     switch (filterType) {
       case "latest":
-        sorted.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        break;
-      case "bestseller":
-        sorted.sort((a, b) => b.sales - a.sales);
+        // Assuming latest items are at the end or have a date field, if not, just keep order
         break;
       case "low":
-        sorted.sort((a, b) => a.price - b.price);
+        sorted.sort((a, b) => a.priceCoin - b.priceCoin);
         break;
       case "high":
-        sorted.sort((a, b) => b.price - a.price);
+        sorted.sort((a, b) => b.priceCoin - a.priceCoin);
         break;
     }
     const start = (page - 1) * rowsPerPage;
@@ -317,7 +323,7 @@ function CoinShopContent() {
       paginatedItems: sorted.slice(start, start + rowsPerPage),
       totalPages: Math.ceil(sorted.length / rowsPerPage),
     };
-  }, [searchQuery, filterType, page]);
+  }, [storeItems, searchQuery, filterType, page]);
 
   if (!mounted) return null;
 
@@ -416,7 +422,6 @@ function CoinShopContent() {
                 }}
               >
                 <SelectItem key="latest">Latest Arrivals</SelectItem>
-                <SelectItem key="bestseller">Best Sellers</SelectItem>
                 <SelectItem key="low">Price: Low to High</SelectItem>
                 <SelectItem key="high">Price: High to Low</SelectItem>
               </Select>
@@ -429,62 +434,150 @@ function CoinShopContent() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
-              {paginatedItems.map((item) => (
-                <Link
-                  href={`/Coin/Product/${item.id}`}
-                  key={item.id}
-                  className="group"
-                >
-                  <Card className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm transition-all h-full hover:border-blue-600 dark:hover:border-[#00FF41] hover:-translate-y-1 overflow-hidden">
+            {isStoreLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="h-[300px] bg-white dark:bg-[#111c35] animate-pulse rounded-xl" />
+                ))}
+              </div>
+            ) : paginatedItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {paginatedItems.map((item) => (
+                  <Link
+                    href={`/Coin/Product/${item.itemId}`}
+                    key={item.itemId}
+                    className="group"
+                  >
+                    <Card className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm transition-all h-full hover:border-blue-600 dark:hover:border-[#00FF41] hover:-translate-y-1 overflow-hidden">
+                      <CardBody className="p-0">
+                        <div className="relative h-48 w-full overflow-hidden">
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <Chip className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white border-none font-black text-[8px] uppercase italic">
+                            {item.itemType}
+                          </Chip>
+                        </div>
+                        <div className="p-5 space-y-4">
+                          <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
+                            {item.name}
+                          </h4>
+                          <div className="flex items-center justify-between border-t border-divider dark:border-white/5 pt-4">
+                            <div className="flex items-center gap-1.5 text-[#FFB800]">
+                              <Coins size={16} strokeWidth={3} />
+                              <span className="text-xl font-[1000] italic">
+                                {item.priceCoin.toLocaleString()}
+                              </span>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase italic rounded-lg h-9 hover:bg-blue-600 dark:hover:border-[#00FF41] dark:hover:text-[#071739] transition-all"
+                            >
+                              Buy now
+                            </Button>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <ShoppingBag size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">No products found</p>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex justify-center pb-8">
+                <Pagination
+                  total={totalPages}
+                  page={page}
+                  onChange={setPage}
+                  classNames={{
+                    cursor:
+                      "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </Tab>
+
+        {/* MY INVENTORY */}
+        <Tab
+          key="inventory"
+          title={
+            <div className="flex items-center gap-2">
+              <ShoppingBasket size={18} />
+              <span>My Inventory</span>
+            </div>
+          }
+        >
+          <div className="mt-6 space-y-6">
+            {isInventoryLoading ? (
+              <p className="text-center py-10 font-bold italic text-slate-400">Loading inventory...</p>
+            ) : inventoryData && inventoryData.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {inventoryData.map((item) => (
+                  <Card key={item.inventoryId} className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm overflow-hidden group">
                     <CardBody className="p-0">
-                      <div className="relative h-48 w-full overflow-hidden">
+                      <div className="relative h-40 w-full overflow-hidden">
                         <Image
-                          src={item.img}
-                          alt={item.name}
+                          src={item.itemImageUrl}
+                          alt={item.itemName}
                           className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                         />
                         <Chip className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white border-none font-black text-[8px] uppercase italic">
-                          {item.category}
+                          {item.itemType}
                         </Chip>
+                        {item.isEquipped && (
+                          <Chip color="success" size="sm" className="absolute top-3 right-3 z-10 font-black uppercase italic text-[8px]">
+                            Equipped
+                          </Chip>
+                        )}
                       </div>
                       <div className="p-5 space-y-4">
-                        <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
-                          {item.name}
+                        <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-[#FF5C00] transition-colors">
+                          {item.itemName}
                         </h4>
                         <div className="flex items-center justify-between border-t border-divider dark:border-white/5 pt-4">
-                          <div className="flex items-center gap-1.5 text-[#FFB800]">
-                            <Coins size={16} strokeWidth={3} />
-                            <span className="text-xl font-[1000] italic">
-                              {item.price.toLocaleString()}
-                            </span>
-                          </div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase italic">
+                            {item.expiresAt ? `Expires: ${new Date(item.expiresAt).toLocaleDateString()}` : "Permanent"}
+                          </p>
                           <Button
                             size="sm"
-                            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase italic rounded-lg h-9 hover:bg-blue-600 dark:hover:border-[#00FF41] dark:hover:text-[#071739] transition-all"
+                            variant={item.isEquipped ? "flat" : "solid"}
+                            className={`${item.isEquipped ? "bg-slate-100 text-slate-600" : "bg-[#FF5C00] text-white"} font-black uppercase italic rounded-lg h-9 transition-all`}
+                            onPress={async () => {
+                              try {
+                                await equipItem({ inventoryId: item.inventoryId, isEquipped: !item.isEquipped }).unwrap();
+                                toast.success(item.isEquipped ? "Item unequipped" : "Item equipped");
+                              } catch (err: any) {
+                                toast.error(err?.data?.message || "Action failed");
+                              }
+                            }}
                           >
-                            Buy Now
+                            {item.isEquipped ? "Unequip" : "Equip"}
                           </Button>
                         </div>
                       </div>
                     </CardBody>
                   </Card>
-                </Link>
-              ))}
-            </div>
-            <div className="flex justify-center pb-8">
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={setPage}
-                classNames={{
-                  cursor:
-                    "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic",
-                }}
-              />
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <ShoppingBasket size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">Your inventory is empty</p>
+              </div>
+            )}
           </div>
         </Tab>
+
         {/* EARN COIN */}
         <Tab
           key="earn"
@@ -496,9 +589,7 @@ function CoinShopContent() {
           }
         >
           <div className="mt-8 space-y-12 pb-12">
-            {/* Hàm render helper để code gọn hơn */}
             {Object.entries(MISSIONS).map(([key, items]) => {
-              // Logic đặt tên tiêu đề dựa trên key
               const titles: Record<
                 string,
                 { main: string; sub: string; color: string }
@@ -537,7 +628,6 @@ function CoinShopContent() {
                     <div className="w-full h-[1px] bg-slate-200 dark:bg-white/5" />
                   </div>
 
-                  {/* Grid đều 3 cột cho mọi loại nhiệm vụ */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {items.map((m) => (
                       <MissionCard key={m.id} mission={m} />
@@ -607,7 +697,7 @@ function CoinShopContent() {
           </div>
         </Tab>
 
-        {/* MY ORDERS */}
+        {/* PAYMENT HISTORY */}
         <Tab
           key="purchases"
           title={

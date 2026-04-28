@@ -21,85 +21,48 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-
-/* Mock data - Tương ứng với SHOP_ITEMS */
-const SHOP_ITEMS = [
-  {
-    id: 1,
-    name: "Áo Polo FPT Cam",
-    price: 80000,
-    category: "Fashion",
-    img: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
-    sales: 120,
-    stock: 50,
-    description: "Áo Polo FPT màu cam truyền thống, chất liệu vải cá sấu cao cấp, thoáng mát, thấm hút mồ hôi tốt. Phù hợp cho các hoạt động ngoại khóa và sự kiện trường.",
-    specs: ["Chất liệu: Cotton 100%", "Màu sắc: Cam FPT", "Size: S, M, L, XL, XXL", "Công nghệ in: Thêu logo sắc nét"]
-  },
-  {
-    id: 2,
-    name: "Áo Polo FPT Trắng Phối Cam",
-    price: 90000,
-    category: "Fashion",
-    img: "https://dongphuccati.com/images/products/2020/05/18/original/2-1.jpg",
-    sales: 85,
-    stock: 30,
-    description: "Phiên bản Polo FPT màu trắng phối cam thanh lịch. Thiết kế hiện đại, tôn dáng, phù hợp cho cả nam và nữ.",
-    specs: ["Chất liệu: Vải Poly Thái", "Màu sắc: Trắng phối Cam", "Kiểu dáng: Slim fit", "Đặc điểm: Không nhăn, không xù"]
-  },
-  {
-    id: 3,
-    name: "Balo FPT Software",
-    price: 250000,
-    category: "Gear",
-    img: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
-    sales: 300,
-    stock: 15,
-    description: "Balo FPT Software chuyên dụng cho sinh viên IT. Ngăn chứa laptop riêng biệt, lớp đệm chống sốc dày dặn, nhiều ngăn phụ tiện dụng.",
-    specs: ["Kích thước: 45 x 30 x 15 cm", "Chất liệu: Polyester chống nước", "Ngăn Laptop: Lên đến 15.6 inch", "Quai đeo: Đệm êm ái, trợ lực tốt"]
-  },
-  {
-    id: 4,
-    name: "Cặp FPT",
-    price: 300000,
-    category: "Accessories",
-    img: "https://5.imimg.com/data5/ANDROID/Default/2022/8/ND/IF/PO/22020579/product-jpeg-500x500.jpg",
-    sales: 450,
-    stock: 100,
-    description: "Cặp đeo chéo FPT phong cách trẻ trung. Tiện lợi cho việc mang theo giáo trình và phụ kiện cá nhân hàng ngày.",
-    specs: ["Loại: Cặp đeo chéo", "Màu sắc: Cam - Đen", "Ngăn chứa: 1 ngăn chính, 2 ngăn phụ", "Khóa kéo: YKK bền bỉ"]
-  },
-  {
-    id: 5,
-    name: "Bút FPT Excellence",
-    price: 30000,
-    category: "Collection",
-    img: "https://tse1.mm.bing.net/th/id/OIP.6s4XuaMBVNzZBi9C_Rl_CQHaFj?w=700&h=525&rs=1&pid=ImgDetMain&o=7&rm=3",
-    sales: 150,
-    stock: 200,
-    description: "Bút ký cao cấp FPT Excellence. Món quà ý nghĩa dành cho những cá nhân có thành tích xuất sắc, mang đậm bản sắc tinh thần FPT.",
-    specs: ["Loại bút: Bút bi mực gel", "Vỏ bút: Kim loại sơn tĩnh điện", "Màu mực: Xanh/Đen", "Hộp đựng: Sang trọng kèm theo"]
-  },
-];
+import { useGetStoreItemDetailQuery, useBuyItemMutation } from "@/store/queries/store";
+import { toast } from "sonner";
 
 export default function ProductDetailPage() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const id = params.id;
+  const id = params.id as string;
 
-  const PRODUCT_DATA_FOUND = SHOP_ITEMS.find((item) => item.id === Number(id));
+  const { data: product, isLoading, error } = useGetStoreItemDetailQuery(id);
+  const [buyItem, { isLoading: isBuying }] = useBuyItemMutation();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const handleBuy = async () => {
+    try {
+      await buyItem({ itemId: id }).unwrap();
+      toast.success("Successfully purchased!");
+      router.push("/Coin?tab=inventory");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to purchase item");
+    }
+  };
+
   if (!mounted) return null;
 
-  if (!PRODUCT_DATA_FOUND) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-black italic uppercase">Product Not Found</h1>
-        <Button onPress={() => router.push("/Coin")}>Back to Store</Button>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0F2F5] dark:bg-[#0A0F1C]">
+        <div className="w-12 h-12 border-4 border-[#FF5C00] border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-black italic uppercase text-[#071739] dark:text-white">Loading product details...</p>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0F2F5] dark:bg-[#0A0F1C]">
+        <h1 className="text-2xl font-black italic uppercase text-[#071739] dark:text-white">Product Not Found</h1>
+        <Button onPress={() => router.push("/Coin")} className="bg-[#FF5C00] text-white font-black uppercase italic">Back to Store</Button>
       </div>
     );
   }
@@ -123,7 +86,7 @@ export default function ProductDetailPage() {
             classNames={{ list: "font-[1000] italic uppercase text-[10px]" }}
           >
             <BreadcrumbItem href="/Coin">Store</BreadcrumbItem>
-            <BreadcrumbItem>{PRODUCT_DATA_FOUND.category} Detail #{id}</BreadcrumbItem>
+            <BreadcrumbItem>{product.itemType} Detail</BreadcrumbItem>
           </Breadcrumbs>
         </div>
 
@@ -135,8 +98,8 @@ export default function ProductDetailPage() {
               <div className="p-6 bg-slate-50 dark:bg-black/20 flex items-center justify-center">
                 <div className="relative group w-full aspect-square rounded-[2rem] overflow-hidden shadow-xl border-4 border-white dark:border-[#111c35]">
                   <Image
-                    src={PRODUCT_DATA_FOUND.img}
-                    alt="Product"
+                    src={product.imageUrl}
+                    alt={product.name}
                     className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-1000"
                   />
                 </div>
@@ -151,27 +114,31 @@ export default function ProductDetailPage() {
                       size="sm"
                       className="font-[1000] uppercase italic text-[8px] text-blue-600 dark:text-[#00FF41] border-none bg-blue-50 dark:bg-green-500/10"
                     >
-                      {PRODUCT_DATA_FOUND.category}
+                      {product.itemType}
                     </Chip>
                     <h1 className="text-3xl font-[1000] italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
-                      {PRODUCT_DATA_FOUND.name}
+                      {product.name}
                     </h1>
                   </div>
 
                   <div className="flex items-center gap-4 text-[10px] font-black uppercase italic text-slate-400">
-                    <span>{PRODUCT_DATA_FOUND.sales.toLocaleString()} Sold</span>
-                    <Divider orientation="vertical" className="h-3" />
                     <span className="text-emerald-500">
-                      {PRODUCT_DATA_FOUND.stock} In Stock
+                      {product.stockQuantity} In Stock
                     </span>
+                    {product.durationDays && (
+                      <>
+                        <Divider orientation="vertical" className="h-3" />
+                        <span>Duration: {product.durationDays} Days</span>
+                      </>
+                    )}
                   </div>
 
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">
-                    {PRODUCT_DATA_FOUND.description}
+                    {product.description}
                   </p>
 
                   <div className="space-y-2">
-                    {PRODUCT_DATA_FOUND.specs.map((spec, i) => (
+                    {product.metaJson?.specs?.map((spec: string, i: number) => (
                       <div
                         key={i}
                         className="flex items-center gap-2 text-[9px] font-[1000] uppercase italic text-[#071739] dark:text-slate-300"
@@ -194,16 +161,18 @@ export default function ProductDetailPage() {
                       strokeWidth={3}
                     />
                     <span className="text-4xl font-[1000] italic text-[#FFB800]">
-                      {PRODUCT_DATA_FOUND.price.toLocaleString()}
+                      {product.priceCoin.toLocaleString()}
                     </span>
                   </div>
 
                   <Button
+                    isLoading={isBuying}
+                    onPress={handleBuy}
                     className="w-full bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] uppercase italic h-14 rounded-2xl shadow-xl 
                                 hover:bg-blue-600 dark:hover:bg-[#00FF41] dark:hover:text-[#071739] transition-all text-md"
-                    startContent={<ShoppingBag size={20} />}
+                    startContent={!isBuying && <ShoppingBag size={20} />}
                   >
-                    Redeem Now
+                    {isBuying ? "Processing..." : "Buy now"}
                   </Button>
                 </div>
               </div>

@@ -303,6 +303,15 @@ const AnnouncementEndpoint = {
   DELETE: `${API_PREFIX}/announcements/{id}`,
 };
 
+const StoreEndpoint = {
+  ITEMS: `${API_PREFIX}/store/items`,
+  ITEM_DETAIL: `${API_PREFIX}/store/items/{itemId}`,
+  BUY: `${API_PREFIX}/store/buy`,
+  MY_INVENTORY: `${API_PREFIX}/store/my-inventory`,
+  INVENTORY_DETAIL: `${API_PREFIX}/store/my-inventory/{inventoryId}`,
+  EQUIP: `${API_PREFIX}/store/my-inventory/{inventoryId}/equip`,
+};
+
 const RankingEndpoint = {
   GLOBAL: `${API_PREFIX}/ranking/global`,
   CONTESTS: `${API_PREFIX}/ranking/contests`,
@@ -337,4 +346,5 @@ export {
   PaymentEndpoint,
   WalletEndpoint,
   AnnouncementEndpoint,
+  StoreEndpoint,
 };

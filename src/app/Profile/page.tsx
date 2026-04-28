@@ -58,6 +58,7 @@ import {
   useGetGamificationHistoryQuery,
   useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
+import { useGetMyInventoryQuery } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
 import { toast } from "sonner";
@@ -116,6 +117,16 @@ export default function ProfilePage() {
   const gProgress = gProgressResponse?.data || [];
   const gHistory = gHistoryResponse?.data || [];
   const gActivities = gActivitiesResponse?.data || [];
+
+  const { data: inventoryData } = useGetMyInventoryQuery();
+  const equippedFrame = useMemo(() =>
+    inventoryData?.find(item => item.itemType === "avatar_frame" && item.isEquipped && !item.isExpired),
+    [inventoryData]
+  );
+  const equippedColor = useMemo(() =>
+    inventoryData?.find(item => item.itemType === "title_color" && item.isEquipped && !item.isExpired),
+    [inventoryData]
+  );
 
   const userId = meData?.userId ?? "";
   const role = meData?.role ?? "";
@@ -213,13 +224,24 @@ export default function ProfilePage() {
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
             <CardBody className="p-8 relative z-10">
               <div className="flex flex-col items-center text-center gap-4">
-                <div className="relative group/avatar">
+                <div className="relative group/avatar p-2">
                   <Avatar
                     src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
                     name={displayName || username}
-                    className={`w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
+                    className={`w-28 h-28 border-4 ${equippedFrame ? "border-transparent" : "border-[#FF5C00]"} rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
                       }`}
                   />
+
+                  {/* AVATAR FRAME */}
+                  {equippedFrame && (
+                    <div className="absolute inset-0 z-10 pointer-events-none scale-[1.35] transition-transform group-hover/avatar:scale-[1.4]">
+                      <img
+                        src={equippedFrame.itemImageUrl}
+                        alt="Avatar Frame"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
 
                   {/* Loading Spinner Over Avatar */}
                   {(isUpdatingAvatar || isDeletingAvatar) && (
@@ -265,7 +287,10 @@ export default function ProfilePage() {
                   <div className="absolute -bottom-1 -right-1 bg-[#00FF41] w-7 h-7 rounded-full border-4 border-white dark:border-[#071739] shadow-md animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none text-[#071739] dark:text-white">
+                  <h1
+                    className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none"
+                    style={{ color: equippedColor?.metaJson?.color || undefined }}
+                  >
                     {displayName || username || (meLoading ? "..." : "—")}
                   </h1>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">

@@ -1,11 +1,11 @@
 "use client";
 
-import { useModal } from "@/Provider/ModalProvider";
 import { Input, Button, Image, Switch, Select, SelectItem, Textarea } from "@heroui/react";
 import { useState } from "react";
 import { StoreItem, ItemType } from "@/types/store";
 import { useCreateStoreItemMutation, useUpdateStoreItemMutation } from "@/store/queries/store";
 import { toast } from "sonner";
+import { useModal } from "@/Provider/ModalProvider";
 
 export default function CoinItemModal({
   initialData,
@@ -34,7 +34,7 @@ export default function CoinItemModal({
 
     try {
       if (initialData) {
-        await updateItem({ itemId: initialData.itemId, ...form }).unwrap();
+        await updateItem({ itemId: initialData.itemId, body: form }).unwrap();
         toast.success("Item updated successfully");
       } else {
         await createItem(form).unwrap();

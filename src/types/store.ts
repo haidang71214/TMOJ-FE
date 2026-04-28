@@ -78,6 +78,7 @@ export interface InventoryItem {
   quantity: number;
   isEquipped: boolean;
   isExpired: boolean;
+  metaJson?: StoreItemMeta;
 }
 
 export interface StoreResponse<T> {

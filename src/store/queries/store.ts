@@ -62,6 +62,7 @@ export const storeApi = baseApi.injectEndpoints({
           quantity: item.quantity !== undefined ? item.quantity : item.Quantity,
           isEquipped: item.isEquipped !== undefined ? item.isEquipped : item.IsEquipped,
           isExpired: item.isExpired !== undefined ? item.isExpired : item.IsExpired,
+          metaJson: item.metaJson || item.MetaJson,
         })),
       providesTags: ["Inventory"],
     }),
@@ -85,7 +86,7 @@ export const storeApi = baseApi.injectEndpoints({
       query: ({ inventoryId, isEquipped }) => ({
         url: StoreEndpoint.EQUIP.replace("{inventoryId}", inventoryId),
         method: "PATCH",
-        body: isEquipped, // Boolean directly in body
+        body: { isEquipped }, // Gửi object thay vì boolean thuần
       }),
       invalidatesTags: ["Inventory", "Gamification"],
     }),
@@ -98,7 +99,7 @@ export const storeApi = baseApi.injectEndpoints({
     }),
 
     // ADMIN APIs
-    createStoreItem: builder.mutation<void, CreateStoreItemRequest>({
+    createStoreItem: builder.mutation<void, any>({
       query: (body) => ({
         url: StoreEndpoint.ITEMS,
         method: "POST",
@@ -106,11 +107,11 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Store"],
     }),
-    updateStoreItem: builder.mutation<void, UpdateStoreItemRequest>({
-      query: ({ itemId, ...body }) => ({
+    updateStoreItem: builder.mutation<void, { itemId: string; body: any }>({
+      query: ({ itemId, body }) => ({
         url: StoreEndpoint.ITEM_DETAIL.replace("{itemId}", itemId),
         method: "PUT",
-        body: { itemId, ...body },
+        body,
       }),
       invalidatesTags: ["Store"],
     }),

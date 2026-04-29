@@ -23,6 +23,8 @@ import {
   TableCell,
   Image,
   Tooltip,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon, History, Coins, Clock } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
@@ -62,6 +64,9 @@ export default function CoinManagerPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<StoreItem | null>(null);
   const [activeTab, setActiveTab] = useState("items");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStock, setSelectedStock] = useState("all");
 
   const { data: items = [], isLoading } = useGetStoreItemsQuery();
   const [deleteItem, { isLoading: isDeleting }] = useDeleteStoreItemMutation();
@@ -69,10 +74,23 @@ export default function CoinManagerPage() {
   const { openModal } = useModal();
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [items, searchQuery]);
+    return items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = selectedType === "all" || item.itemType === selectedType;
+
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (selectedStatus === "active" && item.isActive !== false) ||
+        (selectedStatus === "disabled" && item.isActive === false);
+
+      const matchesStock =
+        selectedStock === "all" ||
+        (selectedStock === "in_stock" && item.stockQuantity > 0) ||
+        (selectedStock === "out_of_stock" && item.stockQuantity === 0);
+
+      return matchesSearch && matchesType && matchesStatus && matchesStock;
+    });
+  }, [items, searchQuery, selectedType, selectedStatus, selectedStock]);
 
   const openDeleteModal = (item: StoreItem) => {
     setItemToDelete(item);
@@ -145,15 +163,67 @@ export default function CoinManagerPage() {
           }
         >
           <div className="mt-8 space-y-8 animate-in fade-in duration-500">
-            {/* SEARCH */}
-            <div className="relative group max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
-              <input
-                placeholder="Search inventory items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10"
-              />
+            {/* FILTERS */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="relative group flex-1 min-w-[240px] max-w-sm dark">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+                <input
+                  placeholder="Search inventory items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10 h-11"
+                />
+              </div>
+
+              <Select
+                placeholder="Item Type"
+                className="w-48 dark"
+                selectedKeys={[selectedType]}
+                onSelectionChange={(keys) => setSelectedType(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Types</SelectItem>
+                <SelectItem key="badge">Badge</SelectItem>
+                <SelectItem key="title_color">Title Color</SelectItem>
+                <SelectItem key="avatar_frame">Avatar Frame</SelectItem>
+                <SelectItem key="physical_item">Physical Item</SelectItem>
+              </Select>
+
+              <Select
+                placeholder="Status"
+                className="w-40 dark"
+                selectedKeys={[selectedStatus]}
+                onSelectionChange={(keys) => setSelectedStatus(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="active">Active</SelectItem>
+                <SelectItem key="disabled">Disabled</SelectItem>
+              </Select>
+
+              <Select
+                placeholder="Stock"
+                className="w-40 dark"
+                selectedKeys={[selectedStock]}
+                onSelectionChange={(keys) => setSelectedStock(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Stock</SelectItem>
+                <SelectItem key="in_stock">In Stock</SelectItem>
+                <SelectItem key="out_of_stock">Out of Stock</SelectItem>
+              </Select>
             </div>
 
             {/* GRID */}
@@ -181,14 +251,14 @@ export default function CoinManagerPage() {
                         <div className="absolute top-4 right-4 z-10">
                           <Chip
                             size="sm"
-                            className={`font-black text-[9px] border-none shadow-xl ${!item.isActive
+                            className={`font-black text-[9px] border-none shadow-xl ${item.isActive === false
                               ? "bg-red-500 text-white"
                               : item.stockQuantity === 0
                                 ? "bg-amber-500 text-white"
                                 : "bg-emerald-500 text-white"
                               }`}
                           >
-                            {!item.isActive ? "DISABLED" : item.stockQuantity === 0 ? "OUT OF STOCK" : "ACTIVE"}
+                            {item.isActive === false ? "DISABLED" : item.stockQuantity === 0 ? "OUT OF STOCK" : "ACTIVE"}
                           </Chip>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#162035] to-transparent" />

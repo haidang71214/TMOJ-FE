@@ -37,9 +37,10 @@ import { useSearchParams, useRouter } from "next/navigation"; // Import useSearc
 import { useGetWalletBalanceQuery, useGetWalletTransactionsQuery } from "@/store/queries/wallet";
 import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
 import { useGetStreakQuery } from "@/store/queries/gamification";
-import { useGetStoreItemsQuery, useGetMyInventoryQuery, useEquipItemMutation, useAddToCartMutation } from "@/store/queries/store";
-import { WalletTransaction, PaymentHistoryItem } from "@/types";
+import { useGetStoreItemsQuery, useGetMyInventoryQuery, useEquipItemMutation, useAddToCartMutation, useGetCartQuery } from "@/store/queries/store";
+import { WalletTransaction, PaymentHistoryItem, ErrorForm } from "@/types";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface MissionItem {
   id: number;
@@ -255,6 +256,7 @@ function CoinShopContent() {
 
   const { data: storeItems, isLoading: isStoreLoading } = useGetStoreItemsQuery();
   const { data: inventoryData, isLoading: isInventoryLoading } = useGetMyInventoryQuery();
+  const { data: cartData } = useGetCartQuery();
   const [equipItem] = useEquipItemMutation();
   const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
 
@@ -524,21 +526,24 @@ function CoinShopContent() {
                             </div>
 
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="flat"
-                                className="flex-1 bg-gray-100 dark:bg-white/5 text-[#071739] dark:text-white font-black uppercase italic rounded-lg h-9 hover:bg-orange-500/10 transition-all"
-                                onPress={async () => {
-                                  try {
-                                    await addToCart({ itemId: item.itemId, quantity: 1 }).unwrap();
-                                    toast.success("Added to cart!");
-                                  } catch (error) {
-                                    toast.error("Failed to add to cart");
-                                  }
-                                }}
-                              >
-                                + Cart
-                              </Button>
+                              {!(item.itemType !== "physical_item" && (inventoryData?.some(inv => inv.itemId === item.itemId) || cartData?.some(cart => cart.itemId === item.itemId))) && (
+                                <Button
+                                  size="sm"
+                                  variant="flat"
+                                  className="flex-1 bg-gray-100 dark:bg-white/5 text-[#071739] dark:text-white font-black uppercase italic rounded-lg h-9 hover:bg-orange-500/10 transition-all"
+                                  onPress={async () => {
+                                    try {
+                                      await addToCart({ itemId: item.itemId, quantity: 1 }).unwrap();
+                                      toast.success("Added to cart!");
+                                    } catch (error) {
+                                      const err = error as ErrorForm;
+                                      toast.error(err?.data?.data?.message || "Failed to add to cart");
+                                    }
+                                  }}
+                                >
+                                  + Cart
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 className="flex-1 bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase italic rounded-lg h-9 hover:bg-blue-600 dark:hover:border-[#00FF41] dark:hover:text-[#071739] transition-all"

@@ -144,35 +144,37 @@ export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center bg-white dark:bg-[#101828] rounded-xl border dark:border-white/10 p-1">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="light"
-                          className="h-7 w-7 min-w-0 rounded-lg"
-                          onPress={() => {
-                            if (item.quantity > 1) {
-                              handleAddToCart(item.itemId, -1);
-                            } else {
-                              handleRemove(item.cartItemId);
-                            }
-                          }}
-                        >
-                          <Minus size={14} />
-                        </Button>
-                        <span className="w-8 text-center text-xs font-black">
-                          {item.quantity}
-                        </span>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="light"
-                          className="h-7 w-7 min-w-0 rounded-lg"
-                          onPress={() => handleAddToCart(item.itemId, 1)}
-                        >
-                          <Plus size={14} />
-                        </Button>
-                      </div>
+                      {item.itemType === "physical_item" && (
+                        <div className="flex items-center bg-white dark:bg-[#101828] rounded-xl border dark:border-white/10 p-1">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="h-7 w-7 min-w-0 rounded-lg"
+                            onPress={() => {
+                              if (item.quantity > 1) {
+                                handleAddToCart(item.itemId, -1);
+                              } else {
+                                handleRemove(item.cartItemId);
+                              }
+                            }}
+                          >
+                            <Minus size={14} />
+                          </Button>
+                          <span className="w-8 text-center text-xs font-black">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="h-7 w-7 min-w-0 rounded-lg"
+                            onPress={() => handleAddToCart(item.itemId, 1)}
+                          >
+                            <Plus size={14} />
+                          </Button>
+                        </div>
+                      )}
 
                       <Button
                         isIconOnly

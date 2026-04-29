@@ -308,6 +308,8 @@ function CoinShopContent() {
       setSelectedTab("earnings");
     } else if (tab === "inventory") {
       setSelectedTab("inventory");
+    } else if (tab === "shop") {
+      setSelectedTab("shop");
     }
     // Refetch nếu vừa redirect về từ PayOS
     if (searchParams.get("refresh") === "1") {

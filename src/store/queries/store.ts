@@ -21,7 +21,7 @@ const normalizeStoreItem = (item: any): StoreItem => ({
   durationDays: item.durationDays !== undefined ? item.durationDays : item.DurationDays,
   stockQuantity: item.stockQuantity !== undefined ? item.stockQuantity : item.StockQuantity,
   metaJson: typeof item.metaJson === 'string' ? JSON.parse(item.metaJson) : (item.metaJson || item.MetaJson),
-  isActive: item.isActive !== undefined ? item.isActive : item.IsActive,
+  isActive: item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : (item.active !== undefined ? item.active : true)),
 });
 
 export const storeApi = baseApi.injectEndpoints({

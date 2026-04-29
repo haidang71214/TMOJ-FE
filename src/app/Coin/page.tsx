@@ -328,7 +328,8 @@ function CoinShopContent() {
     const filtered = storeItems.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = shopTypeFilter === "all" || item.itemType === shopTypeFilter;
-      return matchesSearch && matchesType;
+      const matchesActive = item.isActive !== false;
+      return matchesSearch && matchesType && matchesActive;
     });
 
     // 2. Sort

@@ -449,7 +449,6 @@ function CoinShopContent() {
                 <SelectItem key="badge">Badges</SelectItem>
                 <SelectItem key="title_color">Title Colors</SelectItem>
                 <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
-                <SelectItem key="coupon">Coupons</SelectItem>
                 <SelectItem key="physical_item">Physical Items</SelectItem>
               </Select>
               <Select
@@ -609,7 +608,6 @@ function CoinShopContent() {
                 <SelectItem key="badge">Badges</SelectItem>
                 <SelectItem key="title_color">Title Colors</SelectItem>
                 <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
-                <SelectItem key="coupon">Coupons</SelectItem>
                 <SelectItem key="physical_item">Physical Items</SelectItem>
               </Select>
             </div>

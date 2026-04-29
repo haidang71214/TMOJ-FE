@@ -55,7 +55,7 @@ export default function ProfileModal({ isOpen, onOpenChange, student }: Props) {
               <div className="flex items-center gap-6">
                 <Avatar
                   src={student?.avatar}
-                  className="w-32 h-32 rounded-[2rem] border-2 border-divider shadow-xl"
+                  className="w-32 h-32 rounded-full border-2 border-divider shadow-xl"
                 />
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

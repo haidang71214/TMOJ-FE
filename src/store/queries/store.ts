@@ -99,7 +99,7 @@ export const storeApi = baseApi.injectEndpoints({
     }),
 
     // ADMIN APIs
-    createStoreItem: builder.mutation<void, any>({
+    createStoreItem: builder.mutation<void, FormData>({
       query: (body) => ({
         url: StoreEndpoint.ITEMS,
         method: "POST",
@@ -107,7 +107,7 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Store"],
     }),
-    updateStoreItem: builder.mutation<void, { itemId: string; body: any }>({
+    updateStoreItem: builder.mutation<void, { itemId: string; body: FormData }>({
       query: ({ itemId, body }) => ({
         url: StoreEndpoint.ITEM_DETAIL.replace("{itemId}", itemId),
         method: "PUT",

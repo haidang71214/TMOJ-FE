@@ -39,6 +39,7 @@ export interface CartItem {
   priceCoin: number;
   quantity: number;
   totalPrice: number;
+  itemType: ItemType;
 }
 
 export interface AddToCartRequest {

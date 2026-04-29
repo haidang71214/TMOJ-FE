@@ -19,11 +19,13 @@ import {
   CheckCircle2,
   Package,
   ChevronRight,
+  ShoppingCart,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetStoreItemDetailQuery, useBuyItemMutation, useAddToCartMutation } from "@/store/queries/store";
+import { useGetStoreItemDetailQuery, useBuyItemMutation, useAddToCartMutation, useGetMyInventoryQuery, useGetCartQuery } from "@/store/queries/store";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ErrorForm } from "@/types";
 
 export default function ProductDetailPage() {
   const [mounted, setMounted] = useState(false);
@@ -32,9 +34,14 @@ export default function ProductDetailPage() {
   const id = params.id as string;
 
   const { data: product, isLoading, error } = useGetStoreItemDetailQuery(id);
+  const { data: inventoryData } = useGetMyInventoryQuery();
+  const { data: cartData } = useGetCartQuery();
   const [buyItem, { isLoading: isBuying }] = useBuyItemMutation();
   const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
   const { t, language } = useTranslation();
+
+  const isAlreadyOwned = product?.itemType !== "physical_item" && inventoryData?.some(inv => inv.itemId === product?.itemId);
+  const isAlreadyInCart = product?.itemType !== "physical_item" && cartData?.some(cart => cart.itemId === product?.itemId);
 
   useEffect(() => {
     setMounted(true);
@@ -46,7 +53,8 @@ export default function ProductDetailPage() {
       toast.success(language === 'vi' ? "Mua hàng thành công!" : "Successfully purchased!");
       router.push("/Coin?tab=inventory");
     } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to purchase item");
+      const error = err as ErrorForm;
+      toast.error(error?.data?.data?.message || (language === 'vi' ? "Mua hàng thất bại" : "Failed to purchase item"));
     }
   };
 
@@ -55,7 +63,8 @@ export default function ProductDetailPage() {
       await addToCart({ itemId: id, quantity: 1 }).unwrap();
       toast.success(language === 'vi' ? "Đã thêm vào giỏ hàng!" : "Added to cart!");
     } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to add to cart");
+      const error = err as ErrorForm;
+      toast.error(error?.data?.data?.message || (language === 'vi' ? "Thêm vào giỏ hàng thất bại" : "Failed to add to cart"));
     }
   };
 
@@ -178,22 +187,38 @@ export default function ProductDetailPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button
-                      isLoading={isAddingToCart}
-                      onPress={handleAddToCart}
-                      className="flex-1 bg-white dark:bg-white/5 border-2 border-[#071739] dark:border-[#FF5C00] text-[#071739] dark:text-white font-[1000] uppercase italic h-14 rounded-2xl hover:bg-gray-50 transition-all text-md"
-                    >
-                      {language === 'vi' ? "Thêm vào giỏ" : "Add to cart"}
-                    </Button>
-                    <Button
-                      isLoading={isBuying}
-                      onPress={handleBuy}
-                      className="flex-1 bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] uppercase italic h-14 rounded-2xl shadow-xl 
-                                  hover:bg-blue-600 dark:hover:bg-[#00FF41] dark:hover:text-[#071739] transition-all text-md"
-                      startContent={!isBuying && <ShoppingBag size={20} />}
-                    >
-                      {isBuying ? "Processing..." : (language === 'vi' ? "Mua ngay" : "Buy now")}
-                    </Button>
+                    {!isAlreadyOwned ? (
+                      isAlreadyInCart ? (
+                        <div className="flex-1 bg-orange-500/10 border-2 border-orange-500/20 text-orange-500 font-[1000] uppercase italic h-14 rounded-2xl flex items-center justify-center gap-2">
+                          <ShoppingCart size={20} />
+                          {language === 'vi' ? "Mua ngay" : "Buy now"}
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            isLoading={isAddingToCart}
+                            onPress={handleAddToCart}
+                            className="flex-1 bg-white dark:bg-white/5 border-2 border-[#071739] dark:border-[#FF5C00] text-[#071739] dark:text-white font-[1000] uppercase italic h-14 rounded-2xl hover:bg-gray-50 transition-all text-md"
+                          >
+                            {language === 'vi' ? "Thêm vào giỏ" : "Add to cart"}
+                          </Button>
+                          <Button
+                            isLoading={isBuying}
+                            onPress={handleBuy}
+                            className="flex-1 bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] uppercase italic h-14 rounded-2xl shadow-xl 
+                                        hover:bg-blue-600 dark:hover:bg-[#00FF41] dark:hover:text-[#071739] transition-all text-md"
+                            startContent={!isBuying && <ShoppingBag size={20} />}
+                          >
+                            {isBuying ? "Processing..." : (language === 'vi' ? "Mua ngay" : "Buy now")}
+                          </Button>
+                        </>
+                      )
+                    ) : (
+                      <div className="flex-1 bg-emerald-500/10 border-2 border-emerald-500/20 text-emerald-500 font-[1000] uppercase italic h-14 rounded-2xl flex items-center justify-center gap-2">
+                        <CheckCircle2 size={20} />
+                        {language === 'vi' ? "Đã sở hữu" : "Already Owned"}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

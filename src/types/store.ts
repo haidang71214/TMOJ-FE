@@ -2,7 +2,6 @@ export enum ItemType {
   BADGE = "badge",
   TITLE_COLOR = "title_color",
   AVATAR_FRAME = "avatar_frame",
-  COUPON = "coupon",
   PHYSICAL_ITEM = "physical_item",
 }
 
@@ -52,7 +51,7 @@ export interface CreateStoreItemRequest {
   description: string;
   itemType: string;
   priceCoin: number;
-  imageUrl: string;
+  file?: File;
   durationDays: number | null;
   stockQuantity: number;
   metaJson: StoreItemMeta;

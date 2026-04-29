@@ -228,7 +228,7 @@ export default function ProfilePage() {
                   <Avatar
                     src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
                     name={displayName || username}
-                    className={`w-28 h-28 border-4 ${equippedFrame ? "border-transparent" : "border-[#FF5C00]"} rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
+                    className={`w-28 h-28 border-4 ${equippedFrame ? "border-transparent" : "border-[#FF5C00]"} rounded-full shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
                       }`}
                   />
 
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                   )}
 
                   {/* Hover overlay for actions */}
-                  <div className="absolute inset-0 bg-black/40 rounded-[2.2rem] opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
                       isIconOnly
                       size="sm"

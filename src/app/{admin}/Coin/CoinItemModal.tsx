@@ -16,28 +16,52 @@ export default function CoinItemModal({
   const [createItem, { isLoading: isCreating }] = useCreateStoreItemMutation();
   const [updateItem, { isLoading: isUpdating }] = useUpdateStoreItemMutation();
 
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>(initialData?.imageUrl || "");
+
   const [form, setForm] = useState({
     name: initialData?.name || "",
     description: initialData?.description || "",
     itemType: initialData?.itemType || ItemType.PHYSICAL_ITEM,
     priceCoin: initialData?.priceCoin || 0,
-    imageUrl: initialData?.imageUrl || "",
     durationDays: initialData?.durationDays || null,
     stockQuantity: initialData?.stockQuantity || 0,
     metaJson: initialData?.metaJson || { specs: [] },
     isActive: initialData?.isActive ?? true,
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    }
+  };
+
   const handleSave = async () => {
     if (!form.name?.trim()) return toast.error("Item name is required");
     if (form.priceCoin < 0) return toast.error("Price cannot be negative");
 
     try {
+      const formData = new FormData();
+      if (file) {
+        formData.append("file", file);
+      }
+
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("itemType", form.itemType);
+      formData.append("priceCoin", String(form.priceCoin));
+      formData.append("durationDays", form.durationDays === null ? "" : String(form.durationDays));
+      formData.append("stockQuantity", String(form.stockQuantity));
+      formData.append("isActive", String(form.isActive));
+      formData.append("metaJson", JSON.stringify(form.metaJson));
+
       if (initialData) {
-        await updateItem({ itemId: initialData.itemId, body: form }).unwrap();
+        await updateItem({ itemId: initialData.itemId, body: formData }).unwrap();
         toast.success("Item updated successfully");
       } else {
-        await createItem(form).unwrap();
+        await createItem(formData).unwrap();
         toast.success("Item created successfully");
       }
       closeModal();
@@ -106,22 +130,34 @@ export default function CoinItemModal({
           />
         </div>
 
-        <Input
-          label="Image URL"
-          placeholder="https://..."
-          value={form.imageUrl}
-          onValueChange={(val) => setForm({ ...form, imageUrl: val })}
-        />
-
-        {form.imageUrl && (
-          <div className="relative group">
-            <Image
-              src={form.imageUrl}
-              alt="preview"
-              className="rounded-xl h-40 w-full object-cover border border-slate-200 dark:border-white/10"
-            />
+        <div className="space-y-2">
+          <label className="text-sm font-bold block">Item Image</label>
+          <div className="flex flex-col gap-3">
+            {previewUrl && (
+              <div className="relative group">
+                <Image
+                  src={previewUrl}
+                  alt="preview"
+                  className="rounded-xl h-40 w-full object-cover border border-slate-200 dark:border-white/10"
+                />
+              </div>
+            )}
+            <Button
+              as="label"
+              htmlFor="file-upload"
+              className="w-full bg-slate-100 dark:bg-white/5 font-bold cursor-pointer"
+            >
+              {file ? "Change Image" : "Upload Image"}
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </Button>
           </div>
-        )}
+        </div>
 
         <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-divider">
           <div className="flex flex-col">

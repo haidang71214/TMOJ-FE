@@ -107,7 +107,7 @@ export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 variant="flat"
                 className="font-black uppercase italic px-10 rounded-xl"
                 onPress={() => {
-                  router.push("/Coin");
+                  router.push("/Coin?tab=shop");
                   onClose();
                 }}
               >

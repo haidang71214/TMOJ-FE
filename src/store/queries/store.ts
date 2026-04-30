@@ -10,6 +10,7 @@ import {
   StoreResponse,
   CartItem,
   AddToCartRequest,
+  AdminOrdersResponse,
 } from "@/types/store";
 
 const normalizeStoreItem = (item: any): StoreItem => ({
@@ -153,9 +154,13 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Cart", "Inventory", "Wallet", "Store"],
     }),
-    getAdminStoreOrders: builder.query<ProductPurchaseHistory[], void>({
-      query: () => StoreEndpoint.ADMIN_ORDERS,
-      transformResponse: (response: StoreResponse<ProductPurchaseHistory[]>) => response.data || [],
+    getAdminStoreOrders: builder.query<AdminOrdersResponse, { page?: number; pageSize?: number; searchTerm?: string; status?: string }>({
+      query: ({ page = 1, pageSize = 10, searchTerm, status }) => ({
+        url: StoreEndpoint.ADMIN_ORDERS,
+        method: "GET",
+        params: { page, pageSize, searchTerm, status },
+      }),
+      transformResponse: (response: StoreResponse<AdminOrdersResponse>) => response.data,
       providesTags: ["Store"],
     }),
   }),

@@ -1,3 +1,5 @@
+import { ProductPurchaseHistory } from ".";
+
 export enum ItemType {
   BADGE = "badge",
   TITLE_COLOR = "title_color",
@@ -85,4 +87,13 @@ export interface StoreResponse<T> {
   data: T;
   message: string | null;
   traceId: string;
+}
+
+export interface AdminOrdersResponse {
+  data: ProductPurchaseHistory[];
+  message: string;
+  success: boolean;
+  totalCount: number;
+  page: number;
+  pageSize: number;
 }

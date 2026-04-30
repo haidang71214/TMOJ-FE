@@ -12,24 +12,32 @@ import {
   useGetGamificationHistoryQuery
 } from "@/store/queries/gamification";
 
-const BadgeIcon = ({ name, isLocked }: { name: string, isLocked?: boolean }) => {
-  // Simple logic to determine icon based on name
+const BadgeIcon = ({ name, isLocked, iconUrl }: { name: string, isLocked?: boolean, iconUrl?: string | null }) => {
   const iconClass = "w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6";
 
   if (isLocked) {
     return (
       <div className={`${iconClass} bg-slate-200 dark:bg-white/5 grayscale`}>
-        <Lock className="text-slate-400" size={24} />
+        {iconUrl ? (
+          <img src={iconUrl} alt={name} className="w-8 h-8 object-contain" />
+        ) : (
+          <Lock className="text-slate-400" size={24} />
+        )}
       </div>
     );
   }
 
   return (
     <div className={`${iconClass} bg-gradient-to-tr from-[#FF5C00] to-yellow-400 shadow-lg shadow-orange-500/20`}>
-      <Trophy className="text-white" size={24} />
+      {iconUrl ? (
+        <img src={iconUrl} alt={name} className="w-8 h-8 object-contain" />
+      ) : (
+        <Trophy className="text-white" size={24} />
+      )}
     </div>
   );
 };
+
 
 export default function AchievementsPage() {
   const { data: badgesResponse, isLoading: badgesLoading } = useGetBadgesQuery();
@@ -81,11 +89,12 @@ export default function AchievementsPage() {
                 badges?.map((badge) => (
                   <Card key={badge.badgeId} className="bg-white dark:bg-[#111827] border-none rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all group cursor-pointer">
                     <CardBody className="p-6 flex flex-col items-center text-center space-y-4">
-                      <BadgeIcon name={badge.name} />
+                      <BadgeIcon name={badge.name} iconUrl={badge.iconUrl} />
                       <div>
                         <p className="text-xs font-black italic uppercase text-[#071739] dark:text-white leading-tight mb-1">{badge.name}</p>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase">{new Date(badge.awardedAt).toLocaleDateString()}</p>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase">{badge.awardedAt ? new Date(badge.awardedAt).toLocaleDateString() : "Achieved"}</p>
                       </div>
+
                     </CardBody>
                   </Card>
                 ))
@@ -112,14 +121,14 @@ export default function AchievementsPage() {
                     <CardBody className="p-8 space-y-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <BadgeIcon name={p.badge} isLocked />
+                          <BadgeIcon name={p.name} isLocked iconUrl={p.iconUrl} />
                           <div>
-                            <h4 className="text-lg font-[1000] italic uppercase text-[#071739] dark:text-white leading-none">{p.badge}</h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase italic mt-1">Goal: {p.target}</p>
+                            <h4 className="text-lg font-[1000] italic uppercase text-[#071739] dark:text-white leading-none">{p.name}</h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase italic mt-1">Goal: {p.targetValue}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-[1000] text-[#FF5C00] italic leading-none">{p.progress}</p>
+                          <p className="text-2xl font-[1000] text-[#FF5C00] italic leading-none">{p.currentValue}</p>
                           <p className="text-[9px] font-black text-slate-400 uppercase">current</p>
                         </div>
                       </div>
@@ -127,7 +136,7 @@ export default function AchievementsPage() {
                       <div className="space-y-2">
                         <Progress
                           size="md"
-                          value={(p.progress / p.target) * 100}
+                          value={(p.currentValue / p.targetValue) * 100}
                           className="h-3"
                           classNames={{
                             indicator: "bg-gradient-to-r from-slate-400 to-slate-600",
@@ -136,8 +145,9 @@ export default function AchievementsPage() {
                         />
                         <div className="flex justify-between text-[9px] font-black uppercase italic text-slate-400">
                           <span>Progress</span>
-                          <span>{Math.round((p.progress / p.target) * 100)}%</span>
+                          <span>{Math.round((p.currentValue / p.targetValue) * 100)}%</span>
                         </div>
+
                       </div>
                     </CardBody>
                   </Card>
@@ -146,40 +156,9 @@ export default function AchievementsPage() {
             </div>
           </Tab>
 
-          {/* HISTORY TAB */}
-          <Tab
-            key="history"
-            title={
-              <div className="flex items-center gap-2">
-                <History size={18} />
-                <span>History</span>
-              </div>
-            }
-          >
-            <div className="max-w-2xl mx-auto pt-10 space-y-6">
-              {historyLoading ? (
-                <div className="flex justify-center py-20"><Spinner color="warning" /></div>
-              ) : (
-                history?.map((h, idx) => (
-                  <div key={idx} className="flex gap-6 group">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-white dark:bg-[#111827] shadow-lg flex items-center justify-center border-2 border-slate-100 dark:border-white/10 z-10 group-hover:border-[#FF5C00] transition-colors">
-                        {h.type === "badge" ? <Award size={18} className="text-[#FF5C00]" /> : <Sparkles size={18} className="text-blue-500" />}
-                      </div>
-                      {idx !== history.length - 1 && <div className="w-0.5 flex-1 bg-slate-200 dark:bg-white/5 my-2" />}
-                    </div>
-                    <div className="pb-8">
-                      <p className="text-xs text-slate-400 font-bold uppercase">{new Date(h.time).toLocaleString()}</p>
-                      <h5 className="text-xl font-[1000] italic uppercase text-[#071739] dark:text-white leading-tight mt-1">{h.name}</h5>
-                      <p className="text-xs text-slate-500 italic mt-1">You earned a new {h.type}!</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Tab>
         </Tabs>
       </div>
     </div>
   );
 }
+

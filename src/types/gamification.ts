@@ -42,14 +42,31 @@ export interface CreateBadgeRequest {
 export interface Badge {
   badgeId: string;
   name: string;
-  awardedAt: string;
+  iconUrl?: string | null;
+  currentValue?: number;
+  targetValue?: number;
+  progressPercent?: number;
+  isCompleted?: boolean;
+  awardedAt?: string;
+  description?: string;
 }
 
+
+
 export interface BadgeProgress {
-  badge: string;
-  progress: number;
-  target: number;
+  badgeId: string;
+  name: string;
+  iconUrl?: string | null;
+  currentValue: number;
+  targetValue: number;
+  progressPercent: number;
+  isCompleted: boolean;
+  awardedAt?: string;
+  description?: string;
 }
+
+
+
 
 export interface StreakInfo {
   currentStreak: number;

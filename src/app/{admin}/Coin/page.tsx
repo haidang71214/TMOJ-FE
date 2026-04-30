@@ -25,6 +25,7 @@ import {
   Tooltip,
   Select,
   SelectItem,
+  Pagination,
 } from "@heroui/react";
 import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon, History, Coins, Clock } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
@@ -47,8 +48,22 @@ export default function CoinManagerPage() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedStock, setSelectedStock] = useState("all");
 
+  // History State
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyStatus, setHistoryStatus] = useState("all");
+  const historyPageSize = 10;
+
   const { data: items = [], isLoading } = useGetStoreItemsQuery();
-  const { data: purchaseHistory = [], isLoading: isLoadingHistory } = useGetAdminStoreOrdersQuery();
+  const { data: purchaseHistoryData, isLoading: isLoadingHistory } = useGetAdminStoreOrdersQuery({
+    page: historyPage,
+    pageSize: historyPageSize,
+    searchTerm: historySearch,
+    status: historyStatus === "all" ? undefined : historyStatus,
+  });
+  const purchaseHistory = purchaseHistoryData?.data || [];
+  const totalHistoryCount = purchaseHistoryData?.totalCount || 0;
+
   const [deleteItem, { isLoading: isDeleting }] = useDeleteStoreItemMutation();
 
   const { openModal } = useModal();
@@ -320,90 +335,147 @@ export default function CoinManagerPage() {
             </div>
           }
         >
-          <div className="mt-8 rounded-[2.5rem] overflow-hidden border border-white/5 animate-in fade-in duration-500" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
-            <Table
-              aria-label="Purchase history table"
-              removeWrapper
-              classNames={{
-                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
-                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
-                tr: "hover:bg-white/[0.03] transition-colors group/row",
-              }}
-            >
-              <TableHeader>
-                <TableColumn className="w-[35%]">PRODUCT & ASSET</TableColumn>
-                <TableColumn>BUYER PROFILE</TableColumn>
-                <TableColumn align="center">TRANSACTION</TableColumn>
-                <TableColumn align="center">TIMELINE</TableColumn>
-                <TableColumn align="center">ORDER STATUS</TableColumn>
-              </TableHeader>
-              <TableBody
-                emptyContent={isLoadingHistory ? "Đang tải dữ liệu..." : "No purchase history found in logs"}
-                isLoading={isLoadingHistory}
+          <div className="mt-8 space-y-6 animate-in fade-in duration-500">
+            {/* HISTORY FILTERS */}
+            <div className="flex flex-wrap gap-4 items-center px-4">
+              <div className="relative group flex-1 min-w-[240px] max-w-sm dark">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+                <input
+                  placeholder="Search orders (Buyer, Email, Item)..."
+                  value={historySearch}
+                  onChange={(e) => {
+                    setHistorySearch(e.target.value);
+                    setHistoryPage(1);
+                  }}
+                  className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10 h-11"
+                />
+              </div>
+
+              <Select
+                placeholder="Order Status"
+                className="w-48 dark"
+                selectedKeys={[historyStatus]}
+                onSelectionChange={(keys) => {
+                  setHistoryStatus(Array.from(keys)[0] as string);
+                  setHistoryPage(1);
+                }}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
               >
-                {purchaseHistory.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-4">
-                        <Image
-                          src={row.itemImage}
-                          alt={row.itemName}
-                          className="w-12 h-12 rounded-xl object-cover shadow-lg"
-                          removeWrapper
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{row.itemName}</span>
-                          <span className="text-[10px] font-black text-white/20 uppercase tracking-tighter italic">{row.id}</span>
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="Pending">Pending</SelectItem>
+                <SelectItem key="Shipped">Shipped</SelectItem>
+                <SelectItem key="Completed">Completed</SelectItem>
+                <SelectItem key="Cancelled">Cancelled</SelectItem>
+              </Select>
+            </div>
+
+            <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
+              <Table
+                aria-label="Purchase history table"
+                removeWrapper
+                classNames={{
+                  th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+                  td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+                  tr: "hover:bg-white/[0.03] transition-colors group/row",
+                }}
+                bottomContent={
+                  totalHistoryCount > historyPageSize ? (
+                    <div className="flex w-full justify-center py-4 border-t border-white/5">
+                      <Pagination
+                        isCompact
+                        showControls
+                        showShadow
+                        color="primary"
+                        page={historyPage}
+                        total={Math.ceil(totalHistoryCount / historyPageSize)}
+                        onChange={(page) => setHistoryPage(page)}
+                        classNames={{
+                          cursor: "bg-[#3B5BFF]",
+                        }}
+                      />
+                    </div>
+                  ) : null
+                }
+              >
+                <TableHeader>
+                  <TableColumn className="w-[35%]">PRODUCT & ASSET</TableColumn>
+                  <TableColumn>BUYER PROFILE</TableColumn>
+                  <TableColumn align="center">TRANSACTION</TableColumn>
+                  <TableColumn align="center">TIMELINE</TableColumn>
+                  <TableColumn align="center">ORDER STATUS</TableColumn>
+                </TableHeader>
+                <TableBody
+                  emptyContent={isLoadingHistory ? "Đang tải dữ liệu..." : "No purchase history found in logs"}
+                  isLoading={isLoadingHistory}
+                >
+                  {purchaseHistory.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-4">
+                          <Image
+                            src={row.itemImage}
+                            alt={row.itemName}
+                            className="w-12 h-12 rounded-xl object-cover shadow-lg"
+                            removeWrapper
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{row.itemName}</span>
+                            <span className="text-[10px] font-black text-white/20 uppercase tracking-tighter italic">{row.id}</span>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3B5BFF] to-[#6B3BFF] flex items-center justify-center text-xs font-black text-white">
-                          {row.buyerName.charAt(0)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3B5BFF] to-[#6B3BFF] flex items-center justify-center text-xs font-black text-white">
+                            {row.buyerName.charAt(0)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white/90">{row.buyerName}</span>
+                            <span className="text-[10px] text-white/30 italic">{row.buyerEmail}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white/90">{row.buyerName}</span>
-                          <span className="text-[10px] text-white/30 italic">{row.buyerEmail}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-1.5 text-[#3B5BFF]">
+                            <Coins size={14} />
+                            <span className="text-base font-black italic">{row.price}</span>
+                          </div>
+                          <span className="text-[10px] font-black uppercase text-white/20 tracking-tighter">Gold Coins</span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center gap-1.5 text-[#3B5BFF]">
-                          <Coins size={14} />
-                          <span className="text-base font-black italic">{row.price}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-1.5 text-white/50 text-[11px] font-bold">
+                            <Clock size={12} /> {row.purchaseDate}
+                          </div>
                         </div>
-                        <span className="text-[10px] font-black uppercase text-white/20 tracking-tighter">Gold Coins</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-1.5 text-white/50 text-[11px] font-bold">
-                          <Clock size={12} /> {row.purchaseDate}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center">
+                          <Chip
+                            size="sm"
+                            variant="flat"
+                            className="font-black uppercase text-[9px] border-none italic px-4"
+                            color={
+                              row.status.toLowerCase() === "completed" ? "success" :
+                                row.status.toLowerCase() === "pending" ? "warning" :
+                                  row.status.toLowerCase() === "shipped" ? "primary" : "danger"
+                            }
+                          >
+                            {row.status}
+                          </Chip>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center">
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          className="font-black uppercase text-[9px] border-none italic px-4"
-                          color={
-                            row.status === "Completed" ? "success" :
-                              row.status === "Pending" ? "warning" :
-                                row.status === "Shipped" ? "primary" : "danger"
-                          }
-                        >
-                          {row.status}
-                        </Chip>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </Tab>
       </Tabs>

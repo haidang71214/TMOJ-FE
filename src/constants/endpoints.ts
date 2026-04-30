@@ -317,6 +317,7 @@ const StoreEndpoint = {
   CART: `${API_PREFIX}/store/cart`,
   CART_ITEM: `${API_PREFIX}/store/cart/{cartItemId}`,
   CHECKOUT: `${API_PREFIX}/store/checkout`,
+  ADMIN_ORDERS: `${API_PREFIX}/store/admin/orders`,
 };
 
 const RankingEndpoint = {

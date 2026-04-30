@@ -28,15 +28,24 @@ export interface AdminBadge {
 }
 
 export interface CreateBadgeRequest {
-  dto: {
-    name: string;
-    iconUrl: string;
-    description: string;
-    badgeCode: string;
-    badgeCategory: string;
-    badgeLevel: number;
-    isRepeatable: boolean;
-  };
+  name: string;
+  iconUrl?: string;
+  iconFile?: File | null;
+  description?: string;
+  badgeCode: string;
+  badgeCategory: string;
+  badgeLevel: number;
+  isRepeatable: boolean;
+}
+
+export interface UpdateBadgeRequest {
+  id: string;
+  name: string;
+  iconUrl?: string;
+  iconFile?: File | null;
+  description?: string;
+  badgeCategory: string;
+  badgeLevel: number;
 }
 
 export interface Badge {

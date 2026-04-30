@@ -1,5 +1,6 @@
 import { StoreEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
+import { ProductPurchaseHistory } from "@/types";
 import {
   StoreItem,
   CreateStoreItemRequest,
@@ -152,6 +153,11 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Cart", "Inventory", "Wallet", "Store"],
     }),
+    getAdminStoreOrders: builder.query<ProductPurchaseHistory[], void>({
+      query: () => StoreEndpoint.ADMIN_ORDERS,
+      transformResponse: (response: StoreResponse<ProductPurchaseHistory[]>) => response.data || [],
+      providesTags: ["Store"],
+    }),
   }),
 });
 
@@ -170,4 +176,5 @@ export const {
   useAddToCartMutation,
   useRemoveFromCartMutation,
   useCheckoutMutation,
+  useGetAdminStoreOrdersQuery,
 } = storeApi;

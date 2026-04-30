@@ -30,32 +30,11 @@ import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageI
 import { useModal } from "@/Provider/ModalProvider";
 import CoinItemModal from "./CoinItemModal";
 import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
-import { useGetStoreItemsQuery, useDeleteStoreItemMutation } from "@/store/queries/store";
+import { useGetStoreItemsQuery, useDeleteStoreItemMutation, useGetAdminStoreOrdersQuery } from "@/store/queries/store";
 import { StoreItem } from "@/types/store";
+import { ProductPurchaseHistory } from "@/types";
 import { toast } from "sonner";
 
-const MOCK_HISTORY = [
-  {
-    id: "ORD-001",
-    itemName: "Áo Polo FPT Cam",
-    itemImage: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
-    buyerName: "Nguyễn Văn A",
-    buyerEmail: "anv@fpt.edu.vn",
-    price: 500,
-    purchaseDate: "2026-04-20 10:30",
-    status: "Completed",
-  },
-  {
-    id: "ORD-002",
-    itemName: "Balo FPT Software",
-    itemImage: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
-    buyerName: "Trần Thị B",
-    buyerEmail: "bt@fpt.edu.vn",
-    price: 1200,
-    purchaseDate: "2026-04-21 14:15",
-    status: "Shipped",
-  },
-];
 
 const formatVND = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -69,6 +48,7 @@ export default function CoinManagerPage() {
   const [selectedStock, setSelectedStock] = useState("all");
 
   const { data: items = [], isLoading } = useGetStoreItemsQuery();
+  const { data: purchaseHistory = [], isLoading: isLoadingHistory } = useGetAdminStoreOrdersQuery();
   const [deleteItem, { isLoading: isDeleting }] = useDeleteStoreItemMutation();
 
   const { openModal } = useModal();
@@ -357,8 +337,11 @@ export default function CoinManagerPage() {
                 <TableColumn align="center">TIMELINE</TableColumn>
                 <TableColumn align="center">ORDER STATUS</TableColumn>
               </TableHeader>
-              <TableBody emptyContent="No purchase history found in logs">
-                {MOCK_HISTORY.map((row) => (
+              <TableBody
+                emptyContent={isLoadingHistory ? "Đang tải dữ liệu..." : "No purchase history found in logs"}
+                isLoading={isLoadingHistory}
+              >
+                {purchaseHistory.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
                       <div className="flex items-center gap-4">

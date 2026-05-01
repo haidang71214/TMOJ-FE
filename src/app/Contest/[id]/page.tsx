@@ -42,8 +42,10 @@ export default function ContestDetailPage() {
   }
 
   const contest = contestData?.data;
+  // đây nè
   const problems = contest?.problems || [];
-
+  console.log(problems,"day neeee");
+  
   const handleCopyCode = (code: string) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).then(() => {
@@ -311,7 +313,7 @@ export default function ContestDetailPage() {
                     </TableHeader>
                     <TableBody items={problems}>
                       {(item) => (
-                        <TableRow key={item.problemId} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.problemId}`)}>
+                        <TableRow key={item.problemId} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.problemId}?contestProblemId=${item.id}`)}>
                           <TableCell className="text-center font-bold text-slate-700 dark:text-slate-300">
                             {item.alias || item.problemId.substring(0, 4)}
                           </TableCell>

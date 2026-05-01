@@ -1824,3 +1824,8 @@ export interface ClassTotalRankingResponse {
   data: ClassTotalRankingData;
   message: string;
 }
+export interface SubmitContestPublicRequest {
+  contestProblemId: string;
+  code: string;
+  language: string;
+}

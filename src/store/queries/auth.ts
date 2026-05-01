@@ -30,14 +30,6 @@ export const authApi = baseApi.injectEndpoints({
       }),
        invalidatesTags: ["User"],
     }),
-    githubLogin: builder.mutation<{ data: LoginGGResponse }, { accessToken: string }>({
-      query: (params) => ({
-        url: authEndpoint.GITHUB_LOGIN,
-        method: "POST",
-        body: params,
-      }),
-      invalidatesTags: ["User"],
-    }),
     register: builder.mutation<{ result: RegisterResponseDto }, RegisterRequestDto>({
       query: (params) => ({
         url: authEndpoint.REGISTER,
@@ -67,7 +59,6 @@ export const {
   useLogoutMutation,
   useLoginMutation,
   useGoogleLoginMutation,
-  useGithubLoginMutation,
   useRegisterMutation,
   useForgotpassMutation,
   useResetPasswordMutation,

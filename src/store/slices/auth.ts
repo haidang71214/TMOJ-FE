@@ -16,6 +16,7 @@ const initialState: AuthSlickInterface = {
 };
 
 export const authSlice = createSlice({
+  // thực ra phần này chỉ quản lí các trạng thái của user khi login và logout
   name: "auth",
   initialState,
   reducers: {
@@ -29,13 +30,14 @@ export const authSlice = createSlice({
       webStorageClient.setToken("");
       webStorageClient.logout();
     },
+    // báo cho redux biết đã hydrate xong.
     setHydrated: (state, action) => {
       state.isHydrated = action.payload ?? true;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: (builder) => { 
     builder.addMatcher(
-      authApi.endpoints.login.matchFulfilled,
+      authApi.endpoints.login.matchFulfilled, 
       (state, action) => {
         const user = action.payload?.data?.user;
         const token = action.payload?.data?.accessToken;

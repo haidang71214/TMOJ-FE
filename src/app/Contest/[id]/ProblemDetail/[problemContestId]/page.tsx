@@ -12,18 +12,22 @@ import {
   FlaskConical,
   CheckSquare,
   Clock,
+  Database,
   AlertCircle,
+  XCircle,
+  Zap,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Chip, Progress, Skeleton } from "@heroui/react";
-import { VerdictCode } from "@/types";
-import { useGetSubmissionQuery } from "@/store/queries/Submittion";
-import AiDebugAssistant from "@/app/components/AiDebugAssistant";
+import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
+import AiDebugAssistant from "@/app/components/AiDebugAssistant";
+import { useGetSubmissionQuery } from "@/store/queries/Submittion";
+import { VerdictCode } from "@/types";
 
+// ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
   { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
   { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
@@ -83,27 +87,22 @@ function useResize(
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function ProblemDetailsPage() {
-    const params = useParams();
-    const searchParams = useSearchParams();
-    const problemId = params.id as string;
-    const classSlotId = searchParams.get("classSlotId") || undefined;
+  const params = useParams<{ id: string; problemContestId: string }>();
+  const problemId = params.problemContestId;
+  const contestProblemId = params.id;
+  const searchParams = useSearchParams();
   const { t, language } = useTranslation();
-  
+
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
-
   const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const { data: submissionData, isLoading: isSubmissionLoading } = useGetSubmissionQuery(
+
+  const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
     { submissionId: submissionId! },
-    { skip: !submissionId, pollingInterval: 3000 }
+    { skip: !submissionId }
   );
-
-  const onSubmissionIdChange = (id: string | null) => {
-    setSubmissionId(id);
-    if (id) setActiveBottomTab("result");
-  };
-
+  console.log(submissionData)
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
   const { size: leftWidth, onMouseDown: onHDrag } = useResize(
@@ -164,10 +163,9 @@ export default function ProblemDetailsPage() {
                   <button
                     onClick={() => setActiveLeftTab(key)}
                     className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                      ${
-                        isActive
-                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                      ${isActive
+                        ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                       }
                       after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                   >
@@ -197,13 +195,15 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-<SolutionSubmittion
-  editorHeight={editorHeight}
-  problemId={problemId}
-  classSlotId={classSlotId}
-  onSubmitSuccess={() => setActiveLeftTab("submissions")}
-  onSubmissionIdChange={onSubmissionIdChange}
-/>
+          <SolutionSubmittion
+            editorHeight={editorHeight}
+            problemId={problemId}
+            onSubmitSuccess={() => setActiveLeftTab("submissions")}
+            onSubmissionIdChange={(id: string | null) => {
+              setSubmissionId(id);
+              setActiveBottomTab("result");
+            }}
+          />
 
           {/* ── VERTICAL DRAG HANDLE ── */}
           <div
@@ -225,10 +225,9 @@ export default function ProblemDetailsPage() {
                     <button
                       onClick={() => setActiveBottomTab(key)}
                       className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                        ${
-                          isActive
-                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        ${isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                         }
                         after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                     >
@@ -244,24 +243,20 @@ export default function ProblemDetailsPage() {
             <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
               {activeBottomTab === "testcase" ? (
                 <div className="space-y-4">
-                  {/* Case selector */}
+                  {/* ... Case selector content ... */}
                   <div className="flex items-center gap-2">
                     {["Case 1", "Case 2", "Case 3"].map((c, i) => (
                       <button
                         key={c}
                         onClick={() => setActiveCase(i)}
-                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${
-                          activeCase === i
-                            ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
-                            : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
-                        }`}
+                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
+                          ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                          : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                          }`}
                       >
                         {c}
                       </button>
                     ))}
-                    <button className="p-1.5 rounded-lg bg-gray-100 dark:bg-[#101828] border dark:border-[#334155] text-gray-400 dark:text-[#667085] hover:text-black dark:hover:text-white transition-colors text-[14px] font-black">
-                      +
-                    </button>
                   </div>
 
                   {/* Input fields */}
@@ -282,26 +277,19 @@ export default function ProblemDetailsPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                /* Test Result detailed view */
-                <div className="h-full overflow-y-auto no-scrollbar">
-                  {!submissionId ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
-                      <CheckSquare size={36} strokeWidth={1.5} />
-                      <p className="text-[12px] font-bold uppercase tracking-widest">
-                        Run your code to see results
-                      </p>
-                    </div>
-                  ) : isSubmissionLoading && !submissionData ? (
-                    <div className="space-y-6 animate-pulse p-4">
-                      <Skeleton className="h-8 w-1/3 rounded-lg" />
+              ) : submissionId ? (
+                /* ACTUAL RESULT VIEW */
+                <div className="space-y-6">
+                  {isLoadingResult ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-10 w-48 rounded-xl" />
                       <div className="grid grid-cols-2 gap-4">
                         <Skeleton className="h-20 w-full rounded-xl" />
                         <Skeleton className="h-20 w-full rounded-xl" />
                       </div>
                     </div>
                   ) : (
-                    <div className="animate-fade-in p-4">
+                    <div className="animate-fade-in">
                       {(() => {
                         const data = submissionData?.data as any;
                         const results = data?.results || [];
@@ -387,7 +375,7 @@ export default function ProblemDetailsPage() {
 
                             {/* Compile Error Detail */}
                             {data?.verdictCode === VerdictCode.CE && (
-                              <div className="space-y-4 mb-6">
+                              <div className="space-y-4">
                                 <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
                                   <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
                                     <TriangleAlert size={16} />
@@ -402,7 +390,7 @@ export default function ProblemDetailsPage() {
 
                             {/* Failed Testcase Detail (if any) */}
                             {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
-                              <div className="space-y-4 mb-6">
+                              <div className="space-y-4">
                                 <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
                                   <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
                                     <AlertCircle size={16} />
@@ -455,6 +443,14 @@ export default function ProblemDetailsPage() {
                       })()}
                     </div>
                   )}
+                </div>
+              ) : (
+                /* Test Result placeholder */
+                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                  <CheckSquare size={36} strokeWidth={1.5} />
+                  <p className="text-[12px] font-bold uppercase tracking-widest">
+                    Run your code to see results
+                  </p>
                 </div>
               )}
             </div>

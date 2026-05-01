@@ -22,7 +22,6 @@ import { useGetSubmissionListByProblemQuery } from "@/store/queries/Submittion";
 
 interface SubmissionsTabProps {
   problemId: string;
-  onRowClick: (item: SubmissionData) => void;
 }
 
 const getStatusLabel = (verdict: string | null, status: string | null) => {
@@ -36,7 +35,7 @@ const getStatusLabel = (verdict: string | null, status: string | null) => {
   return "Pending";
 };
 
-export const SubmissionsTab = ({ problemId, onRowClick }: SubmissionsTabProps) => {
+export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 4;
 
@@ -132,10 +131,6 @@ export const SubmissionsTab = ({ problemId, onRowClick }: SubmissionsTabProps) =
                   </div>
                 ) : null
               }
-              onRowAction={(key) => {
-                const item = submissions.find((s) => s.id === key);
-                if (item) onRowClick(item);
-              }}
               classNames={{
                 base: "flex flex-col min-h-0 overflow-hidden",
                 table: "min-h-0 overflow-hidden",

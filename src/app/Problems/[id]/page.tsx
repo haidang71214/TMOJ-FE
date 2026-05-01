@@ -25,7 +25,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
-import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import AiDebugAssistant from "@/app/components/AiDebugAssistant";
@@ -37,7 +36,6 @@ const LEFT_TABS = [
   { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
   { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
   { key: "submissions", tKey: "problem_workspace.submissions", defaultVi: "Lịch sử nộp", defaultEn: "Submissions", Icon: Send },
-  { key: "compileerror", tKey: "problem_workspace.compile_error", defaultVi: "Lỗi biên dịch", defaultEn: "Compile Error", Icon: TriangleAlert },
 ] as const;
 
 type LeftTabKey = (typeof LEFT_TABS)[number]["key"];
@@ -146,11 +144,8 @@ export default function ProblemDetailsPage() {
         return (
           <SubmissionsTab
             problemId={problemId}
-            onRowClick={() => setActiveLeftTab("compileerror")}
           />
         );
-      case "compileerror":
-        return <CompileErrorTab />;
     }
   };
 

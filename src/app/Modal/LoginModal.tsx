@@ -20,7 +20,7 @@ export default function LoginModal() {
   const { t, language } = useTranslation();
 
   const handleGithubLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URLS}api/v1/Auth/github`;
+    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URLS}/api/v1/Auth/github`;
   };
 
   const handleOpenForgotPass = ()=>{

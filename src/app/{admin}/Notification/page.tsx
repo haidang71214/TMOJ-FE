@@ -23,6 +23,8 @@ import {
   Spinner,
   Select,
   SelectItem,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 import {
   Send,
@@ -37,11 +39,14 @@ import {
   useCreateNotificationMutation,
   useGetAllNotificationsQuery,
   useDeleteNotificationMutation,
-  useBroadcastNotificationMutation
+  useBroadcastNotificationMutation,
+  useGetNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
 } from "@/store/queries/notification";
 import { addToast } from "@heroui/toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useSearchUsersQuery } from "@/store/queries/user";
 
 export default function NotificationManagementPage() {
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
@@ -49,6 +54,9 @@ export default function NotificationManagementPage() {
   const [createNotification] = useCreateNotificationMutation();
   const [broadcastNotification] = useBroadcastNotificationMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
+
+  const { data: settings, isLoading: isLoadingSettings } = useGetNotificationSettingsQuery();
+  const [updateSettings, { isLoading: isUpdatingSettings }] = useUpdateNotificationSettingsMutation();
 
   const notifications = notificationsData || [];
 
@@ -63,6 +71,12 @@ export default function NotificationManagementPage() {
   const [targetUserId, setTargetUserId] = useState("");
   const [scopeId, setScopeId] = useState("");
   const [targetRole, setTargetRole] = useState("All");
+
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const { data: searchResults, isLoading: isSearching } = useSearchUsersQuery(
+    { search: userSearchTerm },
+    { skip: userSearchTerm.length < 2 }
+  );
 
   const handleSendNotification = async () => {
     if (!message.trim()) {
@@ -114,6 +128,19 @@ export default function NotificationManagementPage() {
       setScopeId("");
     } catch (error) {
       addToast({ title: "Lỗi khi gửi thông báo", color: "danger" });
+    }
+  };
+
+  const handleToggleSetting = async (key: "emailNotifications" | "pushNotifications", value: boolean) => {
+    if (!settings) return;
+    try {
+      await updateSettings({
+        ...settings,
+        [key]: value
+      }).unwrap();
+      addToast({ title: "Cập nhật cấu hình thành công", color: "success" });
+    } catch (error) {
+      addToast({ title: "Lỗi khi cập nhật cấu hình", color: "danger" });
     }
   };
 
@@ -230,11 +257,19 @@ export default function NotificationManagementPage() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
                   <span className="font-bold text-sm uppercase">Email Notifications</span>
-                  <Switch defaultSelected />
+                  <Switch
+                    isSelected={settings?.emailNotifications ?? false}
+                    onValueChange={(val) => handleToggleSetting("emailNotifications", val)}
+                    isDisabled={isLoadingSettings || isUpdatingSettings}
+                  />
                 </div>
                 <div className="flex justify-between items-center p-3 border border-slate-100 dark:border-white/5 rounded-xl">
                   <span className="font-bold text-sm uppercase">Push Notifications</span>
-                  <Switch defaultSelected />
+                  <Switch
+                    isSelected={settings?.pushNotifications ?? false}
+                    onValueChange={(val) => handleToggleSetting("pushNotifications", val)}
+                    isDisabled={isLoadingSettings || isUpdatingSettings}
+                  />
                 </div>
               </div>
             </div>
@@ -283,16 +318,27 @@ export default function NotificationManagementPage() {
                 />
 
                 {!sendToAll && (
-                  <Input
-                    label="Target User ID"
-                    placeholder="GUID of the user"
-                    value={targetUserId}
-                    onValueChange={setTargetUserId}
+                  <Autocomplete
+                    label="Target User (Email)"
+                    placeholder="Search by email..."
+                    items={searchResults?.data || []}
+                    isLoading={isSearching}
+                    onInputChange={setUserSearchTerm}
+                    onSelectionChange={(key) => setTargetUserId(key as string)}
                     classNames={{
-                      inputWrapper: "rounded-xl border-2 focus-within:border-indigo-600",
+                      base: "rounded-xl",
                     }}
                     isRequired
-                  />
+                  >
+                    {(user: any) => (
+                      <AutocompleteItem key={user.userId} textValue={user.email}>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold">{user.displayName}</span>
+                          <span className="text-xs text-slate-500">{user.email}</span>
+                        </div>
+                      </AutocompleteItem>
+                    )}
+                  </Autocomplete>
                 )}
 
                 {sendToAll && (

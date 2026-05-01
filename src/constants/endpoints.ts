@@ -306,6 +306,10 @@ const AnnouncementEndpoint = {
   DELETE: `${API_PREFIX}/announcements/{id}`,
 };
 
+const SettingsEndpoint = {
+  NOTIFICATION_SETTINGS: "/api/v1/settings/notifications",
+};
+
 const StoreEndpoint = {
   ITEMS: `${API_PREFIX}/store/items`,
   ITEM_DETAIL: `${API_PREFIX}/store/items/{itemId}`,
@@ -355,4 +359,5 @@ export {
   WalletEndpoint,
   AnnouncementEndpoint,
   StoreEndpoint,
+  SettingsEndpoint,
 };

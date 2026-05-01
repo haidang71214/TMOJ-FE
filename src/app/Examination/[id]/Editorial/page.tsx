@@ -76,7 +76,7 @@ export default function EditorialTab() {
   }
 
   return (
-    <div className="h-full flex flex-col p-8 max-w-5xl mx-auto dark:text-gray-200">
+    <div className="h-full overflow-y-auto flex flex-col p-8 max-w-5xl mx-auto dark:text-gray-200">
       <div className="relative group mb-12">
         <div className="absolute -inset-1 bg-gradient-to-r from-[#FF5C00] to-yellow-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
         <div className="relative flex items-center justify-between p-8 bg-white dark:bg-[#0D1B2A]/80 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-white/5 shadow-2xl">

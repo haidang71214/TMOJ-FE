@@ -52,7 +52,7 @@ export default function PremiumCodeBlock({ blocks }: PremiumCodeBlockProps) {
       <div className="my-6 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0D1B2A]/50 backdrop-blur-md shadow-xl group transition-all hover:shadow-2xl hover:border-orange-500/30">
         <div className="flex items-center justify-between px-5 py-2.5 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-white/5">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${getLanguageColor(block.language)} animation-pulse`} />
+            <div className={`w-2 h-2 rounded-full ${getLanguageColor(block.language)} animate-pulse`} />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
               {block.language || "code"}
             </span>

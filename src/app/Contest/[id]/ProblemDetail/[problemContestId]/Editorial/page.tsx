@@ -22,8 +22,9 @@ import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function EditorialTab() {
-  const { id } = useParams<{ id: string }>();
-  const { t, language } = useTranslation();
+  const params = useParams<{ id: string; problemContestId: string }>();
+  const id = params.problemContestId; // Đây là ID bài tập thực sự (dùng lại tên biến id để giảm thiểu thay đổi code bên dưới)
+ const { t, language } = useTranslation();
 
   // AI states
   const [aiDraft, setAiDraft] = useState<{ title: string, content: string } | null>(null);

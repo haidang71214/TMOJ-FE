@@ -4,7 +4,8 @@ export const API_LON = "api/v2";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
-  GITHUB_LOGIN: `${API_PREFIX}/Auth/github-login`,
+  GITHUB_OAUTH: `${API_PREFIX}/Auth/github`,
+  GITHUB_SESSION: `${API_PREFIX}/Auth/github/session`,
   REGISTER: `${API_PREFIX}/Auth/register`,
   LOGOUT: `${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD: `${API_PREFIX}/Auth/forgot-password`,

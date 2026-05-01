@@ -4,10 +4,10 @@ import {
   usePostSubmissionMutation,
   useGetSubmissionQuery,
 } from "@/store/queries/Submittion"
-import { usePostClassContestSubmissionMutation } from "@/store/queries/ClassContest"
+import { useSubmitContestMutation } from "@/store/queries/Contest"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
-import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
+import { Maximize2, Minimize2, Play, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
@@ -16,14 +16,15 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 
 interface SolutionSubmittionProps {
-  editorHeight: number;
+  editorHeight: number | string;
   problemId: string;
-  contestProblemId?: string;
-  classSemesterId?: string;
   contestId?: string;
+  contestProblemId?: string;
   onSubmitSuccess?: () => void;
   classSlotId?: string;
   onSubmissionIdChange?: (id: string | null) => void;
+  isMaximized?: boolean;
+  onToggleMaximize?: () => void;
 }
 
 const TEMPLATES: Record<string, string> = {
@@ -77,15 +78,17 @@ public class Main {
 export default function SolutionSubmittion({
   editorHeight,
   problemId,
-  contestProblemId,
-  classSemesterId,
   contestId,
+  contestProblemId,
   onSubmitSuccess,
   classSlotId,
   onSubmissionIdChange,
+  isMaximized,
+  onToggleMaximize,
 }: SolutionSubmittionProps) {
-// phần nộp bài cần classSemeterId và contestId.
   const { t, language } = useTranslation();
+  console.log(contestProblemId,"aa", problemId);
+  
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
 
@@ -100,9 +103,9 @@ export default function SolutionSubmittion({
   const [code, setCode] = useState("")
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
-  const [postClassContestSubmission, { isLoading: isSubmittingClassContest }] = usePostClassContestSubmissionMutation()
+  const [submitContest, { isLoading: isSubmittingContest }] = useSubmitContestMutation()
 
-  const isAnySubmitting = isSubmitting || isSubmittingClassContest;
+  const isAnySubmitting = isSubmitting || isSubmittingContest;
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
   const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
@@ -304,17 +307,11 @@ export default function SolutionSubmittion({
   const handleSubmit = async () => {
     if (!selectedRuntimeId || !code.trim() || !isLoggedIn || isAnySubmitting) return
 
-    // Reset submissionId trước để xóa dữ liệu cũ hoàn toàn
-    setSubmissionId(null)
-
-    // Nếu có classSemesterId và contestId thì dùng mutation mới
-    if (classSemesterId && contestId && contestProblemId) {
-      console.log(contestProblemId, selectedRuntimeId, code);
-      console.log(classSemesterId, contestId);
-      
+    // If we are in a contest context, use the contest submission mutation
+    if (contestId && contestProblemId) {
+      setSubmissionId(null)
       try {
-        const response = await postClassContestSubmission({
-          classSemesterId,
+        const response = await submitContest({
           contestId,
           body: {
             contestProblemId,
@@ -322,8 +319,10 @@ export default function SolutionSubmittion({
             language: selectedRuntimeId!
           }
         }).unwrap()
-        console.log("response submission", response); 
-        const newSubmissionId = response?.data?.submissionId
+        console.log(response);
+        
+        // For public contest, response.data is often the submissionId directly
+        const newSubmissionId = (response as any)?.data;
 
         if (!newSubmissionId) {
           addToast({
@@ -337,22 +336,63 @@ export default function SolutionSubmittion({
         if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
 
         addToast({
-          title: "Đã nộp bài contest! Đang chờ kết quả...",
+          title: "Đã nộp bài Contest! Đang chờ kết quả...",
           color: "success"
         })
         return;
       } catch (error) {
         console.error(error)
         addToast({
-          title: "Nộp bài contest thất bại.",
+          title: "Nộp bài Contest thất bại.",
           color: "danger"
         })
         return;
       }
     }
 
-    // Ngược lại dùng mutation cũ (cho problem public hoặc exam slot)
     await handleRun()
+  }
+
+  const handleExaminationSubmit = async () => {
+    if (!selectedRuntimeId || !code.trim() || !isLoggedIn || isSubmitting || !classSlotId) return
+
+    setSubmissionId(null)
+
+    const formData = new FormData()
+    formData.append("SourceCode", code)
+    formData.append("RuntimeId", selectedRuntimeId)
+    formData.append("StopOnFirstFail", "false")
+    formData.append("ClassSlotId", classSlotId)
+
+    try {
+      const response = await postSubmission({
+        problemId,
+        body: formData
+      }).unwrap()
+
+      const newSubmissionId = response?.data?.submissionId
+
+      if (!newSubmissionId) {
+        addToast({
+          title: "Không lấy được submissionId",
+          color: "warning"
+        })
+        return
+      }
+
+      setSubmissionId(newSubmissionId)
+      addToast({
+        title: "Đã nộp bài cho slot! Đang chờ kết quả...",
+        color: "success"
+      })
+
+    } catch (error) {
+      console.error(error)
+      addToast({
+        title: "Nộp bài thất bại.",
+        color: "danger"
+      })
+    }
   }
 
   return (
@@ -393,12 +433,15 @@ export default function SolutionSubmittion({
         </button>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
-            <RotateCcw size={14} />
-          </button>
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
-            <Settings2 size={14} />
-          </button>
+          {onToggleMaximize && (
+            <button
+              onClick={onToggleMaximize}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump"
+              title={isMaximized ? "Restore" : "Maximize Editor"}
+            >
+              {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -443,9 +486,9 @@ export default function SolutionSubmittion({
         )}
 
         <button
-          disabled={!isLoggedIn || isAnySubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
+          disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleRun}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isAnySubmitting
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
             ? "bg-gray-200/50 hover:bg-gray-200 dark:bg-[#202E42] dark:hover:bg-[#2a3b55] text-slate-700 dark:text-slate-200"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
@@ -455,16 +498,30 @@ export default function SolutionSubmittion({
         </button>
 
         <button
-          disabled={!isLoggedIn || isAnySubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
+          disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleSubmit}
-          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isAnySubmitting
+          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
             ? "bg-[#FF5C00] hover:bg-[#FF7222] text-white shadow-md shadow-[#FF5C00]/20"
             : "bg-gray-300 text-gray-400 cursor-not-allowed"
             }`}
         >
           <Upload size={12} />
-          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Submit Contest")}
+          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Final Submition")}
         </button>
+
+        {classSlotId && (
+          <button
+            disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
+            onClick={handleExaminationSubmit}
+            className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
+              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20"
+              : "bg-gray-300 text-gray-400 cursor-not-allowed"
+              }`}
+          >
+            <Upload size={12} />
+            examination in slot
+          </button>
+        )}
       </div>
     </div>
   )

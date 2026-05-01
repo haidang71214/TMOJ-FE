@@ -51,7 +51,7 @@ export default function GithubSuccessPage() {
           color: "success",
         });
 
-        router.replace("/");
+        window.location.href = "/";
       } catch {
         router.replace("/login?error=github_failed");
       }

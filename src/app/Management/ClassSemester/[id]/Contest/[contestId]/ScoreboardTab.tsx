@@ -9,6 +9,7 @@ import {
   TableRow, TableCell, Avatar, Tooltip, Spinner
 } from "@heroui/react";
 import { useGetClassContestScoreboardQuery } from "@/store/queries/ClassContest";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useFreezeContestMutation, useUnfreezeContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
@@ -52,7 +53,7 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
     const isFrozen = data.frozen;
 
     if (isRunning && !isFrozen) {
-      setPollingInterval(10 * 1000); // 10 seconds
+      setPollingInterval(5 * 1000); // 5 seconds
     } else {
       setPollingInterval(undefined);
     }

@@ -24,6 +24,7 @@ import {
   MyTeamResponse,
   ScoreboardResponseDTO,
   ScoreboardResponse,
+  SubmitContestPublicRequest,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -100,7 +101,7 @@ export const contestApi = baseApi.injectEndpoints({
     // 6. Submit bài contest (Endpoint 7 cũ)
     submitContest: builder.mutation<
       SubmitContestResponse,
-      { contestId: string; body: SubmitContestRequest }
+      { contestId: string; body: SubmitContestPublicRequest }
     >({
       query: ({ contestId, body }) => ({
         url: ContestEndpoint.SUBMIT_CONTEST.replace("{contestId}", contestId),

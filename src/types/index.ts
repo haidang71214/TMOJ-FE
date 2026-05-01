@@ -1119,7 +1119,8 @@ export interface ContestProblemHeaderDTO {
 export interface ScoreboardResponseDTO {
   contestId: string;
   contestName: string;
-  status: "upcoming" | "running" | "ended";
+  scoringMode?: string;
+  status: "upcoming" | "running" | "ended" | string;
   frozen: boolean;
   problems: ContestProblemHeaderDTO[];
   rows: ScoreboardRowDTO[];
@@ -1822,4 +1823,9 @@ export interface ClassTotalRankingData {
 export interface ClassTotalRankingResponse {
   data: ClassTotalRankingData;
   message: string;
+}
+export interface SubmitContestPublicRequest {
+  contestProblemId: string;
+  code: string;
+  language: string;
 }

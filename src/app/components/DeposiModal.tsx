@@ -23,11 +23,11 @@ interface DepositModalProps {
 }
 
 export function DepositContent({ onClose }: { onClose?: () => void }) {
-  const [amount, setAmount] = React.useState<string>("10000");
+  const [amount, setAmount] = React.useState<string>("10.000");
   const [createPayOsPayment, { isLoading }] = useCreatePayOsPaymentMutation();
 
   const handleDeposit = async () => {
-    const numAmount = parseInt(amount);
+    const numAmount = parseInt(amount.replace(/\./g, ""));
     if (isNaN(numAmount) || numAmount < 10000) {
       toast.error("Minimum deposit is 10,000 VND");
       return;
@@ -45,37 +45,37 @@ export function DepositContent({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="bg-white dark:bg-[#111c35] rounded-[2.5rem] overflow-hidden">
-      <div className="p-6 border-b border-divider dark:border-white/5 flex justify-between items-center">
-        <h2 className="text-2xl font-[1000] italic uppercase text-[#071739] dark:text-white">
+      <div className="p-4 border-b border-divider dark:border-white/5 flex justify-between items-center">
+        <h2 className="text-xl font-[1000] italic uppercase text-[#071739] dark:text-white">
           DEPOSIT <span className="text-[#FF5C00]">TMOJ COINS</span>
         </h2>
         {onClose && (
-          <Button isIconOnly variant="light" onPress={onClose} className="rounded-full">
-            <X size={20} />
+          <Button isIconOnly variant="light" onPress={onClose} size="sm" className="rounded-full">
+            <X size={18} />
           </Button>
         )}
       </div>
 
-      <div className="p-6 py-6 overflow-y-auto custom-scrollbar max-h-[80vh]">
+      <div className="p-4 py-4 overflow-y-auto custom-scrollbar max-h-[80vh]">
         {/* BANNER */}
-        <div className="relative w-full h-36 rounded-3xl overflow-hidden mb-6 group border border-divider dark:border-white/5 shadow-xl">
+        <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-4 group border border-divider dark:border-white/5 shadow-xl">
           <Image
             src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2000"
             alt="Deposit Banner"
             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-[2000ms]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#071739] via-[#071739]/40 to-transparent flex flex-col justify-center items-center text-white z-10 p-6 text-center">
-            <p className="font-black italic text-[10px] uppercase tracking-[0.3em] text-[#FF5C00] mb-1">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#071739] via-[#071739]/40 to-transparent flex flex-col justify-center items-center text-white z-10 p-4 text-center">
+            <p className="font-black italic text-[8px] uppercase tracking-[0.3em] text-[#FF5C00] mb-0.5">
               Instant Deposit
             </p>
-            <h3 className="text-3xl font-[1000] italic uppercase leading-none drop-shadow-lg">
-              1,000 VND <span className="text-xl mx-2 text-slate-300">=</span> 1,000 COINS
+            <h3 className="text-2xl font-[1000] italic uppercase leading-none drop-shadow-lg">
+              1,000 VND <span className="text-lg mx-2 text-slate-300">=</span> 1,000 COINS
             </h3>
           </div>
         </div>
 
         {/* MEMBERSHIP BANNER */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-2xl border border-amber-200 dark:border-amber-500/20 flex items-center justify-between gap-4">
+        <div className="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-amber-500/40">
               <Crown size={20} />
@@ -101,27 +101,31 @@ export function DepositContent({ onClose }: { onClose?: () => void }) {
         </div>
 
         {/* PAYOS SECTION */}
-        <div className="p-6 bg-[#00c853]/5 dark:bg-[#00c853]/10 rounded-[2.5rem] border border-[#00c853]/20 flex flex-col items-center gap-5">
+        <div className="p-4 bg-[#00c853]/5 dark:bg-[#00c853]/10 rounded-[2rem] border border-[#00c853]/20 flex flex-col items-center gap-4">
           <div className="flex flex-col items-center gap-2">
-            <div className="w-14 h-14 bg-[#00c853] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-green-500/30">
-              <Zap size={28} />
+            <div className="w-12 h-12 bg-[#00c853] rounded-xl flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+              <Zap size={24} />
             </div>
-            <h4 className="font-[1000] italic uppercase text-lg text-[#00c853]">
+            <h4 className="font-[1000] italic uppercase text-base text-[#00c853]">
               Pay with PayOS
             </h4>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center">
+            <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 text-center">
               QR Code · ATM · Internet Banking · E-Wallet
             </p>
           </div>
 
           <div className="w-full max-w-xs space-y-2">
             <Input
-              type="number"
+              type="text"
               label="Amount (VND)"
-              placeholder="10,000"
+              placeholder="10.000"
               value={amount}
-              onValueChange={setAmount}
-              min={10000}
+              onValueChange={(val) => {
+                const raw = val.replace(/\./g, "");
+                if (raw === "" || /^\d+$/.test(raw)) {
+                  setAmount(raw.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+                }
+              }}
               variant="bordered"
               classNames={{
                 label: "font-bold italic text-slate-400",
@@ -146,11 +150,11 @@ export function DepositContent({ onClose }: { onClose?: () => void }) {
       </div>
 
       {onClose && (
-        <div className="p-6 pt-3 flex justify-end">
+        <div className="p-4 pt-0 flex justify-end">
           <Button
             variant="light"
             onPress={onClose}
-            className="font-black uppercase italic text-xs px-8"
+            className="font-black uppercase italic text-[10px] px-8"
           >
             Cancel
           </Button>

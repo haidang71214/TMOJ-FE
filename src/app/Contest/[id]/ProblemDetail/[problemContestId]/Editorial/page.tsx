@@ -85,8 +85,8 @@ export default function EditorialTab() {
     );
   }
 
-  // Defensive data access: check multiple possible paths
-  const editorial = data?.data?.data?.[0] || (data as any)?.data?.[0] || (data?.data as any)?.items?.[0];
+  // Data is now normalized via transformResponse in the API service
+  const editorial = data?.[0];
 
   if (!editorial) {
     return (

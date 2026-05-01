@@ -21,10 +21,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
-import CompileErrorTab from "./CompileError/page";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
-import SolutionsTab from "./Solutions/page";
 import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
 import { VerdictCode } from "@/types";
@@ -33,9 +31,7 @@ import { VerdictCode } from "@/types";
 const LEFT_TABS = [
   { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
   { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
-  { key: "solutions", tKey: "problem_workspace.solutions", defaultVi: "Lời giải", defaultEn: "Solutions", Icon: Lightbulb },
   { key: "submissions", tKey: "problem_workspace.submissions", defaultVi: "Lịch sử nộp", defaultEn: "Submissions", Icon: Send },
-  { key: "compileerror", tKey: "problem_workspace.compile_error", defaultVi: "Lỗi biên dịch", defaultEn: "Compile Error", Icon: TriangleAlert },
 ] as const;
 
 type LeftTabKey = (typeof LEFT_TABS)[number]["key"];
@@ -136,17 +132,12 @@ export default function ProblemDetailsPage() {
         return <DescriptionTab />;
       case "editorial":
         return <EditorialTab />;
-      case "solutions":
-        return <SolutionsTab />;
       case "submissions":
         return (
           <SubmissionsTab
             problemId={problemId}
-            onRowClick={() => setActiveLeftTab("compileerror")}
           />
         );
-      case "compileerror":
-        return <CompileErrorTab />;
     }
   };
 

@@ -4,6 +4,7 @@ import {
   usePostSubmissionMutation,
   useGetSubmissionQuery,
 } from "@/store/queries/Submittion"
+import { usePostClassContestSubmissionMutation } from "@/store/queries/ClassContest"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
 import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
@@ -17,6 +18,9 @@ import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 interface SolutionSubmittionProps {
   editorHeight: number;
   problemId: string;
+  contestProblemId?: string;
+  classSemesterId?: string;
+  contestId?: string;
   onSubmitSuccess?: () => void;
   classSlotId?: string;
   onSubmissionIdChange?: (id: string | null) => void;
@@ -73,12 +77,15 @@ public class Main {
 export default function SolutionSubmittion({
   editorHeight,
   problemId,
+  contestProblemId,
+  classSemesterId,
+  contestId,
   onSubmitSuccess,
   classSlotId,
   onSubmissionIdChange,
 }: SolutionSubmittionProps) {
+// phần nộp bài cần classSemeterId và contestId.
   const { t, language } = useTranslation();
-
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
 
@@ -93,6 +100,9 @@ export default function SolutionSubmittion({
   const [code, setCode] = useState("")
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
+  const [postClassContestSubmission, { isLoading: isSubmittingClassContest }] = usePostClassContestSubmissionMutation()
+
+  const isAnySubmitting = isSubmitting || isSubmittingClassContest;
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
   const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
@@ -292,49 +302,57 @@ export default function SolutionSubmittion({
   }
 
   const handleSubmit = async () => {
-    await handleRun()
-  }
+    if (!selectedRuntimeId || !code.trim() || !isLoggedIn || isAnySubmitting) return
 
-  const handleExaminationSubmit = async () => {
-    if (!selectedRuntimeId || !code.trim() || !isLoggedIn || isSubmitting || !classSlotId) return
-
+    // Reset submissionId trước để xóa dữ liệu cũ hoàn toàn
     setSubmissionId(null)
 
-    const formData = new FormData()
-    formData.append("SourceCode", code)
-    formData.append("RuntimeId", selectedRuntimeId)
-    formData.append("StopOnFirstFail", "false")
-    formData.append("ClassSlotId", classSlotId)
+    // Nếu có classSemesterId và contestId thì dùng mutation mới
+    if (classSemesterId && contestId && contestProblemId) {
+      console.log(contestProblemId, selectedRuntimeId, code);
+      console.log(classSemesterId, contestId);
+      
+      try {
+        const response = await postClassContestSubmission({
+          classSemesterId,
+          contestId,
+          body: {
+            contestProblemId,
+            code,
+            language: selectedRuntimeId!
+          }
+        }).unwrap()
+        console.log("response submission", response); 
+        const newSubmissionId = response?.data?.submissionId
 
-    try {
-      const response = await postSubmission({
-        problemId,
-        body: formData
-      }).unwrap()
+        if (!newSubmissionId) {
+          addToast({
+            title: "Không lấy được submissionId",
+            color: "warning"
+          })
+          return
+        }
 
-      const newSubmissionId = response?.data?.submissionId
+        setSubmissionId(newSubmissionId)
+        if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
 
-      if (!newSubmissionId) {
         addToast({
-          title: "Không lấy được submissionId",
-          color: "warning"
+          title: "Đã nộp bài contest! Đang chờ kết quả...",
+          color: "success"
         })
-        return
+        return;
+      } catch (error) {
+        console.error(error)
+        addToast({
+          title: "Nộp bài contest thất bại.",
+          color: "danger"
+        })
+        return;
       }
-
-      setSubmissionId(newSubmissionId)
-      addToast({
-        title: "Đã nộp bài cho slot! Đang chờ kết quả...",
-        color: "success"
-      })
-
-    } catch (error) {
-      console.error(error)
-      addToast({
-        title: "Nộp bài thất bại.",
-        color: "danger"
-      })
     }
+
+    // Ngược lại dùng mutation cũ (cho problem public hoặc exam slot)
+    await handleRun()
   }
 
   return (
@@ -425,9 +443,9 @@ export default function SolutionSubmittion({
         )}
 
         <button
-          disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
+          disabled={!isLoggedIn || isAnySubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleRun}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isAnySubmitting
             ? "bg-gray-200/50 hover:bg-gray-200 dark:bg-[#202E42] dark:hover:bg-[#2a3b55] text-slate-700 dark:text-slate-200"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
@@ -437,30 +455,16 @@ export default function SolutionSubmittion({
         </button>
 
         <button
-          disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
+          disabled={!isLoggedIn || isAnySubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleSubmit}
-          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
+          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isAnySubmitting
             ? "bg-[#FF5C00] hover:bg-[#FF7222] text-white shadow-md shadow-[#FF5C00]/20"
             : "bg-gray-300 text-gray-400 cursor-not-allowed"
             }`}
         >
           <Upload size={12} />
-          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Submit")}
+          {t("solution.submit") || (language === "vi" ? "Nộp bài" : "Submit Contest")}
         </button>
-
-        {classSlotId && (
-          <button
-            disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
-            onClick={handleExaminationSubmit}
-            className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
-              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20"
-              : "bg-gray-300 text-gray-400 cursor-not-allowed"
-              }`}
-          >
-            <Upload size={12} />
-            examination in slot
-          </button>
-        )}
       </div>
     </div>
   )

@@ -20,7 +20,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
   // we attempt to wrap it automatically for a better experience.
   let finalContent = rawContent;
   const hasCodeBlock = rawContent.includes("```");
-  
+
   if (!hasCodeBlock) {
     // Check for common code patterns (C++, Java, Python, braces, imports)
     const codeIndicators = [
@@ -28,9 +28,9 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
       /{[\s\S]*}/, /public\s+class/m, /public\s+static/m, /void\s+main/m,
       /vector<[\w\s,]+>/, /unordered_map/
     ];
-    
+
     const isLikelyCode = codeIndicators.some(regex => regex.test(rawContent));
-    
+
     if (isLikelyCode) {
       // Try to detect language from first line
       const firstLine = rawContent.split('\n')[0].trim().toLowerCase();
@@ -39,7 +39,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
       else if (firstLine.includes("python") || firstLine.includes("py")) detectedLang = "python";
       else if (firstLine.includes("java")) detectedLang = "java";
       else if (firstLine.includes("javascript") || firstLine.includes("js")) detectedLang = "javascript";
-      
+
       if (detectedLang) {
         // Strip the language header line and wrap the rest
         const lines = rawContent.split('\n');
@@ -52,17 +52,22 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
 
   return (
     <div className={className}>
-      <ReactMarkdown 
+      <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
         components={{
-          code({ node, inline, className, children, ...props }: any) {
+          code(props: any) {
+            const { inline, className, children } = props;
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : "";
             const content = String(children).replace(/\n$/, "");
 
-            if (inline) {
+            // In some react-markdown versions, inline is passed. 
+            // If not, we check if it's a code block by looking for the language class or newlines.
+            const isInline = inline || (!match && !content.includes('\n'));
+
+            if (isInline) {
               return (
-                <code className="px-1.5 py-0.5 rounded bg-[#FF5C00]/5 text-[#FF5C00] dark:text-[#FFB800] font-mono text-xs border border-[#FF5C00]/10" {...props}>
+                <code className="px-1.5 py-0.5 rounded bg-[#FF5C00]/5 text-[#FF5C00] dark:text-[#FFB800] font-mono text-xs border border-[#FF5C00]/10">
                   {children}
                 </code>
               );

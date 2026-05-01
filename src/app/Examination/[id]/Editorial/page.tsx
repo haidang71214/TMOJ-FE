@@ -11,16 +11,16 @@ import { useTranslation } from "@/hooks/useTranslation";
 export default function EditorialTab() {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useTranslation();
-  
+
   // First get problem detail to ensure we have the correct UUID if id is a slug
   const { data: problemResponse, isLoading: isProblemLoading } = useGetDetailProblemPublicQuery({ id: id || "" }, { skip: !id });
-  
+
   // Wait until problem data is loaded if we started with a slug-like string
   const isSlug = !!(id && id.length < 36); // Simple check for UUID vs slug
   const realProblemId = problemResponse?.id || id || "";
-  
+
   const { data, isLoading, error } = useGetEditorialsQuery(
-    { problemId: realProblemId }, 
+    { problemId: realProblemId },
     { skip: !realProblemId || (isSlug && isProblemLoading) }
   );
 
@@ -46,8 +46,8 @@ export default function EditorialTab() {
     );
   }
 
-  // Defensive data access: check multiple possible paths
-  const editorial = data?.data?.data?.[0] || (data as any)?.data?.[0] || (data?.data as any)?.items?.[0];
+  // Data is already transformed into an array by the query hook
+  const editorial = data?.[0];
 
   if (!editorial) {
     return (
@@ -60,12 +60,12 @@ export default function EditorialTab() {
             {t('problem_management.official_editorial') || "Official Editorial"}
           </h2>
           <p className="text-[13px] text-gray-400 dark:text-[#475569] max-w-xs leading-relaxed">
-            {language === 'vi' 
+            {language === 'vi'
               ? "Lời giải cho bài toán này hiện chưa có. Vui lòng quay lại sau hoặc thảo luận cùng cộng đồng."
               : "The editorial for this problem is not available yet. Check back later or explore community solutions."}
           </p>
         </div>
-        <button 
+        <button
           onClick={() => window.location.hash = "#solutions"}
           className="mt-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-[13px] font-black transition-colors shadow-lg shadow-amber-500/20"
         >
@@ -99,11 +99,11 @@ export default function EditorialTab() {
               </div>
             </div>
           </div>
-          
+
           <div className="hidden md:flex flex-col items-end">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Internal Resource</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Internal Resource</span>
             </div>
           </div>
         </div>
@@ -118,13 +118,13 @@ export default function EditorialTab() {
 
       <div className="mt-16 pt-8 border-t border-gray-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-           <span>© {new Date().getFullYear()} TMOJ Editorial System</span>
-           <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-           <span>Academic Purpose Only</span>
+          <span>© {new Date().getFullYear()} TMOJ Editorial System</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+          <span>Academic Purpose Only</span>
         </div>
         <div className="flex items-center gap-6">
-           <button className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] hover:translate-x-1 transition-transform">Report Issue</button>
-           <button className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:translate-x-1 transition-transform">Cite Editorial</button>
+          <button className="text-[10px] font-black uppercase tracking-widest text-[#FF5C00] hover:translate-x-1 transition-transform">Report Issue</button>
+          <button className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:translate-x-1 transition-transform">Cite Editorial</button>
         </div>
       </div>
     </div>

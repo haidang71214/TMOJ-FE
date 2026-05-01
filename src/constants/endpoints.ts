@@ -329,6 +329,11 @@ const RankingEndpoint = {
   CONTESTS: `${API_PREFIX}/ranking/contests`,
 };
 
+const AiEndpoint = {
+  DEBUG: `${API_LON}/submissions/{submissionId}/ai/debug`,
+  GENERATE_EDITORIAL: `${API_LON}/problems/{problemId}/ai/editorial-drafts`,
+};
+
 export {
   RankingEndpoint,
   ProblemTemplateEndPoint,
@@ -360,4 +365,5 @@ export {
   AnnouncementEndpoint,
   StoreEndpoint,
   SettingsEndpoint,
+  AiEndpoint,
 };

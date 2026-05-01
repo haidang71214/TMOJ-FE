@@ -12,7 +12,7 @@ export const SubmitionApi = baseApi.injectEndpoints({
   }),
   invalidatesTags: ["submittion", "ProblemDetail"],
 }),
-getSubmission: builder.query<SubmitResponseV2, {submissionId:string}>({
+getSubmission: builder.query<SubmissionResponse, {submissionId:string}>({
     query: ({submissionId}) => ({
       url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
       method: "GET",

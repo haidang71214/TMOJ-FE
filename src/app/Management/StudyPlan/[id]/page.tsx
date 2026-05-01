@@ -5,23 +5,20 @@ import {
   Button,
   Input,
   Spinner,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   useDisclosure,
   addToast,
   Chip,
 } from "@heroui/react";
-import { ChevronLeft, Plus, Edit, FileCode, BookOpen, Trash2, CheckCircle2, Lock } from "lucide-react";
+import { ChevronLeft, Plus, Edit, FileCode, Trash2, CheckCircle2, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useGetStudyPlanDetailQuery,
   useAddProblemToStudyPlanMutation,
+  useRemoveProblemFromPlanMutation
 } from "@/store/queries/StudyPlan";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ErrorForm } from "@/types";
+import { AddProblemModal } from "@/app/components/AddProblemModal";
 
 export default function StudyPlanDetailPage({
   params,
@@ -33,43 +30,54 @@ export default function StudyPlanDetailPage({
   const { t, language } = useTranslation();
 
   const { data: detailResponse, isLoading, isError, refetch } = useGetStudyPlanDetailQuery(studyPlanId);
-  const [addProblem, { isLoading: isAddingProblem }] = useAddProblemToStudyPlanMutation();
+  const [addProblem] = useAddProblemToStudyPlanMutation();
+  const [removeProblem] = useRemoveProblemFromPlanMutation();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [problemIdInput, setProblemIdInput] = useState("");
 
   const studyPlan = detailResponse?.data;
 
-  const handleAddProblem = async (onClose: () => void) => {
-    if (!problemIdInput.trim()) {
-      addToast({
-        title: language === 'vi' ? "Lỗi" : "Error",
-        description: language === 'vi' ? "Vui lòng nhập Problem ID" : "Please enter Problem ID",
-        color: "danger",
-      });
-      return;
+  const handleRemoveProblem = async (problemId: string) => {
+    if (confirm(language === 'vi' ? "Bạn có chắc muốn xóa bài tập này khỏi lộ trình?" : "Are you sure you want to remove this problem?")) {
+      try {
+        await removeProblem({ planId: studyPlanId, problemId }).unwrap();
+        addToast({
+          title: language === 'vi' ? "Thành công" : "Success",
+          description: language === 'vi' ? "Đã xóa bài tập!" : "Problem removed!",
+          color: "success",
+        });
+        refetch();
+      } catch (error) {
+        addToast({
+          title: language === 'vi' ? "Lỗi" : "Error",
+          description: language === 'vi' ? "Không thể xóa bài tập" : "Failed to remove problem",
+          color: "danger",
+        });
+      }
     }
+  };
 
+  const handleAddFromBank = async (selectedWithConfigs: any[]) => {
     try {
-      await addProblem({
-        planId: studyPlanId,
-        problemId: problemIdInput.trim(),
-      }).unwrap();
-
+      await Promise.all(
+        selectedWithConfigs.map((item) =>
+          addProblem({
+            planId: studyPlanId,
+            problemId: item.problemId,
+          }).unwrap()
+        )
+      );
       addToast({
         title: language === 'vi' ? "Thành công" : "Success",
-        description: language === 'vi' ? "Đã thêm bài tập vào Study Plan!" : "Problem added to Study Plan!",
+        description: language === 'vi' ? `Đã thêm ${selectedWithConfigs.length} bài tập!` : `Added ${selectedWithConfigs.length} problems!`,
         color: "success",
       });
-
-      setProblemIdInput("");
-      onClose();
       refetch();
     } catch (error) {
       const err = error as ErrorForm;
       addToast({
         title: language === 'vi' ? "Lỗi" : "Error",
-        description: err?.data?.data?.message || (language === 'vi' ? "Không thể thêm bài tập" : "Failed to add problem"),
+        description: err?.data?.data?.message || (language === 'vi' ? "Không thể thêm bài tập" : "Failed to add problems"),
         color: "danger",
       });
     }
@@ -105,10 +113,7 @@ export default function StudyPlanDetailPage({
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
       {/* HEADER SECTION */}
-      <div 
-        className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8 animate-fade-in-up"
-        style={{ animationFillMode: "both", animationDelay: "100ms" }}
-      >
+      <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8 animate-fade-in-up">
         <Button
           variant="light"
           onPress={() => router.push("/Management/StudyPlan")}
@@ -128,15 +133,14 @@ export default function StudyPlanDetailPage({
             </p>
           </div>
 
-          {/* SỬA TẠI ĐÂY: Bỏ flex-wrap để 3 nút luôn nằm trên 1 hàng */}
           <div className="flex items-center gap-3">
-            {(!studyPlan?.isPaid || studyPlan?.price === 0) ? (
+            {!studyPlan?.isPaid ? (
               <Chip variant="flat" color="success" className="font-black uppercase text-[10px]">
                 {language === "vi" ? "MIỄN PHÍ" : "FREE"}
               </Chip>
             ) : (
               <Chip variant="flat" color="danger" className="font-black uppercase text-[10px]">
-                {language === "vi" ? `${studyPlan.price}đ` : `$${studyPlan.price}`}
+                {studyPlan.price} COINS
               </Chip>
             )}
 
@@ -157,15 +161,10 @@ export default function StudyPlanDetailPage({
             </Button>
           </div>
         </div>
-
-
       </div>
 
       {/* CONTENT SECTION */}
-      <div 
-        className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10 animate-fade-in-up"
-        style={{ animationFillMode: "both", animationDelay: "200ms" }}
-      >
+      <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10 animate-fade-in-up">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div>
             <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest mb-2">
@@ -199,7 +198,6 @@ export default function StudyPlanDetailPage({
             {t('studyPlan.problemsList') || (language === 'vi' ? "Danh sách bài tập" : "Problems List")}
           </h3>
 
-          {/* HIỂN THỊ DANH SÁCH TỪ TRƯỜNG items NHƯ TRONG ẢNH */}
           {studyPlan?.items && studyPlan.items.length > 0 ? (
             <div className="grid grid-cols-1 gap-3">
               {studyPlan.items.map((item: any, index: number) => (
@@ -213,12 +211,17 @@ export default function StudyPlanDetailPage({
                       {item.order}
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-lg text-[#071739] dark:text-white">
-                        {/* Hiển thị title nếu có, nếu không thì hiện ID rút gọn */}
-                        Problem {item.problemId.substring(0, 8)}...
+                      <span className="font-bold text-lg text-[#071739] dark:text-white group-hover:text-[#FF5C00] transition-colors">
+                        {item.problemTitle || `Problem ${item.problemId.substring(0, 8)}...`}
                       </span>
-                      <span className="text-xs font-mono text-slate-400 italic">
-                        UID: {item.problemId}
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        ID: {item.problemId.substring(0, 8)}
+                        {item.problemSlug && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-slate-300" />
+                            SLUG: {item.problemSlug}
+                          </>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -233,7 +236,7 @@ export default function StudyPlanDetailPage({
                         PENDING
                       </Chip>
                     )}
-                    
+
                     {!item.isUnlocked ? (
                       <Chip startContent={<Lock size={12} />} color="warning" variant="flat" size="sm" className="font-bold">
                         LOCKED
@@ -244,7 +247,17 @@ export default function StudyPlanDetailPage({
                       </Chip>
                     )}
 
-                    <Button isIconOnly size="sm" variant="light" color="danger" className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      color="danger"
+                      className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveProblem(item.problemId);
+                      }}
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -270,81 +283,12 @@ export default function StudyPlanDetailPage({
         </div>
       </div>
 
-      {/* ADD PROBLEM MODAL */}
-      <Modal 
-        isOpen={isOpen} 
-        onOpenChange={onOpenChange} 
-        backdrop="blur" 
-        classNames={{
-          base: "bg-white dark:bg-[#0A0F1C] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl",
-          header: "border-b border-slate-100 dark:border-white/5 px-8 py-6",
-          body: "p-8",
-          footer: "border-t border-slate-100 dark:border-white/5 px-8 py-6"
-        }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center animate-bounce-slow">
-                    <Plus className="text-[#FF5C00]" size={20} strokeWidth={3} />
-                  </div>
-                  <h2 className="text-2xl font-black italic uppercase text-[#071739] dark:text-white">
-                    {language === 'vi' ? (
-                      <>THÊM <span className="text-[#FF5C00]">BÀI TẬP</span></>
-                    ) : (
-                      <>ADD <span className="text-[#FF5C00]">PROBLEM</span></>
-                    )}
-                  </h2>
-                </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium normal-case">
-                  {t('studyPlan.addProblemDesc') || (language === 'vi' ? "Nhập chính xác ID của Problem để thêm vào hệ thống Study Plan của bạn." : "Enter the exact Problem ID to add it to your Study Plan.")}
-                </p>
-              </ModalHeader>
-              <ModalBody>
-                <div className="flex flex-col gap-6">
-                  <Input
-                    label="Problem ID"
-                    placeholder="e.g., 93c52f01..."
-                    value={problemIdInput}
-                    onValueChange={setProblemIdInput}
-                    isRequired
-                    labelPlacement="outside"
-                    startContent={<FileCode size={18} className="text-slate-400 mr-2" />}
-                    classNames={{
-                      label: "text-sm font-bold text-[#071739] dark:text-white uppercase tracking-widest",
-                      inputWrapper: "h-14 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-white/10 hover:border-orange-500/50 focus-within:!border-[#FF5C00] shadow-none transition-all rounded-2xl px-4",
-                      input: "text-base font-medium text-[#071739] dark:text-white"
-                    }}
-                  />
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 flex gap-3 border border-blue-100 dark:border-blue-800/30">
-                    <BookOpen className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
-                      {language === 'vi' 
-                        ? "Lưu ý: Problem sẽ được thêm vào Study Plan hiện tại. Kiểm tra kỹ ID để tránh lỗi." 
-                        : "Note: The problem will be added to the current plan. Double check the ID to avoid errors."}
-                    </p>
-                  </div>
-                </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose} className="font-bold rounded-xl px-6">
-                  {t('common.cancel') || (language === 'vi' ? "Hủy" : "Cancel")}
-                </Button>
-                <Button
-                  className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-xl px-8 h-12 shadow-lg uppercase tracking-widest text-xs transition-all hover:scale-105"
-                  onPress={() => handleAddProblem(onClose)}
-                  isLoading={isAddingProblem}
-                  startContent={!isAddingProblem && <Plus size={18} strokeWidth={3} />}
-                >
-                  {t('common.addNow') || (language === 'vi' ? "Thêm Ngay" : "Add Now")}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      <AddProblemModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onConfirm={handleAddFromBank}
+        isStudyPlan={true}
+      />
     </div>
   );
 }

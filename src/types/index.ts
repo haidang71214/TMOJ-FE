@@ -130,6 +130,7 @@ export interface Problem {
   acceptancePercent: number | null;
   timeLimitMs: number;
   memoryLimitKb: number;
+  points?: number;
   createdAt: string;
   createdBy: string;
   updatedAt: string;
@@ -318,15 +319,7 @@ export type PracticePackage = {
   createdAt: string;
   problems?: string[];
 };
-export interface Problem {
-  id: string;
-  title: string;
-  difficulty: "easy" | "medium" | "hard"; // lowercase như trong mock
-  points: number;
-  // thêm field khác nếu cần, ví dụ:
-  // acceptance?: string;
-  // tags?: string[];
-}
+
 export interface ErrorForm {
   data: Data;
 }
@@ -1410,30 +1403,124 @@ export interface ReorderCollectionRequest {
 export interface CreateStudyPlanRequest {
   title: string | null;
   description: string | null;
-  isPublic: boolean;
-  isPaid: boolean;
-  price: number;
+  creatorId: string;
+  price?: number;
+  isPaid?: boolean;
+  imageUrl?: string | null;
+}
+
+export interface UpdateStudyPlanRequest {
+  id: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  isPaid?: boolean;
+  imageUrl?: string | null;
 }
 
 export interface CreateStudyPlanResponse {
-  // bạn có thể điều chỉnh theo response thực tế của API
-  data?: any;
-  message?: string;
-  success?: boolean;
+  data: string; // studyPlanId
+  success: boolean;
 }
-export interface StudyPlanItem {
+
+export interface StudyPlan {
   id: string;
   title: string;
-  order: number;
+  description?: string;
   problemCount: number;
+  creatorId: string;
+  price: number;
+  isPaid: boolean;
+  isCompleted: boolean;
+  isUnlocked: boolean;
+  isPurchased: boolean;
+  imageUrl: string | null;
+  enrollmentCount: number;
+  isEnrolled: boolean;
+  order: number;
+}
+
+export interface StudyPlanItem {
+  studyPlanItemId: string;
+  problemId: string;
+  problemTitle?: string;
+  problemSlug?: string;
+  problemDescription?: string;
+  order: number;
   isCompleted: boolean;
   isUnlocked: boolean;
 }
 
+export interface GetStudyPlanDetailResponse {
+  data: {
+    id: string;
+    title: string;
+    description?: string;
+    items: StudyPlanItem[];
+    price: number;
+    isPaid: boolean;
+    imageUrl?: string | null;
+    order: number;
+    isOwned: boolean;
+    isPurchased: boolean;
+    isEnrolled: boolean;
+  };
+  message: string;
+}
+
 export interface GetStudyPlansResponse {
-  data: StudyPlanItem[];
+  data: StudyPlan[];
   message: string;
   traceId: string | null;
+}
+
+export interface UnlockedPlanItem {
+  id: string;
+  title: string;
+  isUnlocked: boolean;
+  isCompleted: boolean;
+}
+
+export interface StudyPlanEnrollmentResponse {
+  studyPlanId?: string;
+  userId?: string;
+  isEnrolled: boolean;
+  isPurchased: boolean;
+  isCompleted?: boolean;
+  totalItems?: number;
+  completedItems?: number;
+  progressPercent?: number;
+}
+
+export interface StudyPlanNextItemResponse {
+  nextItemId: string;
+  nextProblemId?: string;
+}
+
+export interface StudyPlanStatsResponse {
+  totalUsers: number;
+  completionRate: number;
+  avgProgress: number;
+}
+
+export interface StudyProgressItem {
+  studyPlanId: string;
+  title: string;
+  totalItems: number;
+  completedItems: number;
+  progressPercent: number;
+}
+
+export interface StudyPlanProgressResponse {
+  studyPlanId: string;
+  totalItems: number;
+  completedItems: number;
+  progressPercent: number;
+  items: any[];
+}
+
+export interface MyStudyProgressResponse {
+  items: StudyProgressItem[];
 }
 
 export interface ProblemBankListItemDto {
@@ -1443,6 +1530,7 @@ export interface ProblemBankListItemDto {
   difficulty: string;
   acceptancePercent: number | null;
   statusCode: string;
+  visibilityCode: string;
   createdAt: string;
   problemMode: string;
   scoringCode: string;
@@ -1828,4 +1916,11 @@ export interface SubmitContestPublicRequest {
   contestProblemId: string;
   code: string;
   language: string;
+}
+export interface UploadStudyPlanImageResponse {
+  data: {
+    imageUrl: string;
+  };
+  success: boolean;
+  message: string;
 }

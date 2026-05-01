@@ -23,12 +23,14 @@ import {
   Globe,
   Bookmark,
   ExternalLink,
+  Target,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import CreateListModal from "./MyLists/CreateListModal";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useGetCollectionsQuery } from "@/store/queries/collections";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useGetStudyPlansQuery } from "@/store/queries/StudyPlan";
 
 export default function ProblemsSidebar() {
   const router = useRouter();
@@ -37,18 +39,25 @@ export default function ProblemsSidebar() {
   const { data: user } = useGetUserInformationQuery();
   const { t } = useTranslation();
 
+  const { data: apiResponse } = useGetStudyPlansQuery();
+
   const { data: collectionsResponse } = useGetCollectionsQuery();
   const rawCollections: any = collectionsResponse?.data;
   const collections = Array.isArray(rawCollections)
     ? rawCollections
     : rawCollections?.data || rawCollections?.items || [];
 
-  const myLists = collections.map((col: any) => ({
-    id: col.id,
-    title: col.name,
-    isPrivate: !col.isVisibility,
-    icon: col.type?.toLowerCase() === 'heart' ? <Heart size={20} /> : <Bookmark size={20} />,
-  }));
+  const myLists = collections
+    .filter((col: any) =>
+      col.name.toLowerCase().includes("favorite problem") ||
+      col.name.toLowerCase().includes("contest")
+    )
+    .map((col: any) => ({
+      id: col.id,
+      title: col.name,
+      isPrivate: !col.isVisibility,
+      icon: col.type?.toLowerCase() === 'heart' ? <Heart size={20} /> : <Bookmark size={20} />,
+    }));
 
   const getItemClasses = (key: string) => {
     const isActive = pathname.includes(key);
@@ -62,28 +71,12 @@ export default function ProblemsSidebar() {
     <div className="w-full max-w-[260px] shrink-0 flex flex-col gap-8 py-2">
       {/* 1. EXPLORER SECTION */}
       <div className="flex flex-col gap-3">
-        {/* {(user?.role?.includes("teacher") || user?.role?.includes("admin") || user?.role?.includes("manager")) && (
-          <Button
-            size="lg"
-            className="w-full bg-[#FF5C00] text-white font-black shadow-lg shadow-orange-500/30 active-bump rounded-2xl flex items-center justify-start px-4 h-12 uppercase tracking-wider text-sm"
-            startContent={<Plus size={20} strokeWidth={3} />}
-            onPress={() => router.push('/Problems/create')}
-          >
-            {t('problem_create.create_problem') || "CREATE PROBLEM"}
-          </Button>
-        )}
-        {user?.role?.includes("student") && (
-          <Button
-            size="lg"
-            className="w-full bg-[#FF5C00] text-white font-black shadow-lg shadow-orange-500/30 active-bump rounded-2xl flex items-center justify-start px-4 h-12 uppercase tracking-wider text-sm"
-            onPress={() => router.push('/Problems/Draft')}
-          >
-            {t('problem_create.request_draft') || "REQUEST DRAFT PROBLEM"}
-          </Button>
-        )} */}
         <Listbox
           aria-label="Navigation"
-          onAction={(key) => router.push(`/Problems/${String(key)}`)}
+          onAction={(key) => {
+            if (key === "StudyPlan") router.push("/StudyPlan");
+            else router.push(`/Problems/${String(key)}`);
+          }}
           className="p-0 gap-1"
         >
           <ListboxItem
@@ -93,23 +86,6 @@ export default function ProblemsSidebar() {
           >
             <span className="text-sm font-bold uppercase tracking-wider">
               Library
-            </span>
-          </ListboxItem>
-          <ListboxItem
-            key="Quest"
-            startContent={<LayoutGrid size={20} />}
-            endContent={
-              <Chip
-                size="sm"
-                className="h-5 text-[9px] font-black bg-[#FF5C00] text-white dark:bg-white dark:text-[#FF5C00] px-2 shadow-sm"
-              >
-                NEW
-              </Chip>
-            }
-            className={getItemClasses("Quest")}
-          >
-            <span className="text-sm font-bold uppercase tracking-wider">
-              Quest
             </span>
           </ListboxItem>
           <ListboxItem

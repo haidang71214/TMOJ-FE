@@ -17,18 +17,20 @@ import {
 import { Search, Database, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Problem } from "@/types";
-import { useGetProblemListQueryQuery } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery, useGetInPlanProblemListQuery } from "@/store/queries/problem";
 // sửa đây
 interface AddProblemModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
   onConfirm: (selectedProblems: any[]) => void;
+  isStudyPlan?: boolean;
 }
 
 export const AddProblemModal = ({
   isOpen,
   onOpenChange,
   onConfirm,
+  isStudyPlan = false,
 }: AddProblemModalProps) => {
   const router = useRouter();
   const [searchBank, setSearchBank] = useState("");
@@ -37,11 +39,30 @@ export const AddProblemModal = ({
   const [step, setStep] = useState(1);
   const [configs, setConfigs] = useState<Record<string, { alias: string; points: number; ordinal: number }>>({});
 
-  const { data: problemBank, isLoading } = useGetProblemListQueryQuery();
+  const { data: regularProblems, isLoading: isRegularLoading } = useGetProblemListQueryQuery();
+  const { data: inPlanProblems, isLoading: isInPlanLoading } = useGetInPlanProblemListQuery(
+    { page: 1, pageSize: 100 },
+    { skip: !isStudyPlan }
+  );
+
+  const isLoading = isRegularLoading || (isStudyPlan && isInPlanLoading);
+
+  const combinedData = useMemo(() => {
+    const regularData = regularProblems?.data || [];
+    const inPlanData = inPlanProblems?.data || [];
+    
+    // Gộp và loại bỏ trùng lặp theo ID
+    const merged = [...inPlanData, ...regularData];
+    const seen = new Set();
+    return merged.filter(item => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [regularProblems, inPlanProblems]);
 
   const filteredBank = useMemo(() => {
-    const rawData = problemBank?.data || [];
-    return rawData.filter((p) => {
+    return combinedData.filter((p) => {
       const matchSearch = p.title
         .toLowerCase()
         .includes(searchBank.toLowerCase());
@@ -49,7 +70,7 @@ export const AddProblemModal = ({
         filterDifficulty === "all" || p.difficulty.toLowerCase() === filterDifficulty.toLowerCase();
       return matchSearch && matchDifficulty;
     });
-  }, [problemBank, searchBank, filterDifficulty]);
+  }, [combinedData, searchBank, filterDifficulty]);
 
   const handleSelectProblem = (id: string, title: string) => {
     const newSelected = new Set(selectedIds);
@@ -62,7 +83,7 @@ export const AddProblemModal = ({
       newSelected.add(id);
       newConfigs[id] = {
         alias: "",
-        points: 100,
+        points: isStudyPlan ? 0 : 100,
         ordinal: newSelected.size
       };
     }
@@ -78,13 +99,12 @@ export const AddProblemModal = ({
   };
 
   const handleConfirm = () => {
-    const rawData = problemBank?.data || [];
-    const selected = rawData
+    const selected = combinedData
       .filter((p) => selectedIds.has(p.id))
       .map(p => ({
         problemId: p.id,
         title: p.title,
-        ...configs[p.id]
+        ...(isStudyPlan ? {} : configs[p.id])
       }));
     onConfirm(selected);
     setSelectedIds(new Set());
@@ -94,9 +114,8 @@ export const AddProblemModal = ({
   };
 
   const selectedProblemsData = useMemo(() => {
-    const rawData = problemBank?.data || [];
-    return rawData.filter((p) => selectedIds.has(p.id));
-  }, [problemBank, selectedIds]);
+    return combinedData.filter((p) => selectedIds.has(p.id));
+  }, [combinedData, selectedIds]);
 
   return (
     <Modal
@@ -114,6 +133,8 @@ export const AddProblemModal = ({
         </Button>
       }
       classNames={{
+        wrapper: "z-[9999]",
+        backdrop: "z-[9998] bg-black/50 backdrop-blur-md",
         base: "dark:bg-[#0A0F1C] rounded-[2.5rem] border border-transparent dark:border-white/10",
       }}
     >
@@ -124,7 +145,7 @@ export const AddProblemModal = ({
               <div className="flex items-center gap-3">
                 <Database size={24} className="text-[#FF5C00]" />
                 <h2 className="text-2xl font-black uppercase italic tracking-tighter text-[#071739] dark:text-white leading-none">
-                  PROBLEM <span className="text-[#FF5C00]">BANK</span>
+                  {isStudyPlan ? "STUDY PLAN" : "PROBLEM"} <span className="text-[#FF5C00]">BANK</span>
                 </h2>
               </div>
 
@@ -184,8 +205,8 @@ export const AddProblemModal = ({
                           key={libProb.id}
                           onClick={() => handleSelectProblem(libProb.id, libProb.title)}
                           className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group ${selectedIds.has(libProb.id)
-                              ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
-                              : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
+                            ? "border-blue-600 bg-blue-50/50 dark:border-[#22C55E] dark:bg-[#22C55E]/10"
+                            : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
                             }`}
                         >
                           <div className="flex items-center gap-4">
@@ -201,9 +222,14 @@ export const AddProblemModal = ({
                               <p className={`font-black uppercase italic transition-colors ${selectedIds.has(libProb.id) ? "text-blue-600 dark:text-[#22C55E]" : ""}`}>
                                 {libProb.title}
                               </p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                                ID: #{libProb.id.substring(0, 8)}...
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase italic">
+                                  ID: #{libProb.id.substring(0, 8)}...
+                                </p>
+                                {libProb.visibilityCode === 'in-plan' && (
+                                  <Chip size="sm" variant="flat" color="warning" className="h-4 text-[8px] font-black uppercase">IN-PLAN</Chip>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <Chip size="sm" variant="flat" className="font-black uppercase text-[9px]">
@@ -232,32 +258,38 @@ export const AddProblemModal = ({
                           <h4 className="font-black uppercase italic text-sm text-[#FF5C00]">{p.title}</h4>
                           <span className="text-[9px] font-bold text-slate-400">#{p.id.substring(0, 8)}</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <Input
-                            label="Alias"
-                            size="sm"
-                            placeholder="e.g. A"
-                            value={configs[p.id]?.alias}
-                            onValueChange={(v) => updateConfig(p.id, "alias", v)}
-                            classNames={{ inputWrapper: "rounded-xl h-10" }}
-                          />
-                          <Input
-                            label="Points"
-                            type="number"
-                            size="sm"
-                            value={String(configs[p.id]?.points)}
-                            onValueChange={(v) => updateConfig(p.id, "points", Number(v))}
-                            classNames={{ inputWrapper: "rounded-xl h-10" }}
-                          />
-                          <Input
-                            label="Ordinal"
-                            type="number"
-                            size="sm"
-                            value={String(configs[p.id]?.ordinal)}
-                            onValueChange={(v) => updateConfig(p.id, "ordinal", Number(v))}
-                            classNames={{ inputWrapper: "rounded-xl h-10" }}
-                          />
-                        </div>
+                        {isStudyPlan ? (
+                          <p className="text-xs text-slate-500 font-medium italic">
+                            This problem will be added to the study plan sequence.
+                          </p>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-4">
+                            <Input
+                              label="Alias"
+                              size="sm"
+                              placeholder="e.g. A"
+                              value={configs[p.id]?.alias}
+                              onValueChange={(v) => updateConfig(p.id, "alias", v)}
+                              classNames={{ inputWrapper: "rounded-xl h-10" }}
+                            />
+                            <Input
+                              label="Points"
+                              type="number"
+                              size="sm"
+                              value={String(configs[p.id]?.points)}
+                              onValueChange={(v) => updateConfig(p.id, "points", Number(v))}
+                              classNames={{ inputWrapper: "rounded-xl h-10" }}
+                            />
+                            <Input
+                              label="Ordinal"
+                              type="number"
+                              size="sm"
+                              value={String(configs[p.id]?.ordinal)}
+                              onValueChange={(v) => updateConfig(p.id, "ordinal", Number(v))}
+                              classNames={{ inputWrapper: "rounded-xl h-10" }}
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -268,7 +300,7 @@ export const AddProblemModal = ({
             <ModalFooter className="border-t border-slate-100 dark:border-white/5 p-8">
               <div className="mr-auto">
                 <span className="text-xs font-black uppercase text-slate-400 italic">
-                  {selectedIds.size} Problems Ready
+                  {selectedIds.size} Problems Selected
                 </span>
               </div>
               <Button
@@ -281,17 +313,17 @@ export const AddProblemModal = ({
               {step === 1 ? (
                 <Button
                   className="bg-[#071739] dark:bg-[#FF5C00] text-white dark:text-[#071739] font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
-                  onPress={() => setStep(2)}
+                  onPress={() => isStudyPlan ? handleConfirm() : setStep(2)}
                   isDisabled={selectedIds.size === 0}
                 >
-                  Next: Configure
+                  {isStudyPlan ? "Confirm Selection" : "Next: Configure"}
                 </Button>
               ) : (
                 <Button
                   className="bg-blue-600 dark:bg-[#22C55E] text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 rounded-xl shadow-lg active:scale-95 transition-all"
                   onPress={() => handleConfirm()}
                 >
-                  Confirm & Add to Contest
+                  Confirm & Add to {isStudyPlan ? "Study Plan" : "Contest"}
                 </Button>
               )}
             </ModalFooter>

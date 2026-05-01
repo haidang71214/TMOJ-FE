@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   AlignLeft,
   BookOpen,
@@ -20,15 +20,17 @@ import {
   CheckSquare,
   Clock,
   Database,
+  ArrowRight,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
+import { Skeleton, Chip, Divider, Progress, Button } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
 import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
+import { useGetNextStudyPlanItemQuery, useCompleteStudyPlanItemMutation } from "@/store/queries/StudyPlan";
 import { VerdictCode } from "@/types";
 
 // ── Tab config ────────────────────────────────────────────────────────────
@@ -93,6 +95,7 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const problemId = params.id as string;
   const { t, language } = useTranslation();
 
@@ -100,16 +103,59 @@ export default function ProblemDetailsPage() {
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [isPlanItemCompleted, setIsPlanItemCompleted] = useState(false);
+  const navButtonRef = useRef<HTMLDivElement>(null);
+
+  const planId = searchParams.get("planId");
+  const itemId = searchParams.get("itemId");
+
+  const { data: nextItemData, refetch: refetchNextItem } = useGetNextStudyPlanItemQuery(
+    { planId: planId!, itemId: itemId! },
+    { skip: !planId || !itemId }
+  );
+
+  const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { skip: !submissionId }
+  );
+
+  const [completeItem, { isSuccess: isCompleteSuccess }] = useCompleteStudyPlanItemMutation();
+  const completedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const data = submissionData?.data;
+    if (itemId && data?.statusCode === "done" && data?.verdictCode?.toLowerCase() === VerdictCode.AC) {
+      if (completedRef.current !== submissionId) {
+        completeItem(itemId);
+        completedRef.current = submissionId;
+      }
+    }
+  }, [submissionData, itemId, submissionId, completeItem]);
+
+  // Giữ trạng thái hoàn thành bền vững khi isCompleteSuccess = true
+  useEffect(() => {
+    if (isCompleteSuccess) {
+      setIsPlanItemCompleted(true);
+      refetchNextItem();
+      // Auto scroll đến nút điều hướng sau 300ms (chờ animation fade-in)
+      setTimeout(() => {
+        navButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+  }, [isCompleteSuccess, refetchNextItem]);
+
+  // Reset khi submit bài mới
+  useEffect(() => {
+    if (submissionId) {
+      setIsPlanItemCompleted(false);
+    }
+  }, [submissionId]);
 
   // Layout states
   const [isLeftVisible, setIsLeftVisible] = useState(true);
   const [isEditorMaximized, setIsEditorMaximized] = useState(false);
   const [isResultMaximized, setIsResultMaximized] = useState(false);
 
-  const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
-    { submissionId: submissionId! },
-    { skip: !submissionId }
-  );
   console.log(submissionData)
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
@@ -363,7 +409,7 @@ export default function ProblemDetailsPage() {
                               {/* Result Header */}
                               <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                  <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" :
+                                  <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode?.toLowerCase() === VerdictCode.AC ? "text-emerald-500" :
                                     data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
                                     }`}>
                                     {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
@@ -469,13 +515,51 @@ export default function ProblemDetailsPage() {
                                 </div>
                               )}
 
-                              {data?.verdictCode === VerdictCode.AC && (
+                              {data?.verdictCode?.toLowerCase() === VerdictCode.AC && (
                                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                                   <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
                                     <CheckSquare size={40} />
                                   </div>
                                   <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
                                   <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+
+                                  {isPlanItemCompleted && (
+                                    <div ref={navButtonRef} className="w-full mt-6 animate-fade-in flex flex-col items-center gap-2">
+                                      {nextItemData?.data?.nextProblemId ? (
+                                        <Button
+                                          size="lg"
+                                          className="bg-[#FF5C00] text-white font-black uppercase px-14 h-14
+                                            shadow-[0_0_24px_rgba(255,92,0,0.5)] hover:shadow-[0_0_36px_rgba(255,92,0,0.7)]
+                                            hover:bg-[#ff7a33] transition-all duration-300 animate-pulse"
+                                          endContent={<ArrowRight size={20} />}
+                                          onPress={() => {
+                                            router.push(`/Problems/${nextItemData.data.nextProblemId}?planId=${planId}&itemId=${nextItemData.data.nextItemId}`);
+                                          }}
+                                        >
+                                          Next Challenge
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          size="lg"
+                                          className="bg-amber-500 text-white font-black uppercase px-14 h-14
+                                            shadow-[0_0_24px_rgba(245,158,11,0.5)] hover:shadow-[0_0_36px_rgba(245,158,11,0.7)]
+                                            hover:bg-amber-600 transition-all duration-300 animate-pulse"
+                                          onPress={() => router.push(`/StudyPlan/${planId}`)}
+                                        >
+                                          Return to Plan
+                                        </Button>
+                                      )}
+
+                                      {nextItemData?.data?.nextProblemId && planId && (
+                                        <button
+                                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-bold uppercase tracking-widest mt-1 transition-colors"
+                                          onClick={() => router.push(`/StudyPlan/${planId}`)}
+                                        >
+                                          Return to Plan
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </>

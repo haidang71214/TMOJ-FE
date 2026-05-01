@@ -57,6 +57,7 @@ const ProblemEndPoint = {
   GET_LIST_PROBLEM_BANK: `${API_LON}/Problems/banks`,
   CREATE_VIRTUAL_PROBLEM: `${API_LON}/Problems/virtual`,
   CREATE_REMIX_PROBLEM: `${API_LON}/Problems/remix`,
+  GET_LIST_IN_PLAN: "/api/v2/Problems/in-plan",
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
@@ -258,10 +259,29 @@ const CollectionEndpoint = {
 const StudyPlanEndpoint = {
   GET_ALL: `${API_PREFIX}/study-plans`,
   CREATE_STUDY_PLAN: `${API_PREFIX}/study-plans`,
-  CREATE_PROBLEM_INPLAN: `/problem/in-plan`,
+  UPDATE_STUDY_PLAN: `${API_PREFIX}/study-plans/{id}`,
+  DELETE_STUDY_PLAN: `${API_PREFIX}/study-plans/{id}`,
+  CREATE_PROBLEM_INPLAN: "/problem/in-plan",
   GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
-}
+  REMOVE_PROBLEM_FROM_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
+  BUY_STUDY_PLAN: `${API_PREFIX}/study-plans/{planId}/buy`,
+  ENROLL_STUDY_PLAN: `${API_PREFIX}/study-plans/{planId}/enroll`,
+  GET_UNLOCKED_PLANS: `${API_PREFIX}/study-plans/unlocked`,
+  GET_NEXT_ITEM: `${API_PREFIX}/study-plans/{planId}/next/{itemId}`,
+  GET_ENROLLMENT: `${API_PREFIX}/study-plans/{planId}/enrollment`,
+  GET_STATS: `${API_PREFIX}/study-plans/{planId}/stats`,
+  UPLOAD_IMAGE: `${API_PREFIX}/study-plans/upload-image`,
+};
+
+const StudyProgressEndpoint = {
+  COMPLETE_PLAN: `/api/study-progress/complete`,
+  GET_PLAN_PROGRESS: `/api/study-progress/plan/{planId}`,
+  COMPLETE_ITEM: `/api/study-progress/items/{studyPlanItemId}/complete`,
+  GET_MY_PROGRESS: `/api/study-progress/my`,
+  RESET_PROGRESS: `/api/study-progress/{planId}`,
+  GET_NEXT_ITEM: `/api/study-progress/items/{itemId}/next`,
+};
 const GamificationEndpoint = {
   ME: `${API_PREFIX}/gamification/me`,
   BADGES: `${API_PREFIX}/gamification/badges`,
@@ -360,6 +380,7 @@ export {
   FavoriteEndpoint,
   CollectionEndpoint,
   StudyPlanEndpoint,
+  StudyProgressEndpoint,
   GamificationEndpoint,
   AdminGamificationEndpoint,
   PaymentEndpoint,

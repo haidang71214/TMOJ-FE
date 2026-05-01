@@ -4,22 +4,112 @@ import React, { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardBody, Button, Spinner } from "@heroui/react";
 import { CheckCircle2, XCircle, ArrowRight, Loader2 } from "lucide-react";
-import { useGetVNPayCallbackQuery } from "@/store/queries/payment";
+import { useGetVNPayCallbackQuery, useVerifyPayOsPaymentMutation } from "@/store/queries/payment";
+import { useGetWalletBalanceQuery } from "@/store/queries/wallet";
+import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
 import Link from "next/link";
 
 function PaymentResultContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
-  // Các tham số có thể có từ VNPay hoặc từ Backend redirect
+  // PayOS redirect params
+  const orderCode = searchParams.get("orderCode");
+  const payosStatus = searchParams.get("status");
+  const payosCode = searchParams.get("code");
+
+  // VNPay redirect params
   const vnp_TxnRef = searchParams.get("vnp_TxnRef") || searchParams.get("paymentId");
   const vnp_ResponseCode = searchParams.get("vnp_ResponseCode") || (searchParams.get("status") === "success" ? "00" : "99");
 
+  const isPayOs = !!orderCode;
+  const isPayOsSuccess = payosStatus === "PAID" || payosCode === "00";
+
   const { data, isLoading, isError } = useGetVNPayCallbackQuery(
     { vnp_TxnRef: vnp_TxnRef || "", vnp_ResponseCode: vnp_ResponseCode || "" },
-    { skip: !vnp_TxnRef }
+    { skip: !vnp_TxnRef || isPayOs }
   );
 
+  const [verifyPayOs] = useVerifyPayOsPaymentMutation();
+  const { refetch: refetchWallet } = useGetWalletBalanceQuery(undefined);
+  const { refetch: refetchHistory } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 10 });
+
+  useEffect(() => {
+    if (isPayOs && isPayOsSuccess && orderCode) {
+      // Call verify endpoint to credit coins (backup when webhook can't reach localhost)
+      verifyPayOs({ orderCode: Number(orderCode) }).then(() => {
+        refetchWallet();
+        refetchHistory();
+      });
+    }
+  }, [isPayOs, isPayOsSuccess, orderCode]);
+
+  // PayOS: hiển thị kết quả ngay từ query params (webhook đã xử lý coin phía BE)
+  if (isPayOs) {
+    return (
+      <div className="max-w-md mx-auto mt-20 p-4">
+        <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white dark:bg-[#111c35]">
+          <CardBody className="p-10 flex flex-col items-center text-center gap-6">
+            {isPayOsSuccess ? (
+              <>
+                <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mb-4">
+                  <CheckCircle2 size={40} className="text-success" />
+                </div>
+                <h2 className="text-2xl font-[1000] italic uppercase text-[#071739] dark:text-white">
+                  Payment <span className="text-success">Successful</span>
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 font-bold italic">
+                  Your coins have been added to your wallet. Thank you for your purchase!
+                </p>
+                <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-2xl w-full text-left space-y-2">
+                  <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-400">
+                    <span>Order Code</span>
+                    <span className="text-[#071739] dark:text-white">{orderCode}</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-400">
+                    <span>Method</span>
+                    <span className="text-[#071739] dark:text-white">PayOS</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-400">
+                    <span>Status</span>
+                    <span className="text-success">COMPLETED</span>
+                  </div>
+                </div>
+                <Button
+                  as={Link}
+                  href="/Coin?refresh=1&tab=purchases"
+                  className="w-full bg-[#FF5C00] text-white font-black uppercase italic h-12 rounded-2xl shadow-lg shadow-orange-500/20"
+                  endContent={<ArrowRight size={18} />}
+                >
+                  Go to Rewards Center
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="w-20 h-20 rounded-full bg-danger/10 flex items-center justify-center mb-4">
+                  <XCircle size={40} className="text-danger" />
+                </div>
+                <h2 className="text-2xl font-[1000] italic uppercase text-[#071739] dark:text-white">
+                  Payment <span className="text-danger">Failed</span>
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 font-bold italic">
+                  Your payment could not be processed. Please try again.
+                </p>
+                <Button
+                  as={Link}
+                  href="/Coin"
+                  className="w-full bg-[#071739] dark:bg-white text-white dark:text-[#071739] font-black uppercase italic h-12 rounded-2xl"
+                >
+                  Try Again
+                </Button>
+              </>
+            )}
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
+  // VNPay flow
   if (!vnp_TxnRef) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -78,7 +168,6 @@ function PaymentResultContent() {
               <p className="text-slate-500 dark:text-slate-400 font-bold italic">
                 Your coins have been added to your wallet. Thank you for your purchase!
               </p>
-
               <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-2xl w-full text-left space-y-2">
                 <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-400">
                   <span>Transaction ID</span>
@@ -89,7 +178,6 @@ function PaymentResultContent() {
                   <span className="text-success">COMPLETED</span>
                 </div>
               </div>
-
               <div className="w-full space-y-3 mt-4">
                 <Button
                   as={Link}

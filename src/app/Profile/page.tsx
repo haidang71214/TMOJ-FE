@@ -58,10 +58,14 @@ import {
   useGetGamificationHistoryQuery,
   useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
+import { useGetMyInventoryQuery } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
+import { Badge } from "@/types/gamification";
+import BadgeCelebrationModal from "@/components/Gamification/BadgeCelebrationModal";
+import { useEffect } from "react";
 
 // --- INTERFACES ---
 interface DifficultyStat {
@@ -112,10 +116,55 @@ export default function ProfilePage() {
 
   const gMe = gMeResponse?.data;
   const gStreak = gStreakResponse?.data;
-  const gBadges = gBadgesResponse || [];
+  const gBadges = gProgressResponse?.data || [];
+  const completedBadges = useMemo(() => {
+    return gBadges.filter((b: any) =>
+      b.isCompleted === true ||
+      b.progressPercent >= 100 ||
+      (b.targetValue > 0 && b.currentValue >= b.targetValue)
+    );
+  }, [gBadges]);
   const gProgress = gProgressResponse?.data || [];
   const gHistory = gHistoryResponse?.data || [];
   const gActivities = gActivitiesResponse?.data || [];
+
+  const { data: inventoryData } = useGetMyInventoryQuery();
+  const equippedFrame = useMemo(() =>
+    inventoryData?.find(item => item.itemType === "avatar_frame" && item.isEquipped && !item.isExpired),
+    [inventoryData]
+  );
+  const equippedColor = useMemo(() =>
+    inventoryData?.find(item => item.itemType === "title_color" && item.isEquipped && !item.isExpired),
+    [inventoryData]
+  );
+
+  // Badge Celebration Logic
+  const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
+  const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
+
+  useEffect(() => {
+    if (completedBadges.length > 0 && !isCelebrationOpen) {
+      const seenBadges = JSON.parse(localStorage.getItem("seenBadges") || "[]");
+      const newBadge = completedBadges.find((b: any) => !seenBadges.includes(b.badgeId));
+
+      if (newBadge) {
+        setCelebrationBadge(newBadge as any);
+        setIsCelebrationOpen(true);
+      }
+    }
+  }, [completedBadges, isCelebrationOpen]);
+
+
+  const handleCloseCelebration = () => {
+    if (celebrationBadge) {
+      const seenBadges = JSON.parse(localStorage.getItem("seenBadges") || "[]");
+      if (!seenBadges.includes(celebrationBadge.badgeId)) {
+        localStorage.setItem("seenBadges", JSON.stringify([...seenBadges, celebrationBadge.badgeId]));
+      }
+    }
+    setIsCelebrationOpen(false);
+    setCelebrationBadge(null);
+  };
 
   const userId = meData?.userId ?? "";
   const role = meData?.role ?? "";
@@ -213,13 +262,24 @@ export default function ProfilePage() {
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
             <CardBody className="p-8 relative z-10">
               <div className="flex flex-col items-center text-center gap-4">
-                <div className="relative group/avatar">
+                <div className="relative group/avatar p-2">
                   <Avatar
                     src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
                     name={displayName || username}
-                    className={`w-28 h-28 border-4 border-[#FF5C00] rounded-[2.2rem] shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
+                    className={`w-28 h-28 border-4 ${equippedFrame ? "border-transparent" : "border-[#FF5C00]"} rounded-full shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
                       }`}
                   />
+
+                  {/* AVATAR FRAME */}
+                  {equippedFrame && (
+                    <div className="absolute inset-0 z-10 pointer-events-none scale-[1.35] transition-transform group-hover/avatar:scale-[1.4]">
+                      <img
+                        src={equippedFrame.itemImageUrl}
+                        alt="Avatar Frame"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
 
                   {/* Loading Spinner Over Avatar */}
                   {(isUpdatingAvatar || isDeletingAvatar) && (
@@ -229,7 +289,7 @@ export default function ProfilePage() {
                   )}
 
                   {/* Hover overlay for actions */}
-                  <div className="absolute inset-0 bg-black/40 rounded-[2.2rem] opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
                       isIconOnly
                       size="sm"
@@ -261,11 +321,12 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handleUploadAvatar}
                   />
-
-                  <div className="absolute -bottom-1 -right-1 bg-[#00FF41] w-7 h-7 rounded-full border-4 border-white dark:border-[#071739] shadow-md animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none text-[#071739] dark:text-white">
+                  <h1
+                    className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none"
+                    style={{ color: equippedColor?.metaJson?.color || undefined }}
+                  >
                     {displayName || username || (meLoading ? "..." : "—")}
                   </h1>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">
@@ -501,19 +562,60 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center gap-3 border border-slate-100 dark:border-none relative group min-h-[240px]">
-                <Award size={48} className="text-[#FF5C00]" />
-                <p className="text-[10px] font-[1000] uppercase italic text-slate-500 tracking-widest">
+              <div className="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center gap-3 border border-slate-100 dark:border-none relative group min-h-[240px] overflow-hidden">
+                {/* Celebratory Background Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#FF5C00]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF5C00]/10 blur-[50px] rounded-full group-hover:bg-[#FF5C00]/20 transition-all duration-1000" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full group-hover:bg-blue-500/20 transition-all duration-1000" />
+
+                {/* Floating Particles (Decorations) */}
+                <div className="absolute top-6 left-10 text-[#FF5C00]/30 animate-bounce transition-transform group-hover:scale-150 duration-700" style={{ animationDuration: '3s' }}>
+                  <Star size={12} fill="currentColor" />
+                </div>
+                <div className="absolute bottom-10 right-12 text-blue-500/30 animate-pulse transition-transform group-hover:scale-150 duration-1000">
+                  <Award size={14} />
+                </div>
+                <div className="absolute top-1/2 right-4 text-[#FF5C00]/20 animate-spin transition-transform group-hover:rotate-180 duration-1000" style={{ animationDuration: '8s' }}>
+                  <Star size={10} fill="currentColor" />
+                </div>
+
+                {completedBadges.length > 0 && completedBadges[0].iconUrl ? (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-[#FF5C00]/20 blur-2xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-700" />
+                    <img
+                      src={completedBadges[0].iconUrl}
+                      alt={completedBadges[0].name}
+                      className="w-20 h-20 object-contain mb-2 relative z-10 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative p-6 rounded-full bg-white dark:bg-white/5 shadow-xl transition-transform group-hover:scale-110 duration-500">
+                    <Award size={48} className="text-[#FF5C00] relative z-10" />
+                    <div className="absolute inset-0 bg-[#FF5C00]/20 blur-xl rounded-full animate-pulse" />
+                  </div>
+                )}
+
+                <p className="text-[10px] font-[1000] uppercase italic text-slate-500 tracking-widest relative z-10">
                   Achievement
                 </p>
-                {gBadges.length > 0 ? (
-                  <>
+
+
+                {completedBadges.length > 0 ? (
+                  <div className="space-y-1">
                     <p className="text-base font-black italic uppercase leading-tight text-[#071739] dark:text-white">
-                      {gBadges[0].name} <br />
-                      <span className="text-[#00FF41] text-[10px]">{gBadges[0].awardedAt}</span>
+                      {completedBadges[0].name}
                     </p>
-                  </>
+                    <p className="text-[#00FF41] text-[10px] font-bold uppercase italic">
+                      {completedBadges[0].awardedAt || "Achieved"}
+                    </p>
+                    {completedBadges[0].description && (
+                      <p className="text-[9px] text-slate-400 font-bold uppercase italic max-w-[180px] mx-auto leading-tight">
+                        {completedBadges[0].description}
+                      </p>
+                    )}
+                  </div>
                 ) : (
+
                   <p className="text-sm font-black italic uppercase text-slate-400">
                     No Badges <br />
                     <span className="text-[10px]">Keep grinding!</span>
@@ -527,6 +629,7 @@ export default function ProfilePage() {
                 >
                   Detail ↗
                 </Button>
+
               </div>
             </CardBody>
           </Card>
@@ -561,7 +664,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Activity Grid */}
-                <div className="grid grid-cols-53 gap-2 overflow-x-auto pb-2">
+                <div className="grid grid-cols-53 gap-2 overflow-x-auto pb-2 no-scrollbar">
                   {Array.from({ length: 371 }).map((_, i) => {
                     const today = new Date();
                     const dateAtI = new Date();
@@ -644,34 +747,6 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               </Tab>
-              <Tab key="achievements" title="Achievements">
-                <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
-                  {gHistory.length > 0 ? (
-                    gHistory.map((h, i) => (
-                      <div key={i} className="py-6 flex justify-between items-center group">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-[#FF5C00]">
-                            {h.type === "badge" ? <Award size={20} /> : <Star size={20} />}
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-base font-black uppercase italic text-[#071739] dark:text-white leading-none">
-                              {h.name}
-                            </p>
-                            <p className="text-[9px] font-black uppercase italic text-slate-400">
-                              Earned {h.type}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase italic text-slate-400">
-                          {h.time}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-10 text-center text-slate-400 italic uppercase font-black text-[10px] tracking-widest">No achievements yet. Keep grinding!</div>
-                  )}
-                </div>
-              </Tab>
               {/* KHÔI PHỤC CÁC TAB BỊ THIẾU */}
               <Tab key="collections" title="Collections">
                 <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
@@ -749,10 +824,17 @@ export default function ProfilePage() {
         size="3xl"
         backdrop="blur"
         hideCloseButton={true}
+        placement="top-center"
+        scrollBehavior="inside"
         classNames={{
+          wrapper: "pt-10",
           base: "dark:bg-[#071739] bg-white rounded-[3rem] p-6 border border-white/10",
           header: "border-b border-white/10",
+          body: "no-scrollbar",
         }}
+
+
+
       >
         <ModalContent>
           {(onClose) => (
@@ -771,60 +853,92 @@ export default function ProfilePage() {
               <ModalBody className="py-10">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   {/* Achieved Badges */}
-                  {gBadges.map((badge) => (
+                  {completedBadges.map((badge: any) => (
                     <div
                       key={badge.badgeId}
                       className="p-6 rounded-4xl border-2 border-[#FF5C00]/20 bg-slate-50 dark:bg-white/5 shadow-lg flex flex-col items-center gap-4 relative overflow-hidden group"
                     >
-                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner transition-transform group-hover:scale-110 duration-500">
-                        <Star size={32} className="text-[#FF5C00] fill-current" strokeWidth={3} />
+                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner transition-transform group-hover:scale-110 duration-500 flex items-center justify-center w-20 h-20">
+                        {badge.iconUrl ? (
+                          <img src={badge.iconUrl} alt={badge.name} className="w-12 h-12 object-contain" />
+                        ) : (
+                          <Star size={32} className="text-[#FF5C00] fill-current" strokeWidth={3} />
+                        )}
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-[1000] uppercase italic text-[#071739] dark:text-white leading-tight">
                           {badge.name}
                         </p>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                          {badge.awardedAt}
+                          {badge.awardedAt || "Achieved"}
                         </p>
+                        {badge.description && (
+                          <p className="text-[8px] font-bold text-slate-400 uppercase mt-2 max-w-[120px] mx-auto opacity-80 italic">
+                            {badge.description}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
 
-                  {/* Progress Badges */}
-                  {gProgress.map((p, i) => (
+
+                  {/* Progress Badges from gBadges */}
+                  {gBadges.filter((b: any) =>
+                    !(b.isCompleted === true ||
+                      b.progressPercent >= 100 ||
+                      (b.targetValue > 0 && b.currentValue >= b.targetValue))
+                  ).map((p: any, i: number) => (
                     <div
                       key={i}
                       className="p-6 rounded-4xl border-2 border-slate-100 dark:border-white/5 grayscale opacity-60 flex flex-col items-center gap-4 relative overflow-hidden group"
                     >
                       <Lock size={16} className="absolute top-4 right-4 text-slate-400" />
-                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner">
-                        <Star size={32} className="text-slate-300" strokeWidth={3} />
+                      <div className="p-4 rounded-full bg-white dark:bg-black/20 shadow-inner flex items-center justify-center w-20 h-20">
+                        {p.iconUrl ? (
+                          <img src={p.iconUrl} alt={p.name} className="w-12 h-12 object-contain" />
+                        ) : (
+                          <Star size={32} className="text-slate-300" strokeWidth={3} />
+                        )}
                       </div>
                       <div className="text-center w-full">
                         <p className="text-sm font-[1000] uppercase italic text-[#071739] dark:text-white leading-tight">
-                          {p.badge}
+                          {p.name}
                         </p>
+                        {p.description && (
+                          <p className="text-[8px] font-bold text-slate-400 uppercase mt-1 opacity-80 italic">
+                            {p.description}
+                          </p>
+                        )}
                         <div className="mt-2 space-y-1">
                           <Progress
                             size="sm"
-                            value={p.target > 0 ? (p.progress / p.target) * 100 : 0}
+                            value={p.targetValue > 0 ? (p.currentValue / p.targetValue) * 100 : 0}
                             color="warning"
                             className="h-1.5"
                           />
                           <p className="text-[8px] font-black text-slate-400 uppercase italic">
-                            {p.progress}/{p.target}
+                            {p.currentValue}/{p.targetValue}
                           </p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-center items-center gap-4 mt-8">
                   <Button
-                    className="font-black uppercase italic text-xs bg-[#FF5C00] text-white rounded-xl px-10 shadow-lg"
+                    className="font-black uppercase italic text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-xl px-10"
                     onPress={onClose}
                   >
                     Close
+                  </Button>
+                  <Button
+                    className="font-black uppercase italic text-xs bg-[#FF5C00] text-white rounded-xl px-10 shadow-lg"
+                    onPress={() => {
+                      onClose();
+                      router.push("/Achievements");
+                    }}
+                  >
+                    View All ↗
                   </Button>
                 </div>
               </ModalBody>
@@ -840,19 +954,22 @@ export default function ProfilePage() {
         profile={meData ?? null}
       />
 
+      <BadgeCelebrationModal
+        badge={celebrationBadge}
+        isOpen={isCelebrationOpen}
+        onClose={handleCloseCelebration}
+      />
+
       <style jsx global>{`
         .grid-cols-53 {
           grid-template-columns: repeat(53, minmax(0, 1fr));
         }
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          display: none;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #ff5c00;
-          border-radius: 10px;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #00ff41;
+        .custom-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </div>

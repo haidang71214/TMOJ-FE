@@ -1518,6 +1518,17 @@ export interface CreateVNPayPaymentRequest {
   returnUrl?: string;
 }
 
+export interface CreatePayOsPaymentRequest {
+  amount: number;
+}
+
+export interface CreatePayOsPaymentResponse {
+  data: {
+    paymentId: string;
+    paymentUrl: string;
+  };
+}
+
 export interface CreateVNPayPaymentResponse {
   data: {
     paymentId: string;
@@ -1563,6 +1574,18 @@ export interface WalletTransaction {
   amount: number;
   direction: "in" | "out";
   status: "pending" | "completed" | "failed" | "reversed";
+  createdAt: string;
+}
+
+export interface VerifyPayOsRequest {
+  orderCode: number;
+}
+
+export interface VerifyPayOsResponse {
+  data: {
+    status: string;
+    coinsAdded: boolean;
+  };
 }
 
 export interface WalletTransactionsResponse {

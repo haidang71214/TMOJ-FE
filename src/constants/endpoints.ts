@@ -286,6 +286,9 @@ const PaymentEndpoint = {
   VNPAY_CREATE: `${API_PREFIX}/payments/vnpay`,
   VNPAY_CALLBACK: `${API_PREFIX}/payments/vnpay/callback`,
   VNPAY_RETURN: `${API_PREFIX}/payments/vnpay/return`,
+  PAYOS_CREATE: `${API_PREFIX}/payments/payos`,
+  PAYOS_WEBHOOK: `${API_PREFIX}/payments/payos/webhook`,
+  PAYOS_VERIFY: `${API_PREFIX}/payments/payos/verify`,
   GET_BY_ID: `${API_PREFIX}/payments/{id}`,
   CONVERSION_RATE: `${API_PREFIX}/payments/conversion-rate`,
   HISTORY_ME: `${API_PREFIX}/payments/history/me`,
@@ -301,6 +304,24 @@ const AnnouncementEndpoint = {
   GET_ALL: `${API_PREFIX}/announcements`,
   CREATE: `${API_PREFIX}/announcements`,
   DELETE: `${API_PREFIX}/announcements/{id}`,
+};
+
+const SettingsEndpoint = {
+  NOTIFICATION_SETTINGS: "/api/v1/settings/notifications",
+};
+
+const StoreEndpoint = {
+  ITEMS: `${API_PREFIX}/store/items`,
+  ITEM_DETAIL: `${API_PREFIX}/store/items/{itemId}`,
+  BUY: `${API_PREFIX}/store/buy`,
+  MY_INVENTORY: `${API_PREFIX}/store/my-inventory`,
+  INVENTORY_DETAIL: `${API_PREFIX}/store/my-inventory/{inventoryId}`,
+  EQUIP: `${API_PREFIX}/store/my-inventory/{inventoryId}/equip`,
+  // Cart Endpoints
+  CART: `${API_PREFIX}/store/cart`,
+  CART_ITEM: `${API_PREFIX}/store/cart/{cartItemId}`,
+  CHECKOUT: `${API_PREFIX}/store/checkout`,
+  ADMIN_ORDERS: `${API_PREFIX}/store/admin/orders`,
 };
 
 const RankingEndpoint = {
@@ -337,4 +358,6 @@ export {
   PaymentEndpoint,
   WalletEndpoint,
   AnnouncementEndpoint,
+  StoreEndpoint,
+  SettingsEndpoint,
 };

@@ -29,14 +29,18 @@ import {
   Search,
   PlusCircle,
   CalendarDays,
+  CheckCircle2,
 } from "lucide-react";
 import DepositModal from "../components/DeposiModal";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation"; // Import useSearchParams
+import { useSearchParams, useRouter } from "next/navigation"; // Import useSearchParams
 import { useGetWalletBalanceQuery, useGetWalletTransactionsQuery } from "@/store/queries/wallet";
 import { useGetPaymentHistoryMeQuery } from "@/store/queries/payment";
 import { useGetStreakQuery } from "@/store/queries/gamification";
-import { WalletTransaction, PaymentHistoryItem } from "@/types";
+import { useGetStoreItemsQuery, useGetMyInventoryQuery, useEquipItemMutation, useAddToCartMutation, useGetCartQuery } from "@/store/queries/store";
+import { WalletTransaction, PaymentHistoryItem, ErrorForm } from "@/types";
+import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface MissionItem {
   id: number;
@@ -235,19 +239,35 @@ const MISSIONS = {
 
 function CoinShopContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [selectedTab, setSelectedTab] = useState("shop");
   const [filterType, setFilterType] = useState("latest");
+  const [shopTypeFilter, setShopTypeFilter] = useState("all");
+  const [inventoryFilter, setInventoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
 
-  const { data: balanceData, isLoading: isBalanceLoading } = useGetWalletBalanceQuery();
-  const { data: walletTransactionsData, isLoading: isWalletLoading } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
-  const { data: paymentHistoryData, isLoading: isPaymentLoading } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
+  const { data: balanceData, isLoading: isBalanceLoading, refetch: refetchBalance } = useGetWalletBalanceQuery();
+  const { data: walletTransactionsData, isLoading: isWalletLoading, refetch: refetchTransactions } = useGetWalletTransactionsQuery({ page: 1, pageSize: 50 });
+  const { data: paymentHistoryData, isLoading: isPaymentLoading, refetch: refetchPaymentHistory } = useGetPaymentHistoryMeQuery({ page: 1, pageSize: 50 });
   const { data: streakData, isLoading: isStreakLoading } = useGetStreakQuery();
 
+  const { data: storeItems, isLoading: isStoreLoading } = useGetStoreItemsQuery();
+  const { data: inventoryData, isLoading: isInventoryLoading } = useGetMyInventoryQuery();
+  const { data: cartData } = useGetCartQuery();
+  const [equipItem] = useEquipItemMutation();
+  const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
+
+  const filteredInventory = useMemo(() => {
+    if (!inventoryData) return [];
+    if (inventoryFilter === "all") return inventoryData;
+    return inventoryData.filter(item => item.itemType === inventoryFilter);
+  }, [inventoryData, inventoryFilter]);
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const MissionCard = ({ mission }: { mission: MissionItem }) => (
     <Card className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all group">
       <CardBody className="p-5 flex flex-row items-center gap-4">
@@ -280,44 +300,56 @@ function CoinShopContent() {
       </CardBody>
     </Card>
   );
+
   useEffect(() => {
     setMounted(true);
-    // LOGIC QUAN TRỌNG: Kiểm tra tham số tab trên URL
     const tab = searchParams.get("tab");
     if (tab === "purchases") {
       setSelectedTab("purchases");
     } else if (tab === "earnings") {
       setSelectedTab("earnings");
+    } else if (tab === "inventory") {
+      setSelectedTab("inventory");
+    } else if (tab === "shop") {
+      setSelectedTab("shop");
+    }
+    // Refetch nếu vừa redirect về từ PayOS
+    if (searchParams.get("refresh") === "1") {
+      refetchBalance();
+      refetchTransactions();
+      refetchPaymentHistory();
     }
   }, [searchParams]);
 
   const { paginatedItems, totalPages } = useMemo(() => {
-    const filtered = SHOP_ITEMS.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    if (!storeItems) return { paginatedItems: [], totalPages: 0 };
+
+    // 1. Filter by Search & Type
+    const filtered = storeItems.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = shopTypeFilter === "all" || item.itemType === shopTypeFilter;
+      const matchesActive = item.isActive !== false;
+      return matchesSearch && matchesType && matchesActive;
+    });
+
+    // 2. Sort
     const sorted = [...filtered];
     switch (filterType) {
-      case "latest":
-        sorted.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        break;
-      case "bestseller":
-        sorted.sort((a, b) => b.sales - a.sales);
-        break;
       case "low":
-        sorted.sort((a, b) => a.price - b.price);
+        sorted.sort((a, b) => a.priceCoin - b.priceCoin);
         break;
       case "high":
-        sorted.sort((a, b) => b.price - a.price);
+        sorted.sort((a, b) => b.priceCoin - a.priceCoin);
         break;
     }
+
+    // 3. Paginate
     const start = (page - 1) * rowsPerPage;
     return {
       paginatedItems: sorted.slice(start, start + rowsPerPage),
       totalPages: Math.ceil(sorted.length / rowsPerPage),
     };
-  }, [searchQuery, filterType, page]);
+  }, [storeItems, searchQuery, filterType, shopTypeFilter, page]);
 
   if (!mounted) return null;
 
@@ -344,7 +376,7 @@ function CoinShopContent() {
               </p>
             </div>
             <p className="text-4xl font-[1000] text-[#FFB800] italic leading-none">
-              {isBalanceLoading ? "..." : (balanceData?.data?.balance ?? 0).toLocaleString()}
+              {isBalanceLoading ? "..." : (balanceData ?? 0).toLocaleString()}
             </p>
           </CardBody>
         </Card>
@@ -402,10 +434,32 @@ function CoinShopContent() {
                 }}
               />
               <Select
+                placeholder="Category"
+                className="max-w-[160px]"
+                size="sm"
+                variant="flat"
+                selectedKeys={[shopTypeFilter]}
+                startContent={<Filter size={14} className="text-slate-400" />}
+                onSelectionChange={(keys) =>
+                  setShopTypeFilter(Array.from(keys)[0] as string)
+                }
+                classNames={{
+                  trigger:
+                    "bg-white dark:bg-[#111c35] rounded-lg border-divider h-11 font-bold italic text-[#071739] dark:text-white",
+                }}
+              >
+                <SelectItem key="all">All Categories</SelectItem>
+                <SelectItem key="badge">Badges</SelectItem>
+                <SelectItem key="title_color">Title Colors</SelectItem>
+                <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
+                <SelectItem key="physical_item">Physical Items</SelectItem>
+              </Select>
+              <Select
                 placeholder="Sort by"
                 className="max-w-[160px]"
                 size="sm"
                 variant="flat"
+                selectedKeys={[filterType]}
                 startContent={<Filter size={14} className="text-slate-400" />}
                 onSelectionChange={(keys) =>
                   setFilterType(Array.from(keys)[0] as string)
@@ -416,7 +470,6 @@ function CoinShopContent() {
                 }}
               >
                 <SelectItem key="latest">Latest Arrivals</SelectItem>
-                <SelectItem key="bestseller">Best Sellers</SelectItem>
                 <SelectItem key="low">Price: Low to High</SelectItem>
                 <SelectItem key="high">Price: High to Low</SelectItem>
               </Select>
@@ -429,62 +482,220 @@ function CoinShopContent() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
-              {paginatedItems.map((item) => (
-                <Link
-                  href={`/Coin/Product/${item.id}`}
-                  key={item.id}
-                  className="group"
-                >
-                  <Card className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm transition-all h-full hover:border-blue-600 dark:hover:border-[#00FF41] hover:-translate-y-1 overflow-hidden">
+            {isStoreLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="h-[300px] bg-white dark:bg-[#111c35] animate-pulse rounded-xl" />
+                ))}
+              </div>
+            ) : paginatedItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {paginatedItems.map((item) => (
+                  <div
+                    key={item.itemId}
+                    className="group"
+                  >
+                    <Card className="bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm transition-all h-full hover:border-blue-600 dark:hover:border-[#00FF41] hover:-translate-y-1 overflow-hidden">
+                      <CardBody className="p-0">
+                        <Link href={`/Coin/Product/${item.itemId}`} className="block relative h-48 w-full overflow-hidden">
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <Chip className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white border-none font-black text-[8px] uppercase italic">
+                            {item.itemType}
+                          </Chip>
+                        </Link>
+                        <div className="p-5 space-y-4">
+                          <Link href={`/Coin/Product/${item.itemId}`}>
+                            <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
+                              {item.name}
+                            </h4>
+                          </Link>
+                          <div className="flex flex-col gap-3 border-t border-divider dark:border-white/5 pt-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-[#FFB800]">
+                                <Coins size={16} strokeWidth={3} />
+                                <span className="text-xl font-[1000] italic">
+                                  {item.priceCoin.toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase italic">
+                                {item.stockQuantity} Stock
+                              </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              {!(item.itemType !== "physical_item" && (inventoryData?.some(inv => inv.itemId === item.itemId) || cartData?.some(cart => cart.itemId === item.itemId))) && (
+                                <Button
+                                  size="sm"
+                                  variant="flat"
+                                  className="flex-1 bg-gray-100 dark:bg-white/5 text-[#071739] dark:text-white font-black uppercase italic rounded-lg h-9 hover:bg-orange-500/10 transition-all"
+                                  onPress={async () => {
+                                    try {
+                                      await addToCart({ itemId: item.itemId, quantity: 1 }).unwrap();
+                                      toast.success("Added to cart!");
+                                    } catch (error) {
+                                      const err = error as ErrorForm;
+                                      toast.error(err?.data?.data?.message || "Failed to add to cart");
+                                    }
+                                  }}
+                                >
+                                  + Cart
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                className="flex-1 bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase italic rounded-lg h-9 hover:bg-blue-600 dark:hover:border-[#00FF41] dark:hover:text-[#071739] transition-all"
+                                onPress={() => router.push(`/Coin/Product/${item.itemId}`)}
+                              >
+                                View
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <ShoppingBag size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">No products found</p>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex justify-center pb-8">
+                <Pagination
+                  total={totalPages}
+                  page={page}
+                  onChange={setPage}
+                  classNames={{
+                    cursor:
+                      "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </Tab>
+
+        {/* MY INVENTORY */}
+        <Tab
+          key="inventory"
+          title={
+            <div className="flex items-center gap-2">
+              <ShoppingBasket size={18} />
+              <span>My Inventory</span>
+            </div>
+          }
+        >
+          <div className="mt-6 space-y-6">
+            <div className="flex flex-wrap gap-2 items-center mb-6">
+              <Select
+                placeholder="Filter by type"
+                className="max-w-[200px]"
+                size="sm"
+                variant="flat"
+                selectedKeys={[inventoryFilter]}
+                startContent={<Filter size={14} className="text-slate-400" />}
+                onSelectionChange={(keys) =>
+                  setInventoryFilter(Array.from(keys)[0] as string)
+                }
+                classNames={{
+                  trigger:
+                    "bg-white dark:bg-[#111c35] rounded-lg border-divider h-11 font-bold italic text-[#071739] dark:text-white",
+                }}
+              >
+                <SelectItem key="all">All Items</SelectItem>
+                <SelectItem key="badge">Badges</SelectItem>
+                <SelectItem key="title_color">Title Colors</SelectItem>
+                <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
+                <SelectItem key="physical_item">Physical Items</SelectItem>
+              </Select>
+            </div>
+
+            {isInventoryLoading ? (
+              <p className="text-center py-10 font-bold italic text-slate-400">Loading inventory...</p>
+            ) : filteredInventory && filteredInventory.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                {filteredInventory.map((item) => (
+                  <Card
+                    key={item.inventoryId}
+                    className={`bg-white dark:bg-[#111c35] border border-divider dark:border-white/5 rounded-xl shadow-sm overflow-hidden group ${item.isExpired ? "opacity-60 grayscale" : ""}`}
+                  >
                     <CardBody className="p-0">
-                      <div className="relative h-48 w-full overflow-hidden">
+                      <div className="relative h-40 w-full overflow-hidden">
                         <Image
-                          src={item.img}
-                          alt={item.name}
+                          src={item.itemImageUrl}
+                          alt={item.itemName}
                           className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                         />
                         <Chip className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white border-none font-black text-[8px] uppercase italic">
-                          {item.category}
+                          {item.itemType}
                         </Chip>
-                      </div>
-                      <div className="p-5 space-y-4">
-                        <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-blue-600 dark:group-hover:text-[#00FF41] transition-colors">
-                          {item.name}
-                        </h4>
-                        <div className="flex items-center justify-between border-t border-divider dark:border-white/5 pt-4">
-                          <div className="flex items-center gap-1.5 text-[#FFB800]">
-                            <Coins size={16} strokeWidth={3} />
-                            <span className="text-xl font-[1000] italic">
-                              {item.price.toLocaleString()}
+                        {item.isEquipped && !item.isExpired && (
+                          <Chip color="success" size="sm" className="absolute top-3 right-3 z-10 font-black uppercase italic text-[8px]">
+                            Equipped
+                          </Chip>
+                        )}
+                        {item.isExpired && (
+                          <Chip color="danger" size="sm" className="absolute top-3 right-3 z-10 font-black uppercase italic text-[8px]">
+                            Expired
+                          </Chip>
+                        )}
+                        {item.quantity > 1 && (
+                          <div className="absolute bottom-3 right-3 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-black/80 backdrop-blur-md border border-white/20 shadow-xl">
+                            <span className="text-[11px] font-[1000] text-orange-500 italic">
+                              x{item.quantity}
                             </span>
                           </div>
-                          <Button
-                            size="sm"
-                            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black uppercase italic rounded-lg h-9 hover:bg-blue-600 dark:hover:border-[#00FF41] dark:hover:text-[#071739] transition-all"
-                          >
-                            Buy Now
-                          </Button>
+                        )}
+                      </div>
+                      <div className="p-5 space-y-4">
+                        <h4 className="text-sm font-[1000] uppercase italic leading-tight group-hover:text-[#FF5C00] transition-colors">
+                          {item.itemName}
+                        </h4>
+                        <div className="flex items-center justify-between border-t border-divider dark:border-white/5 pt-4">
+                          <p className={`text-[10px] font-bold uppercase italic ${item.isExpired ? "text-danger" : "text-slate-400"}`}>
+                            {item.isExpired ? "Expired" : item.expiresAt ? `Expires: ${new Date(item.expiresAt).toLocaleDateString()}` : "Permanent"}
+                          </p>
+                          {item.itemType !== "physical_item" && (
+                            <Button
+                              size="sm"
+                              isDisabled={item.isExpired}
+                              variant={item.isEquipped ? "flat" : "solid"}
+                              className={`${item.isEquipped && !item.isExpired ? "bg-slate-100 text-slate-600" : "bg-[#FF5C00] text-white"} font-black uppercase italic rounded-lg h-9 transition-all ${item.isExpired ? "bg-gray-400" : ""}`}
+                              onPress={async () => {
+                                try {
+                                  await equipItem({ inventoryId: item.inventoryId, isEquipped: !item.isEquipped }).unwrap();
+                                  toast.success(item.isEquipped ? "Item unequipped" : "Item equipped");
+                                } catch (err: any) {
+                                  toast.error(err?.data?.message || "Action failed. This item might be expired.");
+                                }
+                              }}
+                            >
+                              {item.isEquipped ? "Unequip" : "Equip"}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardBody>
                   </Card>
-                </Link>
-              ))}
-            </div>
-            <div className="flex justify-center pb-8">
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={setPage}
-                classNames={{
-                  cursor:
-                    "bg-[#071739] dark:bg-[#FF5C00] text-white font-[1000] italic",
-                }}
-              />
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <ShoppingBasket size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">Your inventory is empty</p>
+              </div>
+            )}
           </div>
         </Tab>
+
         {/* EARN COIN */}
         <Tab
           key="earn"
@@ -496,9 +707,7 @@ function CoinShopContent() {
           }
         >
           <div className="mt-8 space-y-12 pb-12">
-            {/* Hàm render helper để code gọn hơn */}
             {Object.entries(MISSIONS).map(([key, items]) => {
-              // Logic đặt tên tiêu đề dựa trên key
               const titles: Record<
                 string,
                 { main: string; sub: string; color: string }
@@ -537,7 +746,6 @@ function CoinShopContent() {
                     <div className="w-full h-[1px] bg-slate-200 dark:bg-white/5" />
                   </div>
 
-                  {/* Grid đều 3 cột cho mọi loại nhiệm vụ */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {items.map((m) => (
                       <MissionCard key={m.id} mission={m} />
@@ -588,6 +796,11 @@ function CoinShopContent() {
                         <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic tracking-widest">
                           Status: {h.status}
                         </p>
+                        {h.createdAt && (
+                          <p className="text-[10px] font-bold text-slate-300 dark:text-slate-500 mt-0.5 italic tracking-widest">
+                            {new Date(h.createdAt).toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
@@ -607,7 +820,7 @@ function CoinShopContent() {
           </div>
         </Tab>
 
-        {/* MY ORDERS */}
+        {/* PAYMENT HISTORY */}
         <Tab
           key="purchases"
           title={

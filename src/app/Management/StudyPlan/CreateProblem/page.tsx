@@ -130,7 +130,7 @@ export default function CreateProblemStudyPlanPage() {
           id: problem.data.id,
           body: { type: "public", note: "" },
         }).unwrap();
-        
+
         setCreatedTestSetId(ts?.data.id ?? null);
       } catch (testsetError) {
         console.error("Create testset failed:", testsetError);
@@ -307,7 +307,7 @@ export default function CreateProblemStudyPlanPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
-                label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field","Import statement will be used if no option value is selected"]} /></div>}
+                label={<div className="flex items-center gap-1">Difficulty<RequiredStar rules={["Required field", "Import statement will be used if no option value is selected"]} /></div>}
                 selectedKeys={[form.difficulty]}
                 onSelectionChange={(keys) => setForm({ ...form, difficulty: Array.from(keys)[0] as string })}
                 variant="bordered"
@@ -346,7 +346,7 @@ export default function CreateProblemStudyPlanPage() {
                 <SelectItem key="published">Published</SelectItem>
                 <SelectItem key="archived">Archived</SelectItem>
               </Select>
-              
+
               <Input
                 label={<div className="flex items-center gap-1">Time Limit (ms)<RequiredStar rules={["Required field"]} /></div>}
                 type="number"
@@ -380,7 +380,7 @@ export default function CreateProblemStudyPlanPage() {
                   <Radio value="acm">ACM</Radio>
                   <Radio value="oi">OI</Radio>
                 </RadioGroup>
-                
+
                 {/* REMOVED VISIBILITY CODE AS REQUESTED */}
               </div>
 

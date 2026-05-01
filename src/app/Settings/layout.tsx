@@ -1,7 +1,6 @@
 "use client";
 import SettingsSidebar from "@/Provider/SettingSlidebar";
-import Image from "next/image";
-import { Card, CardBody } from "@heroui/react";
+import { Card, CardBody, Image } from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
@@ -32,8 +31,8 @@ export default function SettingsLayout({
               <Image
                 src={avatarUrl}
                 alt="avatar"
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
+                removeWrapper
               />
             </div>
             {/* Chấm tròn trạng thái - Đã đổi sang màu Xanh Lá cho "Pro" */}

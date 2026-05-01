@@ -435,7 +435,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                       addToast({ title: "The contest has not started yet.", color: "warning" });
                                     } else {
                             // phần này cực kì chú ý, nó sẽ lấy contestproblemId ở trước để nhét vào submit, còn cái thứ 2 thì nó sẽ lấy problem id để gen ra detail.
-                                      router.push(`/Contest/${prob.contestProblemId}/ProblemDetail/${prob.problemId}`);
+                                      router.push(`/Contest/${prob.contestProblemId}/ProblemDetail/${prob.problemId}?classSemesterId=${classSemesterId}&contestId=${contestId}`);
                                     }
                                   }}
                                 >

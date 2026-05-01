@@ -92,6 +92,8 @@ export default function ProblemDetailsPage() {
   const contestProblemId = params.id;
   const searchParams = useSearchParams();
   const { t, language } = useTranslation();
+  const classSemesterId = searchParams.get("classSemesterId");
+  const contestId = searchParams.get("contestId");
 
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
@@ -198,6 +200,9 @@ export default function ProblemDetailsPage() {
           <SolutionSubmittion
             editorHeight={editorHeight}
             problemId={problemId}
+            contestProblemId={contestProblemId}
+            classSemesterId={classSemesterId || undefined}
+            contestId={contestId || undefined}
             onSubmitSuccess={() => setActiveLeftTab("submissions")}
             onSubmissionIdChange={(id: string | null) => {
               setSubmissionId(id);

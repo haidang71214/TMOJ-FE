@@ -120,6 +120,7 @@ const ClassEndpoint = {
   GET_CLASS_CONTESTS: `${API_PREFIX}/Class/{classSemesterId}/contests`,
   GET_CLASS_CONTEST_DETAIL: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}`,
   GET_CLASS_CONTEST_SCOREBOARD: `${API_PREFIX}/class/{classSemesterId}/contests/{contestId}/scoreboard`,
+  SUBMIT_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/submit`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

@@ -1,5 +1,7 @@
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLoginMutation, useGoogleLoginMutation } from "@/store/queries/auth";
+import { BASE_URLS } from "@/constants";
+import { authEndpoint } from "@/constants/endpoints";
 import { addToast, Button, Checkbox, Divider, Input } from "@heroui/react";
 // import { GoogleLogin } from "@react-oauth/google";
 import { ArrowRight, Mail, X } from "lucide-react";
@@ -20,7 +22,7 @@ export default function LoginModal() {
   const { t, language } = useTranslation();
 
   const handleGithubLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URLS}/api/v1/Auth/github`;
+    window.location.href = `${BASE_URLS}${authEndpoint.GITHUB_OAUTH}`;
   };
 
   const handleOpenForgotPass = ()=>{

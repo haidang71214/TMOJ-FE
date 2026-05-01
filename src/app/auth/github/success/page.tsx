@@ -6,6 +6,8 @@ import { useDispatch } from "react-redux";
 import { addToast } from "@heroui/toast";
 import webStorageClient from "@/utils/webStorageClient";
 import { loginFromToken } from "@/store/slices/auth";
+import { BASE_URLS } from "@/constants";
+import { authEndpoint } from "@/constants/endpoints";
 
 export default function GithubSuccessPage() {
   const router = useRouter();
@@ -23,7 +25,7 @@ export default function GithubSuccessPage() {
     const exchange = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URLS}/api/v1/Auth/github/session?t=${encodeURIComponent(token)}`
+          `${BASE_URLS}${authEndpoint.GITHUB_SESSION}?t=${encodeURIComponent(token)}`
         );
 
         if (!res.ok) {

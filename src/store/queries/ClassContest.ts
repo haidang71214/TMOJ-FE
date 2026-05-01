@@ -11,7 +11,7 @@ export const classContestApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Class", "Contest"],
+      invalidatesTags: ["Contest"],
     }),
 
     getClassContests: builder.query<any, { classSemesterId: string }>({

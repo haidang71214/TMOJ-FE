@@ -306,6 +306,10 @@ const AnnouncementEndpoint = {
   DELETE: `${API_PREFIX}/announcements/{id}`,
 };
 
+const SettingsEndpoint = {
+  NOTIFICATION_SETTINGS: "/api/v1/settings/notifications",
+};
+
 const StoreEndpoint = {
   ITEMS: `${API_PREFIX}/store/items`,
   ITEM_DETAIL: `${API_PREFIX}/store/items/{itemId}`,
@@ -313,11 +317,21 @@ const StoreEndpoint = {
   MY_INVENTORY: `${API_PREFIX}/store/my-inventory`,
   INVENTORY_DETAIL: `${API_PREFIX}/store/my-inventory/{inventoryId}`,
   EQUIP: `${API_PREFIX}/store/my-inventory/{inventoryId}/equip`,
+  // Cart Endpoints
+  CART: `${API_PREFIX}/store/cart`,
+  CART_ITEM: `${API_PREFIX}/store/cart/{cartItemId}`,
+  CHECKOUT: `${API_PREFIX}/store/checkout`,
+  ADMIN_ORDERS: `${API_PREFIX}/store/admin/orders`,
 };
 
 const RankingEndpoint = {
   GLOBAL: `${API_PREFIX}/ranking/global`,
   CONTESTS: `${API_PREFIX}/ranking/contests`,
+};
+
+const AiEndpoint = {
+  DEBUG: `${API_LON}/submissions/{submissionId}/ai/debug`,
+  GENERATE_EDITORIAL: `${API_LON}/problems/{problemId}/ai/editorial-drafts`,
 };
 
 export {
@@ -350,4 +364,6 @@ export {
   WalletEndpoint,
   AnnouncementEndpoint,
   StoreEndpoint,
+  SettingsEndpoint,
+  AiEndpoint,
 };

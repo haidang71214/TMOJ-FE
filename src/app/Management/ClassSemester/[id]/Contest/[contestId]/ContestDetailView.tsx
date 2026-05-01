@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useGetClassContestDetailQuery } from "@/store/queries/ClassContest";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import {
   Button,
   Tabs,
@@ -16,6 +17,7 @@ import {
   Chip,
   Spinner,
   Tooltip,
+  addToast,
 } from "@heroui/react";
 import {
   ChevronLeft,
@@ -61,6 +63,11 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   const router = useRouter();
   const { t } = useTranslation();
   const [now, setNow] = React.useState(new Date());
+  const [selectedTab, setSelectedTab] = React.useState("overview");
+
+  const { data: userProfile } = useGetUserInformationQuery();
+  const isStudent = userProfile?.role?.toLowerCase() === "student";
+
   const { data: response, isLoading, error, refetch } = useGetClassContestDetailQuery(
     { classSemesterId, contestId },
     { skip: !classSemesterId || !contestId }
@@ -228,6 +235,14 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           aria-label="Contest Detail Tabs"
           color="primary"
           variant="underlined"
+          selectedKey={selectedTab}
+          onSelectionChange={(key) => {
+            if (key === "problems" && isStudent && timeInfo?.isWaiting) {
+              addToast({ title: "The contest has not started yet.", color: "warning" });
+              return;
+            }
+            setSelectedTab(key as string);
+          }}
           classNames={{
             tabList: "gap-10 pb-2 border-b border-slate-200 dark:border-white/10",
             tab: "h-12 text-sm font-black uppercase tracking-widest text-slate-500 data-[selected=true]:text-[#FF5C00]",
@@ -334,50 +349,6 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                   <h2 className="text-2xl font-black italic uppercase tracking-tight">
                     {t("contest_detail.problem_list") || "DANH SÁCH BÀI TẬP"}
                   </h2>
-                  {(() => {
-                    const isOngoing = timeInfo?.isOngoing;
-                    const isFinished = timeInfo?.isFinished;
-                    const isWaiting = timeInfo?.isWaiting;
-
-                    if (isFinished) {
-                      return (
-                        <Button
-                          disabled
-                          variant="flat"
-                          className="bg-slate-100 text-slate-400 font-black rounded-xl px-8"
-                        >
-                          {t("contest_detail.finished") || "ENDED"}
-                        </Button>
-                      );
-                    }
-
-                    if (isWaiting) {
-                      return (
-                        <Button
-                          disabled
-                          variant="flat"
-                          className="bg-slate-100 text-slate-400 font-black rounded-xl px-8"
-                        >
-                          {t("contest_detail.upcoming") || "WAITING"}
-                        </Button>
-                      );
-                    }
-
-                    return (
-                      <Button
-                        color="primary"
-                        disabled={!contest.isActive || !isOngoing}
-                        startContent={<Play size={18} />}
-                        className={`${
-                          contest.isActive && isOngoing 
-                            ? "bg-[#FF5C00] text-white" 
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        } font-black rounded-xl px-8 transition-all active:scale-95`}
-                      >
-                        {t("contest_detail.start_working") || "BẮT ĐẦU LÀM BÀI"}
-                      </Button>
-                    );
-                  })()}
                 </div>
 
                 <Table
@@ -438,29 +409,40 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
 
                         <TableCell>
                           <div className="flex justify-end gap-2">
-                            <Tooltip content={t("contest_detail.view_problem") || "Xem bài tập"}>
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="flat"
-                                className="bg-slate-100 dark:bg-white/5 hover:text-[#FF5C00]"
-                                onPress={() => router.push(`/Problems/${prob.problemId}`)}
-                              >
-                                <Eye size={16} />
-                              </Button>
-                            </Tooltip>
+                            {!isStudent && (
+                              <Tooltip content={t("contest_detail.view_problem") || "Xem bài tập"}>
+                                <Button
+                                  isIconOnly
+                                  size="sm"
+                                  variant="flat"
+                                  className="bg-slate-100 dark:bg-white/5 hover:text-[#FF5C00]"
+                                  onPress={() => router.push(`/Problems/${prob.problemId}`)}
+                                >
+                                  <Eye size={16} />
+                                </Button>
+                              </Tooltip>
+                            )}
 
-                            <Tooltip content={t("contest_detail.do_it_now") || "Làm bài ngay"}>
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="flat"
-                                className="bg-[#FF5C00]/10 text-[#FF5C00] hover:bg-[#FF5C00] hover:text-white"
-                                onPress={() => router.push(`/contest/${contest.contestId}/problem/${prob.problemId}`)}
-                              >
-                                <Play size={16} />
-                              </Button>
-                            </Tooltip>
+                            {isStudent && (
+                              <Tooltip content={t("contest_detail.do_it_now") || "Làm bài ngay"}>
+                                <Button
+                                  isIconOnly
+                                  size="sm"
+                                  variant="flat"
+                                  className="bg-[#FF5C00]/10 text-[#FF5C00] hover:bg-[#FF5C00] hover:text-white"
+                                  onPress={() => {
+                                    if (isStudent && timeInfo?.isWaiting) {
+                                      addToast({ title: "The contest has not started yet.", color: "warning" });
+                                    } else {
+                            // phần này cực kì chú ý, nó sẽ lấy contestproblemId ở trước để nhét vào submit, còn cái thứ 2 thì nó sẽ lấy problem id để gen ra detail.
+                                      router.push(`/Contest/${prob.contestProblemId}/ProblemDetail/${prob.problemId}`);
+                                    }
+                                  }}
+                                >
+                                  <Play size={16} />
+                                </Button>
+                              </Tooltip>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

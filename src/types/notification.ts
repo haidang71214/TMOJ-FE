@@ -25,3 +25,8 @@ export interface NotificationDto {
   isRead: boolean;
   createdAt: string; // UTC DateTime
 }
+
+export interface NotificationSettingsDto {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+}

@@ -23,37 +23,19 @@ import {
   TableCell,
   Image,
   Tooltip,
+  Select,
+  SelectItem,
+  Pagination,
 } from "@heroui/react";
 import { Edit, Trash2, Plus, Download, Search, ShoppingCart, Package as PackageIcon, History, Coins, Clock } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
 import CoinItemModal from "./CoinItemModal";
 import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
-import { useGetStoreItemsQuery, useDeleteStoreItemMutation } from "@/store/queries/store";
+import { useGetStoreItemsQuery, useDeleteStoreItemMutation, useGetAdminStoreOrdersQuery } from "@/store/queries/store";
 import { StoreItem } from "@/types/store";
+import { ProductPurchaseHistory } from "@/types";
 import { toast } from "sonner";
 
-const MOCK_HISTORY = [
-  {
-    id: "ORD-001",
-    itemName: "Áo Polo FPT Cam",
-    itemImage: "https://dongphuchaianh.vn/wp-content/uploads/2022/07/trang-phuc-ao-thun-polo-dong-phuc-3.jpg",
-    buyerName: "Nguyễn Văn A",
-    buyerEmail: "anv@fpt.edu.vn",
-    price: 500,
-    purchaseDate: "2026-04-20 10:30",
-    status: "Completed",
-  },
-  {
-    id: "ORD-002",
-    itemName: "Balo FPT Software",
-    itemImage: "https://bizweb.dktcdn.net/100/390/135/products/balo-fpt-software.png?v=1681977970063",
-    buyerName: "Trần Thị B",
-    buyerEmail: "bt@fpt.edu.vn",
-    price: 1200,
-    purchaseDate: "2026-04-21 14:15",
-    status: "Shipped",
-  },
-];
 
 const formatVND = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -62,17 +44,48 @@ export default function CoinManagerPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<StoreItem | null>(null);
   const [activeTab, setActiveTab] = useState("items");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStock, setSelectedStock] = useState("all");
+
+  // History State
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyStatus, setHistoryStatus] = useState("all");
+  const historyPageSize = 10;
 
   const { data: items = [], isLoading } = useGetStoreItemsQuery();
+  const { data: purchaseHistoryData, isLoading: isLoadingHistory } = useGetAdminStoreOrdersQuery({
+    page: historyPage,
+    pageSize: historyPageSize,
+    searchTerm: historySearch,
+    status: historyStatus === "all" ? undefined : historyStatus,
+  });
+  const purchaseHistory = purchaseHistoryData?.data || [];
+  const totalHistoryCount = purchaseHistoryData?.totalCount || 0;
+
   const [deleteItem, { isLoading: isDeleting }] = useDeleteStoreItemMutation();
 
   const { openModal } = useModal();
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [items, searchQuery]);
+    return items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = selectedType === "all" || item.itemType === selectedType;
+
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (selectedStatus === "active" && item.isActive !== false) ||
+        (selectedStatus === "disabled" && item.isActive === false);
+
+      const matchesStock =
+        selectedStock === "all" ||
+        (selectedStock === "in_stock" && item.stockQuantity > 0) ||
+        (selectedStock === "out_of_stock" && item.stockQuantity === 0);
+
+      return matchesSearch && matchesType && matchesStatus && matchesStock;
+    });
+  }, [items, searchQuery, selectedType, selectedStatus, selectedStock]);
 
   const openDeleteModal = (item: StoreItem) => {
     setItemToDelete(item);
@@ -145,15 +158,67 @@ export default function CoinManagerPage() {
           }
         >
           <div className="mt-8 space-y-8 animate-in fade-in duration-500">
-            {/* SEARCH */}
-            <div className="relative group max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
-              <input
-                placeholder="Search inventory items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10"
-              />
+            {/* FILTERS */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="relative group flex-1 min-w-[240px] max-w-sm dark">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+                <input
+                  placeholder="Search inventory items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10 h-11"
+                />
+              </div>
+
+              <Select
+                placeholder="Item Type"
+                className="w-48 dark"
+                selectedKeys={[selectedType]}
+                onSelectionChange={(keys) => setSelectedType(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Types</SelectItem>
+                <SelectItem key="badge">Badge</SelectItem>
+                <SelectItem key="title_color">Title Color</SelectItem>
+                <SelectItem key="avatar_frame">Avatar Frame</SelectItem>
+                <SelectItem key="physical_item">Physical Item</SelectItem>
+              </Select>
+
+              <Select
+                placeholder="Status"
+                className="w-40 dark"
+                selectedKeys={[selectedStatus]}
+                onSelectionChange={(keys) => setSelectedStatus(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="active">Active</SelectItem>
+                <SelectItem key="disabled">Disabled</SelectItem>
+              </Select>
+
+              <Select
+                placeholder="Stock"
+                className="w-40 dark"
+                selectedKeys={[selectedStock]}
+                onSelectionChange={(keys) => setSelectedStock(Array.from(keys)[0] as string)}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white group-data-[has-value=true]:text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Stock</SelectItem>
+                <SelectItem key="in_stock">In Stock</SelectItem>
+                <SelectItem key="out_of_stock">Out of Stock</SelectItem>
+              </Select>
             </div>
 
             {/* GRID */}
@@ -181,14 +246,14 @@ export default function CoinManagerPage() {
                         <div className="absolute top-4 right-4 z-10">
                           <Chip
                             size="sm"
-                            className={`font-black text-[9px] border-none shadow-xl ${!item.isActive
+                            className={`font-black text-[9px] border-none shadow-xl ${item.isActive === false
                               ? "bg-red-500 text-white"
                               : item.stockQuantity === 0
                                 ? "bg-amber-500 text-white"
                                 : "bg-emerald-500 text-white"
                               }`}
                           >
-                            {!item.isActive ? "DISABLED" : item.stockQuantity === 0 ? "OUT OF STOCK" : "ACTIVE"}
+                            {item.isActive === false ? "DISABLED" : item.stockQuantity === 0 ? "OUT OF STOCK" : "ACTIVE"}
                           </Chip>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#162035] to-transparent" />
@@ -270,87 +335,147 @@ export default function CoinManagerPage() {
             </div>
           }
         >
-          <div className="mt-8 rounded-[2.5rem] overflow-hidden border border-white/5 animate-in fade-in duration-500" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
-            <Table
-              aria-label="Purchase history table"
-              removeWrapper
-              classNames={{
-                th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
-                td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
-                tr: "hover:bg-white/[0.03] transition-colors group/row",
-              }}
-            >
-              <TableHeader>
-                <TableColumn className="w-[35%]">PRODUCT & ASSET</TableColumn>
-                <TableColumn>BUYER PROFILE</TableColumn>
-                <TableColumn align="center">TRANSACTION</TableColumn>
-                <TableColumn align="center">TIMELINE</TableColumn>
-                <TableColumn align="center">ORDER STATUS</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent="No purchase history found in logs">
-                {MOCK_HISTORY.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-4">
-                        <Image
-                          src={row.itemImage}
-                          alt={row.itemName}
-                          className="w-12 h-12 rounded-xl object-cover shadow-lg"
-                          removeWrapper
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{row.itemName}</span>
-                          <span className="text-[10px] font-black text-white/20 uppercase tracking-tighter italic">{row.id}</span>
+          <div className="mt-8 space-y-6 animate-in fade-in duration-500">
+            {/* HISTORY FILTERS */}
+            <div className="flex flex-wrap gap-4 items-center px-4">
+              <div className="relative group flex-1 min-w-[240px] max-w-sm dark">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+                <input
+                  placeholder="Search orders (Buyer, Email, Item)..."
+                  value={historySearch}
+                  onChange={(e) => {
+                    setHistorySearch(e.target.value);
+                    setHistoryPage(1);
+                  }}
+                  className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10 h-11"
+                />
+              </div>
+
+              <Select
+                placeholder="Order Status"
+                className="w-48 dark"
+                selectedKeys={[historyStatus]}
+                onSelectionChange={(keys) => {
+                  setHistoryStatus(Array.from(keys)[0] as string);
+                  setHistoryPage(1);
+                }}
+                classNames={{
+                  trigger: "bg-[#1E2B42] border-white/10 h-11 rounded-xl text-white",
+                  value: "text-sm font-bold text-white",
+                  popoverContent: "bg-[#1E2B42] border-white/10 text-white",
+                }}
+              >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="Pending">Pending</SelectItem>
+                <SelectItem key="Shipped">Shipped</SelectItem>
+                <SelectItem key="Completed">Completed</SelectItem>
+                <SelectItem key="Cancelled">Cancelled</SelectItem>
+              </Select>
+            </div>
+
+            <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
+              <Table
+                aria-label="Purchase history table"
+                removeWrapper
+                classNames={{
+                  th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
+                  td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
+                  tr: "hover:bg-white/[0.03] transition-colors group/row",
+                }}
+                bottomContent={
+                  totalHistoryCount > historyPageSize ? (
+                    <div className="flex w-full justify-center py-4 border-t border-white/5">
+                      <Pagination
+                        isCompact
+                        showControls
+                        showShadow
+                        color="primary"
+                        page={historyPage}
+                        total={Math.ceil(totalHistoryCount / historyPageSize)}
+                        onChange={(page) => setHistoryPage(page)}
+                        classNames={{
+                          cursor: "bg-[#3B5BFF]",
+                        }}
+                      />
+                    </div>
+                  ) : null
+                }
+              >
+                <TableHeader>
+                  <TableColumn className="w-[35%]">PRODUCT & ASSET</TableColumn>
+                  <TableColumn>BUYER PROFILE</TableColumn>
+                  <TableColumn align="center">TRANSACTION</TableColumn>
+                  <TableColumn align="center">TIMELINE</TableColumn>
+                  <TableColumn align="center">ORDER STATUS</TableColumn>
+                </TableHeader>
+                <TableBody
+                  emptyContent={isLoadingHistory ? "Đang tải dữ liệu..." : "No purchase history found in logs"}
+                  isLoading={isLoadingHistory}
+                >
+                  {purchaseHistory.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-4">
+                          <Image
+                            src={row.itemImage}
+                            alt={row.itemName}
+                            className="w-12 h-12 rounded-xl object-cover shadow-lg"
+                            removeWrapper
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white group-hover/row:text-[#3B5BFF] transition-colors">{row.itemName}</span>
+                            <span className="text-[10px] font-black text-white/20 uppercase tracking-tighter italic">{row.id}</span>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3B5BFF] to-[#6B3BFF] flex items-center justify-center text-xs font-black text-white">
-                          {row.buyerName.charAt(0)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3B5BFF] to-[#6B3BFF] flex items-center justify-center text-xs font-black text-white">
+                            {row.buyerName.charAt(0)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white/90">{row.buyerName}</span>
+                            <span className="text-[10px] text-white/30 italic">{row.buyerEmail}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white/90">{row.buyerName}</span>
-                          <span className="text-[10px] text-white/30 italic">{row.buyerEmail}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-1.5 text-[#3B5BFF]">
+                            <Coins size={14} />
+                            <span className="text-base font-black italic">{row.price}</span>
+                          </div>
+                          <span className="text-[10px] font-black uppercase text-white/20 tracking-tighter">Gold Coins</span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-center">
-                        <div className="flex items-center gap-1.5 text-[#3B5BFF]">
-                          <Coins size={14} />
-                          <span className="text-base font-black italic">{row.price}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-1.5 text-white/50 text-[11px] font-bold">
+                            <Clock size={12} /> {row.purchaseDate}
+                          </div>
                         </div>
-                        <span className="text-[10px] font-black uppercase text-white/20 tracking-tighter">Gold Coins</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-1.5 text-white/50 text-[11px] font-bold">
-                          <Clock size={12} /> {row.purchaseDate}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center">
+                          <Chip
+                            size="sm"
+                            variant="flat"
+                            className="font-black uppercase text-[9px] border-none italic px-4"
+                            color={
+                              row.status.toLowerCase() === "completed" ? "success" :
+                                row.status.toLowerCase() === "pending" ? "warning" :
+                                  row.status.toLowerCase() === "shipped" ? "primary" : "danger"
+                            }
+                          >
+                            {row.status}
+                          </Chip>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center">
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          className="font-black uppercase text-[9px] border-none italic px-4"
-                          color={
-                            row.status === "Completed" ? "success" :
-                              row.status === "Pending" ? "warning" :
-                                row.status === "Shipped" ? "primary" : "danger"
-                          }
-                        >
-                          {row.status}
-                        </Chip>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </Tab>
       </Tabs>

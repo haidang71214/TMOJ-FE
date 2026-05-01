@@ -6,7 +6,7 @@ import {
 } from "@/store/queries/Submittion"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
-import { Maximize2, Minimize2, Play, Upload } from "lucide-react"
+import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
@@ -15,13 +15,11 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 
 interface SolutionSubmittionProps {
-  editorHeight: number | string;
+  editorHeight: number;
   problemId: string;
   onSubmitSuccess?: () => void;
   classSlotId?: string;
   onSubmissionIdChange?: (id: string | null) => void;
-  isMaximized?: boolean;
-  onToggleMaximize?: () => void;
 }
 
 const TEMPLATES: Record<string, string> = {
@@ -78,8 +76,6 @@ export default function SolutionSubmittion({
   onSubmitSuccess,
   classSlotId,
   onSubmissionIdChange,
-  isMaximized,
-  onToggleMaximize,
 }: SolutionSubmittionProps) {
   const { t, language } = useTranslation();
 
@@ -379,15 +375,12 @@ export default function SolutionSubmittion({
         </button>
 
         <div className="ml-auto flex items-center gap-1.5">
-          {onToggleMaximize && (
-            <button
-              onClick={onToggleMaximize}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump"
-              title={isMaximized ? "Restore" : "Maximize Editor"}
-            >
-              {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-            </button>
-          )}
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
+            <RotateCcw size={14} />
+          </button>
+          <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
+            <Settings2 size={14} />
+          </button>
         </div>
       </div>
 

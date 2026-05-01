@@ -32,6 +32,13 @@
   "signout": "Đăng xuất",
   "adminpanel": "Bảng quản trị",
   "backhome": "Trang chủ",
+  "cart": "Giỏ hàng",
+  "checkout": "Thanh toán",
+  "inventory": "Kho đồ của tôi",
+  "add_to_cart": "Thêm vào giỏ",
+  "buy_now": "Mua ngay",
+  "view_detail": "Xem chi tiết",
+  "total_amount": "Tổng cộng",
   "class_create": {
     "title1": "TẠO MỚI",
     "title2": "LỚP HỌC",
@@ -255,7 +262,17 @@
     "editorial_update": "Cập nhật lời giải",
     "editorial_delete": "Xóa lời giải",
     "editorial_fetching": "Đang tải dữ liệu lời giải...",
-    "official_editorial": "Lời giải chính thức"
+    "official_editorial": "Lời giải chính thức",
+    "ai_generation_options": "Tùy chọn tạo bằng AI",
+    "ai_generation_warning": "Nếu gặp lỗi \"Incomplete\", hãy thử tắt bớt tùy chọn để giảm độ dài nội dung.",
+    "ai_complexity": "Phân tích độ phức tạp",
+    "ai_correctness": "Chứng minh tính đúng đắn",
+    "ai_pseudocode": "Bao gồm mã giả",
+    "ai_debug_button": "Giải thích lỗi bằng AI",
+    "ai_debug_analyzing": "Đang phân tích lỗi...",
+    "ai_debug_error": "AI tạm thời không khả dụng. Vui lòng thử lại sau.",
+    "ai_debug_quota": "Bạn đã đạt giới hạn AI hôm nay. Vui lòng quay lại vào ngày mai.",
+    "ai_debug_no_data": "Không thể phân tích vì không có dữ liệu testcase hiển thị."
   },
   "slot": {
     "titleRequired": "Tên bài kiểm tra là bắt buộc",

@@ -1,18 +1,10 @@
 "use client";
-
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Tabs,
   Tab,
   Card,
   CardBody,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Progress,
   Button,
   Chip,
   Pagination,
@@ -26,18 +18,14 @@ import {
   ChevronDown,
   Lock,
   Rocket,
-  Trophy,
   ExternalLink,
   Code2,
-  TrendingUp,
-  BrainCircuit,
-  Award,
-  History,
-  Medal,
+  Trophy,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
 import { useGetClassDetailQuery } from "@/store/queries/Class";
+import { useGetClassContestsQuery } from "@/store/queries/ClassContest";
 import { ClassSlotResponse } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import ClassTotalRanking from "./ClassTotalRanking";
@@ -49,6 +37,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
   const searchParams = useSearchParams();
   const classCode = searchParams.get("classCode") || "Unknown";
   const semesterCode = searchParams.get("semesterCode") || "";
+  const classId = searchParams.get("classId") || "Unknown";
 
   const [mounted, setMounted] = useState(false);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
@@ -62,72 +51,13 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
   const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
     skip: !mounted || !semesterId,
   });
+  const { data: contestsData, isLoading: isLoadingContests } = useGetClassContestsQuery({ classSemesterId: semesterId });
   const { data: classDetailResponse } = useGetClassDetailQuery({ id: semesterId });
   const classItem = classDetailResponse?.data;
   const currentInstance = classItem?.instances?.find((inst: any) => inst.classSemesterId === semesterId);
   
   const slots = slotData?.data ?? [];
 
-  /* ---------------- MOCK DATA ---------------- */
-  const myDetailedResult = {
-    averageGrade: 9.25,
-    rank: 12,
-    totalPoints: 1250,
-    completionRate: 75,
-    skills: {
-      easy: { solved: 25, total: 30 },
-      medium: { solved: 15, total: 20 },
-      hard: { solved: 5, total: 10 },
-    },
-    slotPerformance: [
-      {
-        slotId: "s1",
-        slotTitle: "Slot 1: Basic Programming",
-        status: "Completed",
-        totalScore: 10,
-        submissions: [
-          {
-            id: "sub-101",
-            type: "PROBLEM",
-            name: "Two Sum",
-            targetId: "p1",
-            score: 10,
-            status: "Accepted",
-            testPassed: "10/10",
-            time: "2026-02-01 09:30",
-          },
-          {
-            id: "sub-102",
-            type: "PROBLEM",
-            name: "Valid Parentheses",
-            targetId: "p2",
-            score: 8,
-            status: "Partial",
-            testPassed: "8/10",
-            time: "2026-02-01 10:15",
-          },
-        ],
-      },
-      {
-        slotId: "s2",
-        slotTitle: "Slot 2: Array & String",
-        status: "In Progress",
-        totalScore: 8.5,
-        submissions: [
-          {
-            id: "sub-201",
-            type: "CONTEST",
-            name: "Weekly Challenge #1",
-            targetId: "c1-1",
-            score: 8.5,
-            status: "Rank #5",
-            testPassed: "17/20",
-            time: "2026-02-05 14:00",
-          },
-        ],
-      },
-    ],
-  };
 
   const currentSlots = useMemo(() => {
     const start = (slotPage - 1) * slotsPerPage;
@@ -300,10 +230,10 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
           {/* --- TAB: CLASS RANKING --- */}
           <Tab key="ranking" title={t('class_semester.ranking') || "Class Ranking"}>
             <div className="mt-8">
-              {classItem && currentInstance ? (
+              {classId !== "Unknown" ? (
                 <ClassTotalRanking 
-                  classId={classItem.classId} 
-                  semesterId={currentInstance.semesterId} 
+                  classId={classId} 
+                  semesterId={semesterId} 
                 />
               ) : (
                 <div className="flex justify-center py-20">
@@ -313,251 +243,96 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
             </div>
           </Tab>
 
-          {/* --- TAB 2: MY PERFORMANCE --- */}
-          <Tab key="results" title="My Performance">
-            <div className="flex flex-col gap-8 mt-8">
-              {/* TOP ROW: QUICK STATS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card
-                  isPressable
-                  onPress={() => router.push("/Ranking")}
-                  className="bg-[#FF5C00] text-white rounded-[2rem] border-none shadow-xl hover:scale-[1.03] active:scale-95 transition-all"
-                >
-                  <CardBody className="flex flex-row items-center gap-5 p-6">
-                    <div className="p-3 bg-white/20 rounded-2xl">
-                      <Trophy size={32} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase italic opacity-80">
-                        Class Rank
-                      </p>
-                      <p className="text-3xl font-[1000] italic">
-                        #{myDetailedResult.rank}
-                      </p>
-                    </div>
-                  </CardBody>
-                </Card>
-                <Card className="bg-[#071739] dark:bg-[#1C2737] text-white rounded-[2rem] border-none">
-                  <CardBody className="flex flex-row items-center gap-5 p-6 text-[#FFB800]">
-                    <div className="p-3 bg-white/10 rounded-2xl">
-                      <TrendingUp size={32} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase italic text-slate-400">
-                        Total Points
-                      </p>
-                      <p className="text-3xl font-[1000] italic text-white">
-                        {myDetailedResult.totalPoints.toLocaleString()}
-                      </p>
-                    </div>
-                  </CardBody>
-                </Card>
-                <Card className="bg-white dark:bg-[#1C2737] rounded-[2rem] border-none shadow-sm">
-                  <CardBody className="flex flex-row items-center gap-5 p-6">
-                    <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500">
-                      <Award size={32} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase italic text-slate-400">
-                        Avg Grade
-                      </p>
-                      <p className="text-3xl font-[1000] italic">
-                        {myDetailedResult.averageGrade}
-                      </p>
-                    </div>
-                  </CardBody>
-                </Card>
-                <Card className="bg-white dark:bg-[#1C2737] rounded-[2rem] border-none shadow-sm">
-                  <CardBody className="flex flex-row items-center gap-5 p-6">
-                    <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500">
-                      <CheckCircle2 size={32} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase italic text-slate-400">
-                        Completion
-                      </p>
-                      <p className="text-3xl font-[1000] italic">
-                        {myDetailedResult.completionRate}%
-                      </p>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-
-              {/* MIDDLE ROW: SKILL RADAR */}
-              <Card className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] border-none p-6 shadow-sm">
-                <CardBody className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <BrainCircuit className="text-[#FF5C00]" size={24} />
-                    <h4 className="font-black uppercase italic text-lg leading-none">
-                      Skill Breakdown
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {Object.entries(myDetailedResult.skills).map(
-                      ([key, value]) => (
-                        <div key={key} className="space-y-2">
-                          <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-black uppercase italic text-slate-400">
-                              {key}
-                            </span>
-                            <span className="text-xs font-black italic">
-                              {value.solved}/{value.total}
-                            </span>
-                          </div>
-                          <Progress
-                            aria-label={key}
-                            value={(value.solved / value.total) * 100}
-                            size="sm"
-                            classNames={{
-                              indicator:
-                                key === "easy"
-                                  ? "bg-emerald-500"
-                                  : key === "medium"
-                                  ? "bg-blue-500"
-                                  : "bg-rose-500",
-                              track: "bg-slate-100 dark:bg-white/5",
-                            }}
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-                </CardBody>
-              </Card>
-
-              {/* BOTTOM ROW: DETAILED RESULTS BY SLOT */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <History className="text-[#FF5C00]" size={28} />
-                  <h4 className="text-2xl font-[1000] uppercase italic tracking-tighter">
-                    Detailed{" "}
-                    <span className="text-[#FF5C00]">Slot Results</span>
-                  </h4>
+          {/* --- TAB: CONTESTS --- */}
+          <Tab key="contests" title={t('class_semester.contests') || "Contests"}>
+            <div className="flex flex-col gap-4 mt-8">
+              {isLoadingContests && (
+                <div className="flex justify-center py-20">
+                  <Spinner />
                 </div>
-                <div className="grid grid-cols-1 gap-6">
-                  {myDetailedResult.slotPerformance.map((slot) => (
-                    <Card
-                      key={slot.slotId}
-                      className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] border-none shadow-sm overflow-hidden"
+              )}
+              
+              {!isLoadingContests && (!contestsData?.data || contestsData.data.length === 0) && (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up">
+                  <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-full mb-4">
+                    <Trophy size={48} className="opacity-50" />
+                  </div>
+                  <h3 className="font-black text-xl italic uppercase tracking-wider mb-2 text-[#071739] dark:text-white">No Contests Found</h3>
+                  <p className="font-bold text-sm">Wait for your teacher to create a contest.</p>
+                </div>
+              )}
+
+              {!isLoadingContests && contestsData?.data && contestsData.data.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {contestsData.data.map((contest: any, idx: number) => (
+                    <Card 
+                      key={contest.contestId} 
+                      className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm border border-transparent hover:border-[#FF5C00]/30 transition-all animate-fade-in-up"
+                      style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
                     >
-                      <CardBody className="p-0">
-                        <div className="p-6 bg-slate-50/50 dark:bg-black/10 flex flex-wrap items-center justify-between border-b border-slate-100 dark:border-white/5">
+                      <CardBody className="p-6 flex flex-col gap-5">
+                        <div className="flex justify-between items-start">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-[#071739] dark:bg-[#FF5C00] flex items-center justify-center text-white font-black italic text-xs">
-                              {slot.slotId.toUpperCase()}
+                            <div className="p-3 rounded-2xl bg-orange-100 text-[#FF5C00] dark:bg-orange-500/10 shrink-0">
+                              <Trophy size={28} />
                             </div>
                             <div>
-                              <h5 className="font-black uppercase italic text-sm">
-                                {slot.slotTitle}
-                              </h5>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-                                Current Score: {slot.totalScore}/10
-                              </p>
+                              <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors line-clamp-1" title={contest.title}>
+                                {contest.title}
+                              </h4>
+                              <Chip 
+                                size="sm" 
+                                variant="flat" 
+                                color={contest.isActive ? "success" : "default"}
+                                className="font-black tracking-widest text-[9px] uppercase h-5 mt-1"
+                              >
+                                {contest.isActive ? "Active" : "Inactive"}
+                              </Chip>
                             </div>
                           </div>
-                          <Chip
-                            size="sm"
-                            color={
-                              slot.status === "Completed"
-                                ? "success"
-                                : "warning"
-                            }
-                            variant="flat"
-                            className="font-black italic uppercase text-[9px]"
-                          >
-                            {slot.status}
-                          </Chip>
                         </div>
-                        <div className="p-4">
-                          <Table removeWrapper aria-label="Submissions table">
-                            <TableHeader>
-                              <TableColumn className="bg-transparent font-black uppercase text-[10px] text-slate-400">
-                                Assignment / Problem
-                              </TableColumn>
-                              <TableColumn className="bg-transparent font-black uppercase text-[10px] text-slate-400 text-center">
-                                Test Passed
-                              </TableColumn>
-                              <TableColumn className="bg-transparent font-black uppercase text-[10px] text-slate-400 text-center">
-                                Score
-                              </TableColumn>
-                              <TableColumn className="bg-transparent font-black uppercase text-[10px] text-slate-400 text-right">
-                                Action
-                              </TableColumn>
-                            </TableHeader>
-                            <TableBody emptyContent={"No problems exist in this exam"}>
-                              {slot.submissions.map((sub) => (
-                                <TableRow
-                                  key={sub.id}
-                                  className="border-b border-slate-50 dark:border-white/5 last:border-none group"
-                                >
-                                  <TableCell>
-                                    <div className="flex items-center gap-3">
-                                      {sub.type === "CONTEST" ? (
-                                        <Medal
-                                          size={16}
-                                          className="text-[#FFB800]"
-                                        />
-                                      ) : (
-                                        <Code2
-                                          size={16}
-                                          className="text-blue-500"
-                                        />
-                                      )}
-                                      <div>
-                                        <p className="font-black uppercase italic text-xs group-hover:text-[#FF5C00] transition-colors">
-                                          {sub.name}
-                                        </p>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase">
-                                          {sub.time}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-center font-bold text-xs text-slate-500">
-                                    {sub.testPassed}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    <Chip
-                                      size="sm"
-                                      variant="flat"
-                                      className={`font-[1000] italic text-xs border-none ${
-                                        sub.score >= 8
-                                          ? "text-emerald-500"
-                                          : "text-orange-500"
-                                      }`}
-                                    >
-                                      {sub.score}
-                                    </Chip>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <Button
-                                      size="sm"
-                                      variant="flat"
-                                      className="bg-slate-100 dark:bg-white/5 font-black uppercase italic text-[9px] rounded-xl hover:bg-[#00FF41] hover:text-[#071739] transition-all"
-                                      onPress={() =>
-                                        router.push(`/Submissions/${sub.id}`)
-                                      }
-                                    >
-                                      Details{" "}
-                                      <ExternalLink
-                                        size={12}
-                                        className="ml-1"
-                                      />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+
+                        <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Starts</span>
+                            <span className="text-xs font-bold">{new Date(contest.startAt).toLocaleString()}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ends</span>
+                            <span className="text-xs font-bold">{new Date(contest.endAt).toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center border-t border-divider pt-5">
+                          <div className="flex gap-6">
+                            <div className="flex flex-col items-center">
+                              <span className="text-2xl font-black italic text-blue-600 dark:text-blue-400 leading-none">{contest.problemCount}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Problems</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-2xl font-black italic text-emerald-600 dark:text-emerald-400 leading-none">{contest.participantCount}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Participants</span>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            color="primary" 
+                            variant="flat"
+                            className="font-bold uppercase tracking-wider text-[11px] rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10"
+                            onPress={() => router.push(`/ContestSlotExamintion/${semesterId}/Contest/${contest.contestId}`)}
+                          >
+                            View Details
+                          </Button>
                         </div>
                       </CardBody>
                     </Card>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           </Tab>
+
+
         </Tabs>
       </div>
     </div>

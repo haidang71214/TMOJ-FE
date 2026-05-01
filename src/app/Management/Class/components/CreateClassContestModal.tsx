@@ -47,7 +47,7 @@ interface CreateClassContestModalProps {
   classSemesterId: string;
   onCreated?: () => void;
 }
-
+// cái này là classId hay classSemesterId?
 export default function CreateClassContestModal({ classSemesterId, onCreated }: CreateClassContestModalProps) {
   const { t } = useTranslation();
   const { closeModal } = useModal();
@@ -108,10 +108,40 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!title.trim()) newErrors.title = t("contest.titleRequired") || "Contest title is required";
-    if (!startAt) newErrors.startAt = t("contest.startAtRequired") || "Start time is required";
-    if (!endAt) newErrors.endAt = t("contest.endAtRequired") || "End time is required";
     
+    if (!title.trim()) newErrors.title = t("contest.titleRequired") || "Contest title is required";
+    
+    const now = new Date().getTime();
+    
+    if (!startAt) {
+      newErrors.startAt = t("contest.startAtRequired") || "Start time is required";
+    } else if (new Date(startAt).getTime() < now) {
+      newErrors.startAt = t("contest.startTimePast") || "Start time cannot be in the past";
+    }
+
+    if (!endAt) {
+      newErrors.endAt = t("contest.endAtRequired") || "End time is required";
+    } else if (startAt && new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+      newErrors.endAt = t("contest.endTimeBeforeStart") || "End time must be after start time";
+    }
+    
+    if (freezeAt && startAt && endAt) {
+      const freezeTime = new Date(freezeAt).getTime();
+      const startTime = new Date(startAt).getTime();
+      const endTime = new Date(endAt).getTime();
+      if (freezeTime <= startTime || freezeTime >= endTime) {
+        newErrors.freezeAt = t("contest.freezeTimeMiddle") || "Freeze time must be strictly between start and end time";
+      }
+    }
+
+    if (slotNo === null || slotNo <= 0) {
+      newErrors.slotNo = t("contest.slotMappingInvalid") || "Slot number must be > 0";
+    }
+    
+    if (!slotTitle.trim()) {
+      newErrors.slotTitle = t("contest.slotTitleRequired") || "Slot title is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -136,7 +166,7 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
           ordinal: index,
         })),
         slotNo: slotNo,
-        slotTitle: slotTitle.trim() || null,
+        slotTitle: `Contest ${slotTitle.trim()}`,
       };
       console.log(body);
       
@@ -237,6 +267,7 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
                 errorMessage={errors.title}
                 variant="faded"
                 classNames={{ label: "font-bold", input: "font-semibold" }}
+                isRequired
               />
               <Input
                 label="Slug (optional)"
@@ -263,6 +294,7 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
                 errorMessage={errors.startAt}
                 variant="faded"
                 startContent={<Calendar size={16} className="text-slate-400" />}
+                isRequired
               />
               <Input
                 type="datetime-local"
@@ -273,12 +305,15 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
                 errorMessage={errors.endAt}
                 variant="faded"
                 startContent={<Calendar size={16} className="text-slate-400" />}
+                isRequired
               />
               <Input
                 type="datetime-local"
                 label="Scoreboard Freeze Time (optional)"
                 value={freezeAt}
                 onValueChange={setFreezeAt}
+                isInvalid={!!errors.freezeAt}
+                errorMessage={errors.freezeAt}
                 startContent={<Calendar size={16} className="text-slate-400" />}
                 variant="faded"
               />
@@ -299,8 +334,12 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
                     placeholder="1"
                     value={slotNo?.toString() || ""}
                     onValueChange={(v) => setSlotNo(v ? Number(v) : null)}
+                    isInvalid={!!errors.slotNo}
+                    errorMessage={errors.slotNo}
                     variant="bordered"
                     size="sm"
+                    isRequired
+                    min={1}
                   />
                   <div className="col-span-2">
                     <Input
@@ -308,8 +347,16 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
                       placeholder="Exam Title"
                       value={slotTitle}
                       onValueChange={setSlotTitle}
+                      isInvalid={!!errors.slotTitle}
+                      errorMessage={errors.slotTitle}
                       variant="bordered"
                       size="sm"
+                      isRequired
+                      startContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-slate-400 font-black text-sm italic pr-1">Contest</span>
+                        </div>
+                      }
                     />
                   </div>
                 </div>

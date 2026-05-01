@@ -1,5 +1,6 @@
 import { StoreEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
+import { ProductPurchaseHistory } from "@/types";
 import {
   StoreItem,
   CreateStoreItemRequest,
@@ -7,6 +8,9 @@ import {
   BuyItemRequest,
   InventoryItem,
   StoreResponse,
+  CartItem,
+  AddToCartRequest,
+  AdminOrdersResponse,
 } from "@/types/store";
 
 const normalizeStoreItem = (item: any): StoreItem => ({
@@ -19,7 +23,7 @@ const normalizeStoreItem = (item: any): StoreItem => ({
   durationDays: item.durationDays !== undefined ? item.durationDays : item.DurationDays,
   stockQuantity: item.stockQuantity !== undefined ? item.stockQuantity : item.StockQuantity,
   metaJson: typeof item.metaJson === 'string' ? JSON.parse(item.metaJson) : (item.metaJson || item.MetaJson),
-  isActive: item.isActive !== undefined ? item.isActive : item.IsActive,
+  isActive: item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : (item.active !== undefined ? item.active : true)),
 });
 
 export const storeApi = baseApi.injectEndpoints({
@@ -57,8 +61,10 @@ export const storeApi = baseApi.injectEndpoints({
           itemType: item.itemType || item.ItemType,
           acquiredAt: item.acquiredAt || item.AcquiredAt,
           expiresAt: item.expiresAt || item.ExpiresAt,
+          quantity: item.quantity !== undefined ? item.quantity : item.Quantity,
           isEquipped: item.isEquipped !== undefined ? item.isEquipped : item.IsEquipped,
           isExpired: item.isExpired !== undefined ? item.isExpired : item.IsExpired,
+          metaJson: item.metaJson || item.MetaJson,
         })),
       providesTags: ["Inventory"],
     }),
@@ -72,6 +78,7 @@ export const storeApi = baseApi.injectEndpoints({
         itemType: response.data.itemType || response.data.ItemType,
         acquiredAt: response.data.acquiredAt || response.data.AcquiredAt,
         expiresAt: response.data.expiresAt || response.data.ExpiresAt,
+        quantity: response.data.quantity !== undefined ? response.data.quantity : response.data.Quantity,
         isEquipped: response.data.isEquipped !== undefined ? response.data.isEquipped : response.data.IsEquipped,
         isExpired: response.data.isExpired !== undefined ? response.data.isExpired : response.data.IsExpired,
       }),
@@ -81,7 +88,7 @@ export const storeApi = baseApi.injectEndpoints({
       query: ({ inventoryId, isEquipped }) => ({
         url: StoreEndpoint.EQUIP.replace("{inventoryId}", inventoryId),
         method: "PATCH",
-        body: isEquipped, // Boolean directly in body
+        body: { isEquipped }, // Gửi object thay vì boolean thuần
       }),
       invalidatesTags: ["Inventory", "Gamification"],
     }),
@@ -94,7 +101,7 @@ export const storeApi = baseApi.injectEndpoints({
     }),
 
     // ADMIN APIs
-    createStoreItem: builder.mutation<void, CreateStoreItemRequest>({
+    createStoreItem: builder.mutation<void, FormData>({
       query: (body) => ({
         url: StoreEndpoint.ITEMS,
         method: "POST",
@@ -102,11 +109,11 @@ export const storeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Store"],
     }),
-    updateStoreItem: builder.mutation<void, UpdateStoreItemRequest>({
-      query: ({ itemId, ...body }) => ({
+    updateStoreItem: builder.mutation<void, { itemId: string; body: FormData }>({
+      query: ({ itemId, body }) => ({
         url: StoreEndpoint.ITEM_DETAIL.replace("{itemId}", itemId),
         method: "PUT",
-        body: { itemId, ...body },
+        body,
       }),
       invalidatesTags: ["Store"],
     }),
@@ -116,6 +123,45 @@ export const storeApi = baseApi.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: ["Store"],
+    }),
+
+    // CART APIs
+    getCart: builder.query<CartItem[], void>({
+      query: () => StoreEndpoint.CART,
+      transformResponse: (response: StoreResponse<CartItem[]>) => response.data || [],
+      providesTags: ["Cart"],
+    }),
+    addToCart: builder.mutation<void, AddToCartRequest>({
+      query: (body) => ({
+        url: StoreEndpoint.CART,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+    removeFromCart: builder.mutation<void, string>({
+      query: (cartItemId) => ({
+        url: StoreEndpoint.CART_ITEM.replace("{cartItemId}", cartItemId),
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+    checkout: builder.mutation<void, void>({
+      query: () => ({
+        url: StoreEndpoint.CHECKOUT,
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: ["Cart", "Inventory", "Wallet", "Store"],
+    }),
+    getAdminStoreOrders: builder.query<AdminOrdersResponse, { page?: number; pageSize?: number; searchTerm?: string; status?: string }>({
+      query: ({ page = 1, pageSize = 10, searchTerm, status }) => ({
+        url: StoreEndpoint.ADMIN_ORDERS,
+        method: "GET",
+        params: { page, pageSize, searchTerm, status },
+      }),
+      transformResponse: (response: StoreResponse<AdminOrdersResponse>) => response.data,
+      providesTags: ["Store"],
     }),
   }),
 });
@@ -131,4 +177,9 @@ export const {
   useCreateStoreItemMutation,
   useUpdateStoreItemMutation,
   useDeleteStoreItemMutation,
+  useGetCartQuery,
+  useAddToCartMutation,
+  useRemoveFromCartMutation,
+  useCheckoutMutation,
+  useGetAdminStoreOrdersQuery,
 } = storeApi;

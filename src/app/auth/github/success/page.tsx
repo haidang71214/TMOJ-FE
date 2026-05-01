@@ -25,7 +25,7 @@ export default function GithubSuccessPage() {
     const exchange = async () => {
       try {
         const res = await fetch(
-          `${BASE_URLS}${authEndpoint.GITHUB_SESSION}?t=${encodeURIComponent(token)}`
+          `${BASE_URLS}/${authEndpoint.GITHUB_SESSION}?t=${encodeURIComponent(token)}`
         );
 
         if (!res.ok) {

@@ -22,7 +22,7 @@ export default function LoginModal() {
   const { t, language } = useTranslation();
 
   const handleGithubLogin = () => {
-    window.location.href = `${BASE_URLS}${authEndpoint.GITHUB_OAUTH}`;
+    window.location.href = `${BASE_URLS}/${authEndpoint.GITHUB_OAUTH}`;
   };
 
   const handleOpenForgotPass = ()=>{

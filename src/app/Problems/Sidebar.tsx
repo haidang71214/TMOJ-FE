@@ -62,7 +62,7 @@ export default function ProblemsSidebar() {
     <div className="w-full max-w-[260px] shrink-0 flex flex-col gap-8 py-2">
       {/* 1. EXPLORER SECTION */}
       <div className="flex flex-col gap-3">
-        {(user?.role?.includes("teacher") || user?.role?.includes("admin") || user?.role?.includes("manager")) && (
+        {/* {(user?.role?.includes("teacher") || user?.role?.includes("admin") || user?.role?.includes("manager")) && (
           <Button
             size="lg"
             className="w-full bg-[#FF5C00] text-white font-black shadow-lg shadow-orange-500/30 active-bump rounded-2xl flex items-center justify-start px-4 h-12 uppercase tracking-wider text-sm"
@@ -80,7 +80,7 @@ export default function ProblemsSidebar() {
           >
             {t('problem_create.request_draft') || "REQUEST DRAFT PROBLEM"}
           </Button>
-        )}
+        )} */}
         <Listbox
           aria-label="Navigation"
           onAction={(key) => router.push(`/Problems/${String(key)}`)}

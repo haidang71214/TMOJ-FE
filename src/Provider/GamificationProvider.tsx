@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useState } from "react";
 import { useGetBadgesQuery, useGetGamificationMeQuery, useGetBadgeProgressQuery } from "@/store/queries/gamification";
 import BadgeCelebrationModal from "@/components/Gamification/BadgeCelebrationModal";
+import CoinFlyAnimation from "@/components/Gamification/CoinFlyAnimation";
 import { Badge } from "@/types/gamification";
 
 interface GamificationContextType {
-  showCelebration: (badge: Badge) => void;
+  showCelebration: (badge: Badge | null, customTitle?: string, customMessage?: string) => void;
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
@@ -26,11 +27,24 @@ export default function GamificationProvider({ children }: { children: React.Rea
   useGetBadgeProgressQuery(undefined);
 
   const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
+  const [customTitle, setCustomTitle] = useState<string | undefined>();
+  const [customMessage, setCustomMessage] = useState<string | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showCoinAnimation, setShowCoinAnimation] = useState(false);
 
-  const showCelebration = (badge: Badge) => {
+  const showCelebration = (badge: Badge | null, title?: string, message?: string) => {
     setCelebrationBadge(badge);
+    setCustomTitle(title);
+    setCustomMessage(message);
     setIsModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    // Trigger coin animation for mission rewards or badges
+    if (customTitle || customMessage || celebrationBadge) {
+      setShowCoinAnimation(true);
+    }
   };
 
   return (
@@ -39,7 +53,18 @@ export default function GamificationProvider({ children }: { children: React.Rea
       <BadgeCelebrationModal
         badge={celebrationBadge}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleClose}
+        customTitle={customTitle}
+        customMessage={customMessage}
+      />
+      <CoinFlyAnimation
+        active={showCoinAnimation}
+        onComplete={() => {
+          setShowCoinAnimation(false);
+          setCelebrationBadge(null);
+          setCustomTitle(undefined);
+          setCustomMessage(undefined);
+        }}
       />
     </GamificationContext.Provider>
   );

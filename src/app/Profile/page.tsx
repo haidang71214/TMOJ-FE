@@ -179,17 +179,6 @@ export default function ProfilePage() {
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (completedBadges.length > 0 && !isCelebrationOpen) {
-      const seenBadges = JSON.parse(localStorage.getItem("seenBadges") || "[]");
-      const newBadge = completedBadges.find((b: any) => !seenBadges.includes(b.badgeId));
-
-      if (newBadge) {
-        setCelebrationBadge(newBadge as any);
-        setIsCelebrationOpen(true);
-      }
-    }
-  }, [completedBadges, isCelebrationOpen]);
 
 
   const handleCloseCelebration = () => {

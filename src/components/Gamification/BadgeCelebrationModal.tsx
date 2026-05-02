@@ -10,9 +10,17 @@ interface BadgeCelebrationModalProps {
   badge: Badge | null;
   isOpen: boolean;
   onClose: () => void;
+  customTitle?: string;
+  customMessage?: string;
 }
 
-export default function BadgeCelebrationModal({ badge, isOpen, onClose }: BadgeCelebrationModalProps) {
+export default function BadgeCelebrationModal({
+  badge,
+  isOpen,
+  onClose,
+  customTitle,
+  customMessage
+}: BadgeCelebrationModalProps) {
   const [particles, setParticles] = useState<{ id: number, x: number, y: number, color: string }[]>([]);
 
   useEffect(() => {
@@ -28,7 +36,7 @@ export default function BadgeCelebrationModal({ badge, isOpen, onClose }: BadgeC
     }
   }, [isOpen]);
 
-  if (!badge) return null;
+  if (!badge && !customTitle) return null;
 
   return (
     <Modal
@@ -94,13 +102,13 @@ export default function BadgeCelebrationModal({ badge, isOpen, onClose }: BadgeC
               className="mt-16 text-center z-10"
             >
               <h2 className="text-6xl font-[1000] uppercase italic tracking-tighter text-white drop-shadow-[0_10px_20px_rgba(255,92,0,0.5)]">
-                Badge <span className="text-[#FF5C00]">Earned!</span>
+                {customTitle || "Badge"} <span className="text-[#FF5C00]">{customTitle ? "" : "Earned!"}</span>
               </h2>
               <p className="text-2xl font-black uppercase italic text-white mt-4 tracking-widest bg-white/10 px-6 py-2 rounded-full backdrop-blur-md border border-white/20">
-                {badge.name}
+                {customTitle ? customMessage : badge?.name}
               </p>
               <p className="text-xs text-white/60 uppercase mt-6 max-w-[400px] mx-auto leading-relaxed font-bold tracking-widest">
-                Masterpiece Unlocked! You have reached a significant milestone in your coding journey.
+                {customTitle ? "Chúc mừng bạn đã hoàn thành nhiệm vụ và nhận được phần thưởng xứng đáng!" : "Masterpiece Unlocked! You have reached a significant milestone in your coding journey."}
               </p>
             </motion.div>
 

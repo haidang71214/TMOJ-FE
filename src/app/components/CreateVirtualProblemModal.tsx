@@ -35,9 +35,6 @@ export default function CreateVirtualProblemModal({
   const [visibility, setVisibility] = useState("private");
 
   const handleCreate = async () => {
-    console.log("🚀 handleCreate triggered");
-    console.log("Target Problem:", problem);
-    console.log("Selected Visibility:", visibility);
     
     if (!problem) {
       console.warn("⚠️ No problem selected for cloning");
@@ -45,7 +42,6 @@ export default function CreateVirtualProblemModal({
     }
 
     try {
-      console.log("🔄 Calling createVirtual mutation...");
       const res = await createVirtual({
         originProblemId: problem.id,
         title: `${problem.title} (Virtual)`,

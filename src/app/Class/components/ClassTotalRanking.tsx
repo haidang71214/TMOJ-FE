@@ -39,7 +39,6 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const { data: response, isLoading, isError } = useGetClassTotalRankingQuery({ classId, semesterId });
-  console.log(response);
 
   const data = response?.data;
   const rawRankings = data?.rankings || [];

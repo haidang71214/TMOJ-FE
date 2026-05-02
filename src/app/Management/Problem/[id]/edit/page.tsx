@@ -29,13 +29,18 @@ import { ErrorForm } from "@/types";
 
 export default function GlobalProblemEditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const router = useRouter();
   const { t, language } = useTranslation();
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
+  const unwrappedSearchParams = use(searchParams);
+  const source = unwrappedSearchParams?.source as string;
+  const isBank = source === "bank";
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
   const problemData = detailData as any;
@@ -56,7 +61,7 @@ export default function GlobalProblemEditPage({
     title: "",
     typeCode: "algorithm",
     statusCode: "draft",
-    visibilityCode: "public",
+    visibilityCode: isBank ? "in-bank" : "public",
     scoringCode: "acm",
     descriptionMd: "",
     timeLimitMs: 1000,
@@ -78,7 +83,7 @@ export default function GlobalProblemEditPage({
         difficulty: problemData.difficulty?.toLowerCase() || "medium",
         statusCode: problemData.statusCode || "draft",
         scoringCode: problemData.scoringCode || "acm",
-        visibilityCode: problemData.visibilityCode || "public",
+        visibilityCode: problemData.visibilityCode || (isBank ? "in-bank" : "public"),
         typeCode: problemData.typeCode || "algorithm",
         tagIds: problemData.tags?.map((t: any) => t.id) || [],
         problemMode: problemData.problemMode || "amateur",
@@ -135,6 +140,15 @@ export default function GlobalProblemEditPage({
     }
   };
 
+  const handleFinish = async () => {
+    if (zipFile) {
+      const success = await handleUploadTestCase();
+      if (!success) return; // Stay on page if upload fails
+    }
+    addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
+    router.push(`/Problems/${id}`);
+  };
+
   const handleStep1 = async () => {
     if (!form.slug || !form.title) {
       addToast({ title: t('common.error') || "Error", description: "Slug and Title are required", color: "danger" });
@@ -163,9 +177,7 @@ export default function GlobalProblemEditPage({
           formData.append("TagIds", tagId);
         });
       }
-      
     const a =   await updateProblemContent({ problemId: id, body: formData }).unwrap();  
-    console.log(a);
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
       setStep(1);
     } catch (error) {
@@ -447,16 +459,16 @@ export default function GlobalProblemEditPage({
           
           <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center">
             <Switch
-              isSelected={form.visibilityCode === "public"}
+              isSelected={isBank ? form.visibilityCode === "in-bank" : form.visibilityCode === "public"}
               onValueChange={(checked) =>
-                setForm({ ...form, visibilityCode: checked ? "public" : "private" })
+                setForm({ ...form, visibilityCode: checked ? (isBank ? "in-bank" : "public") : "private" })
               }
               classNames={{
                 wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
               }}
             >
               <span className="text-[11px] font-black uppercase italic text-slate-500 dark:text-slate-300">
-                {t('problem_create.visibility') || "Public Visible"}
+                {t('problem_create.visibility') || (isBank ? "In-Bank Visible" : "Public Visible")}
               </span>
             </Switch>
           </div>
@@ -524,16 +536,6 @@ export default function GlobalProblemEditPage({
             />
           </div>
 
-          <Button
-            startContent={<Upload size={16} />}
-            onPress={handleUploadTestCase}
-            isLoading={isCreatingTestCase}
-            isDisabled={!zipFile || isCreatingTestCase}
-            className="bg-[#071739] dark:bg-[#FF5C00] text-white font-black rounded-xl h-12 px-10 uppercase text-[10px] tracking-[0.2em] w-fit"
-          >
-            {t('problem_create.upload_btn') || "Upload TestCases"}
-          </Button>
-
           {uploadedCases.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
@@ -571,7 +573,9 @@ export default function GlobalProblemEditPage({
           </Button>
           <Button
             startContent={<Save size={20} strokeWidth={3} />}
-            onPress={() => router.push(`/Problems/${id}`)}
+            onPress={handleFinish}
+            isLoading={isCreatingTestCase}
+            isDisabled={isCreatingTestCase}
             className="bg-[#22C55E] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl hover:shadow-green-500/30 transition-all"
           >
             {t('problem_create.finish') || "Finish & View Problem"}

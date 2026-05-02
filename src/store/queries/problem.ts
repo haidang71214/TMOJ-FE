@@ -1,4 +1,4 @@
-import { ProblemEndPoint, ProblemTemplateEndPoint } from "@/constants/endpoints";
+import { ProblemEndPoint, ProblemTemplateEndPoint, TestsetEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
   CreateProblemDraftResponse,
@@ -78,6 +78,14 @@ export const problemApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ["Problem"],
+    }),
+    getTestsetSamples: builder.query<any, { problemId: string; testsetId: string }>({
+      query: ({ problemId, testsetId }) => ({
+        url: TestsetEndpoint.GET_SAMPLES.replace("{problemId}", problemId).replace("{testsetId}", testsetId),
+        method: "GET",
+      }),
+      transformResponse: (response: any) => response.data.items,
+      providesTags: ["Problem"],
     }),
     updateProblemContent: builder.mutation<any, { problemId: string; body: FormData }>({
       query: ({ problemId, body }) => ({
@@ -166,6 +174,7 @@ export const {
   useUpdateProblemContentMutation,
   useUpdateProblemDifficultyMutation,
   useDownloadProblemStatementMutation,
+  useGetTestsetSamplesQuery,
   useGetProblemListPublicQuery,
   useCreateProblemStudentMutation,
   useDonateProblemMutation,

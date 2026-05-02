@@ -44,6 +44,8 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
       skipPollingIfUnfocused: true,
     }
   );
+  console.log(scoreboardData);
+  
   console.log("Scoreboard State:", { isLoading, isFetching, pollingInterval });
   
   const { data: userProfile } = useGetUserInformationQuery();
@@ -76,15 +78,26 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
 
 
   const handleFreezeToggle = async () => {
+    console.log("Freeze Toggle");
+    console.log(data?.frozen);
+    
     if (!data) return;
     try {
-      if (data.frozen) {
-        await unfreezeContest({ classSemesterId, contestId }).unwrap();
+      if (data?.frozen) {
+       const res = await unfreezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.unfreezeSuccess") || "Đã mở băng bảng xếp hạng!");
+       console.log("Unfreeze");
+       
+        console.log(res);
+        
       } else {
-        await freezeContest({ classSemesterId, contestId }).unwrap();
+       const res = await freezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.freezeSuccess") || "Đã đóng băng bảng xếp hạng!");
+        console.log("Freeze");
+       
+        console.log(res);
       }
+      refetch();
     } catch (error) {
       const apiError = error as ErrorForm;
       toast.error(apiError?.data?.data?.message || t("common.error") || "Thao tác thất bại");

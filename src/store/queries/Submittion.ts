@@ -12,21 +12,21 @@ export const SubmitionApi = baseApi.injectEndpoints({
   }),
   invalidatesTags: ["submittion", "ProblemDetail"],
 }),
-getSubmission: builder.query<SubmissionResponse, {submissionId:string}>({
-    query: ({submissionId}) => ({
-      url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
-      method: "GET",
-    }),
-    async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-      try {
-        await queryFulfilled;
-        // Kích hoạt rtk-query chọc API list tự động refetch lại mọi lần GET_SUBMITTION hoàn thành
-        dispatch(baseApi.util.invalidateTags(["ProblemDetail"]));
-      } catch (e) {
-        // silently ignore error map
-      }
-    },
-  }),
+    getSubmission: builder.query<SubmissionResponse, {submissionId:string}>({
+        query: ({submissionId}) => ({
+          url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
+          method: "GET",
+        }),
+        async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+          try {
+            await queryFulfilled;
+            // Kích hoạt rtk-query chọc API list tự động refetch lại mọi lần GET_SUBMITTION hoàn thành
+            dispatch(baseApi.util.invalidateTags(["ProblemDetail"]));
+          } catch (e) {
+            // silently ignore error map
+          }
+        },
+      }),
 getSubmissionListByProblem: builder.query<SubmissionListResponse, string>({
   query: (problemId) => ({
     url: SubmittionEndPoint.GET_SUBMISSIONS_LIST_BY_PROBLEM.replace("{problemId}", problemId),

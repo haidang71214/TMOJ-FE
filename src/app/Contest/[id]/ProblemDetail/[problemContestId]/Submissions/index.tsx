@@ -1,20 +1,15 @@
 "use client";
-import { SubmissionData } from "@/types";
+
 import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   Card,
   CardBody,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
   Pagination,
-  Spinner,
 } from "@heroui/react";
 import { Activity, Award,ChevronDown, Clock, Inbox,  } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -24,17 +19,15 @@ interface SubmissionsTabProps {
   problemId: string;
 }
 
-const getStatusLabel = (verdict: string | null, status: string | null) => {
-  if (verdict === "ac") return "Accepted";
-  if (verdict === "wa") return "Wrong Answer";
-  if (verdict === "ce") return "Compile Error";
-  if (verdict === "tle") return "Time Limit";
-  if (verdict === "mle") return "Memory Limit";
-  if (verdict === "rte") return "Runtime Error";
-  if (verdict === "re") return "Runtime Error";
-  if (!verdict && status) return status.charAt(0).toUpperCase() + status.slice(1);
-  return "Pending";
-};
+interface SubmissionData {
+  id: string;
+  status: string;
+  language: string;
+  runtime: string;
+  memory: string;
+  notes: string;
+  timestamp: string;
+}
 
 export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
   const [page, setPage] = useState(1);
@@ -45,15 +38,19 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
   const [statusFilter, setStatusFilter] = useState("Status");
   const [langFilter, setLangFilter] = useState("Language");
 
+  const handleRowClick = (submissionId: string) => {
+    console.log("Clicked submission:", submissionId);
+  };
+
   const rawSubmissions = apiResponse?.data || [];
-  const totalItems = rawSubmissions.length;
-  const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
+  const totalItems = apiResponse?.pagination?.totalCount || rawSubmissions.length;
+  const totalPages = apiResponse?.pagination?.totalPages || Math.ceil(totalItems / rowsPerPage) || 1;
 
   const allSubmissions: SubmissionData[] = useMemo(() => {
-    return rawSubmissions.map((s) => ({
+    return rawSubmissions.map((s: any) => ({
       id: s.id,
       status: getStatusLabel(s.verdictCode, s.statusCode),
-      language: "Unknown", // Currently API hasn't mapped this
+      language: s.language || "Unknown",
       runtime: s.timeMs != null ? `${s.timeMs} ms` : "N/A",
       memory: s.memoryKb != null ? `${(s.memoryKb / 1024).toFixed(1)} MB` : "N/A",
       notes: s.finalScore != null ? s.finalScore.toString() : "0",
@@ -61,141 +58,108 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
     }));
   }, [rawSubmissions]);
 
-  const submissions = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    return allSubmissions.slice(start, start + rowsPerPage);
-  }, [allSubmissions, page, rowsPerPage]);
+  const filteredSubmissions = useMemo(() => {
+    let filtered = [...allSubmissions];
+    if (statusFilter !== "Status") {
+      filtered = filtered.filter((s) => s.status === statusFilter);
+    }
+    if (langFilter !== "Language") {
+      filtered = filtered.filter((s) => s.language === langFilter);
+    }
+    return filtered;
+  }, [allSubmissions, statusFilter, langFilter]);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full w-full">
-        <Spinner size="lg" color="primary" />
-      </div>
-    );
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filteredSubmissions.slice(start, end);
+  }, [page, filteredSubmissions]);
+
+  function getStatusLabel(verdictCode: string | null, statusCode: string) {
+    if (statusCode === "PD") return "Pending";
+    if (statusCode === "JD") return "Judging";
+    if (statusCode === "CE") return "Compile Error";
+    if (statusCode === "QU") return "In Queue";
+    
+    switch (verdictCode?.toLowerCase()) {
+      case "ac": return "Accepted";
+      case "wa": return "Wrong Answer";
+      case "tle": return "Time Limit Exceeded";
+      case "mle": return "Memory Limit Exceeded";
+      case "rte": return "Runtime Error";
+      case "re": return "Runtime Error";
+      default: return verdictCode ? verdictCode.toUpperCase() : statusCode;
+    }
   }
 
-  // Calculate percentage of accepted code
-  const acceptedCount = allSubmissions.filter(s => s.status === "Accepted").length;
-  const acPercentage = totalItems > 0 ? Math.round((acceptedCount / totalItems) * 100) : 0;
-
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-[#121A27] font-sans p-3 gap-3 transition-colors duration-500">
-      
-      {/* Admin Controls & Stats */}
-      <div className="flex flex-wrap gap-3 items-center justify-between bg-white dark:bg-[#1C2737] p-3 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl">
-            <Award size={16} />
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-black tracking-wider">Accepted Code</span>
-              <span className="text-base font-[1000] leading-none">{acPercentage}%</span>
+    <div className="space-y-6">
+      <div className="flex gap-4">
+        <div className="bg-white dark:bg-[#101828] p-4 rounded-xl flex-1 border border-gray-100 dark:border-[#1d2939] shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <Activity size={18} className="text-blue-600 dark:text-blue-400" />
             </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Total Submissions</span>
           </div>
-          <div className="flex items-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-xl">
-            <Activity size={16} />
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-black tracking-wider">Total Submissions</span>
-              <span className="text-base font-[1000] leading-none">{totalItems}</span>
+          <p className="text-2xl font-black dark:text-white tracking-tight">{totalItems}</p>
+        </div>
+        <div className="bg-white dark:bg-[#101828] p-4 rounded-xl flex-1 border border-gray-100 dark:border-[#1d2939] shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <Award size={18} className="text-green-600 dark:text-green-400" />
             </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Pass Rate</span>
           </div>
+          <p className="text-2xl font-black dark:text-white tracking-tight">
+            {totalItems > 0 
+              ? `${Math.round((allSubmissions.filter(s => s.status === "Accepted").length / totalItems) * 100)}%` 
+              : "0%"}
+          </p>
         </div>
       </div>
 
-      <Card className="flex-1 bg-white dark:bg-[#1C2737] border-none shadow-sm rounded-2xl overflow-hidden">
-        <CardBody className="p-0 flex flex-col h-full">
-          {allSubmissions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-[#475569] bg-white dark:bg-[#1C2737] transition-colors duration-500 min-h-[300px]">
-              <div className="relative w-32 h-32 opacity-20 mb-6 flex items-center justify-center">
-                <Inbox size={80} strokeWidth={1} />
-              </div>
-              <p className="text-sm font-bold uppercase tracking-widest">
-                No data available
-              </p>
+      <Card className="border-none shadow-sm dark:bg-[#101828]">
+        <CardBody className="p-0">
+          {isLoading ? (
+            <div className="p-20 text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400 font-bold uppercase italic">Loading Submissions...</p>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-20 text-center">
+              <Inbox size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+              <p className="text-gray-500 dark:text-gray-400 font-bold uppercase italic">No submissions found</p>
             </div>
           ) : (
-            <Table
+            <Table 
               aria-label="Submissions table"
-              removeWrapper
-              bottomContent={
-                totalPages >= 1 ? (
-                  <div className="flex w-full justify-center p-2 border-t border-slate-100 dark:border-white/5">
-                    <Pagination
-                      isCompact
-                      showControls
-                      showShadow
-                      color="primary"
-                      page={page}
-                      total={totalPages}
-                      onChange={setPage}
-                      classNames={{ cursor: "bg-[#071739] dark:bg-[#FF5C00]" }}
-                    />
-                  </div>
-                ) : null
-              }
+              shadow="none"
+              className="dark:bg-transparent"
               classNames={{
-                base: "flex flex-col min-h-0 overflow-hidden",
-                table: "min-h-0 overflow-hidden",
-                wrapper: "flex-1 w-full flex flex-col overflow-hidden",
-                th: "bg-[#F8FAFC] dark:bg-[#162130] text-gray-500 dark:text-[#94A3B8] font-black text-[11px] uppercase tracking-wider border-b border-gray-100 dark:border-[#334155] py-2.5 first:pl-3",
-                td: "py-2.5 first:pl-3 border-b border-slate-50 dark:border-[#1C2737] text-[13px] dark:text-[#CDD5DB] transition-colors",
-                tr: "hover:bg-slate-50 dark:hover:bg-[#101828] cursor-pointer group outline-none",
+                wrapper: "p-0",
+                th: "bg-gray-50 dark:bg-[#1d2939] text-gray-500 dark:text-[#94A3B8] font-black uppercase text-[11px] tracking-widest h-12",
+                td: "py-4 border-b border-gray-50 dark:border-[#1d2939] group-hover:bg-gray-50/50 dark:group-hover:bg-white/5",
               }}
             >
               <TableHeader>
-                <TableColumn className="w-[40px] text-center">#</TableColumn>
-                <TableColumn>
-                  <Dropdown className="dark:bg-[#101828] dark:border-[#334155]">
-                    <DropdownTrigger>
-                      <div className="flex items-center gap-1 cursor-pointer hover:text-black dark:hover:text-[#E3C39D] transition-colors">
-                        {statusFilter} <ChevronDown size={14} />
-                      </div>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      aria-label="Status Filter"
-                      onAction={(key) => setStatusFilter(key as string)}
-                      className="dark:text-[#F9FAFB]"
-                    >
-                      <DropdownItem key="Accepted">Accepted</DropdownItem>
-                      <DropdownItem key="Compile Error">Compile Error</DropdownItem>
-                      <DropdownItem key="Runtime Error">Runtime Error</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </TableColumn>
-
-                <TableColumn>
-                  <Dropdown className="dark:bg-[#101828] dark:border-[#334155]">
-                    <DropdownTrigger>
-                      <div className="flex items-center gap-1 cursor-pointer hover:text-black dark:hover:text-[#E3C39D] transition-colors">
-                        {langFilter} <ChevronDown size={14} />
-                      </div>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      aria-label="Language Filter"
-                      onAction={(key) => setLangFilter(key as string)}
-                    >
-                      <DropdownItem key="C++">C++</DropdownItem>
-                      <DropdownItem key="Java">Java</DropdownItem>
-                      <DropdownItem key="Python3">Python3</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </TableColumn>
-
-                <TableColumn>Runtime</TableColumn>
-                <TableColumn>Memory</TableColumn>
-                <TableColumn>Score</TableColumn>
+                <TableColumn>STATUS</TableColumn>
+                <TableColumn>LANGUAGE</TableColumn>
+                <TableColumn>RUNTIME</TableColumn>
+                <TableColumn>MEMORY</TableColumn>
+                <TableColumn>SCORE</TableColumn>
               </TableHeader>
-
               <TableBody>
-                {submissions.map((item, index) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="text-center font-black text-slate-400 dark:text-[#475569] text-[12px]">
-                      {(page - 1) * rowsPerPage + index + 1}
-                    </TableCell>
+                {items.map((item) => (
+                  <TableRow 
+                    key={item.id}
+                    className="cursor-pointer group transition-colors"
+                    onClick={() => handleRowClick(item.id)}
+                  >
                     <TableCell>
-                      <span
-                        className={`font-black text-[14px] ${
-                          item.status === "Accepted"
-                            ? "text-[#2cbb5d]"
+                      <span className={`font-black text-[14px] flex items-center gap-2 ${
+                          item.status === "Accepted" 
+                            ? "text-[#00c853]" 
                             : item.status === "Pending" 
                             ? "text-blue-500" 
                             : "text-[#ef4743] dark:text-[#fb4444]"
@@ -226,8 +190,24 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
               </TableBody>
             </Table>
           )}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 mb-6">
+              <Pagination
+                total={totalPages}
+                page={page}
+                onChange={setPage}
+                color="primary"
+                variant="flat"
+                classNames={{
+                  cursor: "bg-blue-600 text-white font-bold",
+                }}
+              />
+            </div>
+          )}
         </CardBody>
       </Card>
     </div>
   );
 };
+
+export default SubmissionsTab;

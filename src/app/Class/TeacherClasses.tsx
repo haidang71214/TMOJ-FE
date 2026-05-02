@@ -40,8 +40,6 @@ export default function TeacherClasses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>("INITIALIZING");
   const { currentSemester, isLoading: isSemestersLoading } = useCurrentSemester();
-  console.log(currentSemester);
-  
   useEffect(() => {
     if (selectedSemesterId === "INITIALIZING" && !isSemestersLoading) {
       if (currentSemester) {
@@ -64,8 +62,6 @@ export default function TeacherClasses() {
   const fetchedClasses = responseData?.data?.items || [];
   const totalCount = responseData?.data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / rowsPerPage) || 1;
-console.log(responseData);
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
 

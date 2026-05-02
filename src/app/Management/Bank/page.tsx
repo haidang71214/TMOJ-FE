@@ -435,7 +435,7 @@ export default function BankProblemListPage() {
                           isIconOnly
                           size="sm"
                           variant="flat"
-                          onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/edit`); }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/Management/Problem/${p.id}/edit?source=bank`); }}
                           className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 rounded-lg h-9 w-9"
                         >
                           <Edit size={16} />

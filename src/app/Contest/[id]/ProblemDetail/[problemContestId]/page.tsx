@@ -20,12 +20,15 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
-import { SubmissionsTab } from "./Submissions/index";
+
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
 import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
-import { VerdictCode } from "@/types";
+import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
+import { useGetTestsetSamplesQuery } from "@/store/queries/problem";
+import { VerdictCode, Problem } from "@/types";
+import SubmissionsTab from "./Submissions";
 
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
@@ -94,6 +97,17 @@ export default function ProblemDetailsPage() {
   const router = useRouter();
   const classSemesterId = searchParams.get("classSemesterId");
   const contestId = searchParams.get("contestId");
+
+  const { data: problemResponse } = useGetDetailProblemPublicQuery({ id: problemId });
+  const problem = problemResponse as Problem | undefined;
+  const primaryTestsetId = problem?.primaryTestsetId;
+
+  const { data: samplesResponse, isLoading: isLoadingSamples } = useGetTestsetSamplesQuery(
+    { problemId, testsetId: primaryTestsetId! },
+    { skip: !problemId || !primaryTestsetId }
+  );
+
+  const samples = samplesResponse || [];
 
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
@@ -248,39 +262,55 @@ export default function ProblemDetailsPage() {
             <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
               {activeBottomTab === "testcase" ? (
                 <div className="space-y-4">
-                  {/* ... Case selector content ... */}
-                  <div className="flex items-center gap-2">
-                    {["Case 1", "Case 2", "Case 3"].map((c, i) => (
-                      <button
-                        key={c}
-                        onClick={() => setActiveCase(i)}
-                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
-                          ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
-                          : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
-                          }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Input fields */}
-                  {[
-                    {
-                      label: "nums =",
-                      values: ["[2,7,11,15]", "[3,2,4]", "[3,3]"],
-                    },
-                    { label: "target =", values: ["9", "6", "6"] },
-                  ].map(({ label, values }) => (
-                    <div key={label}>
-                      <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
-                        {label}
-                      </p>
-                      <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
-                        {values[activeCase]}
-                      </div>
+                  {isLoadingSamples ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-8 w-48 rounded-lg" />
+                      <Skeleton className="h-24 w-full rounded-xl" />
+                      <Skeleton className="h-24 w-full rounded-xl" />
                     </div>
-                  ))}
+                  ) : samples.length > 0 ? (
+                    <>
+                      {/* Case selector content */}
+                      <div className="flex items-center gap-2">
+                        {samples.map((_: any, i: number) => (
+                          <button
+                            key={i}
+                            onClick={() => setActiveCase(i)}
+                            className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
+                              ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                              : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                              }`}
+                          >
+                            Case {i + 1}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Input fields */}
+                      <div>
+                        <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                          Input
+                        </p>
+                        <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                          <pre className="whitespace-pre-wrap">{samples[activeCase]?.input || "N/A"}</pre>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                          Expected Output
+                        </p>
+                        <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                          <pre className="whitespace-pre-wrap">{samples[activeCase]?.output || "N/A"}</pre>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                      <TriangleAlert size={48} className="opacity-20 mb-4" />
+                      <p className="text-xs font-black uppercase tracking-widest">No samples available</p>
+                    </div>
+                  )}
                 </div>
               ) : submissionId ? (
                 /* ACTUAL RESULT VIEW */

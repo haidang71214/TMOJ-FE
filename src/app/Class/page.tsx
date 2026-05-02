@@ -25,7 +25,6 @@ export default function ClassPage() {
   }
 
   const role = userProfile?.role?.toLowerCase();
-  console.log(role);
   if (role === "teacher") {
     return <TeacherClasses />;
   }

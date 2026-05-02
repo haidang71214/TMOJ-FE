@@ -425,9 +425,11 @@ export interface SubmissionResponse {
 
 export interface SubmissionListItemDto {
   id: string;
-  userId: string;
   problemId: string;
-  statusCode: string | null;
+  userId: string;
+  runtimeId?: string | null;
+  language?: string | null;
+  statusCode: string;
   verdictCode: string | null;
   finalScore: number | null;
   timeMs: number | null;
@@ -436,8 +438,85 @@ export interface SubmissionListItemDto {
   judgedAt: string | null;
 }
 
+export interface SubmissionRunDto {
+  id: string;
+  submissionId: string;
+  statusCode: string;
+  verdictCode?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  judgedAt?: string;
+}
+
+export interface SubmissionCaseResultDto {
+  ordinal: number;
+  statusCode: string;
+  verdictCode?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  message?: string;
+  checkerMessage?: string;
+  actualOutput?: string;
+  expectedOutput?: string;
+}
+
+export interface SubmissionDiagnosticDto {
+  compileStdout?: string;
+  compileStderr?: string;
+  compileExitCode?: number;
+}
+
+export interface SubmissionDetailDto {
+  submissionId: string;
+  userId: string;
+  problemId: string;
+  problemSlug?: string;
+  problemTitle?: string;
+  problemMode?: string;
+  problemVisibilityCode?: string;
+  problemTimeLimitMs?: number;
+  problemMemoryLimitKb?: number;
+  runtimeId?: string;
+  language?: string;
+  runtimeName?: string;
+  runtimeVersion?: string;
+  runtimeProfileKey?: string;
+  runtimeSourceFileName?: string;
+  runtimeCompileCommand?: string;
+  runtimeRunCommand?: string;
+  testsetId?: string;
+  statusCode: string;
+  verdictCode?: string;
+  finalScore?: number;
+  timeMs?: number;
+  memoryKb?: number;
+  sourceCode?: string;
+  note?: string;
+  createdAt: string;
+  judgedAt?: string;
+  latestRun?: SubmissionRunDto;
+  results: SubmissionCaseResultDto[];
+  diagnostic?: SubmissionDiagnosticDto;
+}
+
+export interface SubmissionDetailResponse {
+  data: SubmissionDetailDto;
+  message: string | null;
+  traceId: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+}
+
 export interface SubmissionListResponse {
   data: SubmissionListItemDto[];
+  pagination: PaginationMeta;
   message: string | null;
   traceId: string | null;
 }

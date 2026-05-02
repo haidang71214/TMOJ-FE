@@ -126,6 +126,7 @@ export default function SolutionSubmittion({
       // Đã có verdictCode, dừng polling
       setPollingIntervalTime(0);
     }
+        console.log("a");
   }, [submissionId, submissionData?.data?.verdictCode]);
 
   // ==================== 2. HIỂN THỊ TOAST KHI CÓ VERDICT ====================
@@ -186,6 +187,8 @@ export default function SolutionSubmittion({
     if ((verdict === VerdictCode.AC || verdict === "accepted") && onSubmitSuccess) {
       onSubmitSuccess();
     }
+    console.log("a");
+    
   }, [submissionData?.data?.verdictCode, hasShownResultToast, onSubmitSuccess, isFetching]);
 
   // ==================== 3. RESET TOAST KHI NỘP BÀI MỚI ====================
@@ -193,6 +196,7 @@ export default function SolutionSubmittion({
     if (submissionId) {
       setHasShownResultToast(false);
     }
+        console.log("a");
   }, [submissionId]);
 
   // Auto chọn runtime C++ mặc định
@@ -248,6 +252,7 @@ export default function SolutionSubmittion({
       }
       hasInitializedTemplate.current = true;
     }
+        console.log("a");
   }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
 
   // ==================== HANDLE SUBMIT ====================

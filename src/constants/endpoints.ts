@@ -300,6 +300,8 @@ const GamificationEndpoint = {
   HISTORY: `${API_PREFIX}/gamification/history`,
   LEADERBOARD: `${API_PREFIX}/gamification/leaderboard`,
   DAILY_ACTIVITIES: `${API_PREFIX}/gamification/daily-activities`,
+  MISSIONS: `${API_PREFIX}/gamification/missions`,
+  CLAIM_MISSION: `${API_PREFIX}/gamification/missions/{ruleId}/claim`,
 };
 
 const AdminGamificationEndpoint = {

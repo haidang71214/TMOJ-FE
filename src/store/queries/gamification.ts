@@ -13,7 +13,9 @@ import {
   UpdateBadgeRequest,
   CreateBadgeRuleRequest,
   LeaderboardResponse,
-  DailyActivity
+  DailyActivity,
+  Mission,
+  ClaimResponse
 } from "@/types/gamification";
 
 export const gamificationApi = baseApi.injectEndpoints({
@@ -50,6 +52,21 @@ export const gamificationApi = baseApi.injectEndpoints({
     getDailyActivities: builder.query<{ data: DailyActivity[] }, void>({
       query: () => GamificationEndpoint.DAILY_ACTIVITIES,
       providesTags: ["Gamification"],
+    }),
+    getMissions: builder.query<Mission[], void>({
+      query: () => GamificationEndpoint.MISSIONS,
+      transformResponse: (response: any) => {
+        if (response && response.data) return response.data;
+        return response || [];
+      },
+      providesTags: ["Gamification"],
+    }),
+    claimMission: builder.mutation<ClaimResponse, string>({
+      query: (ruleId) => ({
+        url: GamificationEndpoint.CLAIM_MISSION.replace("{ruleId}", ruleId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Gamification"],
     }),
 
     // ADMIN APIs
@@ -135,4 +152,6 @@ export const {
   useCreateBadgeRuleMutation,
   useUpdateBadgeRuleMutation,
   useDeleteBadgeRuleMutation,
+  useGetMissionsQuery,
+  useClaimMissionMutation,
 } = gamificationApi;

@@ -124,6 +124,8 @@ const ClassEndpoint = {
   UPDATE_CLASS_CONTEST_PROBLEM: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems/{contestProblemId}`,
   DELETE_CLASS_CONTEST_PROBLEM: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems/{contestProblemId}`,
   ADD_PROBLEM_TO_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems`,
+  FREEZE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/freeze`,
+  UNFREEZE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/unfreeze`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,

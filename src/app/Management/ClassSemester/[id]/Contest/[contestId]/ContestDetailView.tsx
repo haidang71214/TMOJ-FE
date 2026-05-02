@@ -78,12 +78,11 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   const { data: userProfile } = useGetUserInformationQuery();
   const [deleteProblem, { isLoading: isDeleting }] = useDeleteClassContestProblemMutation();
   const isStudent = userProfile?.role?.toLowerCase() === "student";
-
+  
   const { data: response, isLoading, error, refetch } = useGetClassContestDetailQuery(
     { classSemesterId, contestId },
     { skip: !classSemesterId || !contestId }
   );
-
   const contest = response?.data;
 
   React.useEffect(() => {
@@ -95,11 +94,9 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
         const end = new Date(contest.endAt);
         
         // Auto refresh when contest starts or ends
-        if (now < start && currentTime >= start) {
+        if (now == start || currentTime == start) {
           refetch();
-        } else if (now <= end && currentTime > end) {
-          refetch();
-        }
+        } 
       }
       
       setNow(currentTime);

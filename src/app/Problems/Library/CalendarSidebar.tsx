@@ -3,9 +3,12 @@ import React, { useState } from "react";
 import { Card, CardBody, Button, Chip } from "@heroui/react";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useGetStreakQuery, useGetGamificationHistoryQuery, useGetDailyActivitiesQuery } from "@/store/queries/gamification";
+import { useModal } from "@/Provider/ModalProvider";
+import ActivityCalendarModal from "@/app/Modal/ActivityCalendarModal";
 
 export const CalendarSidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { openModal } = useModal();
 
   // ── Gamification API ──
   const { data: gStreakResponse } = useGetStreakQuery();
@@ -164,45 +167,16 @@ export const CalendarSidebar = () => {
                 {currentStreak} Day Streak
               </span>
             </div>
-            <button className="text-[10px] text-teal-600 dark:text-teal-400 font-black hover:underline transition-all">
+            <button
+              onClick={() => openModal({ content: <ActivityCalendarModal />, size: "4xl" })}
+              className="text-[10px] text-teal-600 dark:text-teal-400 font-black hover:underline transition-all"
+            >
               DETAILS
             </button>
           </div>
         </CardBody>
       </Card>
 
-      {/* TRENDING COMPANIES */}
-      <Card
-        shadow="sm"
-        className="border-none bg-white dark:bg-[#1C2737] transition-all duration-500"
-      >
-        <CardBody className="p-4">
-          <h3 className="text-[11px] font-black text-gray-400 dark:text-[#94A3B8] uppercase mb-4 tracking-widest">
-            Trending Companies
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { name: "Meta", count: 1352 },
-              { name: "Amazon", count: 1903 },
-              { name: "Google", count: 2177 },
-            ].map((co) => (
-              <Chip
-                key={co.name}
-                variant="flat"
-                className="bg-[#CDD5DB]/20 dark:bg-[#101828] border-none px-2"
-                size="sm"
-              >
-                <span className="text-[#071739] dark:text-[#FFFFFF] font-bold text-[11px]">
-                  {co.name}
-                </span>
-                <span className="ml-1 text-orange-500 font-black text-[11px]">
-                  {co.count}
-                </span>
-              </Chip>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 };

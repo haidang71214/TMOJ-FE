@@ -14,12 +14,17 @@ import {
   useResetStudyProgressMutation
 } from "@/store/queries/StudyPlan";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAppSelector } from "@/utils/redux";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "@/app/Modal/LoginModal";
 
 export default function PackageEnrollPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
   const { t } = useTranslation();
+  const { openModal } = useModal();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
 
   const { data: detailResponse, isLoading: isDetailLoading, isError } = useGetStudyPlanDetailQuery(id, { skip: !id });
   const { data: enrollmentData, refetch: refetchEnrollment } = useGetStudyPlanEnrollmentQuery({ planId: id }, { skip: !id });
@@ -37,6 +42,10 @@ export default function PackageEnrollPage() {
   const [resetProgress, { isLoading: isResetting }] = useResetStudyProgressMutation();
 
   const handleEnroll = async () => {
+    if (!isAuthenticated) {
+      openModal({ title: t("common.login") || "Đăng nhập", content: <LoginModal /> });
+      return;
+    }
     try {
       await enrollPlan(id).unwrap();
       refetchEnrollment();
@@ -49,6 +58,10 @@ export default function PackageEnrollPage() {
   };
 
   const handleBuy = async () => {
+    if (!isAuthenticated) {
+      openModal({ title: t("common.login") || "Đăng nhập", content: <LoginModal /> });
+      return;
+    }
     try {
       await buyPlan(id).unwrap();
       refetchEnrollment();
@@ -275,7 +288,7 @@ export default function PackageEnrollPage() {
                   </Button>
                 ) : (
                   <p className="text-center text-xs text-white/40 font-medium uppercase tracking-widest">
-                    {t("studyplan_detail.complete_all_to_reset") || "Complete all challenges to reset"}
+                    {t("studyplan_detail.complete_all_to_reset") || "You can reset progress after completing all challenges"}
                   </p>
                 )}
               </CardBody>

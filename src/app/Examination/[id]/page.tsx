@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Clock,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Chip, Progress, Skeleton } from "@heroui/react";
@@ -83,15 +84,50 @@ function useResize(
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function ProblemDetailsPage() {
-    const params = useParams();
-    const searchParams = useSearchParams();
-    const problemId = params.id as string;
-    const classSlotId = searchParams.get("classSlotId") || undefined;
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const problemId = params.id as string;
+  const classSlotId = searchParams.get("classSlotId") || undefined;
   const { t, language } = useTranslation();
-  
+
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
+
+  // ── Editorial lock: 30 phút kể từ khi vào làm bài ────────────────────
+  const EDITORIAL_LOCK_MINUTES = 30;
+  const [editorialUnlocked, setEditorialUnlocked] = useState(false);
+  const [editorialCountdown, setEditorialCountdown] = useState("");
+
+  useEffect(() => {
+    if (!problemId) return;
+    const storageKey = `examStartTime_${problemId}`;
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) {
+      localStorage.setItem(storageKey, Date.now().toString());
+    }
+
+    const checkUnlock = () => {
+      const startTime = Number(localStorage.getItem(storageKey) || Date.now());
+      const elapsed = (Date.now() - startTime) / 1000 / 60; // phút
+      if (elapsed >= EDITORIAL_LOCK_MINUTES) {
+        setEditorialUnlocked(true);
+        setEditorialCountdown("");
+        return true;
+      }
+      const remaining = EDITORIAL_LOCK_MINUTES * 60 - (Date.now() - startTime) / 1000;
+      const m = Math.floor(remaining / 60).toString().padStart(2, "0");
+      const s = Math.floor(remaining % 60).toString().padStart(2, "0");
+      setEditorialCountdown(`${m}:${s}`);
+      return false;
+    };
+
+    if (checkUnlock()) return;
+    const interval = setInterval(() => {
+      if (checkUnlock()) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [problemId]);
 
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const { data: submissionData, isLoading: isSubmissionLoading } = useGetSubmissionQuery(
@@ -159,20 +195,31 @@ export default function ProblemDetailsPage() {
             {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
               const isActive = activeLeftTab === key;
               const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
+              const isEditorialLocked = key === "editorial" && !editorialUnlocked;
               return (
                 <div key={key} className="animate-fade-in-right" style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}>
                   <button
-                    onClick={() => setActiveLeftTab(key)}
+                    onClick={() => !isEditorialLocked && setActiveLeftTab(key)}
+                    disabled={isEditorialLocked}
+                    title={isEditorialLocked ? (language === 'vi' ? `Mở khóa sau ${editorialCountdown}` : `Unlocks in ${editorialCountdown}`) : undefined}
                     className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                      ${
-                        isActive
+                      ${isEditorialLocked
+                        ? "text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60"
+                        : isActive
                           ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
                           : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                       }
                       after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                   >
-                    <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                    {isEditorialLocked ? (
+                      <Lock size={12} className="opacity-60" />
+                    ) : (
+                      <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                    )}
                     {label}
+                    {isEditorialLocked && editorialCountdown && (
+                      <span className="ml-1 text-[9px] font-mono text-slate-400 dark:text-slate-500">{editorialCountdown}</span>
+                    )}
                   </button>
                 </div>
               );
@@ -197,13 +244,13 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-<SolutionSubmittion
-  editorHeight={editorHeight}
-  problemId={problemId}
-  classSlotId={classSlotId}
-  onSubmitSuccess={() => setActiveLeftTab("submissions")}
-  onSubmissionIdChange={onSubmissionIdChange}
-/>
+          <SolutionSubmittion
+            editorHeight={editorHeight}
+            problemId={problemId}
+            classSlotId={classSlotId}
+            onSubmitSuccess={() => setActiveLeftTab("submissions")}
+            onSubmissionIdChange={onSubmissionIdChange}
+          />
 
           {/* ── VERTICAL DRAG HANDLE ── */}
           <div
@@ -225,10 +272,9 @@ export default function ProblemDetailsPage() {
                     <button
                       onClick={() => setActiveBottomTab(key)}
                       className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                        ${
-                          isActive
-                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        ${isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                         }
                         after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
                     >
@@ -250,11 +296,10 @@ export default function ProblemDetailsPage() {
                       <button
                         key={c}
                         onClick={() => setActiveCase(i)}
-                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${
-                          activeCase === i
+                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
                             ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
                             : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
-                        }`}
+                          }`}
                       >
                         {c}
                       </button>
@@ -307,7 +352,7 @@ export default function ProblemDetailsPage() {
                         const results = data?.results || [];
                         const isCE = data?.verdictCode?.toLowerCase() === "ce";
                         const totalTestcases = isCE ? 0 : results.length;
-                        const passedTestcases = isCE ? 0 : results.filter((r: any) => 
+                        const passedTestcases = isCE ? 0 : results.filter((r: any) =>
                           r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
                         ).length;
 
@@ -335,10 +380,9 @@ export default function ProblemDetailsPage() {
                             {/* Result Header */}
                             <div className="flex items-center justify-between mb-6">
                               <div className="flex items-center gap-3">
-                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${
-                                  data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : 
-                                  data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
-                                }`}>
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" :
+                                    data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                  }`}>
                                   {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
                                 </h2>
                                 <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
@@ -361,11 +405,11 @@ export default function ProblemDetailsPage() {
                                 <div className="text-xl font-black">
                                   {data?.timeMs || 0} ms
                                 </div>
-                                <Progress 
-                                  size="sm" 
-                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)} 
-                                  color="primary" 
-                                  className="mt-2" 
+                                <Progress
+                                  size="sm"
+                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)}
+                                  color="primary"
+                                  className="mt-2"
                                 />
                               </div>
                               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">

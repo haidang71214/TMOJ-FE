@@ -140,16 +140,15 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   const isReported = myReportsData?.data?.some((r: any) => String(r.targetId) === String(cid));
 
   const displayName = isMe
-    ? (currentUser?.displayName || currentUser?.lastName || currentUser?.email || "My Account")
+    ? (userData?.displayName || userData?.lastName || userData?.email || "My Account")
     : (comment?.userDisplayName || comment?.userFullName || comment?.user?.displayName || `User ${comment?.userId?.substring(0, 5)}`);
 
   const displayAvatar = isMe
-    ? (currentUser?.avatarUrl)
-    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl);
+    ? (userData?.avatarUrl)
+    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl || comment?.author?.avatarUrl || (comment as any).creator?.avatarUrl);
 
-  const frameUrl = isMe
-    ? (currentUser as any)?.equippedFrameUrl
-    : (comment?.userFrameUrl || comment?.userEquippedFrameUrl || (comment as any)?.user?.equippedFrameUrl);
+  const frameUrl = (comment?.equippedFrameUrl || comment?.userEquippedFrameUrl || comment?.frameUrl || comment?.userFrameUrl || (comment as any).user?.equippedFrameUrl || (comment as any).user?.frameUrl || (comment as any).author?.equippedFrameUrl || (comment as any).author?.frameUrl || (comment as any).creator?.equippedFrameUrl || (comment as any).user?.equippedFrame?.imageUrl || (comment as any).user?.equippedFrame?.itemImageUrl || (comment as any).author?.equippedFrame?.imageUrl || (comment as any).author?.equippedFrame?.itemImageUrl || (comment as any).creator?.equippedFrame?.imageUrl || (comment as any).user?.avatarFrame?.imageUrl || (comment as any).author?.avatarFrame?.imageUrl)
+    || (isMe ? (userData as any)?.equippedFrameUrl || (userData as any)?.userEquippedFrameUrl : null);
 
   const handleToggleHide = async () => {
     try {

@@ -863,6 +863,26 @@ export interface DashboardStatsResponse {
   traceId: string | null;
 }
 
+
+// ── Discussion History Definitions ────────────────
+
+export interface DiscussionHistoryItem {
+  id: string;
+  discussionId: string;
+  problemId: string;
+  problemTitle: string;
+  type: "discussion" | "comment";
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface DiscussionHistoryResponse {
+  data: DiscussionHistoryItem[];
+  message: string | null;
+  traceId: string | null;
+}
+
 export interface UpdateSlotProblemRequest {
   problemId: string;
   ordinal: number;

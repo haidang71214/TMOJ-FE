@@ -40,7 +40,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         <img
           src={frameUrl}
           alt="Avatar Frame"
-          className="absolute inset-0 w-full h-full object-contain scale-[1.5] pointer-events-none z-10"
+          className="absolute inset-0 w-full h-full object-contain scale-[1.65] pointer-events-none z-10"
         />
       )}
     </div>

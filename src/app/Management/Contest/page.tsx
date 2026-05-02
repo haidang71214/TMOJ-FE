@@ -25,7 +25,6 @@ import {
 import {
   Edit3,
   FolderCode,
-  Megaphone,
   Download,
   Plus,
   Search,
@@ -37,10 +36,20 @@ import {
   Copy,
   Trash2,
   Users,
+  Archive,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
-import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation, useDeleteContestMutation } from "@/store/queries/Contest";
+import {
+  useGetContestListQuery,
+  usePublishContestMutation,
+  useChangeVisibilityMutation,
+  useDeleteContestMutation,
+  useRemixContestMutation,
+  useArchiveContestMutation,
+  useCreateVirtualContestMutation,
+} from "@/store/queries/Contest";
 import { ContestDto, ErrorForm } from "@/types";
 import { toast } from "sonner";
 import { Globe, Lock as LockIcon, EyeOff } from "lucide-react";
@@ -53,7 +62,12 @@ export default function ContestListPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
 
-  const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
+  const {
+    data: contestData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetContestListQuery({
     page,
     pageSize: rowsPerPage,
     status: statusFilter === "all" ? "all" : statusFilter,
@@ -63,10 +77,12 @@ export default function ContestListPage() {
     name: searchTerm || undefined,
   });
 
-
   const [publishContest] = usePublishContestMutation();
   const [changeVisibility] = useChangeVisibilityMutation();
   const [deleteContest] = useDeleteContestMutation();
+  const [remixContest] = useRemixContestMutation();
+  const [archiveContest] = useArchiveContestMutation();
+  const [createVirtualContest] = useCreateVirtualContestMutation();
 
   const handlePublishToggle = async (id: string) => {
     try {
@@ -74,28 +90,111 @@ export default function ContestListPage() {
       toast.success("Cập nhật trạng thái hiển thị thành công");
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || "Không thể cập nhật trạng thái hiển thị");
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể cập nhật trạng thái hiển thị"
+      );
     }
   };
-  const handleChangeVisibility = async (id: string, visibility: string) => {
+
+  const handleRemix = async (id: string) => {
+    const toastId = toast.loading("Đang remix contest...");
     try {
-      await changeVisibility({ id, body: { visibilityCode: visibility } }).unwrap();
-      toast.success(`Chuyển sang chế độ ${visibility.toUpperCase()} thành công`);
+      const res = await remixContest(id).unwrap();
+      toast.success("Remix contest thành công", { id: toastId });
+      if (res.data) {
+        router.push(`/Management/Contest/${res.data}/edit?mode=remix`);
+      }
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể remix contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    const toastId = toast.loading("Đang archive contest...");
+    try {
+      await archiveContest(id).unwrap();
+      toast.success("Đã đưa contest vào kho lưu trữ", { id: toastId });
+      refetch();
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể archive contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleCreateVirtual = async (id: string) => {
+    const toastId = toast.loading("Đang tạo virtual contest...");
+    try {
+      const res = await createVirtualContest(id).unwrap();
+      toast.success("Tạo virtual contest thành công", { id: toastId });
+      if (res.data) {
+        router.push(`/Management/Contest/${res.data}/edit?mode=virtual`);
+      }
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể tạo virtual contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleChangeVisibility = async (id: string, visibility: string) => {
+    try {
+      await changeVisibility({
+        id,
+        body: { visibilityCode: visibility },
+      }).unwrap();
+      toast.success(
+        `Chuyển sang chế độ ${visibility.toUpperCase()} thành công`
+      );
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`
+      );
     }
   };
 
   const handleDeleteContest = async (id: string, title: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa cuộc thi "${title}" không? Hành động này không thể hoàn tác.`)) {
+    if (
+      window.confirm(
+        `Bạn có chắc chắn muốn xóa cuộc thi "${title}" không? Hành động này không thể hoàn tác.`
+      )
+    ) {
       try {
         await deleteContest(id).unwrap();
         toast.success("Xóa cuộc thi thành công");
         refetch();
       } catch (error) {
         const err = error as ErrorForm;
-        toast.error(err?.data?.data?.message || "Không thể xóa cuộc thi");
+        toast.error(
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Không thể xóa cuộc thi"
+        );
       }
     }
   };
@@ -496,27 +595,45 @@ export default function ContestListPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onPress={() =>
-                          router.push(`/Management/Contest/${c.id}/remix`)
-                        }
+                        onPress={() => handleRemix(c.id)}
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <Copy size={16} />
                       </Button>
                     </Tooltip>
-                    <Tooltip
-                      content="Announcements"
-                      className="font-bold text-[10px]"
-                    >
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                    {new Date(c.endAt) <= new Date() && (
+                      <Tooltip
+                        content="Create Virtual Contest"
+                        className="font-bold text-[10px]"
                       >
-                        <Megaphone size={16} />
-                      </Button>
-                    </Tooltip>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onPress={() => handleCreateVirtual(c.id)}
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-purple-600 dark:hover:text-[#A855F7] transition-all rounded-lg h-9 w-9"
+                        >
+                          <Zap size={16} />
+                        </Button>
+                      </Tooltip>
+                    )}
+                    {c.visibilityCode?.toLowerCase() === "private" &&
+                      new Date(c.endAt) <= new Date() && (
+                        <Tooltip
+                          content="Archive Contest"
+                          className="font-bold text-[10px]"
+                        >
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            onPress={() => handleArchive(c.id)}
+                            className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-amber-600 dark:hover:text-[#F59E0B] transition-all rounded-lg h-9 w-9"
+                          >
+                            <Archive size={16} />
+                          </Button>
+                        </Tooltip>
+                      )}
                     <Tooltip
                       content="Download Data"
                       className="font-bold text-[10px]"

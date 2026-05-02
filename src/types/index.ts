@@ -1065,6 +1065,24 @@ export interface UpdateContestResponse {
   message: string;
 }
 
+export interface RemixContestResponse {
+  success: boolean;
+  message: string;
+  data: string;
+}
+
+export interface ArchiveContestResponse {
+  success: boolean;
+  message: string;
+  data: boolean;
+}
+
+export interface CreateVirtualContestResponse {
+  success: boolean;
+  message: string;
+  data: string;
+}
+
 export interface ChangeVisibilityRequest {
   visibilityCode: "public" | "private" | "hidden" | string;
 }

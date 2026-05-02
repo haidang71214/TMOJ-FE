@@ -55,6 +55,9 @@ import {
   Globe,
   EyeOff,
   ChevronDown,
+  Copy,
+  Archive,
+  Zap,
 } from "lucide-react";
 import {
   ADMIN_H1, ADMIN_SUBTITLE,
@@ -66,8 +69,11 @@ import {
   useChangeVisibilityMutation,
   useCreateContestMutation,
   useUpdateContestMutation,
+  useRemixContestMutation,
+  useArchiveContestMutation,
+  useCreateVirtualContestMutation,
 } from "@/store/queries/Contest";
-import { CreateContestRequest, ContestDto } from "@/types";
+import { CreateContestRequest, ContestDto, ErrorForm } from "@/types";
 import { addToast } from "@heroui/toast";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "@/app/components/ExtendTimeModal";
@@ -104,6 +110,68 @@ export default function ContestManagementPage() {
   const [changeVisibility] = useChangeVisibilityMutation();
   const [createContest] = useCreateContestMutation();
   const [updateContest] = useUpdateContestMutation();
+  const [remixContest] = useRemixContestMutation();
+  const [archiveContest] = useArchiveContestMutation();
+  const [createVirtualContest] = useCreateVirtualContestMutation();
+
+  const handleRemix = async (id: string) => {
+    try {
+      const res = await remixContest(id).unwrap();
+      addToast({ title: "Contest remixed successfully", color: "success" });
+      if (res.data) {
+        // Redirect to edit page with mode
+        router.push(`/Management/Contest/${res.data}/edit?mode=remix`);
+      }
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({
+        title:
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Failed to remix contest",
+        color: "danger",
+      });
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    try {
+      await archiveContest(id).unwrap();
+      addToast({ title: "Contest archived successfully", color: "success" });
+      refetch();
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({
+        title:
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Failed to archive contest",
+        color: "danger",
+      });
+    }
+  };
+
+  const handleCreateVirtual = async (id: string) => {
+    try {
+      const res = await createVirtualContest(id).unwrap();
+      addToast({
+        title: "Virtual contest created successfully",
+        color: "success",
+      });
+      if (res.data) {
+        router.push(`/Management/Contest/${res.data}/edit?mode=virtual`);
+      }
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({
+        title:
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Failed to create virtual contest",
+        color: "danger",
+      });
+    }
+  };
 
   const items = data?.data?.items || [];
 
@@ -185,7 +253,11 @@ export default function ContestManagementPage() {
       }
       setIsOpen(false);
     } catch (error) {
-      addToast({ title: "Operation failed", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({
+        title: err?.data?.data?.message || err?.data?.message || "Operation failed",
+        color: "danger",
+      });
     }
   };
 
@@ -195,16 +267,31 @@ export default function ContestManagementPage() {
       await deleteContest(id).unwrap();
       addToast({ title: "Deleted contest successfully", color: "success" });
     } catch (error) {
-      addToast({ title: "Failed to delete contest", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({
+        title:
+          err?.data?.data?.message || err?.data?.message || "Failed to delete contest",
+        color: "danger",
+      });
     }
   };
 
   const handleChangeVisibility = async (id: string, visibilityCode: string) => {
     try {
       await changeVisibility({ id, body: { visibilityCode } }).unwrap();
-      addToast({ title: `Visibility changed to ${visibilityCode.toUpperCase()}`, color: "success" });
+      addToast({
+        title: `Visibility changed to ${visibilityCode.toUpperCase()}`,
+        color: "success",
+      });
     } catch (error) {
-      addToast({ title: "Failed to change visibility", color: "danger" });
+      const err = error as ErrorForm;
+      addToast({
+        title:
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Failed to change visibility",
+        color: "danger",
+      });
     }
   };
 
@@ -493,6 +580,28 @@ export default function ContestManagementPage() {
                     <Tooltip content="Download Data" className="font-bold text-[10px]">
                       <button className={iconBtnGhost}><Download size={15} /></button>
                     </Tooltip>
+
+                    <Tooltip content="Remix Contest" className="font-bold text-[10px]">
+                      <button className={iconBtnGhost} onClick={() => handleRemix(c.id)}>
+                        <Copy size={15} />
+                      </button>
+                    </Tooltip>
+
+                    {new Date(c.endAt) <= new Date() && (
+                      <Tooltip content="Create Virtual Contest" className="font-bold text-[10px]">
+                        <button className={iconBtnGhost} onClick={() => handleCreateVirtual(c.id)}>
+                          <Zap size={15} style={{ color: "#A855F7" }} />
+                        </button>
+                      </Tooltip>
+                    )}
+
+                    {c.visibilityCode?.toLowerCase() === "private" && new Date(c.endAt) <= new Date() && (
+                      <Tooltip content="Archive Contest" className="font-bold text-[10px]">
+                        <button className={iconBtnGhost} onClick={() => handleArchive(c.id)}>
+                          <Archive size={15} style={{ color: "#F59E0B" }} />
+                        </button>
+                      </Tooltip>
+                    )}
 
                     <Tooltip content="Delete" color="danger" className="font-bold text-[10px]">
                       <button

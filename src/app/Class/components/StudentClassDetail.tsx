@@ -55,7 +55,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
   const { data: classDetailResponse } = useGetClassDetailQuery({ id: semesterId });
   const classItem = classDetailResponse?.data;
   const currentInstance = classItem?.instances?.find((inst: any) => inst.classSemesterId === semesterId);
-  
+
   const slots = slotData?.data ?? [];
 
 
@@ -119,34 +119,66 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                     <div
                       className="p-6 flex items-center justify-between group"
                       onClick={() => {
-                        if (!slot.isPublished) {
+                        const now = new Date();
+                        const isLocked = slot.openAt && new Date(slot.openAt) > now;
+                        const isClosed = slot.closeAt && new Date(slot.closeAt) < now;
+                        const isUnpublished = !slot.isPublished;
+
+                        if (isUnpublished) {
                           addToast({
-                            title: language === 'vi' 
-                              ? 'Bạn phải đợi giảng viên mở bài kiểm tra này!' 
+                            title: language === 'vi'
+                              ? 'Bạn phải đợi giảng viên mở bài kiểm tra này!'
                               : 'Please wait for the teacher to open this exam!',
                             color: "warning"
                           });
                           return;
                         }
+
+                        if (isLocked) {
+                          addToast({
+                            title: language === 'vi'
+                              ? `Bài kiểm tra chưa mở! Sẽ mở vào ${new Date(slot.openAt!).toLocaleString()}`
+                              : `Exam not open yet! Will open at ${new Date(slot.openAt!).toLocaleString()}`,
+                            color: "warning"
+                          });
+                          return;
+                        }
+
+                        if (isClosed) {
+                          addToast({
+                            title: language === 'vi'
+                              ? 'Bài kiểm tra này đã kết thúc và bị khóa!'
+                              : 'This exam has ended and is locked!',
+                            color: "danger"
+                          });
+                          return;
+                        }
+
                         setExpandedSlot(
                           expandedSlot === slot.id ? null : slot.id
                         )
                       }}
                     >
                       <div className="flex items-center gap-5">
-                        <div
-                          className={`p-4 rounded-2xl ${
-                            slot.isPublished
-                              ? "bg-emerald-500/10 text-emerald-500"
-                              : "bg-slate-500/10 text-slate-400"
-                          }`}
-                        >
-                          {slot.isPublished ? (
-                            <CheckCircle2 size={22} />
-                          ) : (
-                            <Lock size={22} />
-                          )}
-                        </div>
+                        {(() => {
+                          const now = new Date();
+                          const isLocked = slot.openAt && new Date(slot.openAt) > now;
+                          const isClosed = slot.closeAt && new Date(slot.closeAt) < now;
+                          const isUnpublished = !slot.isPublished;
+
+                          if (isUnpublished || isLocked || isClosed) {
+                            return (
+                              <div className="p-4 rounded-2xl bg-slate-500/10 text-slate-400">
+                                <Lock size={22} />
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
+                              <CheckCircle2 size={22} />
+                            </div>
+                          );
+                        })()}
                         <div>
                           <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors">
                             Exam {slot.slotNo}: {slot.title}
@@ -158,11 +190,10 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                       </div>
                       <ChevronDown
                         size={20}
-                        className={`text-slate-300 transition-transform ${
-                          expandedSlot === slot.id
+                        className={`text-slate-300 transition-transform ${expandedSlot === slot.id
                             ? "rotate-180 text-[#FF5C00]"
                             : ""
-                        }`}
+                          }`}
                       />
                     </div>
 
@@ -175,35 +206,35 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                               <Code2 size={14} /> Practice Problems
                             </p>
                             {slot.problems && slot.problems.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-3">
-                              {slot.problems.map((p) => (
-                                <button
-                                  key={p.problemId}
-                                  onClick={() =>
-                                    router.push(`/Examination/${p.problemId}?classSlotId=${slot.id}`)
-                                  }
-                                  className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0A0F1C]/40 border border-slate-100 dark:border-white/5 hover:border-blue-600 transition-all text-left group"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                                      <Rocket size={14} />
+                              <div className="grid grid-cols-1 gap-3">
+                                {slot.problems.map((p) => (
+                                  <button
+                                    key={p.problemId}
+                                    onClick={() =>
+                                      router.push(`/Examination/${p.problemId}?classSlotId=${slot.id}`)
+                                    }
+                                    className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0A0F1C]/40 border border-slate-100 dark:border-white/5 hover:border-blue-600 transition-all text-left group"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                                        <Rocket size={14} />
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-black uppercase italic group-hover:text-blue-600">
+                                          {p.problemTitle}
+                                        </p>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase">
+                                          {p.points ?? 0} pts • {p.isRequired ? "Required" : "Optional"}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-xs font-black uppercase italic group-hover:text-blue-600">
-                                        {p.problemTitle}
-                                      </p>
-                                      <span className="text-[9px] font-bold text-slate-400 uppercase">
-                                        {p.points ?? 0} pts • {p.isRequired ? "Required" : "Optional"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <ExternalLink
-                                    size={14}
-                                    className="text-slate-300 group-hover:text-blue-600 transition-colors"
-                                  />
-                                </button>
-                              ))}
-                            </div>
+                                    <ExternalLink
+                                      size={14}
+                                      className="text-slate-300 group-hover:text-blue-600 transition-colors"
+                                    />
+                                  </button>
+                                ))}
+                              </div>
                             ) : (
                               <p className="text-xs text-slate-400 italic">No problems assigned yet.</p>
                             )}
@@ -231,9 +262,9 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
           <Tab key="ranking" title={t('class_semester.ranking') || "Class Ranking"}>
             <div className="mt-8">
               {classId !== "Unknown" ? (
-                <ClassTotalRanking 
-                  classId={classId} 
-                  semesterId={semesterId} 
+                <ClassTotalRanking
+                  classId={classId}
+                  semesterId={semesterId}
                 />
               ) : (
                 <div className="flex justify-center py-20">
@@ -251,7 +282,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                   <Spinner />
                 </div>
               )}
-              
+
               {!isLoadingContests && (!contestsData?.data || contestsData.data.length === 0) && (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up">
                   <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-full mb-4">
@@ -265,8 +296,8 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
               {!isLoadingContests && contestsData?.data && contestsData.data.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {contestsData.data.map((contest: any, idx: number) => (
-                    <Card 
-                      key={contest.contestId} 
+                    <Card
+                      key={contest.contestId}
                       className="bg-white dark:bg-[#111827] rounded-[2rem] shadow-sm border border-transparent hover:border-[#FF5C00]/30 transition-all animate-fade-in-up"
                       style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
                     >
@@ -280,9 +311,9 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                               <h4 className="font-black text-lg uppercase italic group-hover:text-[#FF5C00] transition-colors line-clamp-1" title={contest.title}>
                                 {contest.title}
                               </h4>
-                              <Chip 
-                                size="sm" 
-                                variant="flat" 
+                              <Chip
+                                size="sm"
+                                variant="flat"
                                 color={contest.isActive ? "success" : "default"}
                                 className="font-black tracking-widest text-[9px] uppercase h-5 mt-1"
                               >
@@ -314,9 +345,9 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Participants</span>
                             </div>
                           </div>
-                          
-                          <Button 
-                            color="primary" 
+
+                          <Button
+                            color="primary"
                             variant="flat"
                             className="font-bold uppercase tracking-wider text-[11px] rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10"
                             onPress={() => router.push(`/ContestSlotExamintion/${semesterId}/Contest/${contest.contestId}`)}

@@ -13,18 +13,42 @@ import {
   AdminOrdersResponse,
 } from "@/types/store";
 
-const normalizeStoreItem = (item: any): StoreItem => ({
-  itemId: item.itemId || item.ItemId,
-  name: item.name || item.Name,
-  description: item.description || item.Description,
-  itemType: item.itemType || item.ItemType,
-  priceCoin: item.priceCoin !== undefined ? item.priceCoin : item.PriceCoin,
-  imageUrl: item.imageUrl || item.ImageUrl,
-  durationDays: item.durationDays !== undefined ? item.durationDays : item.DurationDays,
-  stockQuantity: item.stockQuantity !== undefined ? item.stockQuantity : item.StockQuantity,
-  metaJson: typeof item.metaJson === 'string' ? JSON.parse(item.metaJson) : (item.metaJson || item.MetaJson),
-  isActive: item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : (item.active !== undefined ? item.active : true)),
-});
+const normalizeStoreItem = (item: any): StoreItem => {
+  const rawType = item.itemType || item.ItemType || item.item_type || "";
+  // Chuẩn hóa type thành string lowercase hoặc mapping từ số nếu cần
+  let itemType = String(rawType).toLowerCase();
+  if (rawType === 3 || rawType === "3") itemType = "physical_item";
+
+  return {
+    itemId: item.itemId || item.ItemId,
+    name: item.name || item.Name,
+    description: item.description || item.Description,
+    itemType: itemType as any,
+    priceCoin: item.priceCoin !== undefined ? item.priceCoin : item.PriceCoin,
+    imageUrl: item.imageUrl || item.ImageUrl,
+    durationDays: item.durationDays !== undefined ? item.durationDays : item.DurationDays,
+    stockQuantity: item.stockQuantity !== undefined ? item.stockQuantity : item.StockQuantity,
+    metaJson: typeof item.metaJson === 'string' ? JSON.parse(item.metaJson) : (item.metaJson || item.MetaJson),
+    isActive: item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : (item.active !== undefined ? item.active : true)),
+  };
+};
+
+const normalizeCartItem = (item: any): CartItem => {
+  const rawType = item.itemType || item.ItemType || item.item_type || "";
+  let itemType = String(rawType).toLowerCase();
+  if (rawType === 3 || rawType === "3") itemType = "physical_item";
+
+  return {
+    cartItemId: item.cartItemId || item.CartItemId,
+    itemId: item.itemId || item.ItemId,
+    name: item.name || item.Name,
+    imageUrl: item.imageUrl || item.ImageUrl,
+    priceCoin: item.priceCoin !== undefined ? item.priceCoin : item.PriceCoin,
+    quantity: item.quantity !== undefined ? item.quantity : item.Quantity,
+    totalPrice: item.totalPrice !== undefined ? item.totalPrice : item.TotalPrice,
+    itemType: itemType as any,
+  };
+};
 
 export const storeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -130,7 +154,8 @@ export const storeApi = baseApi.injectEndpoints({
     // CART APIs
     getCart: builder.query<CartItem[], void>({
       query: () => StoreEndpoint.CART,
-      transformResponse: (response: StoreResponse<CartItem[]>) => response.data || [],
+      transformResponse: (response: StoreResponse<any[]>) =>
+        (response.data || []).map(normalizeCartItem),
       providesTags: ["Cart"],
     }),
     addToCart: builder.mutation<void, AddToCartRequest>({

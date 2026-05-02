@@ -25,6 +25,9 @@ import {
   ScoreboardResponseDTO,
   ScoreboardResponse,
   SubmitContestPublicRequest,
+  RemixContestResponse,
+  ArchiveContestResponse,
+  CreateVirtualContestResponse,
 } from "@/types";
 
 export const contestApi = baseApi.injectEndpoints({
@@ -263,6 +266,30 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
+    // 30. Remix Contest
+    remixContest: builder.mutation<RemixContestResponse, string>({
+      query: (id) => ({
+        url: ContestEndpoint.REMIX.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 31. Archive Contest
+    archiveContest: builder.mutation<ArchiveContestResponse, string>({
+      query: (contestId) => ({
+        url: ContestEndpoint.ARCHIVE.replace("{contestId}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 32. Create Virtual Contest
+    createVirtualContest: builder.mutation<CreateVirtualContestResponse, string>({
+      query: (contestId) => ({
+        url: ContestEndpoint.VIRTUAL.replace("{contestId}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
   }),
 });
 
@@ -290,4 +317,7 @@ export const {
   useGetScoreboardQuery,
   useFreezeContestMutation,
   useUnfreezeContestMutation,
+  useRemixContestMutation,
+  useArchiveContestMutation,
+  useCreateVirtualContestMutation,
 } = contestApi;

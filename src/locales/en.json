@@ -419,7 +419,7 @@
     "completed": "COMPLETED",
     "keep_going": "Keep going! Complete the next challenge to increase your progress.",
     "reset_progress": "Reset Progress",
-    "complete_all_to_reset": "Complete all challenges to reset",
+    "complete_all_to_reset": "You can reset progress after completing all challenges",
     "learning_stats": "Learning Stats",
     "duration": "Duration",
     "self_paced": "Self-paced",

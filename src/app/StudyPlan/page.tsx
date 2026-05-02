@@ -30,6 +30,8 @@ import { useRouter } from "next/navigation";
 import { StudyPlan, UserRole } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAppSelector } from "@/utils/redux";
+import { useModal } from "@/Provider/ModalProvider";
+import LoginModal from "@/app/Modal/LoginModal";
 
 type SortOption = "default" | "learners" | "price_asc" | "price_desc" | "name_asc";
 type PriceFilter = "all" | "free" | "paid";
@@ -38,6 +40,7 @@ export default function StudyPlanPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const router = useRouter();
   const { t } = useTranslation();
+  const { openModal } = useModal();
 
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -233,7 +236,7 @@ export default function StudyPlanPage() {
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <button
-                onClick={() => router.push("/auth/login")}
+                onClick={() => openModal({ title: t("common.login") || "Đăng nhập", content: <LoginModal /> })}
                 className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#FF5C00] hover:bg-[#e05200] text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-lg shadow-[#FF5C00]/30 hover:shadow-xl hover:shadow-[#FF5C00]/40 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <LogIn size={16} strokeWidth={3} />

@@ -448,7 +448,10 @@ export default function UpcomingContests() {
                             ? "bg-[#FF5C00] text-white shadow-lg shadow-[#FF5C00]/20 hover:scale-105"
                             : "hover:bg-[#00FF41] hover:text-[#071739]"
                             }`}
-                          onPress={() => router.push(`/Contest/${contest.id}`)}
+                          onPress={() => {
+                            const targetId = contest.id || (contest as any).contestId;
+                            router.push(`/Contest/${targetId}`);
+                          }}
                         >
                           {isRunning ? "Enter Contest" : "View"}
                         </Button>
@@ -490,7 +493,10 @@ export default function UpcomingContests() {
                       variant="flat"
                       size="sm"
                       className="font-black italic uppercase text-[10px] rounded-lg h-9 px-6 transition-all duration-300 hover:bg-[#FF5C00] hover:text-white"
-                      onPress={() => router.push(`/Contest/${contest.id}/ranking`)}
+                      onPress={() => {
+                        const targetId = contest.id || (contest as any).contestId;
+                        router.push(`/Contest/${targetId}/ranking`);
+                      }}
                     >
                       Results
                     </Button>

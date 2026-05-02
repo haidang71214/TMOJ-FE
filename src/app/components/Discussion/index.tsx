@@ -223,7 +223,6 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
 
         const isOwner = myIds.length > 0 && myIds.some(id => cOwnerIds.includes(id));
 
-        if (c.isHidden && !isOwner) return false;
         return true;
       })
       .map((c) => {

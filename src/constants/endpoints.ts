@@ -172,6 +172,8 @@ const DiscussionEndpoint = {
   DELETE_COMMENT: `${API_PREFIX}/comments/{id}`,
   VOTE_COMMENT: `${API_PREFIX}/comments/{id}/vote`,
   HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
+  CHANGE_VISIBILITY: `${API_PREFIX}/discussions/{id}/visibility`,
+  GET_HISTORY: `${API_PREFIX}/discussions/me/history`,
 };
 const TagEndpoint = {
   GET_TAGS: `${API_LON}/Problems/tags`,
@@ -359,7 +361,12 @@ const AiEndpoint = {
   GENERATE_EDITORIAL: `${API_LON}/problems/{problemId}/ai/editorial-drafts`,
 };
 
+const DashboardEndpoint = {
+  STATS: `${API_PREFIX}/dashboard/stats`,
+};
+
 export {
+  DashboardEndpoint,
   RankingEndpoint,
   ProblemTemplateEndPoint,
   ClassSlotEndpoint,

@@ -702,6 +702,7 @@ export interface DiscussionCommentItem {
   content: string;
   createdAt: string;
   updatedAt?: string;
+  isHidden: boolean;
   children: DiscussionCommentItem[];
 }
 
@@ -719,6 +720,7 @@ export interface DiscussionItem {
   updatedAt?: string;
   voteCount: number;
   userVote: number;
+  isHidden: boolean;
   comments: DiscussionCommentItem[];
 }
 
@@ -757,6 +759,7 @@ export interface DiscussionCommentDetail {
   updatedAt?: string;
   voteCount: number;
   userVote: number;
+  isHidden: boolean;
   replies: DiscussionCommentDetail[];
 }
 
@@ -809,6 +812,57 @@ export interface VoteDiscussionRequest {
   id: string;
   voteType: number;
 }
+
+// ── Dashboard API Definitions ───────────────────────
+
+export interface DashboardSummary {
+  totalUsers: number;
+  activeContests: number;
+  monthlyRevenue: number;
+  submissionsToday: number;
+  userGrowthPercentage: number;
+  revenueGrowthPercentage: number;
+}
+
+export interface UserGrowthData {
+  label: string;
+  value: number;
+}
+
+export interface RevenueByPackageData {
+  packageName: string;
+  revenue: number;
+}
+
+export interface SubmissionStatsData {
+  accepted: number;
+  wrongAnswer: number;
+  timeLimitExceeded: number;
+  compileError: number;
+  runtimeError: number;
+  others: number;
+}
+
+export interface DashboardAlert {
+  type: "info" | "warning" | "success" | "error";
+  message: string;
+  detail: string;
+}
+
+export interface DashboardStatsData {
+  summary: DashboardSummary;
+  userGrowth: UserGrowthData[];
+  revenueByPackage: RevenueByPackageData[];
+  submissionStats: SubmissionStatsData;
+  alerts: DashboardAlert[];
+}
+
+export interface DashboardStatsResponse {
+  data: DashboardStatsData;
+  message: string;
+  traceId: string | null;
+}
+
 export interface UpdateSlotProblemRequest {
   problemId: string;
   ordinal: number;

@@ -31,7 +31,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 type SortOption = "default" | "learners" | "price_asc" | "price_desc" | "name_asc";
 type PriceFilter = "all" | "free" | "paid";
-type UnlockFilter = "all" | "unlocked" | "locked";
 
 export default function StudyPlanPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -41,7 +40,6 @@ export default function StudyPlanPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
-  const [unlockFilter, setUnlockFilter] = useState<UnlockFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
   const { data: user } = useGetUserInformationQuery();
@@ -133,9 +131,6 @@ export default function StudyPlanPage() {
     if (priceFilter === "free") base = base.filter((p) => !p.isPaid);
     if (priceFilter === "paid") base = base.filter((p) => p.isPaid);
 
-    // Unlock filter
-    if (unlockFilter === "unlocked") base = base.filter((p) => p.isUnlocked);
-    if (unlockFilter === "locked") base = base.filter((p) => !p.isUnlocked);
 
     // Sort
     switch (sortBy) {
@@ -145,14 +140,13 @@ export default function StudyPlanPage() {
       case "name_asc": return [...base].sort((a, b) => a.title.localeCompare(b.title));
       default: return base;
     }
-  }, [studyPlans, unlockedPlans, myProgress, activeTab, searchQuery, priceFilter, unlockFilter, sortBy, tabs]);
+  }, [studyPlans, unlockedPlans, myProgress, activeTab, searchQuery, priceFilter, sortBy, tabs]);
 
-  const hasActiveFilters = !!searchQuery || priceFilter !== "all" || unlockFilter !== "all" || sortBy !== "default";
+  const hasActiveFilters = !!searchQuery || priceFilter !== "all" || sortBy !== "default";
 
   const clearFilters = () => {
     setSearchQuery("");
     setPriceFilter("all");
-    setUnlockFilter("all");
     setSortBy("default");
   };
 
@@ -162,11 +156,6 @@ export default function StudyPlanPage() {
     paid: t("studyplan_page.filter_paid") || "Paid",
   };
 
-  const unlockLabels: Record<UnlockFilter, string> = {
-    all: t("studyplan_page.filter_all_access") || "All Access",
-    unlocked: t("studyplan_page.filter_unlocked") || "Unlocked",
-    locked: t("studyplan_page.filter_locked") || "Locked",
-  };
 
   const resultCount = filteredPlans.length;
   const resultLabel = resultCount === 1
@@ -177,9 +166,9 @@ export default function StudyPlanPage() {
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#06080F] font-sans flex relative transition-colors duration-500">
       <aside
         className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0D121F] sticky top-0 h-screen overflow-hidden shrink-0 z-40
-          ${isSidebarOpen ? "w-[280px]" : "w-0 border-none"}`}
+          ${isSidebarOpen ? "w-[260px]" : "w-0 border-none"}`}
       >
-        <div className="w-[280px] p-8 pr-4 h-full flex flex-col">
+        <div className="w-[260px] p-6 pr-2 h-full flex flex-col">
           <Sidebar />
         </div>
       </aside>
@@ -187,7 +176,7 @@ export default function StudyPlanPage() {
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`fixed top-1/2 -translate-y-1/2 z-50 w-10 h-10 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center shadow-2xl text-slate-400 hover:text-[#FF5C00] transition-all duration-500 cursor-pointer hover:scale-110
-          ${isSidebarOpen ? "left-[260px]" : "left-6"}`}
+          ${isSidebarOpen ? "left-[244px]" : "left-6"}`}
       >
         {isSidebarOpen ? <ChevronLeft size={20} strokeWidth={3} /> : <ChevronRight size={20} strokeWidth={3} />}
       </button>
@@ -287,21 +276,6 @@ export default function StudyPlanPage() {
                 </button>
               ))}
 
-              <div className="w-px h-4 bg-slate-200 dark:bg-white/10" />
-
-              {/* Unlock chips */}
-              {(["all", "unlocked", "locked"] as UnlockFilter[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setUnlockFilter(f)}
-                  className={`px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border
-                    ${unlockFilter === f
-                      ? "bg-[#071739] dark:bg-white text-white dark:text-[#071739] border-[#071739] dark:border-white shadow-sm"
-                      : "bg-white dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/10 hover:border-slate-400 hover:text-slate-600"}`}
-                >
-                  {unlockLabels[f]}
-                </button>
-              ))}
 
               {hasActiveFilters && (
                 <button

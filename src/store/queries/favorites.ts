@@ -1,6 +1,6 @@
 import { FavoriteEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { ProblemListResponse, FavoriteToggleResponse, FavoriteCheckResponse } from "@/types";
+import { FavoriteToggleResponse, FavoriteCheckResponse, ProblemListResponse } from "@/types";
 
 export const favoriteApi = baseApi.injectEndpoints({
   overrideExisting: true,
@@ -10,14 +10,14 @@ export const favoriteApi = baseApi.injectEndpoints({
         url: FavoriteEndpoint.TOGGLE_PROBLEM.replace("{problemId}", problemId),
         method: "POST",
       }),
-      invalidatesTags: ["Problem", "Favorites"],
+      invalidatesTags: ["Problem", "Favorites","CollectionDetail","Collections"],
     }),
-    toggleContestFavorite: builder.mutation<FavoriteToggleResponse, string>({
+    toggleContestFavorite: builder.mutation<any, string>({
       query: (contestId) => ({
         url: FavoriteEndpoint.TOGGLE_CONTEST.replace("{contestId}", contestId),
         method: "POST",
       }),
-      invalidatesTags: ["Contest", "Favorites"],
+      invalidatesTags: ["Contest", "Favorites","CollectionDetail","Collections"],
     }),
     checkFavorite: builder.query<FavoriteCheckResponse, { problemId?: string; contestId?: string }>({
       query: (params) => ({

@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, use } from "react";
 import {
-  Card,
-  CardBody,
   Avatar,
   Chip,
   Spinner,
@@ -123,15 +121,18 @@ export default function ClassMembersPage({
           {filteredMembers
             .slice((page - 1) * rowsPerPage, page * rowsPerPage)
             .map((member: ClassMemberResponse) => (
-              <Card
+              <div
                 key={member.userId}
+                role="button"
+                tabIndex={0}
+                onClick={() => openModal({ size: "2xl", content: <StudentDetailModal studentId={member.userId} /> })}
+                onKeyDown={(e) => e.key === "Enter" && openModal({ size: "2xl", content: <StudentDetailModal studentId={member.userId} /> })}
                 className="group relative bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/50 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500 transform hover:-translate-y-1 w-full text-left overflow-hidden cursor-pointer"
-                onClick={() => openModal({ content: <StudentDetailModal studentId={member.userId} /> })}
               >
                 {/* Dải sáng màu cam ở viền trái khi hover */}
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-400 to-[#FF5C00] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                <CardBody className="flex flex-row items-center justify-between py-6 px-5 bg-transparent overflow-hidden z-10">
+                <div className="flex flex-row items-center justify-between py-6 px-5 overflow-hidden z-10">
 
                   {/* LEFT */}
                   <div className="flex items-center gap-5">
@@ -203,8 +204,8 @@ export default function ClassMembersPage({
                       <ChevronRight size={18} strokeWidth={3} />
                     </div>
                   </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
             ))}
         </div>
 

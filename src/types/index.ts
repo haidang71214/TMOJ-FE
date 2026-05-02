@@ -922,6 +922,7 @@ export interface ContestProblemDto {
   problemId: string;
   problemTitle?: string;
   alias?: string;
+  title?:string;
   ordinal?: number;
   displayIndex?: number;
   points?: number;

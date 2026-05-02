@@ -158,6 +158,62 @@ export interface ProblemListResponse {
   message: string | null;
   traceId: string;
 }
+
+export interface ProblemSolvedStats {
+  userId: string;
+  visibilityCode: string | null;
+  solvedSourceCode: string | null;
+  totalSolved: number;
+  byVisibility: {
+    code: string;
+    count: number;
+  }[];
+  bySource: {
+    code: string;
+    count: number;
+  }[];
+}
+
+export interface ProblemSolvedStatsResponse {
+  data: ProblemSolvedStats;
+  message: string | null;
+  traceId: string;
+}
+
+export interface SolvedProblemItem {
+  problemId: string;
+  slug: string;
+  title: string;
+  difficulty: string;
+  typeCode: string | null;
+  visibilityCode: string;
+  statusCode: string;
+  problemMode: string | null;
+  problemSource: string | null;
+  acceptedSubmissionsCount: number;
+  firstSolvedAt: string;
+  lastSolvedAt: string;
+  solvedSourceCodes: string[];
+  bestSubmissionId: string;
+  bestTimeMs: number | null;
+  bestMemoryKb: number | null;
+}
+
+export interface ProblemSolvedListData {
+  userId: string;
+  visibilityCode: string | null;
+  solvedSourceCode: string | null;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  items: SolvedProblemItem[];
+}
+
+export interface ProblemSolvedListResponse {
+  data: ProblemSolvedListData;
+  message: string | null;
+  traceId: string;
+}
 export interface CreateProblemDraftRequest {
   slug: string;
   title: string;

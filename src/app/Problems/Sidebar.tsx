@@ -97,6 +97,15 @@ export default function ProblemsSidebar() {
               Study Plan
             </span>
           </ListboxItem>
+          <ListboxItem
+            key="Solved"
+            startContent={<Target size={20} />}
+            className={getItemClasses("Solved")}
+          >
+            <span className="text-sm font-bold uppercase tracking-wider">
+              Solved
+            </span>
+          </ListboxItem>
         </Listbox>
       </div>
 

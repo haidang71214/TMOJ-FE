@@ -19,20 +19,34 @@ import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { Pagination } from "@heroui/react";
 import { useGetFavoriteProblemsQuery, useToggleProblemFavoriteMutation } from "@/store/queries/favorites";
 import { useGetTagsQuery } from "@/store/queries/Tags";
+import { useGetProblemSolvedStatsQuery, useGetProblemSolvedListQuery } from "@/store/queries/ProblemSolved";
 import { toast } from "sonner";
+import { CheckCircle2 } from "lucide-react";
+import { useAppSelector } from "@/utils/redux";
 
 export default function LibraryPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
 
   // API cho Like (trái tim)
-  const { data: favoriteData } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 1000 });
+  const { data: favoriteData } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 1000 }, { skip: !isAuthenticated });
   const [toggleFavorite] = useToggleProblemFavoriteMutation();
 
   // API cho Tags
   const { data: tags } = useGetTagsQuery();
+
+  // API cho Solved Stats
+  const { data: solvedStatsResponse } = useGetProblemSolvedStatsQuery(undefined, { skip: !isAuthenticated });
+  const solvedCount = solvedStatsResponse?.data?.totalSolved ?? 0;
+
+  // API cho danh sách bài đã giải
+  const { data: solvedListResponse } = useGetProblemSolvedListQuery({ page: 1, pageSize: 1000 }, { skip: !isAuthenticated });
+  const solvedProblemIds = useMemo(() => {
+    return new Set<string>((solvedListResponse?.data?.items || []).map(p => p.problemId));
+  }, [solvedListResponse]);
 
   const likedProblems = useMemo(() => {
     const rawData: any = favoriteData;
@@ -270,12 +284,12 @@ export default function LibraryPage() {
                 <div className="flex items-center gap-4 shrink-0 bg-white/40 dark:bg-[#1C2737]/30 p-4 rounded-2xl border border-[#A4B5C4]/10">
                   <div className="flex flex-col items-end w-40 text-right">
                     <span className="text-[10px] font-black text-[#4B6382] dark:text-[#FFB800] uppercase tracking-widest leading-none mb-2">
-                      0 / {totalCount} Solved
+                      {solvedCount} / {totalCount} Solved
                     </span>
                     <Progress
                       aria-label="Solved progress"
                       size="sm"
-                      value={0}
+                      value={totalCount > 0 ? (solvedCount / totalCount) * 100 : 0}
                       classNames={{
                         indicator: "bg-green-500 dark:bg-[#FFB800]",
                         track: "bg-gray-200 dark:bg-[#101828]",
@@ -297,6 +311,7 @@ export default function LibraryPage() {
                       key={`${searchQuery}-${selectedDifficulty}-${selectedTagId}`}
                       problems={problems}
                       likedProblems={likedProblems}
+                      solvedProblems={solvedProblemIds}
                       toggleLike={toggleLike}
                       page={page}
                       pageSize={10}

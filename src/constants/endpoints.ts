@@ -370,6 +370,11 @@ const DashboardEndpoint = {
   STATS: `${API_PREFIX}/dashboard/stats`,
 };
 
+const ProblemSolvedEndpoint = {
+  GET_ME_STATS: `${API_LON}/ProblemSolved/me/stats`,
+  GET_ME: `${API_LON}/ProblemSolved/me`,
+};
+
 export {
   DashboardEndpoint,
   RankingEndpoint,
@@ -404,4 +409,7 @@ export {
   StoreEndpoint,
   SettingsEndpoint,
   AiEndpoint,
+  ProblemSolvedEndpoint,
 };
+
+

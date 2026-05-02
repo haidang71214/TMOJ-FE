@@ -2,6 +2,7 @@
 import React from "react";
 import { Megaphone } from "lucide-react";
 import { useGetAnnouncementsQuery } from "@/store/queries/announcement";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface NewsFeedProps {
   announcements?: string[];
@@ -15,6 +16,7 @@ export default function NewsFeed({
   brandOrange = "#FF5C00",
 }: NewsFeedProps) {
   const { data: apiData } = useGetAnnouncementsQuery();
+  const { t } = useTranslation();
 
   const displayAnnouncements = React.useMemo(() => {
     if (manualAnnouncements) return manualAnnouncements;
@@ -42,7 +44,7 @@ export default function NewsFeed({
           style={{ color: brandOrange }}
           className="flex items-center gap-2 z-10 pr-4 shrink-0 font-black text-[10px] uppercase tracking-tighter italic"
         >
-          <Megaphone size={16} /> News Feed:
+          <Megaphone size={16} /> {t("home.news_feed.title") || "News Feed"}:
         </div>
         <div className="relative flex overflow-hidden w-full h-5 items-center font-bold italic text-[11px]">
           <div className="marquee-content flex items-center gap-20 absolute">

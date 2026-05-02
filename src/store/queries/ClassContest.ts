@@ -54,7 +54,7 @@ export const classContestApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["submittion", "ProblemDetail"],
+      invalidatesTags: ["submittion", "ProblemDetail", "Contest"],
     }),
   }),
 });

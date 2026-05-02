@@ -211,7 +211,7 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                                   <button
                                     key={p.problemId}
                                     onClick={() =>
-                                      router.push(`/Examination/${p.problemId}?classSlotId=${slot.id}`)
+                                      router.push(`/Examination/${p.problemId}?classSlotId=${slot.id}&classId=${classId}&classCode=${classCode}&semesterCode=${semesterCode}&semesterId=${semesterId}`)
                                     }
                                     className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0A0F1C]/40 border border-slate-100 dark:border-white/5 hover:border-blue-600 transition-all text-left group"
                                   >

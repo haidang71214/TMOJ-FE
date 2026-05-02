@@ -1,4 +1,4 @@
-import { ContestEndpoint } from "@/constants/endpoints";
+import { ContestEndpoint, ClassEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
   AddProblemToContestRequest,
@@ -263,6 +263,49 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
+    // 30. Cập nhật bài tập trong Class Contest
+    updateClassContestProblem: builder.mutation<
+      any,
+      { classSemesterId: string; contestId: string; contestProblemId: string; body: { alias?: string; ordinal?: number; points?: number; maxScore?: number; timeLimitMs?: number; memoryLimitKb?: number } }
+    >({
+      query: ({ classSemesterId, contestId, contestProblemId, body }) => ({
+        url: ClassEndpoint.UPDATE_CLASS_CONTEST_PROBLEM
+          .replace("{classSemesterId}", classSemesterId)
+          .replace("{contestId}", contestId)
+          .replace("{contestProblemId}", contestProblemId),
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
+    }),
+    // 31. Xóa bài tập khỏi Class Contest
+    deleteClassContestProblem: builder.mutation<
+      any,
+      { classSemesterId: string; contestId: string; contestProblemId: string }
+    >({
+      query: ({ classSemesterId, contestId, contestProblemId }) => ({
+        url: ClassEndpoint.DELETE_CLASS_CONTEST_PROBLEM
+          .replace("{classSemesterId}", classSemesterId)
+          .replace("{contestId}", contestId)
+          .replace("{contestProblemId}", contestProblemId),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
+    }),
+    // 32. Thêm bài tập vào Class Contest
+    addClassContestProblem: builder.mutation<
+      any,
+      { classSemesterId: string; contestId: string; body: { problemId: string; alias?: string; ordinal?: number; points?: number; maxScore?: number; timeLimitMs?: number; memoryLimitKb?: number } }
+    >({
+      query: ({ classSemesterId, contestId, body }) => ({
+        url: ClassEndpoint.ADD_PROBLEM_TO_CLASS_CONTEST
+          .replace("{classSemesterId}", classSemesterId)
+          .replace("{contestId}", contestId),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
+    }),
   }),
 });
 
@@ -290,4 +333,7 @@ export const {
   useGetScoreboardQuery,
   useFreezeContestMutation,
   useUnfreezeContestMutation,
+  useUpdateClassContestProblemMutation,
+  useDeleteClassContestProblemMutation,
+  useAddClassContestProblemMutation,
 } = contestApi;

@@ -12,7 +12,8 @@
     "fixErrors": "Please fix the errors in the form!",
     "selected": "selected",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "none": "None"
   },
   "problems": "Problems",
   "studyplan": "Study Plan",
@@ -343,19 +344,32 @@
     "joined": "JOINED",
     "upcoming": "Upcoming",
     "ongoing": "Ongoing",
-    "finished": "Finished"
+    "finished": "Finished",
+    "add_problem": "ADD PROBLEM",
+    "pts": "pts",
+    "notStarted": "The contest has not started yet.",
+    "alreadyStarted": "The contest has already started, this action is not allowed!",
+    "confirmDeleteProblem": "Are you sure you want to remove this problem from the contest?",
+    "deleteProblemSuccess": "Problem removed successfully!"
   },
   "scoreboard": {
+    "title": "Scoreboard",
     "loading": "Loading leaderboard...",
     "not_found": "No leaderboard data found.",
     "refresh": "REFRESH",
     "export": "EXPORT EXCEL",
     "last_updated": "Last updated",
     "frozen": "Frozen",
-    "rank": "RANK",
-    "participant": "PARTICIPANT",
-    "total": "TOTAL",
-    "empty": "No rankings available yet."
+    "empty": "No rankings available yet.",
+    "unfreezeSuccess": "Scoreboard unfrozen successfully!",
+    "freezeSuccess": "Scoreboard frozen successfully!",
+    "table": {
+      "rank": "RANK",
+      "participant": "PARTICIPANT",
+      "total": "TOTAL",
+      "pts": "PTS",
+      "pen": "PEN"
+    }
   },
   "studyplan_page": {
     "curated_label": "Curated Learning",
@@ -412,5 +426,47 @@
     "certificate": "Certificate",
     "on_completion": "On Completion",
     "failed_load": "Failed to load study plan"
+  },
+  "home": {
+    "hero": {
+      "hub": "Academic Competitive Hub",
+      "title1": "FPT UNIVERSITY DA NANG",
+      "title2": "JUDGE SYSTEM.",
+      "subtitle": "Master your logic. Rule the code. Lead the campus.",
+      "browse_contests": "Browse Contests",
+      "practice": "Practice"
+    },
+    "active_contests": {
+      "title": "Active Contests",
+      "view_more": "View More",
+      "students": "Students",
+      "ends": "Ends",
+      "starts": "Starts",
+      "in_progress": "In Progress",
+      "registration_closed": "Registration Closed",
+      "register_now": "Register Now",
+      "continue": "Continue"
+    },
+    "learning_flow": {
+      "title": "TMOJ Learning Flow",
+      "step": "Step",
+      "steps": {
+        "enroll": "Enroll in Class",
+        "practice": "Daily Practice",
+        "contest": "Online Contest",
+        "performance": "Performance Tracking"
+      }
+    },
+    "discussions": {
+      "title": "Discussions & News",
+      "by": "By",
+      "votes": "Votes"
+    },
+    "ranking": {
+      "title": "Ranking"
+    },
+    "news_feed": {
+      "title": "News Feed"
+    }
   }
 }

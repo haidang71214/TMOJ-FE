@@ -12,7 +12,8 @@
     "fixErrors": "Vui lòng sửa các lỗi trên biểu mẫu!",
     "selected": "đã chọn",
     "optional": "Tùy chọn",
-    "required": "Bắt buộc"
+    "required": "Bắt buộc",
+    "none": "Không có"
   },
   "problems": "Khám Phá",
   "studyplan": "Lộ trình",
@@ -343,19 +344,32 @@
     "joined": "ĐÃ THAM GIA",
     "upcoming": "Sắp diễn ra",
     "ongoing": "Đang diễn ra",
-    "finished": "Đã kết thúc"
+    "finished": "Đã kết thúc",
+    "add_problem": "THÊM BÀI TẬP",
+    "pts": "điểm",
+    "notStarted": "Cuộc thi chưa bắt đầu.",
+    "alreadyStarted": "Cuộc thi đã bắt đầu, không thể thực hiện thao tác này!",
+    "confirmDeleteProblem": "Bạn có chắc chắn muốn xóa bài tập này khỏi contest?",
+    "deleteProblemSuccess": "Đã xóa bài tập thành công!"
   },
   "scoreboard": {
+    "title": "Bảng xếp hạng",
     "loading": "Đang tải bảng xếp hạng...",
     "not_found": "Không tìm thấy dữ liệu bảng xếp hạng.",
     "refresh": "LÀM MỚI",
     "export": "XUẤT EXCEL",
     "last_updated": "Cập nhật cuối",
     "frozen": "Đang đóng băng",
-    "rank": "HẠNG",
-    "participant": "THÍ SINH",
-    "total": "TỔNG CỘNG",
-    "empty": "Chưa có bảng xếp hạng."
+    "empty": "Chưa có bảng xếp hạng.",
+    "unfreezeSuccess": "Đã mở băng bảng xếp hạng!",
+    "freezeSuccess": "Đã đóng băng bảng xếp hạng!",
+    "table": {
+      "rank": "HẠNG",
+      "participant": "THÍ SINH",
+      "total": "TỔNG CỘNG",
+      "pts": "ĐIỂM",
+      "pen": "PHẠT"
+    }
   },
   "studyplan_page": {
     "curated_label": "Lộ trình học tập",
@@ -412,5 +426,47 @@
     "certificate": "Chứng chỉ",
     "on_completion": "Khi hoàn thành",
     "failed_load": "Không thể tải lộ trình học"
+  },
+  "home": {
+    "hero": {
+      "hub": "Trung Tâm Thi Đấu Học Thuật",
+      "title1": "ĐẠI HỌC FPT ĐÀ NẴNG",
+      "title2": "HỆ THỐNG CHẤM THI.",
+      "subtitle": "Làm chủ logic. Thống trị mã nguồn. Dẫn đầu học đường.",
+      "browse_contests": "Khám Phá Cuộc Thi",
+      "practice": "Luyện Tập"
+    },
+    "active_contests": {
+      "title": "Cuộc Thi Đang Diễn Ra",
+      "view_more": "Xem Thêm",
+      "students": "Sinh viên",
+      "ends": "Kết thúc",
+      "starts": "Bắt đầu",
+      "in_progress": "Đang diễn ra",
+      "registration_closed": "Đã đóng đăng ký",
+      "register_now": "Đăng ký ngay",
+      "continue": "Tiếp tục"
+    },
+    "learning_flow": {
+      "title": "Lộ Trình Học Tập TMOJ",
+      "step": "Bước",
+      "steps": {
+        "enroll": "Tham gia lớp học",
+        "practice": "Luyện tập hàng ngày",
+        "contest": "Thi đấu trực tuyến",
+        "performance": "Theo dõi tiến độ"
+      }
+    },
+    "discussions": {
+      "title": "Thảo Luận & Tin Tức",
+      "by": "Bởi",
+      "votes": "Bình chọn"
+    },
+    "ranking": {
+      "title": "Bảng Xếp Hạng"
+    },
+    "news_feed": {
+      "title": "Bản Tin"
+    }
   }
 }

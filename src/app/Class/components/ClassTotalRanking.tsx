@@ -1,26 +1,26 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { 
-  Table, 
-  TableHeader, 
-  TableColumn, 
-  TableBody, 
-  TableRow, 
-  TableCell, 
-  User, 
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  User,
   Spinner,
   Card,
   CardBody,
   Tooltip,
-  Avatar,
   Input
 } from "@heroui/react";
-import { 
-  Trophy, 
-  Medal, 
-  Target, 
-  Clock, 
+import UserAvatar from "@/components/Common/UserAvatar";
+import {
+  Trophy,
+  Medal,
+  Target,
+  Clock,
   Crown,
   Search,
   AlertCircle
@@ -39,8 +39,8 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const { data: response, isLoading, isError } = useGetClassTotalRankingQuery({ classId, semesterId });
-    console.log(response);
-    
+  console.log(response);
+
   const data = response?.data;
   const rawRankings = data?.rankings || [];
   const slots = data?.slots || [];
@@ -48,8 +48,8 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
   const filteredRankings = useMemo(() => {
     if (!searchInput) return rawRankings;
     const query = searchInput.toLowerCase();
-    return rawRankings.filter(r => 
-      r.displayName.toLowerCase().includes(query) || 
+    return rawRankings.filter(r =>
+      r.displayName.toLowerCase().includes(query) ||
       r.username.toLowerCase().includes(query)
     );
   }, [rawRankings, searchInput]);
@@ -69,7 +69,7 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
       { key: "solved", label: "Solved", align: "center" },
       { key: "penalty", label: "Penalty", align: "center" },
     ];
-    
+
     const slotCols = slots.map(s => ({
       key: `slot-${s.slotId}`,
       label: s.title,
@@ -89,9 +89,9 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
       return (
         <div className="font-[1000] italic text-2xl leading-none px-4">
           <span className={
-            row.rank === 1 ? "text-amber-500" : 
-            row.rank === 2 ? "text-slate-400" : 
-            row.rank === 3 ? "text-orange-700" : "text-slate-300"
+            row.rank === 1 ? "text-amber-500" :
+              row.rank === 2 ? "text-slate-400" :
+                row.rank === 3 ? "text-orange-700" : "text-slate-300"
           }>
             {row.rank.toString().padStart(2, "0")}
           </span>
@@ -102,7 +102,11 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
     if (keyString === "athlete") {
       return (
         <div className="flex items-center gap-4">
-          <Avatar radius="full" size="sm" src={row.avatarUrl || undefined} />
+          <UserAvatar
+            src={row.avatarUrl}
+            frameUrl={row.equippedFrameUrl || row.frameUrl}
+            size="sm"
+          />
           <div className="flex flex-col">
             <span className="font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors">
               {row.displayName}
@@ -160,13 +164,13 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] gap-6">
         <div className="relative">
-           <Spinner size="lg" color="primary" />
-           <motion.div 
+          <Spinner size="lg" color="primary" />
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ repeat: Infinity, duration: 1.5, repeatType: "reverse" }}
             className="absolute -inset-4 border-2 border-blue-500/20 rounded-full"
-           />
+          />
         </div>
         <p className="text-slate-500 font-black animate-pulse uppercase tracking-[0.3em] text-[10px] italic">
           Synchronizing Class Performance...
@@ -208,12 +212,12 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-6">
-           <div className="flex flex-col items-end">
-              <span className="text-[10px] font-black text-slate-400 uppercase italic">Last Sync</span>
-              <span className="text-sm font-black italic">{new Date(data.lastUpdated).toLocaleTimeString()}</span>
-           </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] font-black text-slate-400 uppercase italic">Last Sync</span>
+            <span className="text-sm font-black italic">{new Date(data.lastUpdated).toLocaleTimeString()}</span>
+          </div>
         </div>
       </div>
 
@@ -244,7 +248,11 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
                   {isFirst ? <Crown size={24} /> : <Medal size={22} />}
                 </div>
 
-                <Avatar src={student.avatarUrl || undefined} className={`w-20 h-20 ring-4 ${isFirst ? "ring-amber-400/50" : isSecond ? "ring-slate-400/20" : "ring-orange-700/20"}`} />
+                <UserAvatar
+                  src={student.avatarUrl}
+                  frameUrl={student.equippedFrameUrl || student.frameUrl}
+                  size="lg"
+                />
 
                 <div className="space-y-0.5">
                   <h3 className={`text-lg font-[1000] italic uppercase leading-tight ${isFirst ? "text-white" : "text-[#071739] dark:text-white"}`}>
@@ -289,8 +297,8 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
       {/* TABLE VIEW - Perfectly matched with /Ranking */}
       <Card className="bg-white dark:bg-[#1C2737] rounded-[3rem] border-none shadow-xl overflow-hidden mb-10 animate-in slide-in-from-bottom-4 duration-500">
         <CardBody className="p-0">
-          <Table 
-            removeWrapper 
+          <Table
+            removeWrapper
             aria-label="Class Ranking table"
             classNames={{
               base: "max-h-[800px] overflow-auto custom-scrollbar",
@@ -300,8 +308,8 @@ export default function ClassTotalRanking({ classId, semesterId }: ClassTotalRan
           >
             <TableHeader columns={columns}>
               {(column: any) => (
-                <TableColumn 
-                  key={column.key} 
+                <TableColumn
+                  key={column.key}
                   align={column.align}
                   className={`bg-transparent font-black uppercase text-[10px] h-16 px-10 italic text-slate-400 ${column.key === 'rank' ? 'w-24' : ''}`}
                 >

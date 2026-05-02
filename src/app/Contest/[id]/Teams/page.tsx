@@ -8,15 +8,17 @@ import {
 } from "lucide-react";
 import {
   Table, TableHeader, TableColumn, TableBody,
-  TableRow, TableCell, Avatar, Tooltip, Input, Button, Spinner,
-  Card, CardBody, Chip, Divider
+  TableRow, TableCell, Tooltip, Input, Button, Spinner,
+  Card, CardBody, Chip, Divider, Avatar
 } from "@heroui/react";
+import UserAvatar from "@/components/Common/UserAvatar";
 import {
   useGetMyTeamInContestQuery,
   useGetContestParticipantsQuery,
   useGetContestDetailQuery
 } from "@/store/queries/Contest";
 import { useUpdateTeamAvatarMutation } from "@/store/queries/Team";
+import { useGetMyInventoryQuery } from "@/store/queries/store";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { UserRole } from "@/types";
@@ -45,6 +47,9 @@ export default function TeamsPage() {
   const isLoading = isAdminOrAuthorized ? isLoadingParticipants : isLoadingMyTeam;
   const myTeam = myTeamData?.data;
 
+  const { data: inventoryData } = useGetMyInventoryQuery();
+  const equippedFrame = inventoryData?.find(item => item.itemType === "avatar_frame" && item.isEquipped && !item.isExpired);
+
   const [updateTeamAvatar, { isLoading: isUpdatingAvatar }] = useUpdateTeamAvatarMutation();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -67,7 +72,7 @@ export default function TeamsPage() {
           avatarUrl: base64String
         }).unwrap();
         toast.success("Team avatar updated successfully!");
-      } catch  {
+      } catch {
         toast.error("Failed to update team avatar");
       }
     };
@@ -159,9 +164,11 @@ export default function TeamsPage() {
                           <div className="flex -space-x-2">
                             {team.members.map((m) => (
                               <Tooltip key={m.userId} content={m.displayName} placement="top" className="font-black italic uppercase text-[9px]">
-                                <Avatar
+                                <UserAvatar
                                   src={m.avatarUrl ? `${m.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.username}`}
-                                  className="w-8 h-8 border-2 border-white dark:border-[#1e293b] rounded-lg"
+                                  frameUrl={m.equippedFrameUrl || m.frameUrl || (m as any).userFrameUrl || (m as any).userEquippedFrameUrl || (m as any).user?.equippedFrameUrl}
+                                  size="sm"
+                                  className="border-2 border-white dark:border-[#1e293b]"
                                 />
                               </Tooltip>
                             ))}
@@ -269,11 +276,16 @@ export default function TeamsPage() {
                             }`}
                         >
                           <div className="relative">
-                            <Avatar
+                            <UserAvatar
                               src={member.userId === currentUser?.userId
-                                ? (currentUser?.avatarUrl ? `${currentUser.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/open-peeps/svg?seed=${currentUser?.username}`)
-                                : (member.avatarUrl ? `${member.avatarUrl}?t=${new Date().getTime()}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.username}`)}
-                              className="w-16 h-16 rounded-[1.2rem] shadow-xl ring-4 ring-slate-50 dark:ring-slate-900 group-hover:ring-[#FF5C00]/20 transition-all"
+                                ? (currentUser?.avatarUrl)
+                                : (member.avatarUrl)}
+                              frameUrl={member.userId === currentUser?.userId
+                                ? (equippedFrame?.itemImageUrl || (currentUser as any)?.equippedFrameUrl)
+                                : (member.equippedFrameUrl || member.frameUrl || (member as any).userFrameUrl || (member as any).userEquippedFrameUrl || (member as any).user?.equippedFrameUrl)}
+                              size="md"
+                              className="rounded-[1.2rem]"
+                              fallback={member.displayName?.[0]}
                             />
                             {member.userId === myTeam.leaderId && (
                               <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1.5 rounded-xl shadow-lg ring-2 ring-white dark:ring-[#071739] z-10">

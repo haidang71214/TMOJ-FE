@@ -18,6 +18,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useAppSelector } from "@/utils/redux";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
+import { ErrorForm } from "@/types";
 
 export default function PackageEnrollPage() {
   const params = useParams();
@@ -55,8 +56,9 @@ export default function PackageEnrollPage() {
       await enrollPlan(id).unwrap();
       refetchEnrollment();
       addToast({ title: t("studyplan_detail.enroll_success") || "Enrolled successfully!", color: "success" });
-    } catch (error: any) {
-      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.enroll_fail") || "Failed to enroll. Please try again.";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || apiError?.data?.message || t("studyplan_detail.enroll_fail") || "Failed to enroll. Please try again.";
       addToast({ title: msg, color: "danger" });
     }
   };
@@ -74,8 +76,9 @@ export default function PackageEnrollPage() {
       await buyPlan(id).unwrap();
       refetchEnrollment();
       addToast({ title: t("studyplan_detail.buy_success") || "Plan purchased successfully!", color: "success" });
-    } catch (error: any) {
-      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase. Please check your balance.";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || apiError?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase. Please check your balance.";
       addToast({ title: msg, color: "danger" });
     }
   };
@@ -86,8 +89,9 @@ export default function PackageEnrollPage() {
       await resetProgress(id).unwrap();
       refetchEnrollment();
       addToast({ title: t("studyplan_detail.reset_success") || "Progress reset successfully!", color: "success" });
-    } catch (error: any) {
-      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.reset_fail") || "Reset failed, please try again.";
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      const msg = apiError?.data?.data?.message || apiError?.data?.message || t("studyplan_detail.reset_fail") || "Reset failed, please try again.";
       addToast({ title: msg, color: "danger" });
     }
   };

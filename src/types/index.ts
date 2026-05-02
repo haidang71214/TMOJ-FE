@@ -324,7 +324,8 @@ export interface ErrorForm {
   data: Data;
 }
 export interface Data {
-  data: MessageError;
+  data?: MessageError;
+  message?: string;
 }
 
 export interface MessageError {
@@ -922,7 +923,7 @@ export interface ContestProblemDto {
   problemId: string;
   problemTitle?: string;
   alias?: string;
-  title?:string;
+  title?: string;
   ordinal?: number;
   displayIndex?: number;
   points?: number;
@@ -1095,6 +1096,8 @@ export interface ScoreboardRowDTO {
   userId: string;
   username: string;
   avatarUrl?: string;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
   fullname?: string;
   totalSolved: number;
   totalPenalty: number;
@@ -1154,6 +1157,8 @@ export interface TeamMember {
   displayName?: string;
   email?: string;
   avatarUrl?: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
 }
 
 export interface TeamDetail {
@@ -1304,6 +1309,8 @@ export interface ContestParticipantMember {
   avatarUrl: string | null;
   username: string;
   rollNumber: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
 }
 
 export interface ContestParticipantTeam {
@@ -1887,6 +1894,8 @@ export interface ClassTotalRankingRow {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
   rank: number;
   totalSolved: number;
   totalPenalty: number;

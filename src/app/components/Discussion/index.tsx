@@ -130,7 +130,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
+      toast.error(apiError?.data?.data?.message || apiError?.data?.message || "Lỗi Vote: Thao tác thất bại");
     }
   };
 
@@ -149,7 +149,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       toast.success(isUnvote ? "Đã hủy vote" : "Vote thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi Vote: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
+      toast.error(apiError?.data?.data?.message || apiError?.data?.message || "Lỗi Vote: Thao tác thất bại");
     }
   };
 
@@ -185,7 +185,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
       toast.success("Đã xóa thành công!");
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error("Lỗi xóa: " + (apiError?.data?.data?.message || "Thao tác thất bại"));
+      toast.error("Lỗi xóa: " + (apiError?.data?.data?.message || apiError?.data?.message || "Thao tác thất bại"));
     }
   };
 

@@ -28,8 +28,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
-  Check,
-  Search,
+
   RotateCcw,
   ArrowUpToLine,
   ArrowDownToLine,
@@ -61,11 +60,20 @@ export default function MyListDetailPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { data: user } = useGetUserInformationQuery();
 
+  const isFavId = currentId === "Favorite" || currentId === "favorites" || currentId === "fav-problems";
+
   // Real data fetching - Standard Collection
-  const { data: collectionDetail, isLoading: isCollLoading } = useGetCollectionDetailQuery(currentId, { skip: currentId === "Favorite" });
+  const { data: collectionDetail, isLoading: isCollLoading } = useGetCollectionDetailQuery(currentId, { 
+    skip: isFavId 
+  });
+
+  const isFavoritePage = isFavId || collectionDetail?.data?.type === "problem_favorite";
 
   // Real data fetching - System Favorite Problems
-  const { data: favoriteProblems, isLoading: isFavLoading } = useGetFavoriteProblemsQuery({ page: 1, pageSize: 100 }, { skip: currentId !== "Favorite" });
+  const { data: favoriteProblems, isLoading: isFavLoading } = useGetFavoriteProblemsQuery(
+    { page: 1, pageSize: 100 }, 
+    { skip: !isFavoritePage }
+  );
 
   const [deleteItem] = useDeleteCollectionItemMutation();
   const [deleteCollection] = useDeleteCollectionMutation();
@@ -74,10 +82,10 @@ export default function MyListDetailPage() {
   const [orderedItems, setOrderedItems] = useState<any[]>([]);
   const [updateCollection, { isLoading: isUpdating }] = useUpdateCollectionMutation();
 
-  const isFavoritePage = currentId === "Favorite" || collectionDetail?.data?.type === "problem_favorite";
-
   const rawDetail: any = collectionDetail?.data || collectionDetail;
   const rawFav: any = favoriteProblems?.data || favoriteProblems;
+
+
 
   // Robust items extraction logic
   const getItems = (src: any) => {
@@ -95,16 +103,13 @@ export default function MyListDetailPage() {
     return null;
   };
 
-  const items = React.useMemo(
-    () => (isFavoritePage ? getItems(rawFav) : getItems(rawDetail)),
-    [isFavoritePage, rawFav, rawDetail]
-  );
+  const items = isFavoritePage ? getItems(rawFav) : getItems(rawDetail);
 
   React.useEffect(() => {
     if (items) {
       setOrderedItems(items);
     }
-  }, [items]);
+  }, [favoriteProblems, collectionDetail, isFavoritePage]);
 
   const handleReorder = async (newOrder: any[]) => {
     setOrderedItems(newOrder);
@@ -124,7 +129,8 @@ export default function MyListDetailPage() {
   };
   const activeMeta = isFavoritePage ? null : getMeta(rawDetail);
   console.log("Collection items structure:", { currentId, isFavoritePage, rawDetail, rawFav, items, activeMeta });
-
+  console.log("rawDetail", rawDetail);
+console.log("rawFav", rawFav);
   // States for Editing
   const [listTitle, setListTitle] = useState(currentId === "Favorite" ? "Favorite Problems" : "Loading...");
   const [listDesc, setListDesc] = useState("Your collections");
@@ -332,8 +338,8 @@ export default function MyListDetailPage() {
                   onPress={() => {
                     if (orderedItems.length > 0) {
                       const firstItem = orderedItems[0];
+                      const isProblem = isFavoritePage || !!firstItem.problemId || !!firstItem.problem;
                       const targetId = firstItem.problemId || firstItem.contestId || firstItem.id;
-                      const isProblem = !!firstItem.problemId;
                       router.push(isProblem ? `/Problems/${targetId}` : `/Contests/${targetId}`);
                     } else {
                       toast.error("No items to practice!");
@@ -418,15 +424,15 @@ export default function MyListDetailPage() {
                     indicator: "stroke-blue-600 dark:stroke-[#00FF41]",
                     track: "stroke-slate-200/50 dark:stroke-white/5",
                   }}
-                  value={0}
-                  maxValue={Math.max(1, items.length)}
+                  value={activeMeta?.solvedProblems || 0}
+                  maxValue={activeMeta?.totalItems || Math.max(1, items.length)}
                   strokeWidth={3}
                 />
                 <div className="absolute flex flex-col items-center">
                   <span className="text-2xl font-black text-[#071739] dark:text-white">
-                    0
+                    {activeMeta?.solvedProblems || 0}
                     <span className="text-slate-300 text-sm ml-1">
-                      /{items.length}
+                      /{activeMeta?.totalItems || items.length}
                     </span>
                   </span>
                   <span className="text-[8px] text-slate-400 font-black uppercase">
@@ -454,8 +460,8 @@ export default function MyListDetailPage() {
                 className="flex flex-col mt-4 min-w-[500px]"
               >
                 {orderedItems.map((item: any, idx: number) => {
-                  const isProblem = !!item.problemId;
-                  const title = item.problemTitle || item.contestTitle || item.name || item.title || "Untitled";
+                  const isProblem = isFavoritePage || !!item.problemId || !!item.problem;
+                  const title = item.problemTitle || item.contestTitle || item.name || item.title || item.problem?.title || "Untitled";
                   const targetId = item.problemId || item.contestId || item.id;
                   const route = isProblem ? `/Problems/${targetId}` : `/Contest/${targetId}`;
 
@@ -485,7 +491,6 @@ export default function MyListDetailPage() {
                         <div className="text-right flex justify-end">
                           <span className="text-[13px] text-slate-400 font-bold tabular-nums">
                             {(() => {
-                              // Ưu tiên acceptancePercent theo Response 1 từ F12
                               const acc = item.acceptancePercent ?? item.acceptanceRate ?? item.problem?.acceptancePercent ?? item.problem?.acceptanceRate ?? item.problemAcceptanceRate;
                               return (acc !== undefined && acc !== null) ? `${Number(acc).toFixed(1)}%` : "--";
                             })()}
@@ -494,7 +499,6 @@ export default function MyListDetailPage() {
                         <div className="text-right flex justify-end">
                           <span
                             className={`text-[11px] font-black uppercase tracking-wider ${(() => {
-                              // Kiểm tra difficulty theo Response 1 từ F12
                               const diff = (item.difficulty || item.problem?.difficulty || item.problemDifficulty || "").toLowerCase();
                               if (diff === "easy") return "text-teal-500";
                               if (diff === "medium" || diff === "med.") return "text-amber-500";
@@ -502,7 +506,6 @@ export default function MyListDetailPage() {
                               return "text-slate-400/50 lowercase font-normal";
                             })()}`}
                           >
-                            {/* Hiển thị difficulty hoặc dấu gạch ngang nếu API không trả về (như trong Response 2) */}
                             {item.difficulty || item.problem?.difficulty || item.problemDifficulty || (isProblem ? "—" : "Contest")}
                           </span>
                         </div>

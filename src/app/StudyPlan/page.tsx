@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   X,
+  LogIn,
 } from "lucide-react";
 import {
   useGetStudyPlansQuery,
@@ -28,6 +29,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useRouter } from "next/navigation";
 import { StudyPlan, UserRole } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAppSelector } from "@/utils/redux";
 
 type SortOption = "default" | "learners" | "price_asc" | "price_desc" | "name_asc";
 type PriceFilter = "all" | "free" | "paid";
@@ -42,13 +44,18 @@ export default function StudyPlanPage() {
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("default");
 
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
+  const isHydrated = useAppSelector((state) => state.auth.isHydrated);
+
   const { data: user } = useGetUserInformationQuery();
-  const { data: studyPlansResponse, isLoading: isLoadingAll, refetch } = useGetStudyPlansQuery();
+  const { data: studyPlansResponse, isLoading: isLoadingAll, refetch } = useGetStudyPlansQuery(undefined, {
+    skip: !isAuthenticated,
+  });
   const { data: unlockedPlansResponse, isLoading: isLoadingUnlocked } = useGetUnlockedPlansQuery(undefined, {
-    skip: activeTab !== "All" && activeTab !== t("studyplan_page.tab_unlocked")
+    skip: !isAuthenticated || (activeTab !== "All" && activeTab !== t("studyplan_page.tab_unlocked"))
   });
   const { data: myProgressResponse, isLoading: isLoadingProgress } = useGetMyStudyProgressQuery(undefined, {
-    skip: activeTab !== t("studyplan_page.tab_in_progress") && activeTab !== "In Progress"
+    skip: !isAuthenticated || (activeTab !== t("studyplan_page.tab_in_progress") && activeTab !== "In Progress")
   });
 
   const [buyPlan] = useBuyStudyPlanMutation();
@@ -161,6 +168,89 @@ export default function StudyPlanPage() {
   const resultLabel = resultCount === 1
     ? `1 ${t("studyplan_page.result") || "result"}`
     : `${resultCount} ${t("studyplan_page.results") || "results"}`;
+
+  // Auth guard: show login prompt if not authenticated after hydration
+  if (!isHydrated) {
+    return (
+      <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#06080F] font-sans flex relative transition-colors duration-500">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-2 border-[#FF5C00] border-t-transparent animate-spin" />
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#06080F] font-sans flex relative transition-colors duration-500">
+        <aside
+          className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0D121F] sticky top-0 h-screen overflow-hidden shrink-0 z-40
+            ${isSidebarOpen ? "w-[260px]" : "w-0 border-none"}`}
+        >
+          <div className="w-[260px] p-6 pr-2 h-full flex flex-col">
+            <Sidebar />
+          </div>
+        </aside>
+
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className={`fixed top-1/2 -translate-y-1/2 z-50 w-10 h-10 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center shadow-2xl text-slate-400 hover:text-[#FF5C00] transition-all duration-500 cursor-pointer hover:scale-110
+            ${isSidebarOpen ? "left-[244px]" : "left-6"}`}
+        >
+          {isSidebarOpen ? <ChevronLeft size={20} strokeWidth={3} /> : <ChevronRight size={20} strokeWidth={3} />}
+        </button>
+
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="flex flex-col items-center gap-8 text-center max-w-md">
+            {/* Icon */}
+            <div className="relative">
+              <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-[#071739] to-[#1e293b] dark:from-[#FF5C00]/20 dark:to-[#FF5C00]/5 flex items-center justify-center shadow-2xl shadow-[#FF5C00]/10">
+                <Lock size={44} className="text-[#FF5C00]" strokeWidth={2.5} />
+              </div>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-[#FF5C00] rounded-xl flex items-center justify-center shadow-lg shadow-[#FF5C00]/40">
+                <LogIn size={14} className="text-white" strokeWidth={3} />
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 text-[#FF5C00] font-black text-[10px] tracking-[0.3em] uppercase">
+                <div className="w-6 h-[2px] bg-[#FF5C00]" />
+                <span>Authentication Required</span>
+                <div className="w-6 h-[2px] bg-[#FF5C00]" />
+              </div>
+              <h2 className="text-4xl font-black text-[#071739] dark:text-white tracking-tighter uppercase">
+                Study{" "}
+                <span className="text-slate-400">Pathways</span>
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed">
+                You need to be logged in to access Study Plans.
+                <br />
+                Sign in to track your progress and unlock curated learning pathways.
+              </p>
+            </div>
+
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <button
+                onClick={() => router.push("/auth/login")}
+                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#FF5C00] hover:bg-[#e05200] text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-lg shadow-[#FF5C00]/30 hover:shadow-xl hover:shadow-[#FF5C00]/40 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <LogIn size={16} strokeWidth={3} />
+                Sign In
+              </button>
+              <button
+                onClick={() => router.push("/")}
+                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 font-black text-sm uppercase tracking-widest rounded-2xl transition-all duration-300 border border-slate-200 dark:border-white/10 hover:border-[#FF5C00]/50 hover:text-[#FF5C00] hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#06080F] font-sans flex relative transition-colors duration-500">

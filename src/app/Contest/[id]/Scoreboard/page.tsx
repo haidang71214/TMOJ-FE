@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Trophy, RefreshCcw, Download, Clock, ShieldCheck, Lock, Search, HelpCircle
+  Trophy, RefreshCcw, Lock, ShieldCheck, Calendar, Clock, Award, Hash, Zap
 } from "lucide-react";
 import {
   Button, Table, TableHeader, TableColumn, TableBody,
-  TableRow, TableCell, Avatar, Tooltip, Spinner
+  TableRow, TableCell, Avatar, Tooltip, Spinner, Card, Chip
 } from "@heroui/react";
 import {
   useGetScoreboardQuery,
@@ -20,7 +20,7 @@ import { UserRole } from "@/types";
 import { toast } from "sonner";
 import ContestHeader from "../components/ContestHeader";
 import { ErrorForm } from "@/types";
-import type { ScoreboardResponseDTO, ProblemAttemptDTO, ScoreboardRowDTO, ACMProblemAttemptDTO, IOIProblemAttemptDTO, ACMScoreboardRowDTO, IOIScoreboardRowDTO } from "./dto";
+import type { ScoreboardResponseDTO, ACMProblemAttemptDTO, IOIProblemAttemptDTO, ScoreboardRowDTO, ACMScoreboardRowDTO, IOIScoreboardRowDTO } from "./dto";
 
 export default function ScoreboardPage() {
   const params = useParams();
@@ -29,137 +29,86 @@ export default function ScoreboardPage() {
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const role = currentUser?.role?.toLowerCase();
-  const isAdminOrManager = role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.TEACHER;
 
   const { data: scoreboardData, isLoading, refetch, isFetching } = useGetScoreboardQuery(contestId, {
     pollingInterval: pollingInterval,
     skipPollingIfUnfocused: true,
   });
-  const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
-  const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
 
   const data = scoreboardData?.data as ScoreboardResponseDTO | undefined;
 
-  // Auto-polling mỗi 10s cho ACM/IOI contests trong kỳ thi running
   useEffect(() => {
     if (!data) return;
-
     const isRunning = data.status === "running";
     const isFrozen = data.frozen;
-
     if (isRunning && !isFrozen) {
-      setPollingInterval(10 * 1000); // 10 seconds
+      setPollingInterval(10 * 1000);
     } else {
       setPollingInterval(undefined);
     }
-  }, [data?.scoringMode, data?.status, data?.frozen]);
-
-  const handleRefresh = () => {
-    refetch();
-  };
-
-  const handleFreezeToggle = async () => {
-    if (!data) return;
-    try {
-      if (data.frozen) {
-        await unfreezeContest(contestId).unwrap();
-        toast.success("Đã mở băng bảng xếp hạng!");
-      } else {
-        await freezeContest(contestId).unwrap();
-        toast.success("Đã đóng băng bảng xếp hạng!");
-      }
-    } catch (error) {
-      const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Thao tác thất bại");
-    }
-  };
+  }, [data?.status, data?.frozen]);
 
   const renderACMProblemCell = (attempt: ACMProblemAttemptDTO | undefined) => {
-    if (!attempt || attempt.attemptsCount === 0) {
-      return <div className="w-full h-full min-h-[50px]"></div>;
-    }
+    if (!attempt || attempt.attemptsCount === 0) return <div className="min-h-[50px]"></div>;
 
     if (attempt.isSolved) {
-      const classes = attempt.isFirstBlood
-        ? "bg-[#10b981] text-white shadow-inner"
-        : "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400";
+      const isFirst = attempt.isFirstBlood;
       return (
-        <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 rounded ${classes}`}>
-          <span className="font-bold text-[14px]">
-            {attempt.attemptsCount > 1 ? `+${attempt.attemptsCount - 1}` : "+"}
-          </span>
-          <span className="text-[11px] opacity-90">{attempt.penaltyTime}</span>
+        <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isFirst ? "bg-[#FF5C00] text-white shadow-lg shadow-[#FF5C00]/30" : "bg-green-500/10 text-green-600 border border-green-500/20"}`}>
+          <span className="font-black italic text-sm">{attempt.attemptsCount > 1 ? `+${attempt.attemptsCount - 1}` : "+"}</span>
+          <span className="text-[9px] font-bold opacity-80">{attempt.penaltyTime}</span>
+          {isFirst && <Zap size={8} className="mt-0.5 fill-current" />}
         </div>
       );
     }
 
     return (
-      <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 rounded">
-        <span className="font-bold text-[14px]">-{attempt.attemptsCount}</span>
+      <div className="w-full h-full min-h-[50px] flex flex-col items-center justify-center p-2 bg-rose-500/10 text-rose-600 border border-rose-500/20 rounded-xl">
+        <span className="font-black italic text-sm">-{attempt.attemptsCount}</span>
       </div>
     );
   };
 
   const renderIOIProblemCell = (attempt: IOIProblemAttemptDTO | undefined) => {
-    if (!attempt || attempt.attemptsCount === 0) {
-      return <div className="w-full h-full min-h-[50px]"></div>;
-    }
-
-    const scoreColor = attempt.score === 100
-      ? "bg-[#10b981] text-white shadow-inner"
-      : attempt.score > 0
-        ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400"
-        : "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400";
-
+    if (!attempt || attempt.attemptsCount === 0) return <div className="min-h-[50px]"></div>;
+    const score = attempt.score;
+    const colorClass = score === 100 ? "bg-green-500 text-white" : score > 0 ? "bg-blue-500/10 text-blue-600" : "bg-rose-500/10 text-rose-600";
+    
     return (
-      <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-1 rounded ${scoreColor}`}>
-        <span className="font-bold text-[14px]">{attempt.score}</span>
-        <span className="text-[10px] opacity-80">{attempt.attemptsCount}x</span>
+      <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-2 rounded-xl border border-transparent ${colorClass}`}>
+        <span className="font-black italic text-sm">{score}</span>
+        <span className="text-[9px] font-bold opacity-80">{attempt.attemptsCount} tries</span>
       </div>
     );
   };
 
   if (isLoading) {
     return (
-      <div className="w-full h-[80vh] flex flex-col items-center justify-center gap-4">
-        <Spinner size="lg" color="primary" />
-        <p className="text-slate-500 font-medium italic animate-pulse">Đang tải bảng xếp hạng...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6">
+        <Spinner size="lg" color="warning" />
+        <p className="font-[1000] italic uppercase text-2xl animate-pulse text-[#071739]">Loading Scoreboard...</p>
       </div>
     );
   }
 
-  if (!data) {
-    return <div className="p-20 text-center font-bold">Không tìm thấy dữ liệu bảng xếp hạng.</div>;
-  }
-
   return (
-    <div className="w-full pb-20 text-slate-800 dark:text-slate-200 animate-in fade-in duration-500">
+    <div className="w-full min-h-screen">
       <ContestHeader contestId={contestId} />
 
-      {/* SCOREBOARD TOOLBAR */}
-      <div className="bg-white dark:bg-[#1e293b]/70 border-b border-slate-200 dark:border-slate-800 py-4 shadow-sm relative z-10 transition-all">
-        <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 text-[#F26F21] font-semibold text-lg">
-                <Trophy className="w-5 h-5" />
-                <span>Scoreboard (ICPC Format)</span>
+      <div className="container mx-auto px-4 md:px-10 -mt-10 relative z-20 pb-20">
+        {/* TOOLBAR */}
+        <Card className="rounded-[2.5rem] border-none shadow-2xl mb-8 overflow-hidden">
+          <div className="bg-[#071739] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-white">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF5C00] flex items-center justify-center shadow-lg shadow-[#FF5C00]/30">
+                <Trophy className="w-6 h-6 text-white" />
               </div>
-              <div className="flex items-center gap-4 text-[13px] font-medium text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Running</span>
-                </div>
-                {data.frozen && (
-                  <div className="flex items-center gap-1.5 text-rose-500">
-                    <Lock className="w-4 h-4" />
-                    <span>Frozen</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-[#F26F21]" />
-                  <span>Last updated: {new Date(data.lastUpdated).toLocaleTimeString('vi-VN')}</span>
+              <div>
+                <h2 className="text-2xl font-[1000] italic uppercase leading-none mb-1">Live <span className="text-[#FF5C00]">Scoreboard</span></h2>
+                <div className="flex items-center gap-4 text-[10px] font-black uppercase text-white/50">
+                  <span className="flex items-center gap-1.5"><Clock size={12} className="text-[#FF5C00]" /> {new Date(data?.lastUpdated || "").toLocaleTimeString()}</span>
+                  <span className="flex items-center gap-1.5 text-green-500"><ShieldCheck size={12} /> {data?.status}</span>
+                  {data?.frozen && <span className="flex items-center gap-1.5 text-[#FF5C00]"><Lock size={12} /> Frozen</span>}
                 </div>
               </div>
             </div>
@@ -167,128 +116,105 @@ export default function ScoreboardPage() {
             <div className="flex items-center gap-3">
               <Button
                 variant="flat"
-                color="default"
-                className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium h-9"
+                className="bg-white/10 text-white font-black italic uppercase rounded-xl border border-white/10 hover:bg-white/20 transition-all h-12 px-6"
                 startContent={<RefreshCcw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />}
-                onClick={handleRefresh}
+                onPress={() => refetch()}
               >
-                Refresh
-              </Button>
-              <Button
-                className="bg-[#F26F21] hover:bg-[#d95b16] text-white font-medium shadow-sm shadow-[#F26F21]/20 h-9"
-                startContent={<Download className="w-4 h-4" />}
-                radius="sm"
-              >
-                Export Excel
+                Refresh Data
               </Button>
             </div>
-
           </div>
-        </div>
-      </div>
+        </Card>
 
-      {/* SCOREBOARD TABLE */}
-      <div className="w-full max-w-[1500px] mx-auto mt-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800/80 overflow-x-auto overflow-y-hidden">
+        {/* RANKING TABLE */}
+        <div className="bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-2xl border-none overflow-hidden">
           <Table
             aria-label="Scoreboard table"
             removeWrapper
             classNames={{
               base: "min-w-max",
-              table: "min-w-max border-collapse",
-              th: "bg-[#f1f5f9] dark:bg-[#0f172a] text-slate-700 dark:text-slate-300 font-semibold text-[13px] uppercase tracking-wider py-4 first:rounded-none last:rounded-none border-b border-r border-slate-200 dark:border-slate-800 last:border-r-0 text-center whitespace-nowrap",
-              td: "p-0 border-b border-r border-slate-200 dark:border-slate-800/50 last:border-r-0 text-sm align-middle h-full",
-              tr: "hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group",
+              table: "min-w-max",
+              th: "bg-[#071739] text-white/50 font-black italic uppercase text-[10px] py-6 first:pl-10 last:pr-10 border-none text-center",
+              td: "py-4 text-sm font-bold border-b border-slate-100 dark:border-white/5 px-4 text-center align-middle h-full",
+              tr: "hover:bg-[#FF5C00]/5 dark:hover:bg-[#FF5C00]/10 transition-all group",
             }}
           >
             <TableHeader columns={[
-              { key: "rank", label: "Rank", isProblem: false },
-              { key: "participant", label: "Participant / Team", isProblem: false },
-              { key: "total", label: "Total", isProblem: false },
-              ...(data?.problems || []).map(p => ({ key: p.id, isProblem: true as const, data: p }))
+              { key: "rank", label: "RANK", isProblem: false },
+              { key: "participant", label: "COMPETITOR", isProblem: false },
+              { key: "total", label: "TOTAL", isProblem: false },
+              ...(data?.problems || []).map(p => ({ key: p.id, label: "", isProblem: true as const, data: p }))
             ]}>
               {(column) => (
-                <TableColumn key={column.key} className={
-                  column.key === "rank" ? "w-[60px]" :
-                    column.key === "participant" ? "w-[280px] !text-left pl-6" :
-                      column.key === "total" ? "w-[80px]" :
-                        "w-[70px] px-2"
-                }>
+                <TableColumn key={column.key} className={column.key === "participant" ? "text-left pl-10 w-[300px]" : column.key === "rank" ? "w-[80px]" : "w-[90px]"}>
                   {column.isProblem && 'data' in column && column.data ? (
-                    <Tooltip content={column.data.title} placement="top" className="text-xs">
-                      <div className="flex flex-col items-center justify-center gap-1 cursor-help">
-                        <span className="font-bold text-[#F26F21] dark:text-[#F26F21]">{column.data.id}</span>
-                        <span className="text-[10px] text-slate-400 font-medium normal-case">{column.data.solvedCount}/{column.data.totalAttempts}</span>
+                    <Tooltip content={column.data.title} placement="top" className="font-black italic uppercase text-[10px]">
+                      <div className="flex flex-col items-center gap-1 cursor-help group/th">
+                        <span className="text-[#FF5C00] text-sm font-black">{column.data.id}</span>
+                        <span className="text-[8px] text-white/30 group-hover/th:text-white/60 transition-colors">{column.data.solvedCount}/{column.data.totalAttempts}</span>
                       </div>
                     </Tooltip>
-                  ) : column?.isProblem}
+                  ) : (column as any).label}
                 </TableColumn>
               )}
             </TableHeader>
 
-            <TableBody items={data.rows || []} emptyContent="No rankings found.">
+            <TableBody items={data?.rows || []} emptyContent="NO RANKINGS AVAILABLE">
               {(row: ScoreboardRowDTO) => (
                 <TableRow key={row.userId}>
                   {(columnKey) => {
                     if (columnKey === "rank") {
                       return (
                         <TableCell>
-                          <div className="flex justify-center items-center w-full h-full min-h-[50px]">
-                            <span className={`font-bold text-[15px] ${row.rank <= 3 ? "text-[#F26F21] dark:text-[#F26F21]" : "text-slate-600 dark:text-slate-400"}`}>{row.rank}</span>
+                          <div className="flex justify-center items-center h-full">
+                            {row.rank <= 3 ? (
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black italic text-sm shadow-lg ${
+                                row.rank === 1 ? "bg-yellow-400 text-yellow-900" :
+                                row.rank === 2 ? "bg-slate-300 text-slate-700" :
+                                "bg-amber-600 text-amber-100"
+                              }`}>
+                                {row.rank}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 font-black italic">{row.rank}</span>
+                            )}
                           </div>
                         </TableCell>
                       );
                     }
                     if (columnKey === "participant") {
                       return (
-                        <TableCell>
-                          <div className="flex items-center gap-3 w-full h-full px-6 min-h-[50px]">
-                            <Avatar
-                              name={row.username.charAt(0)}
-                              src={row.avatarUrl}
-                              size="sm"
-                              className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 w-8 h-8 text-xs"
-                            />
+                        <TableCell className="text-left pl-10">
+                          <div className="flex items-center gap-4">
+                            <Avatar src={row.avatarUrl} name={row.username} size="sm" isBordered className="border-[#071739] scale-90" />
                             <div className="flex flex-col">
-                              <span className="font-semibold text-slate-900 dark:text-slate-100 text-[14.5px]">{row.fullname || row.username}</span>
-                              <span className="text-[12px] text-slate-500 dark:text-slate-400 leading-tight">@{row.username}</span>
+                              <span className="text-slate-800 dark:text-slate-100 font-black italic uppercase tracking-tight leading-none">{row.fullname || row.username}</span>
+                              <span className="text-[9px] text-slate-400 font-bold lowercase">@{row.username}</span>
                             </div>
                           </div>
                         </TableCell>
                       );
                     }
                     if (columnKey === "total") {
-                      const isIoi = data.scoringMode === "ioi";
-                      let totalValue = 0;
-                      let totalSolved = 0;
-
-                      if (isIoi) {
-                        const ioiRow = row as IOIScoreboardRowDTO;
-                        totalValue = ioiRow.totalScore;
-                      } else {
-                        const acmRow = row as ACMScoreboardRowDTO;
-                        totalValue = acmRow.totalPenalty;
-                        totalSolved = acmRow.totalSolved;
-                      }
-
-                      const label = isIoi ? "Score" : "Penalty";
+                      const isIoi = data?.scoringMode === "ioi";
+                      const acmRow = row as ACMScoreboardRowDTO;
+                      const ioiRow = row as IOIScoreboardRowDTO;
                       return (
                         <TableCell>
-                          <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px] bg-slate-50/50 dark:bg-[#0f172a]/30">
-                            {!isIoi && <span className="font-bold text-[15px] text-slate-800 dark:text-slate-200">{totalSolved}</span>}
-                            <span className="text-[10px] text-slate-400 font-medium">{label}: {totalValue}</span>
+                          <div className="flex flex-col items-center justify-center p-2 bg-slate-50 dark:bg-white/5 rounded-2xl">
+                            <span className="text-lg font-[1000] italic text-[#071739] dark:text-white leading-none">
+                              {isIoi ? ioiRow.totalScore : acmRow.totalSolved}
+                            </span>
+                            <span className="text-[9px] text-[#FF5C00] font-black uppercase italic">
+                              {isIoi ? 'Points' : `P: ${acmRow.totalPenalty}`}
+                            </span>
                           </div>
                         </TableCell>
                       );
                     }
 
                     const attempt = row.problems.find((ap) => ap.problemId === columnKey);
-                    const isIoi = data.scoringMode === "ioi";
-                    if (isIoi) {
-                      return <TableCell>{renderIOIProblemCell(attempt as IOIProblemAttemptDTO)}</TableCell>;
-                    } else {
-                      return <TableCell>{renderACMProblemCell(attempt as ACMProblemAttemptDTO)}</TableCell>;
-                    }
+                    return <TableCell>{data?.scoringMode === "ioi" ? renderIOIProblemCell(attempt as IOIProblemAttemptDTO) : renderACMProblemCell(attempt as ACMProblemAttemptDTO)}</TableCell>;
                   }}
                 </TableRow>
               )}

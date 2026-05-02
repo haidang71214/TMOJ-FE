@@ -22,7 +22,7 @@ interface SolutionSubmittionProps {
   contestProblemId?: string;
   onSubmitSuccess?: () => void;
   classSlotId?: string;
-  onSubmissionIdChange?: (id: string | null) => void;
+  onSubmissionIdChange?: (id: string | null, type: "run" | "submit") => void;
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
 }
@@ -287,7 +287,7 @@ export default function SolutionSubmittion({
 
       // Set submissionId mới
       setSubmissionId(newSubmissionId)
-      if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
+      if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId, "run");
 
       // Toast thông báo đã nộp
       addToast({
@@ -333,7 +333,7 @@ export default function SolutionSubmittion({
         }
 
         setSubmissionId(newSubmissionId)
-        if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId);
+        if (onSubmissionIdChange) onSubmissionIdChange(newSubmissionId, "submit");
 
         addToast({
           title: "Đã nộp bài Contest! Đang chờ kết quả...",

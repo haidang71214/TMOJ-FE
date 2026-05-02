@@ -22,7 +22,7 @@ import {
   Database,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
+import { Skeleton, Chip, Divider, Progress, Button } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
@@ -100,6 +100,7 @@ export default function ProblemDetailsPage() {
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [submissionType, setSubmissionType] = useState<"run" | "submit" | null>(null);
 
   // Layout states
   const [isLeftVisible, setIsLeftVisible] = useState(true);
@@ -221,8 +222,9 @@ export default function ProblemDetailsPage() {
                 contestId={contestId}
                 contestProblemId={contestProblemId}
                 onSubmitSuccess={() => setActiveLeftTab("submissions")}
-                onSubmissionIdChange={(id: string | null) => {
+                onSubmissionIdChange={(id: string | null, type: "run" | "submit") => {
                   setSubmissionId(id);
+                  setSubmissionType(type);
                   setActiveBottomTab("result");
                 }}
                 isMaximized={isEditorMaximized}
@@ -469,13 +471,28 @@ export default function ProblemDetailsPage() {
                                 </div>
                               )}
 
-                              {data?.verdictCode === VerdictCode.AC && (
+                              {data?.verdictCode === VerdictCode.AC && submissionType === "submit" && (
                                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                                   <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
                                     <CheckSquare size={40} />
                                   </div>
                                   <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
                                   <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                                  
+                                  <div className="mt-6 flex flex-col items-center gap-3">
+                                    <p className="text-emerald-500 font-black animate-pulse uppercase tracking-tighter">
+                                      Resolve next problem!
+                                    </p>
+                                    <Button 
+                                      variant="shadow"
+                                      color="success"
+                                      startContent={<ChevronLeft size={18} />}
+                                      onPress={() => window.location.href = `/Contest/${contestId}`}
+                                      className="font-black uppercase text-[12px] tracking-widest px-8 rounded-2xl"
+                                    >
+                                      Back to Contest
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
                             </>

@@ -15,14 +15,13 @@ import {
   Search,
   RefreshCw,
   ArrowRight,
-  CheckCircle2,
-  BookOpen,
   LogOut,
   BookX,
   Loader2,
+  Calendar,
+  Flag,
 } from "lucide-react";
 import Link from "next/link";
-import LeaveClassModal from "./../components/LeaveClassModal";
 import JoinClassModal from "./components/JoinClassModal";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCurrentSemester } from "@/hooks/useCurrentSemester";
@@ -161,10 +160,7 @@ export default function StudentClasses() {
             const semesterCode = instance?.semesterCode || "UNKNOWN";
             const classNameFull = instance?.subjectName || instance?.subjectCode || "Unassigned Subject";
             const idString = instance ? `${instance.subjectCode}-${cls.classCode}` : cls.classCode;
-            const solved = 0;
-            const total = 0;
-            const progress = total > 0 ? Math.round((solved / total) * 100) : 0;
-            
+
             // animation delay sequence
             const baseDelay = (index % 8) * 100;
 
@@ -189,36 +185,19 @@ export default function StudentClasses() {
                         <h3 className="text-sm font-[1000] text-[#071739] dark:text-white italic uppercase leading-tight line-clamp-2 h-10 group-hover:text-blue-600 dark:group-hover:text-[#00FF41]">
                           {classNameFull}
                         </h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                              <CheckCircle2
-                                size={13}
-                                className="text-blue-600 dark:text-[#00FF41]"
-                              />
-                              <span className="text-[11px] font-[1000] italic">
-                                {solved}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                              <BookOpen size={13} className="text-[#FF5C00]" />
-                              <span className="text-[11px] font-[1000] italic">
-                                {total}
-                              </span>
-                            </div>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <Calendar size={12} className="text-blue-500" />
+                            <span className="text-[10px] font-bold uppercase italic">
+                              Start: {instance?.startAt ? new Date(instance.startAt).toLocaleDateString() : "N/A"}
+                            </span>
                           </div>
-                          <Progress
-                            size="sm"
-                            value={progress}
-                            classNames={{
-                              indicator:
-                                progress === 100
-                                  ? "bg-[#00FF41]"
-                                  : "bg-[#FF5C00]",
-                              track: "bg-slate-100 dark:bg-white/10",
-                            }}
-                            className="h-1.5"
-                          />
+                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <Flag size={12} className="text-rose-500" />
+                            <span className="text-[10px] font-bold uppercase italic">
+                              End: {instance?.endAt ? new Date(instance.endAt).toLocaleDateString() : "N/A"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between border-t border-divider dark:border-white/5 pt-4 mt-2">

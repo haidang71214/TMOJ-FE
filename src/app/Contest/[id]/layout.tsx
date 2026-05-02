@@ -13,7 +13,7 @@ export default async function ContestLayout({
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a]">
+    <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] transition-colors duration-500">
       {children}
     </div>
   );

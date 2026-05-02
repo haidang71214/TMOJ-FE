@@ -57,7 +57,7 @@ export const discussionApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: DiscussionEndpoint.VOTE_DISCUSSION.replace("{id}", body.id),
         method: "POST",
-        body: { voteType: body.voteType }
+        body: { voteType: Number(body.voteType) }
       }),
       invalidatesTags: ["Discussion"],
     }),
@@ -114,7 +114,7 @@ export const discussionApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: DiscussionEndpoint.VOTE_COMMENT.replace("{id}", body.id),
         method: "POST",
-        body: { voteType: body.voteType },
+        body: { voteType: Number(body.voteType) },
       }),
       invalidatesTags: ["Discussion"],
     }),
@@ -126,6 +126,22 @@ export const discussionApi = baseApi.injectEndpoints({
         body: { hide: body.isHidden },
       }),
       invalidatesTags: ["Discussion"],
+    }),
+    changeDiscussionVisibility: builder.mutation<any, { id: string; isHidden: boolean }>({
+      query: ({ id, isHidden }) => ({
+        url: DiscussionEndpoint.CHANGE_VISIBILITY.replace("{id}", id),
+        method: "PATCH",
+        body: { isHidden },
+      }),
+      invalidatesTags: ["Discussion"],
+    }),
+    getDiscussionHistory: builder.query<any, { limit?: number }>({
+      query: (params) => ({
+        url: DiscussionEndpoint.GET_HISTORY,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Discussion"],
     }),
   }),
 });
@@ -145,4 +161,6 @@ export const {
   useDeleteCommentMutation,
   useVoteCommentMutation,
   useHideCommentMutation,
+  useChangeDiscussionVisibilityMutation,
+  useGetDiscussionHistoryQuery,
 } = discussionApi;

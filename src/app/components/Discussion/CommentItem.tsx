@@ -35,7 +35,7 @@ interface Props {
   depth?: number;
 }
 
-import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery, useUpdateDiscussionMutation } from "@/store/queries/discussion";
+import { useUpdateCommentMutation, useHideCommentMutation, useGetDiscussionCommentsQuery, useUpdateDiscussionMutation, useChangeDiscussionVisibilityMutation } from "@/store/queries/discussion";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useGetMyReportsQuery } from "@/store/queries/reports";
 import { toast } from "sonner";
@@ -59,6 +59,7 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
   const [updateComment] = useUpdateCommentMutation();
   const [updateDiscussion] = useUpdateDiscussionMutation();
   const [hideComment] = useHideCommentMutation();
+  const [changeDiscussionVisibility] = useChangeDiscussionVisibilityMutation();
 
   const checkResponse = (resData: any) => {
     // Only throw if data is null AND message doesn't contain "success"
@@ -120,7 +121,6 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
         ].filter(v => v && v !== "undefined" && v !== "null");
 
         const isOwner = myIds.some(id => cOwnerIds.includes(id));
-        if (c.isHidden && !isOwner) return false;
         return true;
       })
       .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
@@ -151,6 +151,23 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     ? (currentUser as any)?.equippedFrameUrl
     : (comment?.userFrameUrl || comment?.userEquippedFrameUrl || (comment as any)?.user?.equippedFrameUrl);
 
+  const handleToggleHide = async () => {
+    try {
+      const newHiddenState = !comment.isHidden;
+      let res;
+      if (isTopLevel) {
+        res = await changeDiscussionVisibility({ id: cid, isHidden: newHiddenState }).unwrap();
+      } else {
+        res = await hideComment({ commentId: cid, isHidden: newHiddenState }).unwrap();
+      }
+      checkResponse(res);
+      onHideSuccess(cid, newHiddenState);
+      toast.success(newHiddenState ? (t("discussion.hide_success") || "Đã ẩn nội dung") : (t("discussion.unhide_success") || "Đã hiển thị nội dung"));
+    } catch (error) {
+      toast.error(t("discussion.hide_error") || "Lỗi khi thay đổi trạng thái hiển thị");
+    }
+  };
+
   const menuItems = [
     ...(isMe ? [
       {
@@ -159,27 +176,18 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
         icon: <Pencil size={14} />,
         onClick: () => setIsEditing(true),
         className: "font-bold"
-      },
-      ...(!isTopLevel ? [{
+      }
+    ] : []),
+    ...(isMe || (currentUser as any)?.role === "Admin" || (currentUser as any)?.role === "Manager" ? [
+      {
         key: "hide",
         label: comment.isHidden
-          ? (t("discussion.unhide") || (language === "vi" ? "Hủy ẩn (Unhide)" : "Unhide"))
-          : (t("discussion.hide") || (language === "vi" ? "Ẩn (Hide)" : "Hide")),
+          ? (t("discussion.unhide") || (language === "vi" ? "Hiển thị" : "Unhide"))
+          : (t("discussion.hide") || (language === "vi" ? "Ẩn" : "Hide")),
         icon: <EyeOff size={14} />,
-        color: "warning" as const,
+        onClick: handleToggleHide,
         className: "text-warning font-bold",
-        onClick: async () => {
-          try {
-            const newIsHidden = !comment.isHidden;
-            const res = await hideComment({ commentId: cid, isHidden: newIsHidden }).unwrap();
-            checkResponse(res);
-            toast.success(newIsHidden ? "Đã ẩn bình luận" : "Đã hủy ẩn bình luận");
-            onHideSuccess(cid, newIsHidden);
-          } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Lỗi khi cập nhật trạng thái hiển thị");
-          }
-        }
-      }] : [])
+      }
     ] : []),
     ...(isMe || currentUser?.role === "admin" || currentUser?.role === "Admin" ? [
       {
@@ -229,6 +237,11 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
               {(localIsEdited || comment.isEdited || (comment.updatedAt && comment.updatedAt !== comment.createdAt)) &&
                 (t("discussion.edited") || (language === "vi" ? " (Đã chỉnh sửa)" : " (Edited)"))}
             </span>
+            {comment.isHidden && (
+              <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded-full italic">
+                {t("discussion.hidden_status") || (language === "vi" ? "Bị ẩn" : "Hidden")}
+              </span>
+            )}
           </div>
 
           {menuItems.length > 0 && (

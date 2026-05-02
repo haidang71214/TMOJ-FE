@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Trophy, RefreshCcw, Download, Clock, ShieldCheck, Lock
+  Trophy, Download, Clock, ShieldCheck, Lock, Snowflake
 } from "lucide-react";
 import {
   Button, Table, TableHeader, TableColumn, TableBody,
   TableRow, TableCell, Avatar, Tooltip, Spinner
 } from "@heroui/react";
-import { useGetClassContestScoreboardQuery } from "@/store/queries/ClassContest";
+import { 
+  useGetClassContestScoreboardQuery, 
+  useFreezeClassContestMutation, 
+  useUnfreezeClassContestMutation 
+} from "@/store/queries/ClassContest";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
-import { useFreezeContestMutation, useUnfreezeContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -41,39 +44,45 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
       skipPollingIfUnfocused: true,
     }
   );
-  console.log("a", scoreboardData);
+  console.log("Scoreboard State:", { isLoading, isFetching, pollingInterval });
   
-  const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
-  const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
+  const { data: userProfile } = useGetUserInformationQuery();
+  const isStudent = userProfile?.role?.toLowerCase() === "student";
+  
+  const [freezeContest, { isLoading: isFreezing }] = useFreezeClassContestMutation();
+  const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeClassContestMutation();
 
   const data = scoreboardData?.data as ScoreboardResponseDTO | undefined;
 
   // Auto-polling mỗi 10s cho ACM/IOI contests trong kỳ thi running
   useEffect(() => {
-    if (!data) return;
+    console.log("Checking Scoreboard Polling:", { 
+      status: data?.status, 
+      frozen: data?.frozen, 
+      hasData: !!data 
+    });
 
-    const isRunning = data.status === "running";
+    if (!data) return;
+    
+    const isRunning = data.status?.toLowerCase() === "running" || data.status?.toLowerCase() === "ongoing";
     const isFrozen = data.frozen;
 
     if (isRunning && !isFrozen) {
-      setPollingInterval(5 * 1000); // 5 seconds
+      setPollingInterval(3 * 1000); // 3 seconds
     } else {
       setPollingInterval(undefined);
     }
-  }, [data?.scoringMode, data?.status, data?.frozen]);
+  }, [data?.status, data?.frozen]);
 
-  const handleRefresh = () => {
-    refetch();
-  };
 
   const handleFreezeToggle = async () => {
     if (!data) return;
     try {
       if (data.frozen) {
-        await unfreezeContest(contestId).unwrap();
+        await unfreezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.unfreezeSuccess") || "Đã mở băng bảng xếp hạng!");
       } else {
-        await freezeContest(contestId).unwrap();
+        await freezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.freezeSuccess") || "Đã đóng băng bảng xếp hạng!");
       }
     } catch (error) {
@@ -184,14 +193,21 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
             </div>
 
             <div className="flex items-center gap-3">
-              <Button
-                variant="flat"
-                className="bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold h-10 px-6 rounded-xl"
-                startContent={<RefreshCcw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />}
-                onPress={handleRefresh}
-              >
-                {t("scoreboard.refresh") || "REFRESH"}
-              </Button>
+              {!isStudent && (
+                <Button
+                  variant="flat"
+                  className={`${data.frozen 
+                    ? "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" 
+                    : "bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300"} font-bold h-10 px-6 rounded-xl`}
+                  startContent={<Snowflake className={`w-4 h-4 ${isFreezing || isUnfreezing ? "animate-pulse" : ""}`} />}
+                  isLoading={isFreezing || isUnfreezing}
+                  onPress={handleFreezeToggle}
+                >
+                  {data.frozen 
+                    ? (t("scoreboard.unfreeze") || "UNFREEZE") 
+                    : (t("scoreboard.freeze") || "FREEZE")}
+                </Button>
+              )}
               <Button
                 className="bg-[#FF5C00] hover:bg-[#d95b16] text-white font-bold h-10 px-6 rounded-xl"
                 startContent={<Download className="w-4 h-4" />}

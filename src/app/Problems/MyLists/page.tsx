@@ -508,7 +508,7 @@ export default function MyListsPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <h3 className="font-[1000] text-lg uppercase italic text-[#071739] dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#00FF41] truncate">
+                      <h3 className="font-[1000] text-lg uppercase italic text-[#071739] dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#00FF41]">
                         {item.name}
                       </h3>
                       {!item.isVisibility ? (
@@ -590,7 +590,7 @@ export default function MyListsPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <h3 className="font-[1000] text-lg uppercase italic text-[#071739] dark:text-white group-hover:text-[#FF5C00] truncate">
+                      <h3 className="font-[1000] text-lg uppercase italic text-[#071739] dark:text-white group-hover:text-[#FF5C00]">
                         {item.name}
                       </h3>
                       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-[9px] font-bold text-slate-500">

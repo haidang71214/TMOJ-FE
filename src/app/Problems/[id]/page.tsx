@@ -304,21 +304,22 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-          {!isResultMaximized && (
-            <div className="relative flex flex-col overflow-hidden rounded-xl" style={{ height: isEditorMaximized ? '100%' : editorHeight }}>
-              <SolutionSubmittion
-                editorHeight={isEditorMaximized ? "100%" : editorHeight}
-                problemId={problemId}
-                onSubmitSuccess={() => setActiveLeftTab("submissions")}
-                onSubmissionIdChange={(id: string | null) => {
-                  setSubmissionId(id);
-                  setActiveBottomTab("result");
-                }}
-                isMaximized={isEditorMaximized}
-                onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
-              />
-            </div>
-          )}
+          <div
+            className={`relative flex flex-col overflow-hidden rounded-xl transition-all duration-300 ${isResultMaximized ? 'h-0 opacity-0 pointer-events-none' : ''}`}
+            style={{ height: isResultMaximized ? 0 : (isEditorMaximized ? '100%' : editorHeight) }}
+          >
+            <SolutionSubmittion
+              editorHeight={isEditorMaximized ? "100%" : (isResultMaximized ? 0 : editorHeight)}
+              problemId={problemId}
+              onSubmitSuccess={() => setActiveLeftTab("submissions")}
+              onSubmissionIdChange={(id: string | null) => {
+                setSubmissionId(id);
+                setActiveBottomTab("result");
+              }}
+              isMaximized={isEditorMaximized}
+              onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
+            />
+          </div>
 
           {/* ── VERTICAL DRAG HANDLE ── */}
           {!isEditorMaximized && !isResultMaximized && (
@@ -331,298 +332,296 @@ export default function ProblemDetailsPage() {
           )}
 
           {/* ── RIGHT-BOTTOM: TESTCASE ── */}
-          {!isEditorMaximized && (
-            <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 ${isResultMaximized ? 'h-full' : ''}`}>
-              {/* Bottom Tab bar */}
-              <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
-                {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
-                  const isActive = activeBottomTab === key;
-                  const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
-                  return (
-                    <div key={key} className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}>
-                      <button
-                        onClick={() => setActiveBottomTab(key)}
-                        className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
-                          ${isActive
-                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
-                          }
-                          after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
-                      >
-                        <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
-                        {label}
-                      </button>
-                    </div>
-                  );
-                })}
-
-                {/* Maximize Results Button */}
-                <div className="ml-auto pr-4">
-                  <button
-                    onClick={() => setIsResultMaximized(!isResultMaximized)}
-                    className="p-1.5 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-500 hover:text-[#FF5C00] transition-all"
-                    title={isResultMaximized ? "Restore" : "Maximize Results"}
-                  >
-                    {isResultMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Testcase content */}
-              <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
-                {activeBottomTab === "testcase" ? (
-                  <div className="space-y-4">
-                    {/* ... Case selector content ... */}
-                    <div className="flex items-center gap-2">
-                      {["Case 1", "Case 2", "Case 3"].map((c, i) => (
-                        <button
-                          key={c}
-                          onClick={() => setActiveCase(i)}
-                          className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
-                            ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
-                            : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
-                            }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Input fields */}
-                    {[
-                      {
-                        label: "nums =",
-                        values: ["[2,7,11,15]", "[3,2,4]", "[3,3]"],
-                      },
-                      { label: "target =", values: ["9", "6", "6"] },
-                    ].map(({ label, values }) => (
-                      <div key={label}>
-                        <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
-                          {label}
-                        </p>
-                        <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
-                          {values[activeCase]}
-                        </div>
-                      </div>
-                    ))}
+          <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 transition-all duration-300 ${isEditorMaximized ? 'h-0 flex-none opacity-0 pointer-events-none' : 'flex-1'} ${isResultMaximized ? 'h-full' : ''}`}>
+            {/* Bottom Tab bar */}
+            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
+              {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
+                const isActive = activeBottomTab === key;
+                const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
+                return (
+                  <div key={key} className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}>
+                    <button
+                      onClick={() => setActiveBottomTab(key)}
+                      className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+                        ${isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        }
+                        after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
+                    >
+                      <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                      {label}
+                    </button>
                   </div>
-                ) : submissionId ? (
-                  /* ACTUAL RESULT VIEW */
-                  <div className="space-y-6">
-                    {isLoadingResult ? (
-                      <div className="space-y-4">
-                        <Skeleton className="h-10 w-48 rounded-xl" />
-                        <div className="grid grid-cols-2 gap-4">
-                          <Skeleton className="h-20 w-full rounded-xl" />
-                          <Skeleton className="h-20 w-full rounded-xl" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="animate-fade-in">
-                        {(() => {
-                          const data = submissionData?.data as any;
-                          const results = data?.results || [];
-                          const isCE = data?.verdictCode?.toLowerCase() === "ce";
-                          const totalTestcases = isCE ? 0 : results.length;
-                          const passedTestcases = isCE ? 0 : results.filter((r: any) =>
-                            r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
-                          ).length;
+                );
+              })}
 
-                          const firstFailedResult = data?.failed?.[0] || results.find((r: any) => r.statusCode !== "ac");
-
-                          const getVerdictLabel = (code: string) => {
-                            const normalized = code.toLowerCase();
-                            const labels: Record<string, string> = {
-                              "ac": "Accepted",
-                              "wa": "Wrong Answer",
-                              "tle": "Time Limit Exceeded",
-                              "mle": "Memory Limit Exceeded",
-                              "rte": "Runtime Error",
-                              "re": "Runtime Error",
-                              "ce": "Compile Error",
-                              "ie": "Internal Error",
-                              "ir": "Invalid Return",
-                              "ole": "Output Limit Exceeded",
-                            };
-                            return labels[normalized] || code.toUpperCase();
-                          };
-
-                          return (
-                            <>
-                              {/* Result Header */}
-                              <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                  <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode?.toLowerCase() === VerdictCode.AC ? "text-emerald-500" :
-                                    data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
-                                    }`}>
-                                    {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
-                                  </h2>
-                                  <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
-                                    Runtime: {data?.timeMs || 0}ms
-                                  </Chip>
-                                </div>
-                                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                  <Clock size={12} />
-                                  Submitted {data?.createdAt ? new Date(data.createdAt).toLocaleTimeString() : "just now"}
-                                </div>
-                              </div>
-
-                              {/* Stats Cards */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
-                                  <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
-                                    <Clock size={14} />
-                                    Total Runtime
-                                  </div>
-                                  <div className="text-xl font-black">
-                                    {data?.timeMs || 0} ms
-                                  </div>
-                                  <Progress
-                                    size="sm"
-                                    value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)}
-                                    color="primary"
-                                    className="mt-2"
-                                  />
-                                </div>
-                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
-                                  <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
-                                    <CheckSquare size={14} />
-                                    Testcases Passed
-                                  </div>
-                                  <div className="text-xl font-black">
-                                    {passedTestcases} / {totalTestcases}
-                                  </div>
-                                  <Progress
-                                    size="sm"
-                                    value={(passedTestcases / (totalTestcases || 1)) * 100}
-                                    color="success"
-                                    className="mt-2"
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Compile Error Detail */}
-                              {data?.verdictCode === VerdictCode.CE && (
-                                <div className="space-y-4">
-                                  <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
-                                    <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
-                                      <TriangleAlert size={16} />
-                                      Compilation Error
-                                    </div>
-                                    <pre className="p-4 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed text-rose-400">
-                                      {data.compile?.stderr || data.compile?.stdout || "No error details available."}
-                                    </pre>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Failed Testcase Detail (if any) */}
-                              {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
-                                <div className="space-y-4">
-                                  <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
-                                    <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
-                                      <AlertCircle size={16} />
-                                      Failed Testcase Detail
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-4">
-                                      {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
-                                        <div>
-                                          <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Error Message</p>
-                                          <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed">
-                                            {firstFailedResult?.message || firstFailedResult?.checkerMessage || "Wrong Answer: Output does not match expected output."}
-                                          </pre>
-                                        </div>
-                                      ) : (
-                                        <div className="py-2 text-slate-400 italic text-xs uppercase tracking-widest font-bold">
-                                          No detail available for this failure.
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-                              {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
-                                <div className="mb-6">
-                                  <AiDebugAssistant
-                                    submissionId={submissionId!}
-                                    verdict={getVerdictLabel(data?.verdictCode)}
-                                    testcase={firstFailedResult ? {
-                                      input: firstFailedResult.input || "Check message",
-                                      expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
-                                      actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
-                                    } : undefined}
-                                  />
-                                </div>
-                              )}
-
-                              {data?.verdictCode?.toLowerCase() === VerdictCode.AC && (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
-                                    <CheckSquare size={40} />
-                                  </div>
-                                  <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
-                                  <p className="text-sm text-slate-400">All testcases passed successfully.</p>
-
-                                  {isPlanItemCompleted && (
-                                    <div ref={navButtonRef} className="w-full mt-6 animate-fade-in flex flex-col items-center gap-2">
-                                      {nextItemData?.data?.nextProblemId ? (
-                                        <Button
-                                          size="lg"
-                                          className="bg-[#FF5C00] text-white font-black uppercase px-14 h-14
-                                            shadow-[0_0_24px_rgba(255,92,0,0.5)] hover:shadow-[0_0_36px_rgba(255,92,0,0.7)]
-                                            hover:bg-[#ff7a33] transition-all duration-300 animate-pulse"
-                                          endContent={<ArrowRight size={20} />}
-                                          onPress={() => {
-                                            router.push(`/Problems/${nextItemData.data.nextProblemId}?planId=${planId}&itemId=${nextItemData.data.nextItemId}`);
-                                          }}
-                                        >
-                                          Next Challenge
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          size="lg"
-                                          className="bg-amber-500 text-white font-black uppercase px-14 h-14
-                                            shadow-[0_0_24px_rgba(245,158,11,0.5)] hover:shadow-[0_0_36px_rgba(245,158,11,0.7)]
-                                            hover:bg-amber-600 transition-all duration-300 animate-pulse"
-                                          onPress={() => router.push(`/StudyPlan/${planId}`)}
-                                        >
-                                          Return to Plan
-                                        </Button>
-                                      )}
-
-                                      {nextItemData?.data?.nextProblemId && planId && (
-                                        <button
-                                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-bold uppercase tracking-widest mt-1 transition-colors"
-                                          onClick={() => router.push(`/StudyPlan/${planId}`)}
-                                        >
-                                          Return to Plan
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  /* Test Result placeholder */
-                  <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
-                    <CheckSquare size={36} strokeWidth={1.5} />
-                    <p className="text-[12px] font-bold uppercase tracking-widest">
-                      Run your code to see results
-                    </p>
-                  </div>
-                )}
+              {/* Maximize Results Button */}
+              <div className="ml-auto pr-4">
+                <button
+                  onClick={() => setIsResultMaximized(!isResultMaximized)}
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-500 hover:text-[#FF5C00] transition-all"
+                  title={isResultMaximized ? "Restore" : "Maximize Results"}
+                >
+                  {isResultMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
               </div>
             </div>
-          )}
+
+            {/* Testcase content */}
+            <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
+              {activeBottomTab === "testcase" ? (
+                <div className="space-y-4">
+                  {/* ... Case selector content ... */}
+                  <div className="flex items-center gap-2">
+                    {["Case 1", "Case 2", "Case 3"].map((c, i) => (
+                      <button
+                        key={c}
+                        onClick={() => setActiveCase(i)}
+                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
+                          ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                          : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                          }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Input fields */}
+                  {[
+                    {
+                      label: "nums =",
+                      values: ["[2,7,11,15]", "[3,2,4]", "[3,3]"],
+                    },
+                    { label: "target =", values: ["9", "6", "6"] },
+                  ].map(({ label, values }) => (
+                    <div key={label}>
+                      <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                        {label}
+                      </p>
+                      <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                        {values[activeCase]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : submissionId ? (
+                /* ACTUAL RESULT VIEW */
+                <div className="space-y-6">
+                  {isLoadingResult ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-10 w-48 rounded-xl" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                        <Skeleton className="h-20 w-full rounded-xl" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-fade-in">
+                      {(() => {
+                        const data = submissionData?.data as any;
+                        const results = data?.results || [];
+                        const isCE = data?.verdictCode?.toLowerCase() === "ce";
+                        const totalTestcases = isCE ? 0 : results.length;
+                        const passedTestcases = isCE ? 0 : results.filter((r: any) =>
+                          r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
+                        ).length;
+
+                        const firstFailedResult = data?.failed?.[0] || results.find((r: any) => r.statusCode !== "ac");
+
+                        const getVerdictLabel = (code: string) => {
+                          const normalized = code.toLowerCase();
+                          const labels: Record<string, string> = {
+                            "ac": "Accepted",
+                            "wa": "Wrong Answer",
+                            "tle": "Time Limit Exceeded",
+                            "mle": "Memory Limit Exceeded",
+                            "rte": "Runtime Error",
+                            "re": "Runtime Error",
+                            "ce": "Compile Error",
+                            "ie": "Internal Error",
+                            "ir": "Invalid Return",
+                            "ole": "Output Limit Exceeded",
+                          };
+                          return labels[normalized] || code.toUpperCase();
+                        };
+
+                        return (
+                          <>
+                            {/* Result Header */}
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode?.toLowerCase() === VerdictCode.AC ? "text-emerald-500" :
+                                  data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                  }`}>
+                                  {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
+                                </h2>
+                                <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
+                                  Runtime: {data?.timeMs || 0}ms
+                                </Chip>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <Clock size={12} />
+                                Submitted {data?.createdAt ? new Date(data.createdAt).toLocaleTimeString() : "just now"}
+                              </div>
+                            </div>
+
+                            {/* Stats Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <Clock size={14} />
+                                  Total Runtime
+                                </div>
+                                <div className="text-xl font-black">
+                                  {data?.timeMs || 0} ms
+                                </div>
+                                <Progress
+                                  size="sm"
+                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)}
+                                  color="primary"
+                                  className="mt-2"
+                                />
+                              </div>
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                  <CheckSquare size={14} />
+                                  Testcases Passed
+                                </div>
+                                <div className="text-xl font-black">
+                                  {passedTestcases} / {totalTestcases}
+                                </div>
+                                <Progress
+                                  size="sm"
+                                  value={(passedTestcases / (totalTestcases || 1)) * 100}
+                                  color="success"
+                                  className="mt-2"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Compile Error Detail */}
+                            {data?.verdictCode === VerdictCode.CE && (
+                              <div className="space-y-4">
+                                <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
+                                    <TriangleAlert size={16} />
+                                    Compilation Error
+                                  </div>
+                                  <pre className="p-4 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed text-rose-400">
+                                    {data.compile?.stderr || data.compile?.stdout || "No error details available."}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Failed Testcase Detail (if any) */}
+                            {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
+                              <div className="space-y-4">
+                                <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
+                                  <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
+                                    <AlertCircle size={16} />
+                                    Failed Testcase Detail
+                                  </div>
+
+                                  <div className="grid grid-cols-1 gap-4">
+                                    {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
+                                      <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Error Message</p>
+                                        <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed">
+                                          {firstFailedResult?.message || firstFailedResult?.checkerMessage || "Wrong Answer: Output does not match expected output."}
+                                        </pre>
+                                      </div>
+                                    ) : (
+                                      <div className="py-2 text-slate-400 italic text-xs uppercase tracking-widest font-bold">
+                                        No detail available for this failure.
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
+                            {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
+                              <div className="mb-6">
+                                <AiDebugAssistant
+                                  submissionId={submissionId!}
+                                  verdict={getVerdictLabel(data?.verdictCode)}
+                                  testcase={firstFailedResult ? {
+                                    input: firstFailedResult.input || "Check message",
+                                    expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
+                                    actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
+                                  } : undefined}
+                                />
+                              </div>
+                            )}
+
+                            {data?.verdictCode?.toLowerCase() === VerdictCode.AC && (
+                              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
+                                  <CheckSquare size={40} />
+                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
+                                <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+
+                                {isPlanItemCompleted && (
+                                  <div ref={navButtonRef} className="w-full mt-6 animate-fade-in flex flex-col items-center gap-2">
+                                    {nextItemData?.data?.nextProblemId ? (
+                                      <Button
+                                        size="lg"
+                                        className="bg-[#FF5C00] text-white font-black uppercase px-14 h-14
+                                          shadow-[0_0_24px_rgba(255,92,0,0.5)] hover:shadow-[0_0_36px_rgba(255,92,0,0.7)]
+                                          hover:bg-[#ff7a33] transition-all duration-300 animate-pulse"
+                                        endContent={<ArrowRight size={20} />}
+                                        onPress={() => {
+                                          router.push(`/Problems/${nextItemData.data.nextProblemId}?planId=${planId}&itemId=${nextItemData.data.nextItemId}`);
+                                        }}
+                                      >
+                                        Next Challenge
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        size="lg"
+                                        className="bg-amber-500 text-white font-black uppercase px-14 h-14
+                                          shadow-[0_0_24px_rgba(245,158,11,0.5)] hover:shadow-[0_0_36px_rgba(245,158,11,0.7)]
+                                          hover:bg-amber-600 transition-all duration-300 animate-pulse"
+                                        onPress={() => router.push(`/StudyPlan/${planId}`)}
+                                      >
+                                        Return to Plan
+                                      </Button>
+                                    )}
+
+                                    {nextItemData?.data?.nextProblemId && planId && (
+                                      <button
+                                        className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-bold uppercase tracking-widest mt-1 transition-colors"
+                                        onClick={() => router.push(`/StudyPlan/${planId}`)}
+                                      >
+                                        Return to Plan
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Test Result placeholder */
+                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                  <CheckSquare size={36} strokeWidth={1.5} />
+                  <p className="text-[12px] font-bold uppercase tracking-widest">
+                    Run your code to see results
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

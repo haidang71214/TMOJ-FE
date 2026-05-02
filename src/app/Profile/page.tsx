@@ -58,6 +58,7 @@ import {
   useGetGamificationHistoryQuery,
   useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
+import { useGetDiscussionHistoryQuery } from "@/store/queries/discussion";
 import { useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
@@ -114,6 +115,7 @@ export default function ProfilePage() {
   const { data: gStreakResponse } = useGetStreakQuery();
   const { data: gHistoryResponse } = useGetGamificationHistoryQuery();
   const { data: gActivitiesResponse } = useGetDailyActivitiesQuery();
+  const { data: historyData, isLoading: historyLoading } = useGetDiscussionHistoryQuery({ limit: 10 });
 
   const gMe = gMeResponse?.data;
   const gStreak = gStreakResponse?.data;
@@ -788,20 +790,58 @@ export default function ProfilePage() {
                 </div>
               </Tab>
               <Tab key="discussion" title="Discussion">
-                <div className="p-16 text-center space-y-6">
-                  <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto text-[#FF5C00] shadow-sm">
-                    <MessageSquare size={36} />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-black uppercase italic text-[#071739] dark:text-white leading-none">Your voice matters</h3>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider max-w-xs mx-auto">You haven&apos;t joined any discussions yet. Share your thoughts on a problem to get started!</p>
-                  </div>
-                  <Button
-                    className="bg-[#FF5C00] text-white font-black uppercase italic text-[11px] tracking-widest px-8 rounded-2xl h-12"
-                    onClick={() => router.push("/Problems")}
-                  >
-                    Explore Problems
-                  </Button>
+                <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
+                  {historyLoading ? (
+                    <div className="flex justify-center py-10"><Spinner color="warning" /></div>
+                  ) : historyData?.data && historyData.data.length > 0 ? (
+                    historyData.data.map((item: any) => (
+                      <div
+                        key={item.id}
+                        className="py-6 flex justify-between items-center group cursor-pointer"
+                        onClick={() => router.push(`/Problems/${item.problemId}?discussionId=${item.discussionId}`)}
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-blue-500 group-hover:bg-blue-500/20 transition-colors">
+                            <MessageSquare size={20} />
+                          </div>
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <p className="text-[10px] font-black uppercase italic text-slate-400 truncate">
+                              {item.problemTitle || "General Discussion"}
+                            </p>
+                            <p className="text-base font-black uppercase italic group-hover:text-blue-600 transition-colors text-[#071739] dark:text-white leading-none truncate">
+                              {item.title || item.content?.substring(0, 50) + "..."}
+                            </p>
+                            <p className="text-[9px] font-bold text-slate-400 italic">
+                              {item.type === "discussion" ? "Started a discussion" : "Commented"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors shrink-0 ml-4">
+                          <span className="text-[10px] font-bold uppercase italic">
+                            {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
+                          <ChevronRight size={16} />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-16 text-center space-y-6">
+                      <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto text-[#FF5C00] shadow-sm">
+                        <MessageSquare size={36} />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black uppercase italic text-[#071739] dark:text-white leading-none">Your voice matters</h3>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider max-w-xs mx-auto">You haven&apos;t joined any discussions yet. Share your thoughts on a problem to get started!</p>
+                      </div>
+                      <Button
+                        className="bg-[#FF5C00] text-white font-black uppercase italic text-[11px] tracking-widest px-8 rounded-2xl h-12"
+                        onClick={() => router.push("/Problems")}
+                      >
+                        Explore Problems
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Tab>
             </Tabs>

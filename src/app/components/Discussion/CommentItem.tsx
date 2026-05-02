@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import {
-  Avatar,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
 } from "@heroui/react";
+import UserAvatar from "@/components/Common/UserAvatar";
 import {
   ThumbsUp,
   ThumbsDown,
@@ -144,8 +144,12 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
     : (comment?.userDisplayName || comment?.userFullName || comment?.user?.displayName || `User ${comment?.userId?.substring(0, 5)}`);
 
   const displayAvatar = isMe
-    ? (currentUser?.avatarUrl || displayName?.[0])
-    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl || displayName?.[0] || "?");
+    ? (currentUser?.avatarUrl)
+    : (comment?.userAvatarUrl || comment?.userAvatar || comment?.user?.avatarUrl);
+
+  const frameUrl = isMe
+    ? (currentUser as any)?.equippedFrameUrl
+    : (comment?.userFrameUrl || comment?.userEquippedFrameUrl || (comment as any)?.user?.equippedFrameUrl);
 
   const menuItems = [
     ...(isMe ? [
@@ -208,10 +212,11 @@ export const CommentItem = ({ comment, discussionId, currentUserId: propUserId, 
 
   return (
     <div id={`comment-${cid}`} className={`flex gap-4 border-b border-gray-50 dark:border-[#1C2737] pb-6 group transition-colors duration-500 ${comment.isHidden ? "opacity-60" : ""}`}>
-      <Avatar
+      <UserAvatar
+        src={displayAvatar}
+        frameUrl={frameUrl}
         size="sm"
-        name={displayAvatar}
-        className={`bg-blue-100 dark:bg-blue-500/20 font-black shrink-0 shadow-sm`}
+        fallback={displayName?.[0]}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">

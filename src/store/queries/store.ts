@@ -64,7 +64,9 @@ export const storeApi = baseApi.injectEndpoints({
           quantity: item.quantity !== undefined ? item.quantity : item.Quantity,
           isEquipped: item.isEquipped !== undefined ? item.isEquipped : item.IsEquipped,
           isExpired: item.isExpired !== undefined ? item.isExpired : item.IsExpired,
-          metaJson: item.metaJson || item.MetaJson,
+          metaJson: typeof (item.metaJson || item.MetaJson) === 'string'
+            ? JSON.parse(item.metaJson || item.MetaJson)
+            : (item.metaJson || item.MetaJson),
         })),
       providesTags: ["Inventory"],
     }),

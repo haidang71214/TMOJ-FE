@@ -6,8 +6,9 @@ import {
 } from "lucide-react";
 import {
   Button, Table, TableHeader, TableColumn, TableBody,
-  TableRow, TableCell, Avatar, Tooltip, Spinner, Card, Chip
+  TableRow, TableCell, Tooltip, Spinner, Card, Chip
 } from "@heroui/react";
+import UserAvatar from "@/components/Common/UserAvatar";
 import {
   useGetScoreboardQuery,
   useFreezeContestMutation,
@@ -73,7 +74,7 @@ export default function ScoreboardPage() {
     if (!attempt || attempt.attemptsCount === 0) return <div className="min-h-[50px]"></div>;
     const score = attempt.score;
     const colorClass = score === 100 ? "bg-green-500 text-white" : score > 0 ? "bg-blue-500/10 text-blue-600" : "bg-rose-500/10 text-rose-600";
-    
+
     return (
       <div className={`w-full h-full min-h-[50px] flex flex-col items-center justify-center p-2 rounded-xl border border-transparent ${colorClass}`}>
         <span className="font-black italic text-sm">{score}</span>
@@ -168,11 +169,10 @@ export default function ScoreboardPage() {
                         <TableCell>
                           <div className="flex justify-center items-center h-full">
                             {row.rank <= 3 ? (
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black italic text-sm shadow-lg ${
-                                row.rank === 1 ? "bg-yellow-400 text-yellow-900" :
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black italic text-sm shadow-lg ${row.rank === 1 ? "bg-yellow-400 text-yellow-900" :
                                 row.rank === 2 ? "bg-slate-300 text-slate-700" :
-                                "bg-amber-600 text-amber-100"
-                              }`}>
+                                  "bg-amber-600 text-amber-100"
+                                }`}>
                                 {row.rank}
                               </div>
                             ) : (
@@ -186,7 +186,12 @@ export default function ScoreboardPage() {
                       return (
                         <TableCell className="text-left pl-10">
                           <div className="flex items-center gap-4">
-                            <Avatar src={row.avatarUrl} name={row.username} size="sm" isBordered className="border-[#071739] scale-90" />
+                            <UserAvatar
+                              src={row.avatarUrl}
+                              frameUrl={(row as any).equippedFrameUrl || (row as any).frameUrl || (row as any).userFrameUrl || (row as any).userEquippedFrameUrl || (row as any).user?.equippedFrameUrl}
+                              size="sm"
+                              fallback={row.username?.[0]}
+                            />
                             <div className="flex flex-col">
                               <span className="text-slate-800 dark:text-slate-100 font-black italic uppercase tracking-tight leading-none">{row.fullname || row.username}</span>
                               <span className="text-[9px] text-slate-400 font-bold lowercase">@{row.username}</span>

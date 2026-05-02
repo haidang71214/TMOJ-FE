@@ -262,8 +262,9 @@ function CoinShopContent() {
 
   const filteredInventory = useMemo(() => {
     if (!inventoryData) return [];
-    if (inventoryFilter === "all") return inventoryData;
-    return inventoryData.filter(item => item.itemType === inventoryFilter);
+    const base = inventoryData.filter(item => item.itemType !== "badge" && item.itemType !== "title_color");
+    if (inventoryFilter === "all") return base;
+    return base.filter(item => item.itemType === inventoryFilter);
   }, [inventoryData, inventoryFilter]);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -329,7 +330,8 @@ function CoinShopContent() {
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = shopTypeFilter === "all" || item.itemType === shopTypeFilter;
       const matchesActive = item.isActive !== false;
-      return matchesSearch && matchesType && matchesActive;
+      const isAllowedType = item.itemType !== "badge" && item.itemType !== "title_color";
+      return matchesSearch && matchesType && matchesActive && isAllowedType;
     });
 
     // 2. Sort
@@ -449,8 +451,6 @@ function CoinShopContent() {
                 }}
               >
                 <SelectItem key="all">All Categories</SelectItem>
-                <SelectItem key="badge">Badges</SelectItem>
-                <SelectItem key="title_color">Title Colors</SelectItem>
                 <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
                 <SelectItem key="physical_item">Physical Items</SelectItem>
               </Select>
@@ -611,8 +611,6 @@ function CoinShopContent() {
                 }}
               >
                 <SelectItem key="all">All Items</SelectItem>
-                <SelectItem key="badge">Badges</SelectItem>
-                <SelectItem key="title_color">Title Colors</SelectItem>
                 <SelectItem key="avatar_frame">Avatar Frames</SelectItem>
                 <SelectItem key="physical_item">Physical Items</SelectItem>
               </Select>

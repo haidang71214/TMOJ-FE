@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@heroui/react";
+import UserAvatar from "@/components/Common/UserAvatar";
 import {
   AreaChart as AreaChartIcon,
   ArrowUpRight,
@@ -269,14 +270,10 @@ export default function RankingPage() {
                       ) : null}
                     </div>
 
-                    <Avatar
+                    <UserAvatar
                       src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.userId}`}
-                      className={`w-20 h-20 ring-4 ${isFirst
-                        ? "ring-amber-400/50"
-                        : isSecond
-                          ? "ring-slate-400/20"
-                          : "ring-orange-700/20"
-                        }`}
+                      frameUrl={student.equippedFrameUrl || student.frameUrl}
+                      size="lg"
                     />
 
                     <div className="space-y-0.5">
@@ -445,10 +442,10 @@ export default function RankingPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-4">
-                          <Avatar
-                            radius="full"
-                            size="sm"
+                          <UserAvatar
                             src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
+                            frameUrl={row.equippedFrameUrl || row.frameUrl}
+                            size="sm"
                           />
                           <div className="flex flex-col">
                             <span className="font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors">

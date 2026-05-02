@@ -58,7 +58,7 @@ import {
   useGetGamificationHistoryQuery,
   useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
-import { useGetMyInventoryQuery } from "@/store/queries/store";
+import { useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ import { ErrorForm } from "@/types";
 import { Badge } from "@/types/gamification";
 import BadgeCelebrationModal from "@/components/Gamification/BadgeCelebrationModal";
 import { useEffect } from "react";
+import UserAvatar from "@/components/Common/UserAvatar";
 
 // --- INTERFACES ---
 interface DifficultyStat {
@@ -133,14 +134,13 @@ export default function ProfilePage() {
     inventoryData?.find(item => item.itemType === "avatar_frame" && item.isEquipped && !item.isExpired),
     [inventoryData]
   );
-  const equippedColor = useMemo(() =>
-    inventoryData?.find(item => item.itemType === "title_color" && item.isEquipped && !item.isExpired),
-    [inventoryData]
-  );
+
+  const [equipItem, { isLoading: isEquipping }] = useEquipItemMutation();
 
   // Badge Celebration Logic
   const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
+  const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
 
   useEffect(() => {
     if (completedBadges.length > 0 && !isCelebrationOpen) {
@@ -262,24 +262,14 @@ export default function ProfilePage() {
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[2.5rem] shadow-sm">
             <CardBody className="p-8 relative z-10">
               <div className="flex flex-col items-center text-center gap-4">
-                <div className="relative group/avatar p-2">
-                  <Avatar
-                    src={avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : undefined}
-                    name={displayName || username}
-                    className={`w-28 h-28 border-4 ${equippedFrame ? "border-transparent" : "border-[#FF5C00]"} rounded-full shadow-lg transition-all ${(isUpdatingAvatar || isDeletingAvatar) ? "opacity-50" : ""
+                <div className="relative group/avatar">
+                  <UserAvatar
+                    src={avatarUrl}
+                    frameUrl={equippedFrame?.itemImageUrl}
+                    size="xl"
+                    className={`cursor-pointer transition-all duration-500 shadow-2xl rounded-[2.5rem] border-4 border-white dark:border-[#111827] group-hover/avatar:scale-[1.02] ${isUpdatingAvatar || isDeletingAvatar ? "opacity-50" : ""
                       }`}
                   />
-
-                  {/* AVATAR FRAME */}
-                  {equippedFrame && (
-                    <div className="absolute inset-0 z-10 pointer-events-none scale-[1.35] transition-transform group-hover/avatar:scale-[1.4]">
-                      <img
-                        src={equippedFrame.itemImageUrl}
-                        alt="Avatar Frame"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
 
                   {/* Loading Spinner Over Avatar */}
                   {(isUpdatingAvatar || isDeletingAvatar) && (
@@ -289,55 +279,48 @@ export default function ProfilePage() {
                   )}
 
                   {/* Hover overlay for actions */}
-                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-black/40 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300 z-30 backdrop-blur-sm">
                     <Button
                       isIconOnly
                       size="sm"
                       variant="flat"
-                      className="bg-white/20 hover:bg-white/40 text-white border-none"
+                      className="bg-white/20 text-white border-white/20 hover:bg-white/40"
                       onClick={() => fileInputRef.current?.click()}
-                      isLoading={isUpdatingAvatar}
                     >
                       <Camera size={16} />
                     </Button>
-                    {avatarUrl && (
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-red-500/20 hover:bg-red-500/40 text-white border-none"
-                        onClick={handleDeleteAvatar}
-                        isLoading={isDeletingAvatar}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    )}
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      className="bg-white/20 text-red-500 border-white/20 hover:bg-red-500 hover:text-white"
+                      onClick={handleDeleteAvatar}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
+                </div>
 
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleUploadAvatar}
-                  />
-                </div>
-                <div>
-                  <h1
-                    className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none"
-                    style={{ color: equippedColor?.metaJson?.color || undefined }}
-                  >
-                    {displayName || username || (meLoading ? "..." : "—")}
-                  </h1>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">
-                    {username ? `@${username}` : ""}
-                  </p>
-                  {role && (
-                    <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#FF5C00]/10 text-[#FF5C00]">
-                      {role}
-                    </span>
-                  )}
-                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleUploadAvatar}
+                />
+              </div>
+              <div className="flex flex-col items-center gap-2 mt-8">
+                <h1 className="text-2xl font-[1000] uppercase italic tracking-tighter leading-none">
+                  {displayName || username || (meLoading ? "..." : "—")}
+                </h1>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+                  {username ? `@${username}` : ""}
+                </p>
+                {role && (
+                  <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#FF5C00]/10 text-[#FF5C00]">
+                    {role}
+                  </span>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-white/10 text-[#071739] dark:text-white">
                 <div className="text-center border-r border-slate-100 dark:border-white/10">
@@ -412,6 +395,15 @@ export default function ProfilePage() {
                 onClick={() => setIsEditProfileOpen(true)}
               >
                 Edit Profile
+              </Button>
+              <Button
+                size="lg"
+                variant="bordered"
+                className="w-full font-[1000] uppercase italic text-xs tracking-widest border-divider hover:border-[#FF5C00] hover:text-[#FF5C00] transition-all rounded-2xl mt-2"
+                startContent={<Zap size={14} />}
+                onClick={() => setIsEquipmentModalOpen(true)}
+              >
+                Equipments
               </Button>
             </CardBody>
           </Card>
@@ -596,7 +588,7 @@ export default function ProfilePage() {
                 )}
 
                 <p className="text-[10px] font-[1000] uppercase italic text-slate-500 tracking-widest relative z-10">
-                  Achievement
+                  Latest Achievement
                 </p>
 
 
@@ -627,7 +619,7 @@ export default function ProfilePage() {
                   className="font-black uppercase italic text-[9px] text-[#FF5C00] tracking-widest hover:bg-[#FF5C00]/10 mt-2"
                   onPress={onOpen}
                 >
-                  Detail ↗
+                  Collection ↗
                 </Button>
 
               </div>
@@ -816,7 +808,6 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
-
       {/* ================= MODAL: BADGE COLLECTION ================= */}
       <Modal
         isOpen={isOpen}
@@ -832,9 +823,6 @@ export default function ProfilePage() {
           header: "border-b border-white/10",
           body: "no-scrollbar",
         }}
-
-
-
       >
         <ModalContent>
           {(onClose) => (
@@ -959,6 +947,84 @@ export default function ProfilePage() {
         isOpen={isCelebrationOpen}
         onClose={handleCloseCelebration}
       />
+
+      {/* ================= MODAL: EQUIPMENT MANAGEMENT ================= */}
+      <Modal
+        isOpen={isEquipmentModalOpen}
+        onOpenChange={setIsEquipmentModalOpen}
+        size="4xl"
+        backdrop="blur"
+        scrollBehavior="inside"
+        classNames={{
+          base: "dark:bg-[#071739] bg-white rounded-[3rem] p-6 border border-white/10",
+          header: "border-b border-white/10",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <Zap size={24} className="text-[#FF5C00]" />
+                  <h2 className="text-2xl font-[1000] uppercase italic tracking-tighter text-[#071739] dark:text-white">
+                    Manage <span className="text-[#FF5C00]">Equipments</span>
+                  </h2>
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] italic">
+                  Customize your presence in the community
+                </p>
+              </ModalHeader>
+              <ModalBody className="py-8">
+                <Tabs
+                  variant="underlined"
+                  classNames={{
+                    tabList: "gap-8 border-b border-white/5 mb-6",
+                    cursor: "bg-[#FF5C00]",
+                    tabContent: "font-black uppercase italic text-xs tracking-widest group-data-[selected=true]:text-[#FF5C00]"
+                  }}
+                >
+                  {/* TAB: AVATAR FRAMES */}
+                  <Tab key="frames" title="Avatar Frames">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {inventoryData?.filter(item => item.itemType === "avatar_frame" && !item.isExpired).map((item) => (
+                        <div key={item.inventoryId} className={`p-6 rounded-4xl border-2 transition-all group relative ${item.isEquipped ? "border-[#FF5C00] bg-[#FF5C00]/5" : "border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"}`}>
+                          <div className="flex flex-col items-center text-center gap-4">
+                            <div className="w-24 h-24 relative flex items-center justify-center">
+                              <Avatar src={avatarUrl} className="w-16 h-16" />
+                              <img src={item.itemImageUrl} alt={item.itemName} className="absolute inset-0 w-full h-full object-contain scale-[1.2]" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-[1000] uppercase italic text-[#071739] dark:text-white leading-tight">{item.itemName}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              isLoading={isEquipping}
+                              className={`w-full font-black uppercase italic text-[10px] tracking-widest rounded-xl ${item.isEquipped ? "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" : "bg-[#FF5C00] text-white hover:bg-[#FF5C00]/80"}`}
+                              onClick={async () => {
+                                try {
+                                  await equipItem({ inventoryId: item.inventoryId, isEquipped: !item.isEquipped }).unwrap();
+                                  toast.success(item.isEquipped ? "Unequipped!" : "Equipped!");
+                                } catch (err: any) {
+                                  toast.error(err?.data?.message || "Action failed");
+                                }
+                              }}
+                            >
+                              {item.isEquipped ? "Unequip" : "Equip"}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {inventoryData?.filter(item => item.itemType === "avatar_frame" && !item.isExpired).length === 0 && (
+                        <div className="col-span-full py-20 text-center text-slate-400 italic">You don&apos;t own any avatar frames.</div>
+                      )}
+                    </div>
+                  </Tab>
+                </Tabs>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       <style jsx global>{`
         .grid-cols-53 {

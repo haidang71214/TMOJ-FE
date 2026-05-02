@@ -25,6 +25,7 @@ import {
   ExternalLink,
   Target,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useRouter, usePathname } from "next/navigation";
 import CreateListModal from "./MyLists/CreateListModal";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
@@ -145,6 +146,9 @@ export default function ProblemsSidebar() {
                 aria-label="Actions"
                 onAction={(key) => {
                   if (key === "new-list") onOpen();
+                  if (key === "new-smart-list") {
+                    toast.info("Tính năng Smart Bookmark sẽ sớm ra mắt!");
+                  }
                 }}
                 className="p-1"
               >
@@ -186,7 +190,7 @@ export default function ProblemsSidebar() {
               }
               className={getItemClasses(list.id)}
             >
-              <span className="text-sm font-bold uppercase tracking-wider truncate block">
+              <span className="text-sm font-bold uppercase tracking-wider block">
                 {list.title}
               </span>
             </ListboxItem>

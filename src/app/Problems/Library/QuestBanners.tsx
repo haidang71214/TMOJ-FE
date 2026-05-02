@@ -18,7 +18,7 @@ export const QuestBanners = () => {
   const router = useRouter();
 
   // 1. Fetch data
-  const { data: plansData, isLoading: isLoadingPlans } = useGetStudyPlansQuery({});
+  const { data: plansData, isLoading: isLoadingPlans } = useGetStudyPlansQuery(undefined, { skip: !isAuthenticated });
   const { data: unlockedData } = useGetUnlockedPlansQuery(undefined, { skip: !isAuthenticated });
   const { data: progressData } = useGetMyStudyProgressQuery(undefined, { skip: !isAuthenticated });
 
@@ -48,21 +48,6 @@ export const QuestBanners = () => {
     const result: any[] = [];
     const usedIds = new Set();
 
-    // -- Trạng thái 1: Chưa đăng ký (Nếu chưa login) hoặc 1 cái gợi ý --
-    if (!isAuthenticated) {
-      const first = allPlans[0];
-      if (first) {
-        result.push({
-          ...first,
-          displaySub: "Guest Access",
-          displayBtn: "Explore",
-          type: "login",
-          color: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#1E293B] dark:to-[#0F172A]",
-          icon: <LogIn size={40} />
-        });
-        usedIds.add(first.id);
-      }
-    }
 
     // -- Trạng thái 2: Đang làm (In Progress) --
     if (isAuthenticated) {
@@ -135,12 +120,10 @@ export const QuestBanners = () => {
   }, [allPlans, unlockedIds, progressList, isAuthenticated, isLoadingPlans]);
 
   const handleAction = (banner: any) => {
-    if (banner.type === "login" && !isAuthenticated) {
-      openModal({ title: "Đăng nhập", content: <LoginModal /> });
-      return;
-    }
     router.push(`/StudyPlan/${banner.id}`);
   };
+
+  if (!isAuthenticated) return null;
 
   if (isLoadingPlans) {
     return (
@@ -197,9 +180,8 @@ export const QuestBanners = () => {
                 className={`w-fit h-8 px-4 rounded-xl font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 ${b.type === "buy" ? "bg-white text-indigo-600 shadow-xl" : "bg-[#071739] text-white dark:bg-white dark:text-[#071739]"
                   }`}
               >
-                {b.type === "login" ? <LogIn size={12} /> :
-                  b.type === "buy" ? <Lock size={12} /> :
-                    <Play size={10} fill="currentColor" />
+                {b.type === "buy" ? <Lock size={12} /> :
+                  <Play size={10} fill="currentColor" />
                 }
                 {b.displayBtn}
               </div>

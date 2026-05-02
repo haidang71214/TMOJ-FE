@@ -4,6 +4,7 @@ import { Button, Card, CardBody, Chip, Progress, Spinner } from "@heroui/react";
 import { Bookmark, CheckCircle2, ChevronLeft, ChevronRight, Lock, Trophy } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { addToast } from "@heroui/toast";
 import {
   useGetStudyPlanDetailQuery,
   useGetStudyPlanEnrollmentQuery,
@@ -46,14 +47,17 @@ export default function PackageEnrollPage() {
       openModal({ title: t("common.login") || "Đăng nhập", content: <LoginModal /> });
       return;
     }
+    if (!id) {
+      addToast({ title: "Invalid Study Plan ID", color: "danger" });
+      return;
+    }
     try {
       await enrollPlan(id).unwrap();
       refetchEnrollment();
-      alert(t("studyplan_detail.enroll_success") || "Enrolled successfully!");
+      addToast({ title: t("studyplan_detail.enroll_success") || "Enrolled successfully!", color: "success" });
     } catch (error: any) {
-      console.error("Enrollment failed:", error);
-      const msg = error?.data?.message || t("studyplan_detail.enroll_fail") || "Failed to enroll. Please try again.";
-      alert(msg);
+      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.enroll_fail") || "Failed to enroll. Please try again.";
+      addToast({ title: msg, color: "danger" });
     }
   };
 
@@ -62,14 +66,17 @@ export default function PackageEnrollPage() {
       openModal({ title: t("common.login") || "Đăng nhập", content: <LoginModal /> });
       return;
     }
+    if (!id) {
+      addToast({ title: "Invalid Study Plan ID", color: "danger" });
+      return;
+    }
     try {
       await buyPlan(id).unwrap();
       refetchEnrollment();
-      alert(t("studyplan_detail.buy_success") || "Plan purchased successfully!");
+      addToast({ title: t("studyplan_detail.buy_success") || "Plan purchased successfully!", color: "success" });
     } catch (error: any) {
-      console.error("Purchase failed:", error);
-      const msg = error?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase. Please check your balance.";
-      alert(msg);
+      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase. Please check your balance.";
+      addToast({ title: msg, color: "danger" });
     }
   };
 
@@ -78,10 +85,10 @@ export default function PackageEnrollPage() {
     try {
       await resetProgress(id).unwrap();
       refetchEnrollment();
-      alert(t("studyplan_detail.reset_success") || "Progress reset successfully!");
+      addToast({ title: t("studyplan_detail.reset_success") || "Progress reset successfully!", color: "success" });
     } catch (error: any) {
-      console.error("Reset failed:", error);
-      alert(error?.data?.message || t("studyplan_detail.reset_fail") || "Reset failed, please try again.");
+      const msg = error?.data?.data?.message || error?.data?.message || t("studyplan_detail.reset_fail") || "Reset failed, please try again.";
+      addToast({ title: msg, color: "danger" });
     }
   };
 

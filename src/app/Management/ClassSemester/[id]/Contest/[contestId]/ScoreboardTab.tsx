@@ -13,6 +13,8 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useFreezeContestMutation, useUnfreezeContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
+import { motion, AnimatePresence } from "framer-motion";
 import type { 
   ScoreboardResponseDTO, 
   ProblemAttemptDTO, 
@@ -30,6 +32,7 @@ interface ScoreboardTabProps {
 
 export default function ScoreboardTab({ classSemesterId, contestId }: ScoreboardTabProps) {
   const [pollingInterval, setPollingInterval] = useState<number | undefined>(undefined);
+  const { t } = useTranslation();
 
   const { data: scoreboardData, isLoading, refetch, isFetching } = useGetClassContestScoreboardQuery(
     { classSemesterId, contestId },
@@ -68,14 +71,14 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
     try {
       if (data.frozen) {
         await unfreezeContest(contestId).unwrap();
-        toast.success("Đã mở băng bảng xếp hạng!");
+        toast.success(t("scoreboard.unfreezeSuccess") || "Đã mở băng bảng xếp hạng!");
       } else {
         await freezeContest(contestId).unwrap();
-        toast.success("Đã đóng băng bảng xếp hạng!");
+        toast.success(t("scoreboard.freezeSuccess") || "Đã đóng băng bảng xếp hạng!");
       }
     } catch (error) {
       const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Thao tác thất bại");
+      toast.error(apiError?.data?.data?.message || t("common.error") || "Thao tác thất bại");
     }
   };
 
@@ -127,14 +130,25 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
   if (isLoading) {
     return (
       <div className="w-full py-20 flex flex-col items-center justify-center gap-4">
-        <Spinner size="lg" color="primary" />
-        <p className="text-slate-500 font-medium italic animate-pulse">Đang tải bảng xếp hạng...</p>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Spinner size="lg" color="primary" />
+        </motion.div>
+        <p className="text-slate-500 font-medium italic animate-pulse">
+          {t("scoreboard.loading") || "Đang tải bảng xếp hạng..."}
+        </p>
       </div>
     );
   }
 
   if (!data) {
-    return <div className="p-20 text-center font-bold">Không tìm thấy dữ liệu bảng xếp hạng.</div>;
+    return (
+      <div className="p-20 text-center font-bold">
+        {t("scoreboard.not_found") || "Không tìm thấy dữ liệu bảng xếp hạng."}
+      </div>
+    );
   }
 
   return (
@@ -146,7 +160,7 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 text-[#FF5C00] font-black italic text-2xl uppercase tracking-tight">
                 <Trophy className="w-6 h-6" />
-                <span>Scoreboard</span>
+                <span>{t("scoreboard.title") || "Scoreboard"}</span>
                 <span className="text-sm font-mono tracking-normal text-slate-400 ml-2">({data.scoringMode.toUpperCase()})</span>
               </div>
               <div className="flex items-center gap-4 text-[13px] font-medium text-slate-600 dark:text-slate-400">
@@ -157,12 +171,14 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
                 {data.frozen && (
                   <div className="flex items-center gap-1.5 text-rose-500">
                     <Lock className="w-4 h-4" />
-                    <span className="uppercase tracking-wider text-[11px] font-black">Frozen</span>
+                    <span className="uppercase tracking-wider text-[11px] font-black">{t("scoreboard.frozen") || "Frozen"}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-[#FF5C00]" />
-                  <span className="text-xs">Last updated: {new Date(data.lastUpdated).toLocaleTimeString('vi-VN')}</span>
+                  <span className="text-xs">
+                    {t("scoreboard.last_updated") || "Last updated"}: {new Date(data.lastUpdated).toLocaleTimeString('vi-VN')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -174,13 +190,13 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
                 startContent={<RefreshCcw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />}
                 onPress={handleRefresh}
               >
-                REFRESH
+                {t("scoreboard.refresh") || "REFRESH"}
               </Button>
               <Button
                 className="bg-[#FF5C00] hover:bg-[#d95b16] text-white font-bold h-10 px-6 rounded-xl"
                 startContent={<Download className="w-4 h-4" />}
               >
-                EXPORT EXCEL
+                {t("scoreboard.export") || "EXPORT EXCEL"}
               </Button>
             </div>
           </div>
@@ -202,9 +218,9 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
             }}
           >
             <TableHeader columns={[
-              { key: "rank", label: "RANK", isProblem: false },
-              { key: "participant", label: "PARTICIPANT", isProblem: false },
-              { key: "total", label: "TOTAL", isProblem: false },
+              { key: "rank", label: t("scoreboard.table.rank") || "RANK", isProblem: false },
+              { key: "participant", label: t("scoreboard.table.participant") || "PARTICIPANT", isProblem: false },
+              { key: "total", label: t("scoreboard.table.total") || "TOTAL", isProblem: false },
               ...(data?.problems || []).map(p => ({ key: p.id, isProblem: true as const, data: p }))
             ]}>
               {(column) => (
@@ -226,71 +242,92 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
               )}
             </TableHeader>
 
-            <TableBody items={data.rows || []} emptyContent="Chưa có bảng xếp hạng.">
-              {(row: ScoreboardRowDTO) => (
-                <TableRow key={row.userId}>
-                  {(columnKey) => {
-                    if (columnKey === "rank") {
-                      return (
-                        <TableCell>
-                          <div className="flex justify-center items-center w-full h-full min-h-[60px]">
-                            <span className={`font-black text-[16px] italic ${row.rank <= 3 ? "text-[#FF5C00]" : "text-slate-400"}`}>{row.rank}</span>
-                          </div>
-                        </TableCell>
-                      );
-                    }
-                    if (columnKey === "participant") {
-                      return (
-                        <TableCell>
-                          <div className="flex items-center gap-3 w-full h-full px-6 min-h-[60px]">
-                            <Avatar
-                              name={row.username.charAt(0).toUpperCase()}
-                              src={row.avatarUrl}
-                              className="w-10 h-10 text-sm font-bold"
-                            />
-                            <div className="flex flex-col">
-                              <span className="font-bold text-[#071739] dark:text-slate-200 text-[15px]">{row.fullname || row.username}</span>
-                              <span className="text-[12px] text-slate-500 font-mono">@{row.username}</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                      );
-                    }
-                    if (columnKey === "total") {
-                      const isIoi = data.scoringMode === "ioi";
-                      let totalValue = 0;
-                      let totalSolved = 0;
+            <TableBody 
+              items={data.rows || []} 
+              emptyContent={t("scoreboard.empty") || "Chưa có bảng xếp hạng."}
+            >
+              {(row: ScoreboardRowDTO) => {
+                const rowIndex = (data.rows as any[]).indexOf(row);
+                return (
+                  <TableRow key={row.userId}>
+                    {(columnKey) => {
+                      const cellContent = (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: rowIndex * 0.03 }}
+                          className="h-full w-full"
+                        >
+                          {(() => {
+                            if (columnKey === "rank") {
+                              return (
+                                <div className="flex justify-center items-center w-full h-full min-h-[60px]">
+                                  <span className={`font-black text-[16px] italic ${row.rank <= 3 ? "text-[#FF5C00]" : "text-slate-400"}`}>{row.rank}</span>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "participant") {
+                              return (
+                                <div className="flex items-center gap-3 w-full h-full px-6 min-h-[60px]">
+                                  <Avatar
+                                    name={row.username.charAt(0).toUpperCase()}
+                                    src={row.avatarUrl}
+                                    className="w-10 h-10 text-sm font-bold"
+                                  />
+                                  <div className="flex flex-col text-left">
+                                    <span className="font-bold text-[#071739] dark:text-slate-200 text-[15px]">{row.fullname || row.username}</span>
+                                    <span className="text-[12px] text-slate-500 font-mono">@{row.username}</span>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "total") {
+                              const isIoi = data.scoringMode === "ioi";
+                              let totalValue = 0;
+                              let totalSolved = 0;
 
-                      if (isIoi) {
-                        const ioiRow = row as IOIScoreboardRowDTO;
-                        totalValue = ioiRow.totalScore;
-                      } else {
-                        const acmRow = row as ACMScoreboardRowDTO;
-                        totalValue = acmRow.totalPenalty;
-                        totalSolved = acmRow.totalSolved;
-                      }
+                              if (isIoi) {
+                                const ioiRow = row as IOIScoreboardRowDTO;
+                                totalValue = ioiRow.totalScore;
+                              } else {
+                                const acmRow = row as ACMScoreboardRowDTO;
+                                totalValue = acmRow.totalPenalty;
+                                totalSolved = acmRow.totalSolved;
+                              }
 
-                      const label = isIoi ? "PTS" : "PEN";
-                      return (
-                        <TableCell>
-                          <div className="flex flex-col items-center justify-center w-full h-full min-h-[60px] bg-slate-50/50 dark:bg-white/5">
-                            {!isIoi && <span className="font-black text-[16px] text-[#071739] dark:text-white">{totalSolved}</span>}
-                            <span className="text-[10px] text-slate-400 font-bold">{label}: <span className={isIoi ? "text-[#FF5C00] text-sm" : ""}>{totalValue}</span></span>
-                          </div>
-                        </TableCell>
+                              const label = isIoi ? t("scoreboard.table.pts") || "PTS" : t("scoreboard.table.pen") || "PEN";
+                              return (
+                                <div className="flex flex-col items-center justify-center w-full h-full min-h-[60px] bg-slate-50/50 dark:bg-white/5">
+                                  {!isIoi && <span className="font-black text-[16px] text-[#071739] dark:text-white">{totalSolved}</span>}
+                                  <span className="text-[10px] text-slate-400 font-bold">{label}: <span className={isIoi ? "text-[#FF5C00] text-sm" : ""}>{totalValue}</span></span>
+                                </div>
+                              );
+                            }
+
+                            const attempt = row.problems.find((ap) => ap.problemId === columnKey);
+                            const isIoi = data.scoringMode === "ioi";
+                            
+                            return (
+                              <motion.div 
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: rowIndex * 0.03 + 0.1 }}
+                                className="h-full w-full"
+                              >
+                                {isIoi 
+                                  ? renderIOIProblemCell(attempt as IOIProblemAttemptDTO)
+                                  : renderACMProblemCell(attempt as ACMProblemAttemptDTO)
+                                }
+                              </motion.div>
+                            );
+                          })()}
+                        </motion.div>
                       );
-                    }
-
-                    const attempt = row.problems.find((ap) => ap.problemId === columnKey);
-                    const isIoi = data.scoringMode === "ioi";
-                    if (isIoi) {
-                      return <TableCell>{renderIOIProblemCell(attempt as IOIProblemAttemptDTO)}</TableCell>;
-                    } else {
-                      return <TableCell>{renderACMProblemCell(attempt as ACMProblemAttemptDTO)}</TableCell>;
-                    }
-                  }}
-                </TableRow>
-              )}
+                      return <TableCell>{cellContent}</TableCell>;
+                    }}
+                  </TableRow>
+                );
+              }}
             </TableBody>
           </Table>
         </div>

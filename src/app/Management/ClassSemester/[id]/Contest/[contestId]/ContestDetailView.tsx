@@ -27,10 +27,17 @@ import {
   Target,
   Eye,
   Play,
+  Edit3,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useDeleteClassContestProblemMutation } from "@/store/queries/Contest";
 import ScoreboardTab from "./ScoreboardTab";
+import EditContestProblemModal from "./components/EditContestProblemModal";
+import AddProblemToClassContestModal from "./components/AddProblemToClassContestModal";
+import { toast } from "sonner";
 
 interface ContestDetailViewProps {
   classSemesterId: string;
@@ -64,8 +71,12 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   const { t } = useTranslation();
   const [now, setNow] = React.useState(new Date());
   const [selectedTab, setSelectedTab] = React.useState("overview");
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
+  const [editingProblem, setEditingProblem] = React.useState<any>(null);
 
   const { data: userProfile } = useGetUserInformationQuery();
+  const [deleteProblem, { isLoading: isDeleting }] = useDeleteClassContestProblemMutation();
   const isStudent = userProfile?.role?.toLowerCase() === "student";
 
   const { data: response, isLoading, error, refetch } = useGetClassContestDetailQuery(
@@ -238,7 +249,10 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           selectedKey={selectedTab}
           onSelectionChange={(key) => {
             if (key === "problems" && isStudent && timeInfo?.isWaiting) {
-              addToast({ title: "The contest has not started yet.", color: "warning" });
+              addToast({ 
+                title: t("contest_detail.notStarted") || "The contest has not started yet.", 
+                color: "warning" 
+              });
               return;
             }
             setSelectedTab(key as string);
@@ -349,6 +363,26 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                   <h2 className="text-2xl font-black italic uppercase tracking-tight">
                     {t("contest_detail.problem_list") || "DANH SÁCH BÀI TẬP"}
                   </h2>
+                  
+                  {!isStudent && (
+                    <Button
+                      color="primary"
+                      startContent={<Plus size={20} />}
+                      className="font-black uppercase tracking-widest text-[13px] bg-[#FF5C00] text-white shadow-xl shadow-[#FF5C00]/20 h-12 px-8"
+                      onPress={() => {
+                        if (!timeInfo?.isWaiting) {
+                          addToast({ 
+                            title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể thêm bài tập!", 
+                            color: "danger" 
+                          });
+                          return;
+                        }
+                        setIsAddModalOpen(true);
+                      }}
+                    >
+                      {t("contest_detail.add_problem") || "THÊM BÀI TẬP"}
+                    </Button>
+                  )}
                 </div>
 
                 <Table
@@ -377,38 +411,143 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                         className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                       >
                         <TableCell className="text-slate-400 font-black italic">
-                          {String(index + 1).padStart(2, "0")}
+                          <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            {String(index + 1).padStart(2, "0")}
+                          </motion.span>
                         </TableCell>
 
                         <TableCell>
-                          <div>
+                          <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 + 0.1 }}
+                          >
                             <p className="font-black text-base tracking-tight group-hover:text-[#FF5C00] transition-colors">
                               {prob.problemTitle}
                             </p>
                             <p className="text-xs text-slate-500 font-mono mt-0.5">{prob.problemSlug}</p>
-                          </div>
+                          </motion.div>
                         </TableCell>
 
                         <TableCell>
-                          <span className="text-xs font-mono text-slate-400">{prob.alias || "none"}</span>
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.05 + 0.2 }}
+                            className="text-xs font-mono text-slate-400"
+                          >
+                            {prob.alias || t("common.none") || "none"}
+                          </motion.span>
                         </TableCell>
 
                         <TableCell className="text-center">
-                          <Chip color="primary" variant="flat" className="font-black">
-                            {prob.points} pts
-                          </Chip>
+                          <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: index * 0.05 + 0.3 }}
+                            whileHover={{ scale: 1.1 }}
+                          >
+                            <Chip color="primary" variant="flat" className="font-black">
+                              {prob.points} {t("contest_detail.pts") || "pts"}
+                            </Chip>
+                          </motion.div>
                         </TableCell>
 
                         <TableCell className="text-center text-sm font-medium">
-                          {prob.timeLimitMs ? `${prob.timeLimitMs / 1000}s` : "—"}
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.05 + 0.4 }}
+                          >
+                            {prob.timeLimitMs ? `${prob.timeLimitMs / 1000}s` : "—"}
+                          </motion.span>
                         </TableCell>
 
                         <TableCell className="text-center text-sm font-medium">
-                          {prob.memoryLimitKb ? `${prob.memoryLimitKb / 1024} MB` : "—"}
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.05 + 0.5 }}
+                          >
+                            {prob.memoryLimitKb ? `${prob.memoryLimitKb / 1024} MB` : "—"}
+                          </motion.span>
                         </TableCell>
 
                         <TableCell>
-                          <div className="flex justify-end gap-2">
+                          <motion.div 
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 + 0.6 }}
+                            className="flex justify-end gap-2"
+                          >
+                            {!isStudent && (
+                              <>
+                                <Tooltip content={t("common.edit") || "Chỉnh sửa"}>
+                                  <Button
+                                    isIconOnly
+                                    size="sm"
+                                    variant="flat"
+                                    className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white transition-all"
+                                    onPress={() => {
+                                      if (!timeInfo?.isWaiting) {
+                                        addToast({ 
+                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể chỉnh sửa bài tập!", 
+                                          color: "danger" 
+                                        });
+                                        return;
+                                      }
+                                      setEditingProblem(prob);
+                                      setIsEditModalOpen(true);
+                                    }}
+                                  >
+                                    <Edit3 size={16} />
+                                  </Button>
+                                </Tooltip>
+
+                                <Tooltip content={t("common.delete") || "Xóa"}>
+                                  <Button
+                                    isIconOnly
+                                    size="sm"
+                                    variant="flat"
+                                    color="danger"
+                                    className="bg-red-50 dark:bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition-all"
+                                    isLoading={isDeleting && editingProblem?.contestProblemId === prob.contestProblemId}
+                                    onPress={async () => {
+                                      if (!timeInfo?.isWaiting) {
+                                        addToast({ 
+                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể xóa bài tập!", 
+                                          color: "danger" 
+                                        });
+                                        return;
+                                      }
+                                      
+                                      if (confirm(t("contest.confirmDeleteProblem") || "Bạn có chắc chắn muốn xóa bài tập này khỏi contest?")) {
+                                        try {
+                                          setEditingProblem(prob);
+                                          await deleteProblem({
+                                            classSemesterId,
+                                            contestId,
+                                            contestProblemId: prob.contestProblemId
+                                          }).unwrap();
+                                          toast.success(t("contest.deleteProblemSuccess") || "Đã xóa bài tập!");
+                                        } catch (err: any) {
+                                          toast.error(err?.data?.message || "Xóa thất bại");
+                                        } finally {
+                                          setEditingProblem(null);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </Button>
+                                </Tooltip>
+                              </>
+                            )}
+
                             {!isStudent && (
                               <Tooltip content={t("contest_detail.view_problem") || "Xem bài tập"}>
                                 <Button
@@ -432,9 +571,11 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                   className="bg-[#FF5C00]/10 text-[#FF5C00] hover:bg-[#FF5C00] hover:text-white"
                                   onPress={() => {
                                     if (isStudent && timeInfo?.isWaiting) {
-                                      addToast({ title: "The contest has not started yet.", color: "warning" });
+                                      addToast({ 
+                                        title: t("contest_detail.notStarted") || "The contest has not started yet.", 
+                                        color: "warning" 
+                                      });
                                     } else {
-                            // phần này cực kì chú ý, nó sẽ lấy contestproblemId ở trước để nhét vào submit, còn cái thứ 2 thì nó sẽ lấy problem id để gen ra detail.
                                       router.push(`/Contest/${prob.contestProblemId}/ProblemDetail/${prob.problemId}?classSemesterId=${classSemesterId}&contestId=${contestId}`);
                                     }
                                   }}
@@ -443,7 +584,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                 </Button>
                               </Tooltip>
                             )}
-                          </div>
+                          </motion.div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -468,6 +609,26 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           </Tab>
         </Tabs>
       </motion.div>
+
+      {/* MODALS */}
+      <EditContestProblemModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingProblem(null);
+        }}
+        classSemesterId={classSemesterId}
+        contestId={contestId}
+        problem={editingProblem}
+      />
+
+      <AddProblemToClassContestModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        classSemesterId={classSemesterId}
+        contestId={contestId}
+        nextOrdinal={contest.problems.length}
+      />
     </motion.div>
   );
 }

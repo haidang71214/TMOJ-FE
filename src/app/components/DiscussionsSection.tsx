@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useLazyGetProblemDiscussionsQuery } from "@/store/queries/discussion";
 import { DiscussionItem } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function DiscussionsSection({ brandOrange, brandNavy }: { brandOrange: string; brandNavy: string }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [randomDiscussions, setRandomDiscussions] = useState<{ discussion: DiscussionItem; problemId: string; problemTitle: string }[]>([]);
   const [loadingDiscussions, setLoadingDiscussions] = useState(true);
 
@@ -69,7 +71,7 @@ export default function DiscussionsSection({ brandOrange, brandNavy }: { brandOr
   return (
     <div className="flex flex-col gap-8">
       <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
-        <MessageSquare style={{ color: brandOrange }} size={28} /> Discussions & News
+        <MessageSquare style={{ color: brandOrange }} size={28} /> {t("home.discussions.title") || "Discussions & News"}
       </h3>
 
       <div className="flex flex-col gap-5">
@@ -110,9 +112,9 @@ export default function DiscussionsSection({ brandOrange, brandNavy }: { brandOr
                     {item.discussion.title}
                   </h4>
                   <div className="flex gap-4 mt-1 font-black text-[9px] text-[#A4B5C4] uppercase italic items-center">
-                    <span>By {item.discussion.userDisplayName}</span>
+                    <span>{t("home.discussions.by") || "By"} {item.discussion.userDisplayName}</span>
                     <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                    <span>{item.discussion.voteCount || 0} Votes</span>
+                    <span>{item.discussion.voteCount || 0} {t("home.discussions.votes") || "Votes"}</span>
                   </div>
                 </div>
                 <ChevronRight style={{ color: brandOrange }} />

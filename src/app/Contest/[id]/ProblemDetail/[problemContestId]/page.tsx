@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   AlignLeft,
   BookOpen,
@@ -16,13 +16,13 @@ import {
   AlertCircle,
   XCircle,
   Zap,
+  ChevronLeft,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 import { SubmissionsTab } from "./Submissions/index";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
-import EditorialTab from "./Editorial/page";
 import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
 import { VerdictCode } from "@/types";
@@ -30,7 +30,6 @@ import { VerdictCode } from "@/types";
 // ── Tab config ────────────────────────────────────────────────────────────
 const LEFT_TABS = [
   { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
-  { key: "editorial", tKey: "problem_workspace.editorial", defaultVi: "Hướng dẫn", defaultEn: "Editorial", Icon: BookOpen },
   { key: "submissions", tKey: "problem_workspace.submissions", defaultVi: "Lịch sử nộp", defaultEn: "Submissions", Icon: Send },
 ] as const;
 
@@ -92,6 +91,7 @@ export default function ProblemDetailsPage() {
   const contestProblemId = params.id;
   const searchParams = useSearchParams();
   const { t, language } = useTranslation();
+  const router = useRouter();
   const classSemesterId = searchParams.get("classSemesterId");
   const contestId = searchParams.get("contestId");
 
@@ -99,6 +99,7 @@ export default function ProblemDetailsPage() {
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
   const [activeCase, setActiveCase] = useState(0);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [lastSubmissionType, setLastSubmissionType] = useState<"run" | "submit">("run");
 
   const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
     { submissionId: submissionId! },
@@ -132,8 +133,6 @@ export default function ProblemDetailsPage() {
     switch (activeLeftTab) {
       case "description":
         return <DescriptionTab />;
-      case "editorial":
-        return <EditorialTab />;
       case "submissions":
         return (
           <SubmissionsTab
@@ -204,8 +203,9 @@ export default function ProblemDetailsPage() {
             classSemesterId={classSemesterId || undefined}
             contestId={contestId || undefined}
             onSubmitSuccess={() => setActiveLeftTab("submissions")}
-            onSubmissionIdChange={(id: string | null) => {
+            onSubmissionIdChange={(id: string | null, type: "run" | "submit" = "run") => {
               setSubmissionId(id);
+              setLastSubmissionType(type);
               setActiveBottomTab("result");
             }}
           />
@@ -435,12 +435,27 @@ export default function ProblemDetailsPage() {
                             )}
 
                             {data?.verdictCode === VerdictCode.AC && (
-                              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                              <div className="flex flex-col items-center justify-center py-12 gap-6 animate-fade-in">
                                 <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
                                   <CheckSquare size={40} />
                                 </div>
-                                <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
-                                <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                                <div className="text-center space-y-2">
+                                  <h3 className="text-2xl font-black uppercase tracking-tighter text-emerald-500">AC Great Job!</h3>
+                                  <p className="text-sm text-slate-400 font-bold uppercase italic tracking-widest">All testcases passed successfully.</p>
+                                </div>
+
+                                {lastSubmissionType === "submit" && classSemesterId && contestId && (
+                                  <button
+                                    onClick={() => {
+                                      const backUrl = `/ContestSlotExamintion/${classSemesterId}/Contest/${contestId}`;
+                                      router.push(backUrl);
+                                    }}
+                                    className="flex items-center gap-3 px-8 py-3 bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] font-[1000] uppercase italic tracking-tighter rounded-2xl hover:scale-105 transition-all shadow-xl active-bump"
+                                  >
+                                    <ChevronLeft size={20} />
+                                    Back and resolve next problem
+                                  </button>
+                                )}
                               </div>
                             )}
                           </>

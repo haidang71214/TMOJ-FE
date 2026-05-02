@@ -25,6 +25,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import NewsFeed from "./components/NewsFeed";
 import DiscussionsSection from "./components/DiscussionsSection";
@@ -48,6 +49,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
@@ -142,37 +144,41 @@ export default function Home() {
               className="object-cover grayscale-[0.2] group-hover:scale-105 transition-transform duration-1000"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-[#071739] via-[#071739]/80 to-transparent"></div>
-            <div className="relative z-10 h-full flex flex-col justify-center p-12 max-w-2xl gap-6">
+            <div className="relative z-10 h-full flex flex-col justify-center p-12 max-w-4xl gap-6">
               <Chip
                 style={{ backgroundColor: brandOrange }}
                 className="text-white font-black uppercase italic text-[10px]"
               >
-                Academic Competitive Hub
+                {t("home.hero.hub") || "Academic Competitive Hub"}
               </Chip>
-              <h1 className="text-7xl font-black tracking-tighter leading-none text-white uppercase italic">
-                FPT UNIVERSITY DA NANG <br />
-                <span style={{ color: brandOrange }}>JUDGE SYSTEM.</span>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight text-white uppercase italic">
+                <span className="block whitespace-nowrap mb-2">
+                  {t("home.hero.title1") || "FPT UNIVERSITY DA NANG"}
+                </span>
+                <span style={{ color: brandOrange }} className="block mt-4 md:mt-6">
+                  {t("home.hero.title2") || "JUDGE SYSTEM."}
+                </span>
               </h1>
               <p
                 style={{ borderLeftColor: brandOrange }}
                 className="text-white/70 font-bold italic border-l-4 pl-6 py-2 uppercase text-xs tracking-wider"
               >
-                Master your logic. Rule the code. Lead the campus.
+                {t("home.hero.subtitle") || "Master your logic. Rule the code. Lead the campus."}
               </p>
               <div className="flex gap-4">
                 <Button
                   style={{ backgroundColor: brandOrange }}
-                  className="text-white font-black rounded-xl h-14 px-8 shadow-xl uppercase italic hover:scale-105 transition-transform"
+                  className="text-white font-black rounded-xl h-14 px-10 shadow-xl uppercase italic hover:scale-105 transition-transform text-md tracking-widest"
                   onPress={() => router.push("/Contest")}
                 >
-                  Browse Contests
+                  {t("home.hero.browse_contests") || "Browse Contests"}
                 </Button>
                 <Button
                   variant="bordered"
-                  className="text-white border-white/20 font-black rounded-xl h-14 px-8 backdrop-blur-md uppercase italic hover:bg-white/10 transition-all"
+                  className="text-white border-white/20 font-black rounded-xl h-14 px-10 backdrop-blur-md uppercase italic hover:bg-white/10 transition-all text-md tracking-widest"
                   onPress={() => router.push("/Problems/Library")}
                 >
-                  Practice
+                  {t("home.hero.practice") || "Practice"}
                 </Button>
               </div>
             </div>
@@ -182,8 +188,7 @@ export default function Home() {
           <section className="flex flex-col gap-8 relative">
             <div className="flex items-center justify-between">
               <h3 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
-                <Trophy style={{ color: brandOrange }} size={32} /> Active
-                Contests
+                <Trophy style={{ color: brandOrange }} size={32} /> {t("home.active_contests.title") || "Active Contests"}
               </h3>
               <Button
                 variant="light"
@@ -191,7 +196,7 @@ export default function Home() {
                 className="font-black italic uppercase text-xs hover:text-[#FF5C00]"
                 onPress={() => router.push("/Contest")}
               >
-                View More
+                {t("home.active_contests.view_more") || "View More"}
               </Button>
             </div>
 
@@ -239,13 +244,13 @@ export default function Home() {
                           </h4>
                           <div className="flex items-center gap-6 text-[10px] font-black uppercase text-gray-400 italic tracking-widest">
                             <span className="flex items-center gap-2">
-                              <Users size={14} className="text-[#FF5C00]" /> {contest.totalMembers || 0} Students
+                              <Users size={14} className="text-[#FF5C00]" /> {contest.totalMembers || 0} {t("home.active_contests.students") || "Students"}
                             </span>
                             <span className="flex items-center gap-2">
                               <Clock size={14} className="text-[#FF5C00]" />{" "}
                               {contest.status?.toLowerCase() === "running"
-                                ? `Ends: ${new Date(contest.endAt).toLocaleDateString()}`
-                                : `Starts: ${new Date(contest.startAt).toLocaleDateString()}`}
+                                ? `${t("home.active_contests.ends") || "Ends"}: ${new Date(contest.endAt).toLocaleDateString()}`
+                                : `${t("home.active_contests.starts") || "Starts"}: ${new Date(contest.startAt).toLocaleDateString()}`}
                             </span>
                           </div>
                         </div>
@@ -261,7 +266,7 @@ export default function Home() {
                                   disabled
                                   className="bg-gray-400 text-white font-black h-12 rounded-xl uppercase italic mt-4 cursor-not-allowed opacity-70"
                                 >
-                                  In Progress <Clock size={18} />
+                                  {t("home.active_contests.in_progress") || "In Progress"} <Clock size={18} />
                                 </Button>
                               );
                             }
@@ -281,7 +286,7 @@ export default function Home() {
                                       router.push(`/Contest/${contest.id}/register`);
                                     }}
                                   >
-                                    {isRegExpired ? "Registration Closed" : "Register Now"} <ArrowRight size={18} />
+                                    {isRegExpired ? (t("home.active_contests.registration_closed") || "Registration Closed") : (t("home.active_contests.register_now") || "Register Now")} <ArrowRight size={18} />
                                   </Button>
                                 );
                               })()
@@ -294,7 +299,7 @@ export default function Home() {
                               className="bg-green-500 text-white font-black h-12 rounded-xl uppercase italic mt-4 transition-all duration-300 hover:opacity-90 shadow-lg shadow-green-500/20"
                               onPress={() => router.push(`/Contest/${contest.id}`)}
                             >
-                              Continue <ArrowRight size={18} />
+                              {t("home.active_contests.continue") || "Continue"} <ArrowRight size={18} />
                             </Button>
                           );
                         })()}
@@ -323,8 +328,7 @@ export default function Home() {
               {/* Learning Flow */}
               <div className="flex flex-col gap-10">
                 <h3 className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4 dark:text-white">
-                  <TrendingUp style={{ color: brandOrange }} size={28} /> TMOJ
-                  Learning Flow
+                  <TrendingUp style={{ color: brandOrange }} size={28} /> {t("home.learning_flow.title") || "TMOJ Learning Flow"}
                 </h3>
                 <div className="relative ml-4 md:ml-6 flex flex-col gap-8">
                   <div
@@ -333,25 +337,25 @@ export default function Home() {
                   ></div>
                   {[
                     {
-                      title: "Enroll in Class",
+                      title: t("home.learning_flow.steps.enroll") || "Enroll in Class",
                       icon: <Users size={20} />,
                       step: "01",
                       border: "text-[#0054A6]",
                     },
                     {
-                      title: "Daily Practice",
+                      title: t("home.learning_flow.steps.practice") || "Daily Practice",
                       icon: <Code2 size={20} />,
                       step: "02",
                       border: "text-[#FF5C00]",
                     },
                     {
-                      title: "Online Contest",
+                      title: t("home.learning_flow.steps.contest") || "Online Contest",
                       icon: <BookOpen size={20} />,
                       step: "03",
                       border: "text-[#00A651]",
                     },
                     {
-                      title: "Performance Tracking",
+                      title: t("home.learning_flow.steps.performance") || "Performance Tracking",
                       icon: <BarChart3 size={20} />,
                       step: "04",
                       border: "text-[#071739]",
@@ -372,7 +376,7 @@ export default function Home() {
                             {step.title}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
-                            Step {step.step}
+                            {t("home.learning_flow.step") || "Step"} {step.step}
                           </p>
                         </CardBody>
                       </Card>
@@ -390,7 +394,7 @@ export default function Home() {
                   className="text-md font-black uppercase italic tracking-widest mb-6 flex items-center gap-2 border-b-2 pb-2 dark:text-white"
                 >
                   <TrendingUp size={18} style={{ color: brandOrange }} />{" "}
-                  Ranking
+                  {t("home.ranking.title") || "Ranking"}
                 </h3>
                 <div className="flex flex-col gap-5">
                   {rankingData.map((row) => (

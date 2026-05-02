@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   AlignLeft,
   BookOpen,
@@ -14,6 +14,7 @@ import {
   Clock,
   AlertCircle,
   Lock,
+  ChevronLeft,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Chip, Progress, Skeleton } from "@heroui/react";
@@ -86,8 +87,13 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const problemId = params.id as string;
   const classSlotId = searchParams.get("classSlotId") || undefined;
+  const classCode = searchParams.get("classCode");
+  const semesterCode = searchParams.get("semesterCode");
+  const classId = searchParams.get("classId");
+  const semesterId = searchParams.get("semesterId");
   const { t, language } = useTranslation();
 
   const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
@@ -130,13 +136,15 @@ export default function ProblemDetailsPage() {
   }, [problemId]);
 
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [lastSubmissionType, setLastSubmissionType] = useState<"run" | "submit">("run");
   const { data: submissionData, isLoading: isSubmissionLoading } = useGetSubmissionQuery(
     { submissionId: submissionId! },
     { skip: !submissionId, pollingInterval: 3000 }
   );
 
-  const onSubmissionIdChange = (id: string | null) => {
+  const onSubmissionIdChange = (id: string | null, type: "run" | "submit" = "run") => {
     setSubmissionId(id);
+    setLastSubmissionType(type);
     if (id) setActiveBottomTab("result");
   };
 
@@ -486,12 +494,27 @@ export default function ProblemDetailsPage() {
                             )}
 
                             {data?.verdictCode === VerdictCode.AC && (
-                              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                              <div className="flex flex-col items-center justify-center py-12 gap-6 animate-fade-in">
                                 <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
                                   <CheckSquare size={40} />
                                 </div>
-                                <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
-                                <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                                <div className="text-center space-y-2">
+                                  <h3 className="text-2xl font-black uppercase tracking-tighter text-emerald-500">AC Great Job!</h3>
+                                  <p className="text-sm text-slate-400 font-bold uppercase italic tracking-widest">All testcases passed successfully.</p>
+                                </div>
+
+                                {lastSubmissionType === "submit" && semesterId && (
+                                  <button
+                                    onClick={() => {
+                                      const backUrl = `/Class/${semesterId}?classCode=${classCode || ""}&semesterCode=${semesterCode || ""}&classId=${classId || ""}`;
+                                      router.push(backUrl);
+                                    }}
+                                    className="flex items-center gap-3 px-8 py-3 bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] font-[1000] uppercase italic tracking-tighter rounded-2xl hover:scale-105 transition-all shadow-xl active-bump"
+                                  >
+                                    <ChevronLeft size={20} />
+                                    Back and resolve next problem
+                                  </button>
+                                )}
                               </div>
                             )}
                           </>

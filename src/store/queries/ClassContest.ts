@@ -54,7 +54,23 @@ export const classContestApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["submittion", "ProblemDetail"],
+      invalidatesTags: ["submittion", "ProblemDetail", "Contest"],
+    }),
+
+    freezeClassContest: builder.mutation<void, { classSemesterId: string; contestId: string }>({
+      query: ({ classSemesterId, contestId }) => ({
+        url: ClassEndpoint.FREEZE_CLASS_CONTEST.replace("{classSemesterId}", classSemesterId).replace("{contestId}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+
+    unfreezeClassContest: builder.mutation<void, { classSemesterId: string; contestId: string }>({
+      query: ({ classSemesterId, contestId }) => ({
+        url: ClassEndpoint.UNFREEZE_CLASS_CONTEST.replace("{classSemesterId}", classSemesterId).replace("{contestId}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
     }),
   }),
 });
@@ -65,4 +81,6 @@ export const {
   useGetClassContestDetailQuery,
   useGetClassContestScoreboardQuery,
   usePostClassContestSubmissionMutation,
+  useFreezeClassContestMutation,
+  useUnfreezeClassContestMutation,
 } = classContestApi;

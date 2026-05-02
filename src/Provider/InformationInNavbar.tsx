@@ -30,6 +30,7 @@ import { baseApi } from "@/store/base";
 import webStorageClient from "@/utils/webStorageClient";
 import { ADMIN_PAGE_URL, PAGE_URL } from "@/constants";
 import { useTranslation } from "@/hooks/useTranslation";
+import { clearLoginToken } from "@/store/slices/auth";
 
 export default function InformationInNavbar() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function InformationInNavbar() {
       const host = window.location.host;
       const is_admin = host.startsWith("admin.");
       dispatch(baseApi.util.resetApiState());
+      dispatch(clearLoginToken());
       webStorageClient.logout();
       addToast({ title: "Logout successful!", color: "success" });
       if (is_admin) {

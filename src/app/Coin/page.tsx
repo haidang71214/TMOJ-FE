@@ -41,6 +41,9 @@ import { useGetStoreItemsQuery, useGetMyInventoryQuery, useEquipItemMutation, us
 import { WalletTransaction, PaymentHistoryItem, ErrorForm } from "@/types";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useGetMissionsQuery, useClaimMissionMutation } from "@/store/queries/gamification";
+import { Mission } from "@/types/gamification";
+import { useGamification } from "@/Provider/GamificationProvider";
 
 interface MissionItem {
   id: number;
@@ -146,96 +149,6 @@ const PURCHASE_HISTORY = [
     status: "Completed",
   },
 ];
-const MISSIONS = {
-  checkIn: [
-    {
-      id: 1,
-      title: "Daily Check-in",
-      reward: 1,
-      type: "Coin",
-      icon: "🔥",
-      exp: 5,
-    },
-    {
-      id: 2,
-      title: "30-day Streak Check-in",
-      reward: 30,
-      type: "Coin",
-      icon: "📅",
-      exp: 50,
-    },
-    {
-      id: 3,
-      title: "Complete Daily Challenge",
-      reward: 10,
-      type: "Coin",
-      icon: "🎯",
-      exp: 20,
-    },
-  ],
-  contribution: [
-    {
-      id: 4,
-      title: "Contribute a Testcase",
-      reward: 100,
-      type: "Coin",
-      icon: "🛠️",
-      exp: 150,
-    },
-    {
-      id: 5,
-      title: "Contribute a Question",
-      reward: 1000,
-      type: "Coin",
-      icon: "💡",
-      exp: 500,
-    },
-    {
-      id: 6,
-      title: "File Content Issue",
-      reward: 100,
-      type: "Coin",
-      icon: "🚩",
-      exp: 50,
-    },
-  ],
-  contest: [
-    {
-      id: 7,
-      title: "Join a Weekly Contest",
-      reward: 50,
-      type: "Coin",
-      icon: "🏆",
-      exp: 100,
-    },
-    {
-      id: 8,
-      title: "First Time Rank Top 10",
-      reward: 500,
-      type: "Coin",
-      icon: "🥇",
-      exp: 1000,
-    },
-  ],
-  profile: [
-    {
-      id: 9,
-      title: "Complete Profile Info",
-      reward: 50,
-      type: "Coin",
-      icon: "👤",
-      exp: 100,
-    },
-    {
-      id: 10,
-      title: "Verify Email Address",
-      reward: 20,
-      type: "Coin",
-      icon: "📧",
-      exp: 50,
-    },
-  ],
-};
 
 function CoinShopContent() {
   const searchParams = useSearchParams();
@@ -257,6 +170,11 @@ function CoinShopContent() {
   const { data: storeItems, isLoading: isStoreLoading } = useGetStoreItemsQuery();
   const { data: inventoryData, isLoading: isInventoryLoading } = useGetMyInventoryQuery();
   const { data: cartData } = useGetCartQuery();
+  const { data: missionsData, isLoading: isMissionsLoading } = useGetMissionsQuery();
+  const [claimMission, { isLoading: isClaiming }] = useClaimMissionMutation();
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const { showCelebration } = useGamification();
+
   const [equipItem] = useEquipItemMutation();
   const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
 
@@ -269,38 +187,83 @@ function CoinShopContent() {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const MissionCard = ({ mission }: { mission: MissionItem }) => (
-    <Card className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all group">
-      <CardBody className="p-5 flex flex-row items-center gap-4">
-        <div className="flex flex-col items-center justify-center min-w-[60px]">
-          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-2xl mb-1 group-hover:scale-110 transition-transform">
-            <Coins className="text-[#FFB800]" size={24} />
-          </div>
-          <span className="text-[#FFB800] font-[1000] italic text-sm">
-            +{mission.reward}
-          </span>
-        </div>
+  const MissionCard = ({ mission }: { mission: Mission }) => {
+    const isReady = mission.status === "READY";
+    const isClaimed = mission.status === "CLAIMED";
+    const isLocked = mission.status === "LOCKED";
+    const progress = Math.min(100, (mission.currentValue / mission.targetValue) * 100);
 
-        <div className="flex-1 space-y-3">
-          <div>
-            <h4 className="font-black uppercase italic text-sm text-[#071739] dark:text-white leading-tight">
-              {mission.title}
-            </h4>
-            <p className="text-[9px] font-bold text-blue-500 uppercase mt-1">
-              +{mission.exp} EXP Points
-            </p>
+    const handleClaim = async () => {
+      if (!isReady) return;
+      setClaimingId(mission.ruleId);
+      try {
+        const res = await claimMission(mission.ruleId).unwrap();
+        showCelebration(null, "Mission Complete!", res.message);
+        refetchBalance();
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Không thể nhận thưởng lúc này.");
+      } finally {
+        setClaimingId(null);
+      }
+    };
+
+    return (
+      <Card className="bg-white dark:bg-[#111c35] border-none shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all group">
+        <CardBody className="p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center justify-center min-w-[60px]">
+              <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-2xl mb-1 group-hover:scale-110 transition-transform">
+                <Coins className="text-[#FFB800]" size={24} />
+              </div>
+              <span className="text-[#FFB800] font-[1000] italic text-sm">
+                +{mission.rewardCoin}
+              </span>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h4 className="font-black uppercase italic text-sm text-[#071739] dark:text-white leading-tight truncate">
+                {mission.title}
+              </h4>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 leading-tight line-clamp-1">
+                {mission.description}
+              </p>
+            </div>
           </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-[9px] font-black uppercase italic text-slate-400">
+              <span>Progress</span>
+              <span>{mission.currentValue} / {mission.targetValue}</span>
+            </div>
+            <Progress
+              value={progress}
+              size="sm"
+              classNames={{
+                indicator: isReady ? "bg-[#FF5C00]" : "bg-blue-500",
+                track: "bg-slate-100 dark:bg-white/5",
+              }}
+            />
+          </div>
+
           <Button
             size="sm"
-            variant="bordered"
-            className="border-[#FF5C00] text-[#FF5C00] font-black uppercase italic text-[10px] h-8 w-full rounded-lg hover:bg-[#FF5C00] hover:text-white transition-all"
+            isDisabled={isLocked || isClaimed || (isClaiming && claimingId === mission.ruleId)}
+            isLoading={isClaiming && claimingId === mission.ruleId}
+            onPress={handleClaim}
+            className={`font-black uppercase italic text-[10px] h-9 w-full rounded-xl transition-all shadow-lg ${isReady
+                ? "bg-[#FF5C00] text-white shadow-orange-500/20 hover:scale-[1.02]"
+                : isClaimed
+                  ? "bg-slate-100 dark:bg-white/5 text-slate-400 shadow-none"
+                  : "bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/5 shadow-none"
+              }`}
+            startContent={isClaimed && <CheckCircle2 size={14} />}
           >
-            Go to mission
+            {isClaimed ? "Đã nhận" : isReady ? "Nhận thưởng" : "Go to mission"}
           </Button>
-        </div>
-      </CardBody>
-    </Card>
-  );
+        </CardBody>
+      </Card>
+    );
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -705,53 +668,54 @@ function CoinShopContent() {
           }
         >
           <div className="mt-8 space-y-12 pb-12">
-            {Object.entries(MISSIONS).map(([key, items]) => {
-              const titles: Record<
-                string,
-                { main: string; sub: string; color: string }
-              > = {
-                checkIn: {
-                  main: "Check-in",
-                  sub: "Missions",
-                  color: "text-[#FF5C00]",
-                },
-                contest: {
-                  main: "Contest",
-                  sub: "Challenges",
-                  color: "text-purple-500",
-                },
-                contribution: {
-                  main: "Contribution",
-                  sub: "Tasks",
-                  color: "text-blue-500",
-                },
-                profile: {
-                  main: "Profile",
-                  sub: "Completion",
-                  color: "text-emerald-500",
-                },
-              };
+            {isMissionsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                  <Card key={i} className="h-40 bg-white dark:bg-[#111c35] animate-pulse rounded-xl" />
+                ))}
+              </div>
+            ) : missionsData && missionsData.length > 0 ? (
+              (() => {
+                const groupedMissions = missionsData.reduce((acc, mission) => {
+                  const category = mission.category || "OTHER";
+                  if (!acc[category]) acc[category] = [];
+                  acc[category].push(mission);
+                  return acc;
+                }, {} as Record<string, Mission[]>);
 
-              return (
-                <section key={key} className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <h3 className="text-xl font-[1000] italic uppercase tracking-tighter text-slate-400 whitespace-nowrap">
-                      {titles[key].main}{" "}
-                      <span className={titles[key].color}>
-                        {titles[key].sub}
-                      </span>
-                    </h3>
-                    <div className="w-full h-[1px] bg-slate-200 dark:bg-white/5" />
-                  </div>
+                const titles: Record<string, { main: string; sub: string; color: string }> = {
+                  "CHECK-IN": { main: "Check-in", sub: "Missions", color: "text-[#FF5C00]" },
+                  "CONTEST": { main: "Contest", sub: "Challenges", color: "text-purple-500" },
+                  "CONTRIBUTION": { main: "Contribution", sub: "Tasks", color: "text-blue-500" },
+                  "PROFILE": { main: "Profile", sub: "Completion", color: "text-emerald-500" },
+                  "OTHER": { main: "Other", sub: "Missions", color: "text-slate-500" },
+                };
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((m) => (
-                      <MissionCard key={m.id} mission={m} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
+                return Object.entries(groupedMissions).map(([key, items]) => {
+                  const title = titles[key] || { main: key, sub: "Missions", color: "text-[#FF5C00]" };
+                  return (
+                    <section key={key} className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <h3 className="text-xl font-[1000] italic uppercase tracking-tighter text-slate-400 whitespace-nowrap">
+                          {title.main} <span className={title.color}>{title.sub}</span>
+                        </h3>
+                        <div className="w-full h-[1px] bg-slate-200 dark:bg-white/5" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {items.map((m) => (
+                          <MissionCard key={m.ruleId} mission={m} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                });
+              })()
+            ) : (
+              <div className="text-center py-20 bg-white dark:bg-[#111c35] rounded-3xl">
+                <Trophy size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="font-black italic uppercase text-slate-400">No missions available</p>
+              </div>
+            )}
           </div>
         </Tab>
         {/* REWARDS LOG */}

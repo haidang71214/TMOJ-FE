@@ -129,3 +129,23 @@ export interface AdminBadgeRule {
   targetValue: number;
   isActive: boolean;
 }
+
+export interface Mission {
+  ruleId: string;
+  title: string;
+  description: string;
+  category: "CHECK-IN" | "CONTEST" | "PROFILE" | "CONTRIBUTION" | string;
+  rewardCoin: number;
+  rewardExp: number;
+  currentValue: number;
+  targetValue: number;
+  status: "LOCKED" | "READY" | "CLAIMED";
+  claimedAt: string | null;
+}
+
+export interface ClaimResponse {
+  success: boolean;
+  message: string;
+  addedCoin: number;
+  addedExp: number;
+}

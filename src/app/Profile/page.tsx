@@ -62,6 +62,9 @@ import { useGetProblemSolvedStatsQuery, useGetProblemSolvedListQuery } from "@/s
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetDiscussionHistoryQuery } from "@/store/queries/discussion";
 import { useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
+import { useGetGlobalRankingQuery, useGetRatingLeaderboardQuery } from "@/store/queries/ranking";
+
+
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
 import RatingHistoryChart from "@/components/Common/RatingHistoryChart";
@@ -174,6 +177,8 @@ export default function ProfilePage() {
 
   const [equipItem, { isLoading: isEquipping }] = useEquipItemMutation();
 
+
+
   // Badge Celebration Logic
   const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
@@ -221,6 +226,29 @@ export default function ProfilePage() {
   const email = profile?.email ?? meData?.email ?? "";
   const username = profile?.username ?? meData?.username ?? "";
   const avatarUrl = profile?.avatarUrl ?? "";
+
+  // ── Global Ranking ──
+  const { data: myRankResponse } = useGetGlobalRankingQuery(
+    { search: meData?.username, pageSize: 100 },
+    { skip: !meData?.username }
+  );
+
+  const { data: myRatingRankResponse } = useGetRatingLeaderboardQuery(
+    { search: meData?.username, pageSize: 100 },
+    { skip: !meData?.username }
+  );
+
+  const myRank = useMemo(() => {
+    if (!myRankResponse?.data?.rows || !meData?.userId) return null;
+    return myRankResponse.data.rows.find(r => r.userId === meData.userId)?.rank;
+  }, [myRankResponse, meData?.userId]);
+
+  const myRatingRank = useMemo(() => {
+    if (!myRatingRankResponse?.data?.rows || !meData?.userId) return null;
+    return myRatingRankResponse.data.rows.find(r => r.userId === meData.userId);
+  }, [myRatingRankResponse, meData?.userId]);
+
+
 
   const difficultyData: DifficultyStat[] = useMemo(
     () => [
@@ -348,24 +376,33 @@ export default function ProfilePage() {
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-white/10 text-[#071739] dark:text-white">
+              <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-100 dark:border-white/10 text-[#071739] dark:text-white">
                 <div className="text-center border-r border-slate-100 dark:border-white/10">
-                  <p className="text-[9px] font-black uppercase text-slate-400 italic">
+                  <p className="text-[8px] font-black uppercase text-slate-400 italic">
                     Global Rank
                   </p>
-                  <p className="text-xl font-[1000] text-[#FF5C00] italic">
-                    #5,420
+                  <p className="text-lg font-[1000] text-[#FF5C00] italic leading-tight">
+                    #{myRank ?? "—"}
+                  </p>
+                </div>
+                <div className="text-center border-r border-slate-100 dark:border-white/10">
+                  <p className="text-[8px] font-black uppercase text-slate-400 italic">
+                    Rating
+                  </p>
+                  <p className="text-lg font-[1000] text-blue-500 italic leading-tight">
+                    {myRatingRank?.rating ?? "—"}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[9px] font-black uppercase text-slate-400 italic">
+                  <p className="text-[8px] font-black uppercase text-slate-400 italic">
                     Solved
                   </p>
-                  <p className="text-xl font-[1000] text-[#00FF41] italic">
+                  <p className="text-lg font-[1000] text-[#00FF41] italic leading-tight">
                     {SOLVED_COUNT}
                   </p>
                 </div>
               </div>
+
             </CardBody>
 
             {/* ── BASIC INFO ── */}

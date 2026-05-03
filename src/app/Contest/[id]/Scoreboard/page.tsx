@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Trophy, RefreshCcw, Lock, ShieldCheck, Calendar, Clock, Award, Hash, Zap
+  Trophy, RefreshCcw, Lock, ShieldCheck, Calendar, Clock, Award, Hash, Zap, Snowflake
 } from "lucide-react";
 import {
   Button, Table, TableHeader, TableColumn, TableBody,
@@ -43,11 +43,37 @@ export default function ScoreboardPage() {
     const isRunning = data.status === "running";
     const isFrozen = data.frozen;
     if (isRunning && !isFrozen) {
-      setPollingInterval(10 * 1000);
+      setPollingInterval(3 * 1000);
     } else {
       setPollingInterval(undefined);
     }
   }, [data?.status, data?.frozen]);
+
+  const [freezeContest, { isLoading: isFreezing }] = useFreezeContestMutation();
+  const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
+
+  const handleFreezeToggle = async () => {
+    console.log("data",data);
+    
+    if (!data) return;
+    try {
+      if (data.frozen) {
+        const res = await unfreezeContest(contestId).unwrap();
+        console.log("Unfreeze",res);
+        
+        toast.success("Scoreboard unfreezed successfully!");
+      } else {
+        const res = await freezeContest(contestId).unwrap();
+        console.log("Freeze",res);
+        
+        toast.success("Scoreboard freezed successfully!");
+      }
+      refetch();
+    } catch (error) {
+      const apiError = error as ErrorForm;
+      toast.error(apiError?.data?.message || "Failed to toggle freeze state");
+    }
+  };
 
   const renderACMProblemCell = (attempt: ACMProblemAttemptDTO | undefined) => {
     if (!attempt || attempt.attemptsCount === 0) return <div className="min-h-[50px]"></div>;
@@ -115,6 +141,19 @@ export default function ScoreboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              {(role === "admin" || role === "manager" || role === "teacher") && (
+                <Button
+                  variant="flat"
+                  className={`${data?.frozen 
+                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30" 
+                    : "bg-white/10 text-white border-white/10"} font-black italic uppercase rounded-xl border hover:bg-white/20 transition-all h-12 px-6`}
+                  startContent={<Snowflake className={`w-4 h-4 ${isFreezing || isUnfreezing ? "animate-pulse" : ""}`} />}
+                  isLoading={isFreezing || isUnfreezing}
+                  onPress={handleFreezeToggle}
+                >
+                  {data?.frozen ? "Unfreeze" : "Freeze"}
+                </Button>
+              )}
               <Button
                 variant="flat"
                 className="bg-white/10 text-white font-black italic uppercase rounded-xl border border-white/10 hover:bg-white/20 transition-all h-12 px-6"

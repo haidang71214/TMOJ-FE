@@ -252,8 +252,6 @@ export default function DescriptionTab() {
       </div>
 
       <div className="h-8" />
-      <Discussion problemId={id} currentUserId={userData?.userId} />
-
       {/* MODALS */}
       <AddToCollectionModal
         isOpen={isAddOpen}

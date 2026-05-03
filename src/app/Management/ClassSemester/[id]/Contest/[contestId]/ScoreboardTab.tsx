@@ -31,9 +31,10 @@ import type {
 interface ScoreboardTabProps {
   classSemesterId: string;
   contestId: string;
+  isActive?: boolean;
 }
 
-export default function ScoreboardTab({ classSemesterId, contestId }: ScoreboardTabProps) {
+export default function ScoreboardTab({ classSemesterId, contestId, isActive }: ScoreboardTabProps) {
   const [pollingInterval, setPollingInterval] = useState<number | undefined>(undefined);
   const { t } = useTranslation();
 
@@ -75,6 +76,14 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
       setPollingInterval(undefined);
     }
   }, [data?.status, data?.frozen]);
+  
+  // Refetch when tab becomes active
+  useEffect(() => {
+    if (isActive) {
+      console.log("Scoreboard Tab Active - Refetching...");
+      refetch();
+    }
+  }, [isActive, refetch]);
 
 
   const handleFreezeToggle = async () => {
@@ -97,7 +106,11 @@ export default function ScoreboardTab({ classSemesterId, contestId }: Scoreboard
        
         console.log(res);
       }
-      refetch();
+      // Wait a bit for server to update state before refetching
+      setTimeout(() => {
+        console.log("Post-Toggle Refetching...");
+        refetch();
+      }, 500);
     } catch (error) {
       const apiError = error as ErrorForm;
       toast.error(apiError?.data?.data?.message || t("common.error") || "Thao tác thất bại");

@@ -20,7 +20,6 @@ import {
 } from "@heroui/react";
 
 import {
-  Pencil,
   ChevronDown,
   Code2,
   Eye,
@@ -48,7 +47,6 @@ import { useModal } from "@/Provider/ModalProvider";
 
 import CreateSlotForm from "@/app/Management/Class/CreateClassSlotModal";
 import AddStudentModal from "@/app/Management/Class/[id]/Member/AddStudentToCLass";
-import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
 import AddProblemToSlotForm from "@/Provider/ImportProblemForm";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
@@ -334,26 +332,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          color="warning"
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          onPress={() =>
-                            openModal({
-                              content: (
-                                <UpdateDueDateModal
-                                  semesterId={semesterId}
-                                  slotId={slot.id}
-                                  dueAt={slot.dueAt}
-                                  closeAt={slot.closeAt}
-                                />
-                              ),
-                            })
-                          }
-                        >
-                          <Pencil size={14} />
-                        </Button>
+                        
 
                         <Button
                           isIconOnly

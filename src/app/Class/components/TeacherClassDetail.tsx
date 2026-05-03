@@ -48,7 +48,6 @@ import UpdateProblemIntoSlot from "@/Provider/UpdateProblemIntoSlot";
 import SlotScoresTable from "@/app/Management/ClassSemester/[id]/SlotScoresTable";
 import InviteCodeCard from "@/app/Management/ClassSemester/[id]/InviteCodeCard";
 import AddStudentModal from "@/app/Management/Class/[id]/Member/AddStudentToCLass";
-import UpdateDueDateModal from "@/app/Management/Class/[id]/UpdateDuaDateModal";
 import ClassMembersPage from "@/app/Management/Class/[id]/Member/ClassMembersPage";
 import CreateClassContestModal from "@/app/Management/Class/components/CreateClassContestModal";
 import { useGetClassContestsQuery } from "@/store/queries/ClassContest";
@@ -392,29 +391,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Tooltip content={t('class_semester.edit_due_date') || (language === 'vi' ? 'Sửa thời hạn (Due date)' : 'Edit Due Date')} className="text-[10px] font-bold" placement="top">
-                          <Button
-                            color="warning"
-                            isIconOnly
-                            size="sm"
-                            variant="flat"
-                            isDisabled={slot.isPublished}
-                            onPress={() =>
-                              openModal({
-                                content: (
-                                  <UpdateDueDateModal
-                                    semesterId={semesterId}
-                                    slotId={slot.id}
-                                    dueAt={slot.dueAt}
-                                    closeAt={slot.closeAt}
-                                  />
-                                ),
-                              })
-                            }
-                          >
-                            <Pencil size={14} />
-                          </Button>
-                        </Tooltip>
+                       
 
                         <Tooltip content={slot.isPublished ? (t('class_semester.slot_published') || (language === 'vi' ? 'Đã công bố' : 'Published')) : (t('class_semester.publish_slot') || (language === 'vi' ? 'Công bố bài kiểm tra' : 'Publish Exam'))} className="text-[10px] font-bold" placement="top">
                           <Button

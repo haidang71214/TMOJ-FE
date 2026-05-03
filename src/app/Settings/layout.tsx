@@ -44,10 +44,10 @@ export default function SettingsLayout({
               <h1 className="text-5xl font-[1000] italic uppercase tracking-tighter text-white leading-none">
                 {displayName}
               </h1>
-              {/* PRO MEMBER Badge - Đã đổi sang màu Xanh Lá */}
+              {/* MEMBER Badge - Đã đổi sang màu Xanh Lá */}
               <div className="bg-[#00FF41]/10 backdrop-blur-md px-3 py-1 rounded-lg border border-[#00FF41]/20">
                 <span className="text-[#00FF41] text-[10px] font-[1000] uppercase tracking-widest italic">
-                  PRO MEMBER
+                  MEMBER
                 </span>
               </div>
             </div>

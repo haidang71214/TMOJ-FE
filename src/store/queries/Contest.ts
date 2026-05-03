@@ -72,7 +72,7 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_CONTEST_DETAIL.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Contest", id }],
+      providesTags: ["Contest"],
     }),
 
     // 4. Thêm problem vào contest (Endpoint 5 cũ)
@@ -146,9 +146,7 @@ export const contestApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: (result, error, { contestId }) => [
-        { type: "Contest", id: contestId },
-      ],
+      invalidatesTags: ["Contest"],
     }),
 
     // 10. Unregister contest (Endpoint 12 cũ)
@@ -240,7 +238,7 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }, "Team"],
+      providesTags: ["Team", "Contest"],
     }),
     // 27. Lấy Scoreboard
     getScoreboard: builder.query<ScoreboardResponse, string>({

@@ -9,7 +9,7 @@ import { useModal } from "@/Provider/ModalProvider";
 import ResetPassModal from "@/app/Modal/ResetPassModal";
 import webStorageClient from "@/utils/webStorageClient";
 import { loginFromToken } from "@/store/slices/auth";
-import { BASE_URLS } from "@/constants";
+import { useConfirmEmailMutation } from "@/store/queries/auth";
 
 export default function AutoOpenResetPassModal() {
   const searchParams = useSearchParams();
@@ -17,6 +17,7 @@ export default function AutoOpenResetPassModal() {
   const dispatch = useDispatch();
   const { openModal } = useModal();
   const handledRef = useRef(false);
+  const [confirmEmail] = useConfirmEmailMutation();
 
   useEffect(() => {
     if (handledRef.current) return;
@@ -46,8 +47,6 @@ export default function AutoOpenResetPassModal() {
     if (action === "confirm-email") {
       const email = searchParams.get("email") ?? "";
       const token = searchParams.get("token") ?? "";
-      const url = `${BASE_URLS}api/v1/Auth/confirm-email`;
-      console.log("[confirm-email] handler triggered", { email, tokenLen: token.length, url });
 
       if (!email || !token) {
         addToast({
@@ -60,24 +59,8 @@ export default function AutoOpenResetPassModal() {
 
       (async () => {
         try {
-          const res = await fetch(url, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, token }),
-          });
-
-          console.log("[confirm-email] response", res.status, res.statusText);
-
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => null);
-            console.error("[confirm-email] error body", errJson);
-            throw new Error(errJson?.message ?? `Verify failed (${res.status})`);
-          }
-
-          const json = await res.json();
-          console.log("[confirm-email] success body", json);
-          const data = json?.data ?? json;
+          const json = await confirmEmail({ email, token }).unwrap();
+          const data = (json as any)?.data ?? json;
           const accessToken = data?.accessToken;
           const refreshToken = data?.refreshToken;
           const user = data?.user;
@@ -93,11 +76,11 @@ export default function AutoOpenResetPassModal() {
             title: "Xác minh email & đăng nhập thành công",
             color: "success",
           });
-        } catch (e) {
-          console.error("[confirm-email] exception", e);
+        } catch (e: any) {
           addToast({
             title:
-              (e as Error)?.message ||
+              e?.data?.message ||
+              e?.message ||
               "Xác minh email thất bại. Liên kết có thể đã hết hạn.",
             color: "danger",
           });
@@ -106,7 +89,7 @@ export default function AutoOpenResetPassModal() {
         }
       })();
     }
-  }, [searchParams, openModal, router, dispatch]);
+  }, [searchParams, openModal, router, dispatch, confirmEmail]);
 
   return null;
 }

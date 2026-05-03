@@ -51,6 +51,17 @@ export const authApi = baseApi.injectEndpoints({
         body: params,
       }),
     }),
+    confirmEmail: builder.mutation<
+      { data: LoginResponse },
+      { email: string; token: string }
+    >({
+      query: (params) => ({
+        url: authEndpoint.CONFIRM_EMAIL,
+        method: "POST",
+        body: params,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -62,4 +73,5 @@ export const {
   useRegisterMutation,
   useForgotpassMutation,
   useResetPasswordMutation,
+  useConfirmEmailMutation,
 } = authApi;

@@ -10,6 +10,7 @@ import {
 // mà không cần token thì bỏ qua 
 export const rawBaseQuery = fetchBaseQuery({
   baseUrl: BASE_URLS,
+  credentials: "include",
   prepareHeaders: (headers, { endpoint }) => {
     const token = webStorageClient.getToken();
     

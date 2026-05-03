@@ -9,12 +9,20 @@ import PasswordInput from "../components/PasswordInput";
 import { useResetPasswordMutation } from "@/store/queries/auth";
 import { ErrorForm, resetPasswordInformation } from "@/types";
 
-export default function ResetPassModal() {
+interface ResetPassModalProps {
+  initialEmail?: string;
+  initialToken?: string;
+}
+
+export default function ResetPassModal({
+  initialEmail = "",
+  initialToken = "",
+}: ResetPassModalProps = {}) {
   const { closeModal, openModal } = useModal();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
-  const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
+  const [email, setEmail] = useState(initialEmail);
+  const [token, setToken] = useState(initialToken);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Button, addToast, Divider, Input } from "@heroui/react";
 import { useModal } from "../../Provider/ModalProvider";
-import { ArrowRight, X, Mail, KeyRound } from "lucide-react";
+import { ArrowRight, X, Mail } from "lucide-react";
 import RegisterModal from "./RegisterModal";
 import PasswordInput from "../components/PasswordInput";
 import { useResetPasswordMutation } from "@/store/queries/auth";
@@ -42,6 +42,15 @@ export default function ResetPassModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!email || !token) {
+      addToast({
+        title:
+          "Phiên đặt lại mật khẩu không hợp lệ. Vui lòng mở liên kết từ email khôi phục.",
+        color: "danger",
+      });
+      return;
+    }
 
     if (!isPasswordValid) {
       addToast({ title: "Password is too weak!", color: "danger" });
@@ -99,12 +108,12 @@ export default function ResetPassModal({
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
 
-        {/* EMAIL */}
+        {/* EMAIL (locked, prefilled từ link email) */}
         <Input
           type="email"
           placeholder="Email address"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          isReadOnly
           required
           startContent={
             <Mail
@@ -114,33 +123,14 @@ export default function ResetPassModal({
           }
           classNames={{
             inputWrapper:
-              "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800] h-12 rounded-2xl transition-all",
+              "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] h-12 rounded-2xl opacity-80 cursor-not-allowed",
             input:
               "font-bold ml-2 text-sm text-[#3F4755] dark:text-white placeholder:text-gray-500",
           }}
-          autoFocus
         />
 
-        {/* TOKEN */}
-        <Input
-          type="text"
-          placeholder="Reset token"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          required
-          startContent={
-            <KeyRound
-              size={18}
-              className="text-[#3F4755] dark:text-[#FFB800] shrink-0"
-            />
-          }
-          classNames={{
-            inputWrapper:
-              "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] focus-within:!border-[#FFB800] h-12 rounded-2xl transition-all",
-            input:
-              "font-bold ml-2 text-sm text-[#3F4755] dark:text-white placeholder:text-gray-500",
-          }}
-        />
+        {/* TOKEN ẩn — gửi cùng request, không hiển thị cho user */}
+        <input type="hidden" value={token} readOnly />
 
         {/* PASSWORD */}
         <PasswordInput

@@ -95,7 +95,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
           thead: ({ children }) => <thead className="bg-[#FF5C00]/5 dark:bg-[#FF5C00]/10 border-b border-slate-200 dark:border-white/5">{children}</thead>,
           th: ({ children }) => <th className="px-8 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-[#FF5C00] dark:text-amber-500">{children}</th>,
           td: ({ children }) => <td className="px-8 py-5 text-sm border-b border-slate-50 dark:border-white/5 text-slate-600 dark:text-slate-300 font-medium">{children}</td>,
-          p: ({ children }) => <div className="mb-6 leading-[1.8] text-[15px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{children}</div>,
+          p: ({ children }) => <div className="mb-8 leading-[1.8] text-[16px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{children}</div>,
           ul: ({ children }) => <ul className="list-none mb-6 space-y-4 text-slate-600 dark:text-slate-300">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal list-inside mb-6 space-y-4 text-slate-600 dark:text-slate-300 font-bold">{children}</ol>,
           li: ({ children }) => <li className="relative pl-8 before:content-[''] before:absolute before:left-0 before:top-[10px] before:w-3 before:h-3 before:bg-amber-500/20 before:border-2 before:border-amber-500 before:rounded-full font-normal">

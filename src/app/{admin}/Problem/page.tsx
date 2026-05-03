@@ -28,6 +28,7 @@ import {
   DropdownItem,
   useDisclosure,
   Tooltip,
+  addToast,
 } from "@heroui/react";
 import {
   Plus,
@@ -60,8 +61,8 @@ import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
 import EditorialManagementModal from "@/app/components/EditorialManagementModal";
 import RemixProblemForm from "@/app/Problems/components/RemixProblemForm";
 import ProblemTemplatePage from "@/app/Management/Problem/[id]/Template/page";
-import { useGetProblemListQueryQuery } from "@/store/queries/problem";
-import { Problem } from "@/types";
+import { useGetProblemListQueryQuery, useDownloadTestsetZipMutation } from "@/store/queries/problem";
+import { ErrorForm, Problem } from "@/types";
 import { ADMIN_H1, ADMIN_SUBTITLE } from "../adminTable";
 
 export default function ProblemManagementPage() {
@@ -161,6 +162,31 @@ export default function ProblemManagementPage() {
     setIsLoading(true);
     await refetch();
     setIsLoading(false);
+  };
+
+  const [downloadTestsetZip] = useDownloadTestsetZipMutation();
+
+  const handleDownloadTestsetZip = async (problemId: string, testsetId: string, slug: string) => {
+    if (!testsetId) {
+      addToast({ title: "Error", description: "No primary testset found", color: "danger" });
+      return;
+    }
+    try {
+      const blob = await downloadTestsetZip({ problemId, testsetId }).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `testset_${slug}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      addToast({ title: t('common.success') || "Success", description: "Testset ZIP downloaded successfully", color: "success" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      // @ts-ignore
+      addToast({ title: "Download Failed", description: err?.data?.data?.message || "Could not download testset zip", color: "danger" });
+    }
   };
 
   // Render body cho Pending tab
@@ -486,6 +512,14 @@ export default function ProblemManagementPage() {
 
   const ActionButtons = ({ prob }: { prob: Problem }) => (
     <div className="flex items-center gap-1">
+      <Tooltip content="Download Testset ZIP" className="font-bold text-[10px]">
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDownloadTestsetZip(prob.id, prob.primaryTestsetId, prob.slug); }}
+          className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-blue-500 transition-all"
+        >
+          <Download size={14} />
+        </button>
+      </Tooltip>
       <Tooltip content="Tags" className="font-bold text-[10px]">
         <button onClick={() => handleOpenTags(prob)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all"><Tags size={14} /></button>
       </Tooltip>

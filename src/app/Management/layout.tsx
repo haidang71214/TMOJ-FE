@@ -44,8 +44,8 @@ export default function ManagementLayout({
     ...(isManagerOrAdmin ? [{ key: "Teacher", label: t('sidebar.teacher') || (language === 'vi' ? "Giáo Viên" : "Teacher"), icon: <GraduationCap size={20} /> }] : []),
     { key: "Subject", label: t('sidebar.subject') || (language === 'vi' ? "Môn Học" : "Subject"), icon: <BookOpenCheck size={20} /> },
     { key: "StudyPlan", label: t('sidebar.studyPlan') || (language === 'vi' ? "Lộ Trình Học" : "Study Plan"), icon: <Library size={20} /> },
+    { key: "InPlan", label: t('sidebar.inPlanProblem') || (language === 'vi' ? "Bài Tập Trong Lộ Trình" : "In-Plan Problem"), icon: <BookOpenCheck size={20} /> },
     { key: "Bank", label: t('sidebar.bankProblem') || (language === 'vi' ? "Ngân Hàng Bài Tập" : "Bank Problem"), icon: <Database size={20} /> },
-    { key: "Settings", label: t('sidebar.settings') || (language === 'vi' ? "Cài Đặt" : "Settings"), icon: <Settings size={20} /> },
     ...(isManagerOrAdmin ? [{ key: "Semester", label: t('sidebar.semester') || (language === 'vi' ? "Học Kỳ" : "Semester"), icon: <Calendar size={20} /> }] : []),
     { key: "Tags", label: t('sidebar.tags') || (language === 'vi' ? "Nhãn" : "Tags"), icon: <Tag size={20} /> }
   ];

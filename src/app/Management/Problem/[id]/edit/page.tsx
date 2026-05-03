@@ -41,6 +41,7 @@ export default function GlobalProblemEditPage({
   const unwrappedSearchParams = use(searchParams);
   const source = unwrappedSearchParams?.source as string;
   const isBank = source === "bank";
+  const isInPlan = source === "in-plan";
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
   const problemData = detailData as any;
@@ -61,7 +62,7 @@ export default function GlobalProblemEditPage({
     title: "",
     typeCode: "algorithm",
     statusCode: "draft",
-    visibilityCode: isBank ? "in-bank" : "public",
+    visibilityCode: isBank ? "in-bank" : isInPlan ? "in-plan" : "public",
     scoringCode: "acm",
     descriptionMd: "",
     timeLimitMs: 1000,
@@ -83,7 +84,7 @@ export default function GlobalProblemEditPage({
         difficulty: problemData.difficulty?.toLowerCase() || "medium",
         statusCode: problemData.statusCode || "draft",
         scoringCode: problemData.scoringCode || "acm",
-        visibilityCode: problemData.visibilityCode || (isBank ? "in-bank" : "public"),
+        visibilityCode: problemData.visibilityCode || (isBank ? "in-bank" : isInPlan ? "in-plan" : "public"),
         typeCode: problemData.typeCode || "algorithm",
         tagIds: problemData.tags?.map((t: any) => t.id) || [],
         problemMode: problemData.problemMode || "amateur",
@@ -146,7 +147,9 @@ export default function GlobalProblemEditPage({
       if (!success) return; // Stay on page if upload fails
     }
     addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
-    router.push(`/Problems/${id}`);
+    if (isBank) router.push("/Management/Bank");
+    else if (isInPlan) router.push("/Management/InPlan");
+    else router.push(`/Problems/${id}`);
   };
 
   const handleStep1 = async () => {
@@ -233,11 +236,15 @@ export default function GlobalProblemEditPage({
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
-          onPress={() => router.back()}
+          onPress={() => {
+            if (isBank) router.push("/Management/Bank");
+            else if (isInPlan) router.push("/Management/InPlan");
+            else router.back();
+          }}
           className="w-fit font-black text-slate-400 uppercase tracking-widest px-0 hover:text-blue-600 transition-colors h-auto min-w-0 text-[10px]"
           startContent={<ChevronLeft size={16} />}
         >
-          {t('problem_create.back_to_repo') || "Back to Repository"}
+          {t('problem_create.back_to_repo') || (isBank ? "Back to Bank" : isInPlan ? "Back to In-Plan" : "Back to Repository")}
         </Button>
         <div className="space-y-2">
           <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#071739] dark:text-white leading-none">
@@ -459,16 +466,16 @@ export default function GlobalProblemEditPage({
           
           <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center">
             <Switch
-              isSelected={isBank ? form.visibilityCode === "in-bank" : form.visibilityCode === "public"}
+              isSelected={isBank ? form.visibilityCode === "in-bank" : isInPlan ? form.visibilityCode === "in-plan" : form.visibilityCode === "public"}
               onValueChange={(checked) =>
-                setForm({ ...form, visibilityCode: checked ? (isBank ? "in-bank" : "public") : "private" })
+                setForm({ ...form, visibilityCode: checked ? (isBank ? "in-bank" : isInPlan ? "in-plan" : "public") : "private" })
               }
               classNames={{
                 wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
               }}
             >
               <span className="text-[11px] font-black uppercase italic text-slate-500 dark:text-slate-300">
-                {t('problem_create.visibility') || (isBank ? "In-Bank Visible" : "Public Visible")}
+                {t('problem_create.visibility') || (isBank ? "In-Bank Visible" : isInPlan ? "In-Plan Visible" : "Public Visible")}
               </span>
             </Switch>
           </div>
@@ -479,7 +486,11 @@ export default function GlobalProblemEditPage({
             variant="flat"
             startContent={<X size={18} />}
             className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all"
-            onClick={() => router.back()}
+            onClick={() => {
+              if (isBank) router.push("/Management/Bank");
+              else if (isInPlan) router.push("/Management/InPlan");
+              else router.back();
+            }}
           >
             Discard Changes
           </Button>

@@ -184,7 +184,7 @@ export default function EditorialManagementModal({
                   <p className="text-gray-500 italic">{t('problem_management.editorial_fetching') || "Fetching editorial data..."}</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4 h-[600px]">
+                <div className="flex flex-col gap-4 h-[900px]">
                   <Tabs
                     aria-label="Editorial Mode"
                     selectedKey={activeTab}
@@ -219,17 +219,18 @@ export default function EditorialManagementModal({
 
                   {activeTab === "write" ? (
                     <div className="flex-1 flex flex-col gap-2">
-                      <div className="text-[10px] text-gray-400 italic mb-2 uppercase tracking-tight">
+                      <div className="text-xs text-gray-400 italic mb-4 uppercase tracking-tight">
                         Supported Markdown: GFM, Tables, Images, HTML.
                       </div>
                       <Textarea
                         placeholder="Type your editorial content here (Markdown supported)..."
                         value={content}
                         onValueChange={setContent}
-                        minRows={20}
+                        minRows={40}
+                        className="flex-1"
                         classNames={{
-                          input: "font-mono text-sm leading-relaxed",
-                          inputWrapper: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-amber-500/50 focus-within:!border-amber-500 transition-all shadow-inner",
+                          input: "font-mono text-base leading-[2.2]",
+                          inputWrapper: "h-full bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-amber-500/50 focus-within:!border-amber-500 transition-all shadow-inner p-8",
                         }}
                       />
                     </div>

@@ -7,9 +7,12 @@ import { useDispatch } from "react-redux";
 
 import { useModal } from "@/Provider/ModalProvider";
 import ResetPassModal from "@/app/Modal/ResetPassModal";
-import webStorageClient from "@/utils/webStorageClient";
-import { loginFromToken } from "@/store/slices/auth";
-import { useConfirmEmailMutation } from "@/store/queries/auth";
+import {
+  useConfirmEmailMutation,
+  useConfirmPasswordChangeMutation,
+} from "@/store/queries/auth";
+import { clearLoginToken } from "@/store/slices/auth";
+import LoginModal from "@/app/Modal/LoginModal";
 
 export default function AutoOpenResetPassModal() {
   const searchParams = useSearchParams();
@@ -18,6 +21,7 @@ export default function AutoOpenResetPassModal() {
   const { openModal } = useModal();
   const handledRef = useRef(false);
   const [confirmEmail] = useConfirmEmailMutation();
+  const [confirmPasswordChange] = useConfirmPasswordChangeMutation();
 
   useEffect(() => {
     if (handledRef.current) return;
@@ -59,19 +63,9 @@ export default function AutoOpenResetPassModal() {
 
       (async () => {
         try {
-          const json = await confirmEmail({ email, token }).unwrap();
-          const data = (json as any)?.data ?? json;
-          const accessToken = data?.accessToken;
-          const refreshToken = data?.refreshToken;
-          const user = data?.user;
-
-          if (accessToken) webStorageClient.setToken(accessToken);
-          if (refreshToken) webStorageClient.setRefreshToken(refreshToken);
-          if (user) {
-            webStorageClient.setUser(user);
-            dispatch(loginFromToken(user));
-          }
-
+          await confirmEmail({ email, token }).unwrap();
+          // authSlice.extraReducers (confirmEmail.matchFulfilled) đã tự
+          // lưu token + user + set authenticated state.
           addToast({
             title: "Xác minh email & đăng nhập thành công",
             color: "success",
@@ -89,7 +83,44 @@ export default function AutoOpenResetPassModal() {
         }
       })();
     }
-  }, [searchParams, openModal, router, dispatch, confirmEmail]);
+
+    if (action === "confirm-password-change") {
+      const email = searchParams.get("email") ?? "";
+      const token = searchParams.get("token") ?? "";
+
+      if (!email || !token) {
+        addToast({
+          title: "Liên kết xác minh đổi mật khẩu không hợp lệ",
+          color: "danger",
+        });
+        router.replace("/");
+        return;
+      }
+
+      (async () => {
+        try {
+          await confirmPasswordChange({ email, token }).unwrap();
+          // Logout phía client
+          dispatch(clearLoginToken());
+          addToast({
+            title: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
+            color: "success",
+          });
+          router.replace("/");
+          openModal({ content: <LoginModal /> });
+        } catch (e: any) {
+          addToast({
+            title:
+              e?.data?.message ||
+              e?.message ||
+              "Xác minh đổi mật khẩu thất bại. Liên kết có thể đã hết hạn.",
+            color: "danger",
+          });
+          router.replace("/");
+        }
+      })();
+    }
+  }, [searchParams, openModal, router, confirmEmail, confirmPasswordChange, dispatch]);
 
   return null;
 }

@@ -23,14 +23,14 @@ interface AddProblemModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
   onConfirm: (selectedProblems: any[]) => void;
-  isStudyPlan?: boolean;
+  excludedProblemIds?: string[];
 }
 
 export const AddProblemModal = ({
   isOpen,
   onOpenChange,
   onConfirm,
-  isStudyPlan = false,
+  excludedProblemIds = [],
 }: AddProblemModalProps) => {
   const router = useRouter();
   const [searchBank, setSearchBank] = useState("");
@@ -62,7 +62,10 @@ export const AddProblemModal = ({
   }, [regularProblems, inPlanProblems]);
 
   const filteredBank = useMemo(() => {
-    return combinedData.filter((p) => {
+    const rawData = problemBank?.data || [];
+    const excludedSet = new Set(excludedProblemIds);
+    return rawData.filter((p) => {
+      if (excludedSet.has(p.id)) return false;
       const matchSearch = p.title
         .toLowerCase()
         .includes(searchBank.toLowerCase());
@@ -70,7 +73,7 @@ export const AddProblemModal = ({
         filterDifficulty === "all" || p.difficulty.toLowerCase() === filterDifficulty.toLowerCase();
       return matchSearch && matchDifficulty;
     });
-  }, [combinedData, searchBank, filterDifficulty]);
+  }, [problemBank, searchBank, filterDifficulty, excludedProblemIds]);
 
   const handleSelectProblem = (id: string, title: string) => {
     const newSelected = new Set(selectedIds);

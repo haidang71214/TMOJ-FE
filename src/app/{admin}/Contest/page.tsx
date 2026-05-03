@@ -116,7 +116,7 @@ export default function ContestManagementPage() {
 
   const handleRemix = async (id: string) => {
     try {
-      const res = await remixContest(id).unwrap();
+      const res = await remixContest({ id }).unwrap();
       addToast({ title: "Contest remixed successfully", color: "success" });
       if (res.data) {
         // Redirect to edit page with mode
@@ -153,7 +153,7 @@ export default function ContestManagementPage() {
 
   const handleCreateVirtual = async (id: string) => {
     try {
-      const res = await createVirtualContest(id).unwrap();
+      const res = await createVirtualContest({ id }).unwrap();
       addToast({
         title: "Virtual contest created successfully",
         color: "success",

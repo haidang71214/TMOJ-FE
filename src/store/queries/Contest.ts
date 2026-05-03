@@ -281,6 +281,17 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.VIRTUAL.replace("{id}", id),
         method: "POST",
         body,
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 31.1 Archive Contest
+    archiveContest: builder.mutation<ArchiveContestResponse, string>({
+      query: (contestId) => ({
+        url: ContestEndpoint.ARCHIVE.replace("{id}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
     // 32. Cập nhật bài tập trong Class Contest
     updateClassContestProblem: builder.mutation<
       any,
@@ -341,7 +352,7 @@ export const contestApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
   }),
-});
+})
 
 export const {
   useCreateContestMutation,

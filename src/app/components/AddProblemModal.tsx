@@ -24,6 +24,7 @@ interface AddProblemModalProps {
   onOpenChange: () => void;
   onConfirm: (selectedProblems: any[]) => void;
   excludedProblemIds?: string[];
+  isStudyPlan?: boolean;
 }
 
 export const AddProblemModal = ({
@@ -31,6 +32,7 @@ export const AddProblemModal = ({
   onOpenChange,
   onConfirm,
   excludedProblemIds = [],
+  isStudyPlan = false,
 }: AddProblemModalProps) => {
   const router = useRouter();
   const [searchBank, setSearchBank] = useState("");
@@ -50,7 +52,7 @@ export const AddProblemModal = ({
   const combinedData = useMemo(() => {
     const regularData = regularProblems?.data || [];
     const inPlanData = inPlanProblems?.data || [];
-    
+
     // Gộp và loại bỏ trùng lặp theo ID
     const merged = [...inPlanData, ...regularData];
     const seen = new Set();
@@ -62,7 +64,7 @@ export const AddProblemModal = ({
   }, [regularProblems, inPlanProblems]);
 
   const filteredBank = useMemo(() => {
-    const rawData = problemBank?.data || [];
+    const rawData = combinedData || [];
     const excludedSet = new Set(excludedProblemIds);
     return rawData.filter((p) => {
       if (excludedSet.has(p.id)) return false;
@@ -73,7 +75,7 @@ export const AddProblemModal = ({
         filterDifficulty === "all" || p.difficulty.toLowerCase() === filterDifficulty.toLowerCase();
       return matchSearch && matchDifficulty;
     });
-  }, [problemBank, searchBank, filterDifficulty, excludedProblemIds]);
+  }, [combinedData, searchBank, filterDifficulty, excludedProblemIds]);
 
   const handleSelectProblem = (id: string, title: string) => {
     const newSelected = new Set(selectedIds);

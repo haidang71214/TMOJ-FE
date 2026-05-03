@@ -2071,6 +2071,62 @@ export interface RankingContestsResponse {
   message: string;
 }
 
+// ─── ELO-MMR RATING ──────────────────────────────────────────────
+export interface RatingLeaderboardRequest {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+export interface RatingLeaderboardRow {
+  rank: number;
+  userId: string;
+  username: string;
+  fullname: string;
+  avatarUrl: string | null;
+  rating: number;
+  maxRating: number;
+  rankTitle: string | null;
+  rankClass: string | null;
+  timesPlayed: number;
+  lastCompetedAt: string | null;
+}
+
+export interface RatingLeaderboardResponse {
+  data: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    rows: RatingLeaderboardRow[];
+  };
+  message: string;
+}
+
+export interface UserRatingHistoryRow {
+  contestId: string;
+  oldRating: number;
+  newRating: number;
+  ratingChange: number;
+  rankInContest: number;
+  score: number | null;
+  processedAt: string | null;
+}
+
+export interface UserRatingHistoryResponse {
+  data: UserRatingHistoryRow[];
+  message: string;
+}
+
+export interface RecalculateContestRatingsResponse {
+  data: {
+    participants: number;
+    skipped: boolean;
+    reason: string | null;
+  };
+  message: string;
+}
+
 // types/contest.ts  (hoặc file types bạn đang dùng)
 
 export interface ContestProblem {

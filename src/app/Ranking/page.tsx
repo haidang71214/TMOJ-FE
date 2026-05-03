@@ -19,40 +19,20 @@ import {
 } from "@heroui/react";
 import UserAvatar from "@/components/Common/UserAvatar";
 import {
-  AreaChart as AreaChartIcon,
   ArrowUpRight,
-  BarChart3,
-  BookOpen,
   Crown,
   LayoutList,
-  LineChart as LineChartIcon,
   Medal,
   RefreshCw,
   RotateCcw,
   Search,
-  Target,
-  Timer,
-  TrendingUp,
+  Star,
   Trophy,
-  Users,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+
 
 const RANKING_DATA = [
   {
@@ -118,20 +98,35 @@ const RANKING_DATA = [
 ];
 
 import { useGetGlobalRankingQuery, useGetPublicContestsQuery } from "@/store/queries/ranking";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function RankingPage() {
   const [mounted, setMounted] = useState(false);
-  const [viewMode, setViewMode] = useState("table");
-  const [chartType, setChartType] = useState("line");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const { data: user } = useGetUserInformationQuery();
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  useEffect(() => {
+    setSearch(debouncedSearch);
+    setPage(1);
+  }, [debouncedSearch]);
 
   const { data: rankingResponse, isLoading } = useGetGlobalRankingQuery({
     page,
     pageSize: 20,
     search: search || undefined,
   });
+
+  // Fetch my own rank
+  const { data: myRankResponse } = useGetGlobalRankingQuery(
+    { search: user?.username },
+    { skip: !user?.username }
+  );
+
+  const myRankData = myRankResponse?.data?.rows?.find(r => r.userId === user?.userId);
 
   const { data: contestsResponse } = useGetPublicContestsQuery();
 
@@ -154,20 +149,7 @@ export default function RankingPage() {
     return [p2, p1, p3]; // Order: [Silver, Gold, Bronze]
   }, [rankingData]);
 
-  const chartData = useMemo(() => {
-    const top3 = rankingData.slice(0, 3);
-    if (top3.length === 0) return [];
 
-    const names = top3.map(st => st.fullname || st.username || "Unknown");
-    return [
-      { name: "P1", [names[0]]: Math.round((top3[0]?.points || 0) * 0.2), [names[1]]: Math.round((top3[1]?.points || 0) * 0.2), [names[2]]: Math.round((top3[2]?.points || 0) * 0.2) },
-      { name: "P2", [names[0]]: Math.round((top3[0]?.points || 0) * 0.4), [names[1]]: Math.round((top3[1]?.points || 0) * 0.4), [names[2]]: Math.round((top3[2]?.points || 0) * 0.4) },
-      { name: "P3", [names[0]]: Math.round((top3[0]?.points || 0) * 0.7), [names[1]]: Math.round((top3[1]?.points || 0) * 0.7), [names[2]]: Math.round((top3[2]?.points || 0) * 0.7) },
-      { name: "P4", [names[0]]: top3[0]?.points || 0, [names[1]]: top3[1]?.points || 0, [names[2]]: top3[2]?.points || 0 },
-    ];
-  }, [rankingData]);
-
-  const top3Names = useMemo(() => rankingData.slice(0, 3).map(st => st.fullname || st.username || "Unknown"), [rankingData]);
 
   const handleSearch = () => {
     setSearch(searchInput);
@@ -196,46 +178,28 @@ export default function RankingPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex bg-white dark:bg-[#1C2737] p-1.5 rounded-2xl shadow-sm border dark:border-white/5">
             <Link href="/Ranking/rating">
               <Button
                 size="sm"
-                className="bg-linear-to-r from-[#FF5C00] to-[#ff8c00] text-white font-[1000] italic text-[10px] uppercase rounded-2xl shadow-lg"
-                startContent={<Zap size={14} />}
+                className="rounded-xl font-black italic text-[9px] uppercase transition-all bg-transparent text-slate-400"
+                startContent={<Zap size={16} />}
               >
                 Elo Rating
               </Button>
             </Link>
-            <div className="flex bg-white dark:bg-[#1C2737] p-1.5 rounded-2xl shadow-sm border dark:border-white/5">
-              <Button
-                size="sm"
-                onClick={() => setViewMode("table")}
-                className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "table"
-                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                  : "bg-transparent text-slate-400"
-                  }`}
-                startContent={<LayoutList size={16} />}
-              >
-                Leaderboard
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setViewMode("chart")}
-                className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "chart"
-                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                  : "bg-transparent text-slate-400"
-                  }`}
-                startContent={<BarChart3 size={16} />}
-              >
-                Analytics
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              className="rounded-xl font-black italic text-[9px] uppercase transition-all bg-[#071739] text-white dark:bg-[#FF5C00]"
+              startContent={<LayoutList size={16} />}
+            >
+              Leaderboard
+            </Button>
           </div>
         </div>
 
         {/* PODIUM SECTION */}
-        {viewMode === "table" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-[1000px] mx-auto w-full animate-in fade-in zoom-in duration-700 mb-8 pt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-[1000px] mx-auto w-full animate-in fade-in zoom-in duration-700 mb-8 pt-10">
             {podium.map((student, index) => {
               if (!student) return <div key={`empty-${index}`} className="hidden md:block h-full" />;
               const isFirst = index === 1;
@@ -289,7 +253,7 @@ export default function RankingPage() {
                       size="lg"
                     />
 
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 mt-8">
                       <h3
                         className={`text-lg font-[1000] italic uppercase leading-tight ${isFirst
                           ? "text-white"
@@ -340,59 +304,27 @@ export default function RankingPage() {
               );
             })}
           </div>
-        )}
 
         {/* FILTERS TOOLBAR */}
         <Card className="bg-white dark:bg-[#1C2737] rounded-4xl border-none shadow-sm">
           <CardBody className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Input
-                placeholder="Search name/ID..."
+                placeholder="Search name or ID..."
                 value={searchInput}
                 onValueChange={setSearchInput}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 startContent={<Search size={18} className="text-slate-400" />}
+                className="flex-1"
                 classNames={{
                   inputWrapper:
                     "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12 shadow-none font-bold italic",
                 }}
               />
-              <Select
-                placeholder="Semester"
-                startContent={<RefreshCw size={16} />}
-                classNames={{
-                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
-                }}
-              >
-                <SelectItem key="sp26">SPRING 2026</SelectItem>
-              </Select>
-              <Select
-                placeholder="Subject"
-                startContent={<BookOpen size={16} />}
-                classNames={{
-                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
-                }}
-              >
-                <SelectItem key="cs101">Java OOP</SelectItem>
-                <SelectItem key="cs201">Data Structures</SelectItem>
-                <SelectItem key="cs301">Algorithms</SelectItem>
-              </Select>
-              <Select
-                placeholder="Contest"
-                items={combinedContests}
-                startContent={<Trophy size={16} />}
-                classNames={{
-                  trigger: "bg-[#F0F2F5] dark:bg-[#0A0F1C] rounded-2xl h-12",
-                }}
-              >
-                {(contest) => (
-                  <SelectItem key={contest.id}>{contest.title}</SelectItem>
-                )}
-              </Select>
               <div className="flex gap-2">
                 <Button
                   onClick={handleSearch}
-                  className="flex-1 bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] shadow-lg"
+                  className="bg-[#FF5C00] text-white font-[1000] italic h-12 rounded-2xl uppercase text-[11px] px-8 shadow-lg"
                 >
                   Search
                 </Button>
@@ -409,9 +341,7 @@ export default function RankingPage() {
           </CardBody>
         </Card>
 
-        {/* TABLE VIEW */}
-        {viewMode === "table" ? (
-          <Card className="bg-white dark:bg-[#1C2737] rounded-[3rem] border-none shadow-xl overflow-hidden mb-10 animate-in slide-in-from-bottom-4 duration-500">
+        <Card className="bg-white dark:bg-[#1C2737] rounded-[3rem] border-none shadow-xl overflow-hidden mb-10 animate-in slide-in-from-bottom-4 duration-500">
             <CardBody className="p-0">
               <Table removeWrapper aria-label="Ranking table">
                 <TableHeader>
@@ -433,59 +363,106 @@ export default function RankingPage() {
                   </TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {rankingData.map((row) => (
-                    <TableRow
-                      key={row.userId}
-                      className="border-b border-slate-50 dark:border-white/5 last:border-none hover:bg-[#F0F2F5] dark:hover:bg-[#0A0F1C] transition-all h-20 group"
-                    >
-                      <TableCell className="px-10 font-[1000] italic text-2xl leading-none">
-                        <span
-                          className={
-                            row.rank === 1
-                              ? "text-amber-500"
-                              : row.rank === 2
-                                ? "text-slate-400"
-                                : row.rank === 3
-                                  ? "text-orange-700"
-                                  : "text-slate-300"
-                          }
+                  {[
+                    ...rankingData.map((row) => {
+                      const isMe = user?.userId === row.userId;
+                      return (
+                        <TableRow
+                          key={row.userId}
+                          className={`border-b border-slate-50 dark:border-white/5 last:border-none transition-all h-20 group ${isMe
+                            ? "bg-orange-500/10 dark:bg-orange-500/20"
+                            : "hover:bg-[#F0F2F5] dark:hover:bg-[#0A0F1C]"
+                            }`}
                         >
-                          {row.rank.toString().padStart(2, "0")}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-4">
-                          <UserAvatar
-                            src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
-                            frameUrl={row.equippedFrameUrl || row.frameUrl}
-                            size="sm"
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors">
-                              {row.fullname || row.username}
+                          <TableCell className="px-10 font-[1000] italic text-2xl leading-none">
+                            <span
+                              className={
+                                row.rank === 1
+                                  ? "text-amber-500"
+                                  : row.rank === 2
+                                    ? "text-slate-400"
+                                    : row.rank === 3
+                                      ? "text-orange-700"
+                                      : "text-slate-300"
+                              }
+                            >
+                              {row.rank.toString().padStart(2, "0")}
                             </span>
-                            <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
-                              {row.rollNumber || row.username}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-4">
+                              <UserAvatar
+                                src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
+                                size="sm"
+                              />
+                              <div className="flex flex-col">
+                                <span className={`font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors ${isMe ? "text-[#FF5C00]" : ""}`}>
+                                  {row.fullname || row.username} {isMe && "(You)"}
+                                </span>
+                                <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
+                                  {row.rollNumber || row.username}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
 
-                      <TableCell className="text-center font-black italic text-sm">
-                        {row.solved}
-                      </TableCell>
-                      <TableCell className="text-center font-black italic text-emerald-500">
-                        {row.accuracy}%
-                      </TableCell>
-                      <TableCell className="text-right px-10 font-[1000] italic text-xl text-blue-600 dark:text-[#FF5C00]">
-                        {row.points.toLocaleString()}
-                        <ArrowUpRight
-                          size={18}
-                          className="inline-block ml-2 text-slate-300"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          <TableCell className="text-center font-black italic text-sm">
+                            {row.solved}
+                          </TableCell>
+                          <TableCell className="text-center font-black italic text-emerald-500">
+                            {row.accuracy}%
+                          </TableCell>
+                          <TableCell className="text-right px-10 font-[1000] italic text-xl text-blue-600 dark:text-[#FF5C00]">
+                            {row.points.toLocaleString()}
+                            <ArrowUpRight
+                              size={18}
+                              className="inline-block ml-2 text-slate-300"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }),
+                    // LUÔN HIỆN BẢN THÂN KHI SEARCH - Nếu không có trong list hiện tại
+                    ...(myRankData && !rankingData.some(r => r.userId === user?.userId) ? [
+                      <TableRow
+                        key="my-fixed-rank"
+                        className="bg-[#FF5C00]/5 dark:bg-[#FF5C00]/10 border-t-2 border-[#FF5C00]/20 sticky bottom-0 z-20 h-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] backdrop-blur-md"
+                      >
+                        <TableCell className="px-10 font-[1000] italic text-sm leading-none text-[#FF5C00]">
+                          <div className="flex flex-col items-center">
+                            <Star size={14} fill="currentColor" className="mb-1" />
+                            <span>YOU</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-4">
+                            <UserAvatar
+                              src={myRankData.avatarUrl || `https://i.pravatar.cc/150?u=${myRankData.userId}`}
+                              size="sm"
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-[1000] uppercase italic text-sm text-[#FF5C00]">
+                                {myRankData.fullname || myRankData.username} (You)
+                              </span>
+                              <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
+                                {myRankData.rollNumber || myRankData.username}
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-black italic text-sm">
+                          {myRankData.solved}
+                        </TableCell>
+                        <TableCell className="text-center font-black italic text-emerald-500">
+                          {myRankData.accuracy}%
+                        </TableCell>
+                        <TableCell className="text-right px-10 font-[1000] italic text-xl text-[#FF5C00]">
+                          {myRankData.points.toLocaleString()}
+                          <ArrowUpRight size={18} className="inline-block ml-2 text-[#FF5C00]/30" />
+                        </TableCell>
+                      </TableRow>
+                    ] : [])
+                  ]}
                 </TableBody>
               </Table>
               <div className="flex justify-center p-10 border-t border-divider">
@@ -501,269 +478,6 @@ export default function RankingPage() {
               </div>
             </CardBody>
           </Card>
-        ) : (
-          /* ANALYTICS VIEW */
-          <div className="flex flex-col gap-8 animate-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-center gap-3">
-              <Button
-                isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "line"
-                  ? "border-[#FF5C00] bg-orange-500/10 text-[#FF5C00]"
-                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                  }`}
-                onClick={() => setChartType("line")}
-              >
-                <LineChartIcon size={20} />
-              </Button>
-              <Button
-                isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "bar"
-                  ? "border-blue-600 bg-blue-500/10 text-blue-600"
-                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                  }`}
-                onClick={() => setChartType("bar")}
-              >
-                <BarChart3 size={20} />
-              </Button>
-              <Button
-                isIconOnly
-                className={`w-12 h-12 rounded-2xl border-2 transition-all ${chartType === "area"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                  : "border-divider bg-white dark:bg-[#1C2737] text-slate-400"
-                  }`}
-                onClick={() => setChartType("area")}
-              >
-                <AreaChartIcon size={20} />
-              </Button>
-            </div>
-
-            <Card className="bg-white dark:bg-[#1C2737] rounded-[3rem] border-none shadow-2xl p-6 lg:p-10">
-              <CardBody className="gap-8">
-                <div className="flex items-center gap-3 border-b border-divider pb-4">
-                  <TrendingUp size={20} className="text-[#FF5C00]" />
-                  <h4 className="font-[1000] uppercase italic text-lg leading-none">
-                    Point Accumulation Trend
-                  </h4>
-                </div>
-                <div className="h-[400px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    {chartType === "line" ? (
-                      <LineChart data={chartData}>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          strokeOpacity={0.1}
-                        />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: "#888", fontWeight: "bold" }}
-                        />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: "#888", fontWeight: "bold" }}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#071739",
-                            border: "none",
-                            borderRadius: "16px",
-                            color: "#fff",
-                            fontWeight: "bold",
-                          }}
-                        />
-                        <Legend iconType="circle" />
-                        {top3Names[0] && (
-                          <Line
-                            type="monotone"
-                            dataKey={top3Names[0]}
-                            stroke="#FF5C00"
-                            strokeWidth={4}
-                            dot={{ r: 6, fill: "#FF5C00" }}
-                            activeDot={{ r: 8 }}
-                          />
-                        )}
-                        {top3Names[1] && (
-                          <Line
-                            type="monotone"
-                            dataKey={top3Names[1]}
-                            stroke="#3b82f6"
-                            strokeWidth={3}
-                            dot={{ r: 4 }}
-                          />
-                        )}
-                        {top3Names[2] && (
-                          <Line
-                            type="monotone"
-                            dataKey={top3Names[2]}
-                            stroke="#10b981"
-                            strokeWidth={3}
-                            dot={{ r: 4 }}
-                          />
-                        )}
-                      </LineChart>
-                    ) : chartType === "bar" ? (
-                      <BarChart data={chartData}>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          strokeOpacity={0.1}
-                        />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis axisLine={false} tickLine={false} />
-                        <Tooltip
-                          cursor={{ fill: "transparent" }}
-                          contentStyle={{
-                            backgroundColor: "#071739",
-                            border: "none",
-                            borderRadius: "16px",
-                          }}
-                        />
-                        {top3Names[0] && (
-                          <Bar
-                            dataKey={top3Names[0]}
-                            fill="#FF5C00"
-                            radius={[10, 10, 0, 0]}
-                            barSize={24}
-                          />
-                        )}
-                        {top3Names[1] && (
-                          <Bar
-                            dataKey={top3Names[1]}
-                            fill="#3b82f6"
-                            radius={[10, 10, 0, 0]}
-                            barSize={24}
-                          />
-                        )}
-                      </BarChart>
-                    ) : (
-                      <AreaChart data={chartData}>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          strokeOpacity={0.1}
-                        />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis axisLine={false} tickLine={false} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#071739",
-                            border: "none",
-                            borderRadius: "16px",
-                          }}
-                        />
-                        {top3Names[0] && (
-                          <Area
-                            type="monotone"
-                            dataKey={top3Names[0]}
-                            stroke="#FF5C00"
-                            fill="#FF5C00"
-                            fillOpacity={0.1}
-                            strokeWidth={4}
-                          />
-                        )}
-                      </AreaChart>
-                    )}
-                  </ResponsiveContainer>
-                </div>
-              </CardBody>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] p-6 border-none shadow-lg">
-                <CardBody className="gap-4">
-                  <div className="flex items-center gap-2">
-                    <Timer size={20} className="text-blue-500" />
-                    <h5 className="font-black uppercase italic text-xs">
-                      Completion Speed
-                    </h5>
-                  </div>
-                  <div className="space-y-4 pt-2">
-                    {rankingData.slice(0, 5).map((st, i) => (
-                      <div key={st.userId} className="flex items-center gap-4">
-                        <span className="w-24 text-[10px] font-black uppercase italic text-slate-400 truncate">
-                          {st.fullname || st.username}
-                        </span>
-                        <div className="flex-1 bg-slate-100 dark:bg-black/20 h-3 rounded-full overflow-hidden">
-                          <Progress
-                            value={((st.time || (60 - i * 5)) / 60) * 100}
-                            size="sm"
-                            classNames={{ indicator: "bg-blue-500" }}
-                          />
-                        </div>
-                        <span className="w-10 text-[10px] font-black italic">
-                          {st.time || (60 - i * 5)}m
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-[#1C2737] rounded-[2.5rem] p-6 border-none shadow-lg">
-                <CardBody className="gap-4">
-                  <div className="flex items-center gap-2">
-                    <Target size={20} className="text-emerald-500" />
-                    <h5 className="font-black uppercase italic text-xs">
-                      Mastery Accuracy
-                    </h5>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 pt-2">
-                    {rankingData.slice(0, 3).map((st) => (
-                      <div
-                        key={st.userId}
-                        className="flex flex-col items-center gap-2"
-                      >
-                        <div className="relative w-16 h-16 flex items-center justify-center">
-                          <svg className="w-full h-full transform -rotate-90">
-                            <circle
-                              cx="32"
-                              cy="32"
-                              r="28"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="transparent"
-                              className="text-slate-100 dark:text-white/5"
-                            />
-                            <circle
-                              cx="32"
-                              cy="32"
-                              r="28"
-                              stroke={(st.accuracy || 0) > 95 ? "#10b981" : "#FF5C00"}
-                              strokeWidth="4"
-                              fill="transparent"
-                              strokeDasharray={175.9}
-                              strokeDashoffset={
-                                175.9 - (175.9 * (st.accuracy || 0)) / 100
-                              }
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <span className="absolute font-black italic text-xs">
-                            {st.accuracy || 0}%
-                          </span>
-                        </div>
-                        <span className="text-[9px] font-black uppercase italic text-slate-400 truncate w-16 text-center">
-                          {st.fullname || st.username}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardBody>
-              </Card>
-            </div>
-          </div>
-        )}
       </div>
 
       <style jsx global>{`

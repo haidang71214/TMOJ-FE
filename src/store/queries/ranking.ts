@@ -1,5 +1,13 @@
 import { RankingEndpoint } from "@/constants/endpoints";
-import { RankingGlobalRequest, RankingGlobalResponse, RankingContestsResponse } from "@/types";
+import {
+  RankingGlobalRequest,
+  RankingGlobalResponse,
+  RankingContestsResponse,
+  RatingLeaderboardRequest,
+  RatingLeaderboardResponse,
+  UserRatingHistoryResponse,
+  RecalculateContestRatingsResponse,
+} from "@/types";
 import { baseApi } from "../base";
 
 export const rankingApi = baseApi.injectEndpoints({
@@ -20,10 +28,35 @@ export const rankingApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Ranking"],
     }),
+    getRatingLeaderboard: builder.query<RatingLeaderboardResponse, RatingLeaderboardRequest>({
+      query: (params) => ({
+        url: RankingEndpoint.RATING,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Ranking"],
+    }),
+    getUserRatingHistory: builder.query<UserRatingHistoryResponse, string>({
+      query: (userId) => ({
+        url: RankingEndpoint.USER_RATING_HISTORY.replace("{userId}", userId),
+        method: "GET",
+      }),
+      providesTags: ["Ranking"],
+    }),
+    recalculateContestRatings: builder.mutation<RecalculateContestRatingsResponse, string>({
+      query: (contestId) => ({
+        url: RankingEndpoint.ADMIN_RECALCULATE.replace("{contestId}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Ranking"],
+    }),
   }),
 });
 
 export const {
   useGetGlobalRankingQuery,
   useGetPublicContestsQuery,
+  useGetRatingLeaderboardQuery,
+  useGetUserRatingHistoryQuery,
+  useRecalculateContestRatingsMutation,
 } = rankingApi;

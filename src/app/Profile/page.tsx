@@ -64,6 +64,7 @@ import { useGetDiscussionHistoryQuery } from "@/store/queries/discussion";
 import { useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
 import GamificationOverview from "./components/GamificationOverview";
+import RatingHistoryChart from "@/components/Common/RatingHistoryChart";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
 import { Badge } from "@/types/gamification";
@@ -711,6 +712,8 @@ export default function ProfilePage() {
               </div>
             </CardBody>
           </Card>
+
+          {userId && <RatingHistoryChart userId={userId} />}
 
           <Card className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-none rounded-[3rem] shadow-sm">
             <Tabs

@@ -371,6 +371,9 @@ const StoreEndpoint = {
 const RankingEndpoint = {
   GLOBAL: `${API_PREFIX}/ranking/global`,
   CONTESTS: `${API_PREFIX}/ranking/contests`,
+  RATING: `${API_PREFIX}/ranking/rating`,
+  USER_RATING_HISTORY: `${API_PREFIX}/ranking/users/{userId}/rating-history`,
+  ADMIN_RECALCULATE: `${API_PREFIX}/ranking/admin/contests/{contestId}/recalculate-ratings`,
 };
 
 const AiEndpoint = {

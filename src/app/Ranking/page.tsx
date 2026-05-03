@@ -35,7 +35,9 @@ import {
   TrendingUp,
   Trophy,
   Users,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Area,
@@ -194,29 +196,40 @@ export default function RankingPage() {
             </h1>
           </div>
 
-          <div className="flex bg-white dark:bg-[#1C2737] p-1.5 rounded-2xl shadow-sm border dark:border-white/5">
-            <Button
-              size="sm"
-              onClick={() => setViewMode("table")}
-              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "table"
-                ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                : "bg-transparent text-slate-400"
-                }`}
-              startContent={<LayoutList size={16} />}
-            >
-              Leaderboard
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setViewMode("chart")}
-              className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "chart"
-                ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
-                : "bg-transparent text-slate-400"
-                }`}
-              startContent={<BarChart3 size={16} />}
-            >
-              Analytics
-            </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/Ranking/rating">
+              <Button
+                size="sm"
+                className="bg-linear-to-r from-[#FF5C00] to-[#ff8c00] text-white font-[1000] italic text-[10px] uppercase rounded-2xl shadow-lg"
+                startContent={<Zap size={14} />}
+              >
+                Elo Rating
+              </Button>
+            </Link>
+            <div className="flex bg-white dark:bg-[#1C2737] p-1.5 rounded-2xl shadow-sm border dark:border-white/5">
+              <Button
+                size="sm"
+                onClick={() => setViewMode("table")}
+                className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "table"
+                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
+                  : "bg-transparent text-slate-400"
+                  }`}
+                startContent={<LayoutList size={16} />}
+              >
+                Leaderboard
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setViewMode("chart")}
+                className={`rounded-xl font-black italic text-[9px] uppercase transition-all ${viewMode === "chart"
+                  ? "bg-[#071739] text-white dark:bg-[#FF5C00]"
+                  : "bg-transparent text-slate-400"
+                  }`}
+                startContent={<BarChart3 size={16} />}
+              >
+                Analytics
+              </Button>
+            </div>
           </div>
         </div>
 

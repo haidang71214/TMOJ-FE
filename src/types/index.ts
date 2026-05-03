@@ -1770,6 +1770,7 @@ export interface ProblemBankListItemDto {
   createdAt: string;
   problemMode: string;
   scoringCode: string;
+  primaryTestsetId: string;
   tags: {
     id: string;
     name: string;
@@ -1892,6 +1893,20 @@ export interface WalletBalanceResponse {
   data: {
     balance: number;
   };
+}
+
+export interface AdjustCoinRequest {
+  userId?: string | null;
+  username?: string | null;
+  walletId?: string | null;
+  amount: number;
+  note?: string | null;
+}
+
+export interface AdjustCoinResponse {
+  success: boolean;
+  message: string;
+  data?: any;
 }
 
 export interface WalletTransaction {

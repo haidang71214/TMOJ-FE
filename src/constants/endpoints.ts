@@ -70,6 +70,7 @@ const ProblemListEndpoint = {
 // phần này nhớ tách biệt 2 cái, và kiểm soát cờ cho 2 cái khác nhau để update vào state.
 const TestsetEndpoint = {
   GET_SAMPLES: `${API_LON}/Testsets/{problemId}/{testsetId}/samples`,
+  DOWNLOAD_ZIP: `${API_LON}/Testsets/{problemId}/{testsetId}/download-zip`,
 };
 const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
@@ -89,6 +90,7 @@ const SubjectEndpoint = {
   CREATE_SUBJECT: `${API_PREFIX}/Subject`,
   IMPORT_TEMPLATE: `${API_PREFIX}/Class/import/template`,
   IMPORT_CLASS: `${API_PREFIX}/Class/import`,
+  EXPORT_SUBJECT: `${API_PREFIX}/Subject/export`,
 };
 const ClassEndpoint = {
   GET_ALL_CLASS: `${API_PREFIX}/Class`,
@@ -228,8 +230,8 @@ const ContestEndpoint = {
   UNFREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
   REMIX: `${API_PREFIX}/contests/{id}/remix`,
-  ARCHIVE: `${API_PREFIX}/contests/{contestId}/archive`,
-  VIRTUAL: `${API_PREFIX}/contests/{contestId}/virtual`,
+  ARCHIVE: `${API_PREFIX}/contests/{id}/archive`,
+  VIRTUAL: `${API_PREFIX}/contests/{id}/virtual`,
 };
 
 const TeamEndpoint = {
@@ -340,6 +342,7 @@ const PaymentEndpoint = {
 const WalletEndpoint = {
   BALANCE: `${API_PREFIX}/wallet`,
   TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
+  ADJUST_COIN: `${API_PREFIX}/wallet/adjust-coin`,
 };
 
 const AnnouncementEndpoint = {

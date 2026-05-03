@@ -62,7 +62,6 @@ export default function ModerationManagementPage() {
   const { data: userListRes } = useGetUserListQuery();
   const { data: currentUser } = useGetUserInformationQuery();
 
-  console.log(allReportsRes);
 
   let reports: ReportItem[] = useMemo(() => {
     let rawReports = allReportsRes?.data || [];

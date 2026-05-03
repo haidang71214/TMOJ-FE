@@ -30,7 +30,7 @@ export default function CreateSubjectModal() {
       await createSubject(form).unwrap();
       closeModal();
     } catch (error) {
-      console.error(error);
+
     }
   };
 

@@ -257,7 +257,7 @@ export default function RemixProblemForm({ originId, onCancel }: RemixProblemFor
             </div>
             <div className="w-8 h-px bg-slate-200 dark:bg-white/10" />
             <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${step === 1 ? "bg-green-500 text-white shadow-lg" : "bg-slate-100 dark:bg-white/5 text-slate-400"}`}>
-                2. Testcases
+                2. Testcases (optional)
             </div>
         </div>
       </div>

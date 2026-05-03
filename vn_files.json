@@ -370,7 +370,6 @@
   {
     "file": "app\\Problems\\[id]\\page.tsx",
     "samples": [
-      "console.log(response); // mai vào đây check code",
       "onSubmitSuccess={() => setActiveLeftTab(\"submissions\")}  // ← thêm dòng này"
     ]
   },

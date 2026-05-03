@@ -33,10 +33,8 @@ export default function LoginModal() {
   e.preventDefault();
   try {
     const res = await login({ email, password }).unwrap();
-    console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",res);
     
     if (res) {
-      console.log(res);
 
       addToast({ title: t('login.success') || (language === 'vi' ? "Chào mừng trở lại!" : "Welcome back!"), color: "success" });
 
@@ -151,10 +149,8 @@ export default function LoginModal() {
                   onSuccess={async (credentialResponse) => {
                     try {
                       if (credentialResponse.credential) {
-                        console.log("lon");
                         
                         const res = await googleLogin({ tokenId: credentialResponse.credential }).unwrap();
-                        console.log("resaaaaaaaaaaa",res);
                       
                         if (res?.data?.accessToken) {
                           addToast({ title: t('login.success') || (language === 'vi' ? "Chào mừng trở lại!" : "Welcome back!"), color: "success" });
@@ -164,7 +160,7 @@ export default function LoginModal() {
                       }
                     } catch (error: unknown) {
                       addToast({ title: "Google Login Failed", color: "danger" });
-                      console.error("Google login error detail:", error);
+
                     }
                   }}
                   onError={() => {
@@ -233,3 +229,4 @@ export default function LoginModal() {
     </div>
   );
 }
+

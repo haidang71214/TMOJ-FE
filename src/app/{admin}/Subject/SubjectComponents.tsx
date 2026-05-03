@@ -47,7 +47,7 @@ export default function SubjectComponents() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to download template", error);
+
     }
   };
 
@@ -65,7 +65,7 @@ export default function SubjectComponents() {
       }
       refetch();
     } catch (error) {
-      console.error("Failed to import class", error);
+
     }
   };
 
@@ -242,3 +242,4 @@ export default function SubjectComponents() {
     </div>
   );
 }
+

@@ -33,10 +33,8 @@ export const SubmissionDetailModal = ({
 
   useEffect(() => {
     if (detail) {
-      console.log("Submission Detail Data:", detail);
     }
     if (error) {
-      console.error("Error fetching submission detail:", error);
     }
   }, [detail, error]);
 
@@ -48,8 +46,8 @@ export const SubmissionDetailModal = ({
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       size="3xl"
       scrollBehavior="inside"
@@ -138,14 +136,13 @@ export const SubmissionDetailModal = ({
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {detail.data.results.map((result: any, idx: number) => (
-                          <div 
+                          <div
                             key={idx}
                             title={`Testcase ${idx + 1}: ${result.verdictCode?.toUpperCase() || "N/A"}`}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${
-                              result.verdictCode?.toLowerCase() === "ac"
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${result.verdictCode?.toLowerCase() === "ac"
                                 ? "bg-green-500/10 border-green-500/30 text-green-500"
                                 : "bg-red-500/10 border-red-500/30 text-red-500"
-                            }`}
+                              }`}
                           >
                             {idx + 1}
                           </div>
@@ -187,8 +184,8 @@ export const SubmissionDetailModal = ({
               )}
             </ModalBody>
             <ModalFooter>
-              <Button 
-                variant="light" 
+              <Button
+                variant="light"
                 onPress={onClose}
                 className="font-black uppercase tracking-widest text-[11px] text-gray-500"
               >

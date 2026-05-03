@@ -39,7 +39,6 @@ export default function AddStudentModal({ semesterId }: Props) {
   );
 
   const students = studentResponse?.data?.items || [];
-    console.log("students", students);
   // Đảm bảo selectedUser luôn có trong danh sách để tránh lỗi văng app của HeroUI 
   // (khi selectedKey không có trong ds render)
   const studentsList: any[] = [...students];

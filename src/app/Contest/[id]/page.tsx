@@ -43,9 +43,16 @@ export default function ContestDetailPage() {
   }
 
   const contest = contestData?.data;
+  const status = contest?.status?.toLowerCase();
+  const isEnded = status === "ended" || status === "past" || (contest?.endAt && new Date(contest.endAt) < new Date());
+
+  if (isEnded) {
+    router.replace(`/Contest/${contestId}/Scoreboard`);
+    return null;
+  }
+
   // đây nè
   const problems = contest?.problems || [];
-  console.log(problems, "day neeee");
 
   const handleCopyCode = (code: string) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -58,7 +65,6 @@ export default function ContestDetailPage() {
         });
         setTimeout(() => setCopied(false), 2000);
       }).catch(err => {
-        console.error("Failed to copy using navigator.clipboard: ", err);
         fallbackCopyTextToClipboard(code);
       });
     } else {
@@ -90,7 +96,6 @@ export default function ContestDetailPage() {
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
     }
 
     document.body.removeChild(textArea);
@@ -236,8 +241,15 @@ export default function ContestDetailPage() {
               </div>
 
               {/* PROBLEM LIST */}
-              {contest?.status?.toLowerCase() !== "upcoming" && contest?.status?.toLowerCase() !== "draft" && (
-                <div className="space-y-6 pt-4">
+              {(() => {
+                const status = contest?.status?.toLowerCase();
+                const isEnded = status === "ended" || status === "past" || (contest?.endAt && new Date(contest.endAt) < new Date());
+                const isUpcoming = status === "upcoming" || status === "draft";
+                
+                if (isUpcoming || isEnded) return null;
+                
+                return (
+                  <div className="space-y-6 pt-4">
                   <div className="flex items-center justify-between px-2">
                     <h3 className="text-2xl font-[1000] italic uppercase text-slate-900 dark:text-white">Problem <span className="text-[#FF5C00]">List</span></h3>
                     <Chip size="sm" variant="flat" className="bg-[#FF5C00]/10 text-[#FF5C00] font-black italic uppercase border-none">{problems.length} Challenges</Chip>
@@ -280,9 +292,10 @@ export default function ContestDetailPage() {
                         )}
                       </TableBody>
                     </Table>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
         </div>

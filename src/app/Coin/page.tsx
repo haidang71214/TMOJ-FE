@@ -251,14 +251,14 @@ function CoinShopContent() {
             isLoading={isClaiming && claimingId === mission.ruleId}
             onPress={handleClaim}
             className={`font-black uppercase italic text-[10px] h-9 w-full rounded-xl transition-all shadow-lg ${isReady
-                ? "bg-[#FF5C00] text-white shadow-orange-500/20 hover:scale-[1.02]"
-                : isClaimed
-                  ? "bg-slate-100 dark:bg-white/5 text-slate-400 shadow-none"
-                  : "bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/5 shadow-none"
+              ? "bg-[#FF5C00] text-white shadow-orange-500/20 hover:scale-[1.02]"
+              : isClaimed
+                ? "bg-slate-100 dark:bg-white/5 text-slate-400 shadow-none"
+                : "bg-slate-100 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/5 shadow-none"
               }`}
             startContent={isClaimed && <CheckCircle2 size={14} />}
           >
-            {isClaimed ? "Đã nhận" : isReady ? "Nhận thưởng" : "Go to mission"}
+            {isClaimed ? "Claimed" : isReady ? "Claim" : "Go to mission"}
           </Button>
         </CardBody>
       </Card>

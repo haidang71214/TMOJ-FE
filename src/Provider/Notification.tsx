@@ -77,22 +77,16 @@ export default function NotificationInNavbar() {
     try {
       await markAsRead(id).unwrap();
     } catch (error) {
-      console.error("Failed to mark as read", error);
+
     }
   };
 
   const handleNotificationClick = async (n: NotificationDto) => {
-    console.log("🔔 Navbar Notification Clicked:", {
-      id: n.notificationId,
-      scopeId: n.scopeId,
-      scopeType: n.scopeType
-    });
     // 1. Đánh dấu đã đọc
     handleMarkAsRead(n.notificationId, n.isRead);
 
     // 2. Điều hướng nếu có scopeId
     if (!n.scopeId) {
-      console.warn("⚠️ Navbar: No scopeId found");
       return;
     }
 
@@ -132,11 +126,10 @@ export default function NotificationInNavbar() {
         case "system":
           break;
         default:
-          console.warn("Unknown scopeType:", scopeType);
           break;
       }
     } catch (err) {
-      console.error("Failed to handle navigation", err);
+
     }
   };
 
@@ -269,3 +262,5 @@ export default function NotificationInNavbar() {
     </NavbarItem>
   );
 }
+
+

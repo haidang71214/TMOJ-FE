@@ -24,6 +24,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAdjustCoinMutation } from "@/store/queries/wallet";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { toast } from "sonner";
 
 interface AiDebugAssistantProps {
   submissionId?: string;
@@ -40,7 +43,9 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
   const [state, setState] = useState<"idle" | "loading" | "result" | "quota" | "no_data" | "error">("idle");
   const [debugData, setDebugData] = useState<AiDebugResponse["data"]["data"] | null>(null);
 
-  const [generateDebug, { isLoading }] = useGenerateAiDebugMutation();
+  const [generateDebug] = useGenerateAiDebugMutation();
+  const { data: user } = useGetUserInformationQuery();
+  const [adjustCoin] = useAdjustCoinMutation();
 
   const handleExplain = async () => {
     if (!submissionId) {
@@ -50,6 +55,27 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
 
     setState("loading");
     try {
+      // Trừ 750 coin trước khi gọi AI
+      if (user?.userId) {
+        try {
+          await adjustCoin({
+            userId: user.userId,
+            amount: -700,
+            note: "AI Debug Assistant fee"
+          }).unwrap();
+
+          // Kích hoạt hiệu ứng bay coin ở Navbar
+          window.dispatchEvent(new CustomEvent('coin-deducted', { detail: { amount: 700 } }));
+        } catch (coinError: any) {
+          toast.error(
+            coinError?.data?.message ||
+            (t("problem_management.ai_debug_insufficient_coins") || "Bạn không đủ coin để sử dụng tính năng này (700 coin).")
+          );
+          setState("idle");
+          return;
+        }
+      }
+
       const response = await generateDebug({
         submissionId,
         languageCode: "en" // Gợi ý từ BE dùng en để tiết kiệm token
@@ -62,7 +88,6 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
         setState("error");
       }
     } catch (error: any) {
-      console.error("AI Debug Error:", error);
       if (error?.status === 429) {
         setState("quota");
       } else {
@@ -100,14 +125,20 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
 
   if (state === "idle") {
     return (
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex flex-col items-center gap-3">
         <Button
-          className="bg-linear-to-r from-indigo-600 to-fuchsia-500 text-white font-black text-sm px-8 h-12 rounded-2xl shadow-xl shadow-indigo-500/20 active-bump"
-          startContent={<Sparkles size={20} />}
+          className="bg-linear-to-r from-indigo-600 to-fuchsia-500 text-white font-black text-sm px-10 h-14 rounded-2xl shadow-xl shadow-indigo-500/20 active-bump group"
+          startContent={<Sparkles size={20} className="group-hover:rotate-12 transition-transform" />}
           onPress={handleExplain}
         >
           {t("problem_management.ai_debug_button") || "Giải thích lỗi bằng AI"}
         </Button>
+
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">
+            {t("problem_management.ai_debug_cost") || "Chi phí"}: 700 COINS / {t("problem_management.ai_debug_usage") || "lần sử dụng"}
+          </p>
+        </div>
       </div>
     );
   }

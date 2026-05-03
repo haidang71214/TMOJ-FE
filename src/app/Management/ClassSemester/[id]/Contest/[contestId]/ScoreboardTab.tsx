@@ -45,9 +45,7 @@ export default function ScoreboardTab({ classSemesterId, contestId, isActive }: 
       skipPollingIfUnfocused: true,
     }
   );
-  console.log(scoreboardData);
   
-  console.log("Scoreboard State:", { isLoading, isFetching, pollingInterval });
   
   const { data: userProfile } = useGetUserInformationQuery();
   const isStudent = userProfile?.role?.toLowerCase() === "student";
@@ -59,12 +57,6 @@ export default function ScoreboardTab({ classSemesterId, contestId, isActive }: 
 
   // Auto-polling mỗi 10s cho ACM/IOI contests trong kỳ thi running
   useEffect(() => {
-    console.log("Checking Scoreboard Polling:", { 
-      status: data?.status, 
-      frozen: data?.frozen, 
-      hasData: !!data 
-    });
-
     if (!data) return;
     
     const isRunning = data.status?.toLowerCase() === "running" || data.status?.toLowerCase() === "ongoing";
@@ -80,35 +72,27 @@ export default function ScoreboardTab({ classSemesterId, contestId, isActive }: 
   // Refetch when tab becomes active
   useEffect(() => {
     if (isActive) {
-      console.log("Scoreboard Tab Active - Refetching...");
       refetch();
     }
   }, [isActive, refetch]);
 
 
   const handleFreezeToggle = async () => {
-    console.log("Freeze Toggle");
-    console.log(data?.frozen);
     
     if (!data) return;
     try {
       if (data?.frozen) {
        const res = await unfreezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.unfreezeSuccess") || "Đã mở băng bảng xếp hạng!");
-       console.log("Unfreeze");
        
-        console.log(res);
         
       } else {
        const res = await freezeContest({ classSemesterId, contestId }).unwrap();
         toast.success(t("scoreboard.freezeSuccess") || "Đã đóng băng bảng xếp hạng!");
-        console.log("Freeze");
        
-        console.log(res);
       }
       // Wait a bit for server to update state before refetching
       setTimeout(() => {
-        console.log("Post-Toggle Refetching...");
         refetch();
       }, 500);
     } catch (error) {
@@ -377,3 +361,4 @@ export default function ScoreboardTab({ classSemesterId, contestId, isActive }: 
     </div>
   );
 }
+

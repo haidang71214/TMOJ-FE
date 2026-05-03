@@ -21,7 +21,6 @@ const handleSubmit = async (e:any) => {
   e.preventDefault()
   try {
     const data = await forgotpass({ email }).unwrap();
-    console.log(data);
 
     addToast({
       title: language === 'vi'

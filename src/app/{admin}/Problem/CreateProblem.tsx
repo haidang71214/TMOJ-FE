@@ -119,7 +119,7 @@ export default function CreateProblem({ onCancel, onFinish }: CreateProblemProps
       
       setCreatedTestSetId(ts?.data.id ?? null);
     } catch (testsetError) {
-      console.error("Create testset failed:", testsetError);
+
       alert("Problem created, but failed to create default test set");
     }
 
@@ -513,3 +513,4 @@ const handleFinish = async () => {
     </div>
   );
 }
+

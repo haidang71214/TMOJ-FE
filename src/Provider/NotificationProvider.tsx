@@ -47,14 +47,14 @@ export const NotificationProvider = ({
     hub_connection
       .start()
       .then(() => {
-        console.log("SignalR connected");
+
         hub_connection.invoke("JoinUserGroup", userId);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {});
 
     // realtime notification
     hub_connection.on("ReceiveNotification", (notification: NotificationDto) => {
-      console.log("New notification:", notification);
+
 
       set_notifications((prev) => [notification, ...prev]);
     });

@@ -13,6 +13,7 @@ import { addToast } from "@heroui/toast"
 import { VerdictCode } from "@/types"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
+import { useGetProblemTemplatesQuery } from "@/store/queries/problem"
 
 interface SolutionSubmittionProps {
   editorHeight: number | string;
@@ -101,7 +102,8 @@ export default function SolutionSubmittion({
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
   const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
-  console.log("debug problem data : ", problemData);
+  const { data: apiTemplatesData } = useGetProblemTemplatesQuery(problemId, { skip: !problemId });
+  const apiTemplates = apiTemplatesData?.data || [];
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
@@ -126,7 +128,6 @@ export default function SolutionSubmittion({
       // Đã có verdictCode, dừng polling
       setPollingIntervalTime(0);
     }
-        console.log("a");
   }, [submissionId, submissionData?.data?.verdictCode]);
 
   // ==================== 2. HIỂN THỊ TOAST KHI CÓ VERDICT ====================
@@ -187,7 +188,6 @@ export default function SolutionSubmittion({
     if ((verdict === VerdictCode.AC || verdict === "accepted") && onSubmitSuccess) {
       onSubmitSuccess();
     }
-    console.log("a");
     
   }, [submissionData?.data?.verdictCode, hasShownResultToast, onSubmitSuccess, isFetching]);
 
@@ -196,12 +196,10 @@ export default function SolutionSubmittion({
     if (submissionId) {
       setHasShownResultToast(false);
     }
-        console.log("a");
   }, [submissionId]);
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {
-    console.log("dasdadsa");
     if (runtimes.length > 0 && selectedRuntimeId === null) {
       const preferred = runtimes.find(r =>
         r.runtimeName.toLowerCase().includes("c++") ||
@@ -241,19 +239,28 @@ export default function SolutionSubmittion({
 
     const currentCode = code.trim();
     // Only update if current code is empty or we haven't initialized yet
-    const isDefaultTemplate = currentCode === "" || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
+    // Include API templates in the "isDefaultTemplate" check to prevent overwriting user changes
+    const isDefaultTemplate = currentCode === "" || 
+      Object.values(TEMPLATES).some(t => t.trim() === currentCode) ||
+      apiTemplates.some(t => t.templateCode.trim() === currentCode);
 
     if (isDefaultTemplate || !hasInitializedTemplate.current) {
       if (problemData?.problemMode === "pro") {
         if (code !== "") setCode("");
       } else {
-        const newTemplate = TEMPLATES[editorLanguage] || TEMPLATES["cpp"];
-        if (code !== newTemplate) setCode(newTemplate);
+        // Try to find a specific template from API for this runtime
+        const apiTemplate = apiTemplates.find(t => t.runtimeId === selectedRuntimeId);
+        if (apiTemplate) {
+          if (code !== apiTemplate.templateCode) setCode(apiTemplate.templateCode);
+        } else {
+          // Fallback to hardcoded defaults
+          const newTemplate = TEMPLATES[editorLanguage] || TEMPLATES["cpp"];
+          if (code !== newTemplate) setCode(newTemplate);
+        }
       }
       hasInitializedTemplate.current = true;
     }
-        console.log("a");
-  }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
+  }, [editorLanguage, selectedRuntime, problemData?.problemMode, apiTemplates, selectedRuntimeId]);
 
   // ==================== HANDLE SUBMIT ====================
 
@@ -295,7 +302,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Run thất bại.",
         color: "danger"
@@ -341,7 +347,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Nộp bài thất bại.",
         color: "danger"

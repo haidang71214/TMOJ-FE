@@ -72,7 +72,7 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_CONTEST_DETAIL.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Contest", id }],
+      providesTags: ["Contest"],
     }),
 
     // 4. Thêm problem vào contest (Endpoint 5 cũ)
@@ -146,9 +146,7 @@ export const contestApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: (result, error, { contestId }) => [
-        { type: "Contest", id: contestId },
-      ],
+      invalidatesTags: ["Contest"],
     }),
 
     // 10. Unregister contest (Endpoint 12 cũ)
@@ -240,7 +238,7 @@ export const contestApi = baseApi.injectEndpoints({
         url: ContestEndpoint.GET_MY_TEAM_IN_CONTEST.replace("{id}", id),
         method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: "Team", id: `me_${id}` }, "Team"],
+      providesTags: ["Team", "Contest"],
     }),
     // 27. Lấy Scoreboard
     getScoreboard: builder.query<ScoreboardResponse, string>({
@@ -266,7 +264,33 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
-    // 30. Cập nhật bài tập trong Class Contest
+    // 30. Remix Contest
+    remixContest: builder.mutation<any, { id: string; body?: any }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.REMIX.replace("{id}", id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 31. Create Virtual Contest
+    createVirtualContest: builder.mutation<any, { id: string; body?: any }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.VIRTUAL.replace("{id}", id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 31.1 Archive Contest
+    archiveContest: builder.mutation<ArchiveContestResponse, string>({
+      query: (contestId) => ({
+        url: ContestEndpoint.ARCHIVE.replace("{id}", contestId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 32. Cập nhật bài tập trong Class Contest
     updateClassContestProblem: builder.mutation<
       any,
       { classSemesterId: string; contestId: string; contestProblemId: string; body: { alias?: string; ordinal?: number; points?: number; maxScore?: number; timeLimitMs?: number; memoryLimitKb?: number } }
@@ -281,7 +305,7 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
     }),
-    // 31. Xóa bài tập khỏi Class Contest
+    // 33. Xóa bài tập khỏi Class Contest
     deleteClassContestProblem: builder.mutation<
       any,
       { classSemesterId: string; contestId: string; contestProblemId: string }
@@ -295,7 +319,7 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
     }),
-    // 32. Thêm bài tập vào Class Contest
+    // 34. Thêm bài tập vào Class Contest
     addClassContestProblem: builder.mutation<
       any,
       { classSemesterId: string; contestId: string; body: { problemId: string; alias?: string; ordinal?: number; points?: number; maxScore?: number; timeLimitMs?: number; memoryLimitKb?: number } }
@@ -309,7 +333,7 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
     }),
-    // 33. Freeze Contest V2
+    // 35. Freeze Contest V2
     freezeContestV2: builder.mutation<any, string>({
       query: (id) => ({
         url: ContestEndpoint.FREEZE_CONTEST_V2.replace("{id}", id),
@@ -317,7 +341,7 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
-    // 34. Unfreeze Contest V2
+    // 36. Unfreeze Contest V2
     unfreezeContestV2: builder.mutation<any, string>({
       query: (id) => ({
         url: ContestEndpoint.UNFREEZE_CONTEST_V2.replace("{id}", id),
@@ -325,32 +349,8 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
-    // 35. Remix Contest
-    remixContest: builder.mutation<RemixContestResponse, string>({
-      query: (id) => ({
-        url: ContestEndpoint.REMIX.replace("{id}", id),
-        method: "POST",
-      }),
-      invalidatesTags: ["Contest"],
-    }),
-    // 31. Archive Contest
-    archiveContest: builder.mutation<ArchiveContestResponse, string>({
-      query: (contestId) => ({
-        url: ContestEndpoint.ARCHIVE.replace("{contestId}", contestId),
-        method: "POST",
-      }),
-      invalidatesTags: ["Contest"],
-    }),
-    // 32. Create Virtual Contest
-    createVirtualContest: builder.mutation<CreateVirtualContestResponse, string>({
-      query: (contestId) => ({
-        url: ContestEndpoint.VIRTUAL.replace("{contestId}", contestId),
-        method: "POST",
-      }),
-      invalidatesTags: ["Contest"],
-    }),
   }),
-});
+})
 
 export const {
   useCreateContestMutation,

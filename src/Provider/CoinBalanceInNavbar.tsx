@@ -10,6 +10,18 @@ import { DepositContent } from "@/app/components/DeposiModal";
 export default function CoinBalanceInNavbar() {
   const { data: walletData, isLoading } = useGetWalletBalanceQuery();
   const { openModal, closeModal } = useModal();
+  const [deduction, setDeduction] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const handleDeduction = (e: any) => {
+      setDeduction(e.detail.amount);
+      // Reset sau 2 giây để có thể chạy lại lần sau
+      setTimeout(() => setDeduction(null), 2000);
+    };
+
+    window.addEventListener("coin-deducted", handleDeduction);
+    return () => window.removeEventListener("coin-deducted", handleDeduction);
+  }, []);
 
   if (isLoading) return (
     <NavbarItem className="hidden sm:flex">
@@ -18,7 +30,7 @@ export default function CoinBalanceInNavbar() {
   );
 
   return (
-    <NavbarItem className="hidden sm:flex">
+    <NavbarItem className="hidden sm:flex relative">
       <Tooltip content="TMOJ Gold Coins" className="font-bold text-[10px] uppercase tracking-widest">
         <div
           id="navbar-coin-balance"
@@ -33,6 +45,31 @@ export default function CoinBalanceInNavbar() {
           </span>
         </div>
       </Tooltip>
+
+      {/* Hiệu ứng mất hồn khi bị trừ tiền */}
+      {deduction && (
+        <div className="absolute top-0 right-4 pointer-events-none z-50">
+          <span className="text-red-500 font-black italic text-sm animate-ghost-fly whitespace-nowrap">
+            -{deduction} COINS
+          </span>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes ghostFly {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-50px) scale(1.2);
+            opacity: 0;
+          }
+        }
+        .animate-ghost-fly {
+          animation: ghostFly 1.5s ease-out forwards;
+        }
+      `}</style>
     </NavbarItem>
   );
 }

@@ -324,7 +324,8 @@ export const contestApi = baseApi.injectEndpoints({
         method: "POST",
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
-    // 30. Remix Contest
+    }),
+    // 35. Remix Contest
     remixContest: builder.mutation<RemixContestResponse, string>({
       query: (id) => ({
         url: ContestEndpoint.REMIX.replace("{id}", id),

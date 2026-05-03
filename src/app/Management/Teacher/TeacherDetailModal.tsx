@@ -31,7 +31,6 @@ export default function TeacherDetailModal({ isOpen, onOpenChange, teacherId }: 
     { id: teacherId! },
     { skip: !teacherId || !isOpen }
   );
-  console.log(response);
   
   const { t, language } = useTranslation();
 

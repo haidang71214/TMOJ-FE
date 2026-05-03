@@ -48,7 +48,6 @@ export default function ProblemTemplatePage({ inlineProblemId, onCancel }: Probl
 
   const { data: templatesData, isLoading: isTemplatesLoading } = useGetProblemTemplatesQuery(problemId);
   const existingTemplates = templatesData?.data ?? [];
-  console.log("existingTemplates", existingTemplates);
   const [createTemplate, { isLoading: isCreating }] = useCreateProblemTemplateMutation();
   const [updateTemplate, { isLoading: isUpdating }] = useUpdateProblemTemplateMutation();
 
@@ -156,15 +155,10 @@ export default function ProblemTemplatePage({ inlineProblemId, onCancel }: Probl
   }, [formData.solutionSignature, formData.injectionPoint, lang, formData.templateCode]);
 
   const handleSubmit = async () => {
-     console.log(currentTemplate);
     if (!formData.runtimeId) {
       toast.error("Please select a runtime");
       return;
     }
-    console.log("currentTemplate", currentTemplate);
-    console.log("formData.templateCode", formData.templateCode);
-    console.log("formData.injectionPoint", formData.injectionPoint);
-    console.log("formData.solutionSignature", formData.solutionSignature);
     try {
       if (isEditingExisting && currentTemplate) {
        const res =  await updateTemplate({
@@ -176,7 +170,6 @@ export default function ProblemTemplatePage({ inlineProblemId, onCancel }: Probl
             isActive: true,
           }
         }).unwrap();
-        console.log("res", res);
         toast.success("Problem template updated successfully");
       } else {
         await createTemplate({

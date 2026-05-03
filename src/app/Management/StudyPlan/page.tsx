@@ -78,7 +78,7 @@ export default function StudyPlanListPage() {
         await deleteStudyPlan(id).unwrap();
         refetch();
       } catch (error) {
-        console.error("Delete failed:", error);
+
       }
     }
   };

@@ -47,7 +47,6 @@ export default function TeacherListPage() {
 
   const { data: teacherResponse, isLoading } = useGetUserRoleQuery({ roleName: "teacher" });
   const fetchedTeachers = teacherResponse?.data || [];
-  console.log(fetchedTeachers);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);

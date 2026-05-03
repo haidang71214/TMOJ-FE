@@ -78,16 +78,6 @@ export default function EditContestProblemModal({
           memoryLimitKb,
         },
       }).unwrap();
-      console.log(res);
-      console.log("classSemesterId",classSemesterId);
-      console.log("contestId",contestId);
-      console.log("contestProblemId",problem.contestProblemId);
-      console.log("alias",alias);
-      console.log("points",points);
-      console.log("ordinal",ordinal);
-      console.log("maxScore",maxScore);
-      console.log("timeLimitMs",timeLimitMs);
-      console.log("memoryLimitKb",memoryLimitKb);
       
       toast.success(t("contest.updateProblemSuccess") || "Cập nhật bài tập thành công!");
       onClose();

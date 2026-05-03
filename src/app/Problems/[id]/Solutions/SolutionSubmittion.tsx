@@ -101,7 +101,6 @@ export default function SolutionSubmittion({
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
   const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
-  console.log("debug problem data : ", problemData);
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
@@ -126,7 +125,6 @@ export default function SolutionSubmittion({
       // Đã có verdictCode, dừng polling
       setPollingIntervalTime(0);
     }
-        console.log("a");
   }, [submissionId, submissionData?.data?.verdictCode]);
 
   // ==================== 2. HIỂN THỊ TOAST KHI CÓ VERDICT ====================
@@ -187,7 +185,6 @@ export default function SolutionSubmittion({
     if ((verdict === VerdictCode.AC || verdict === "accepted") && onSubmitSuccess) {
       onSubmitSuccess();
     }
-    console.log("a");
     
   }, [submissionData?.data?.verdictCode, hasShownResultToast, onSubmitSuccess, isFetching]);
 
@@ -196,12 +193,10 @@ export default function SolutionSubmittion({
     if (submissionId) {
       setHasShownResultToast(false);
     }
-        console.log("a");
   }, [submissionId]);
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {
-    console.log("dasdadsa");
     if (runtimes.length > 0 && selectedRuntimeId === null) {
       const preferred = runtimes.find(r =>
         r.runtimeName.toLowerCase().includes("c++") ||
@@ -252,7 +247,6 @@ export default function SolutionSubmittion({
       }
       hasInitializedTemplate.current = true;
     }
-        console.log("a");
   }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
 
   // ==================== HANDLE SUBMIT ====================
@@ -295,7 +289,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Run thất bại.",
         color: "danger"
@@ -341,7 +334,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Nộp bài thất bại.",
         color: "danger"

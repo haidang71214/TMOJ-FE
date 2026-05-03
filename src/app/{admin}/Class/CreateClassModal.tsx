@@ -58,7 +58,7 @@ const handleSubmit = async () => {
     await create_class(payload).unwrap();
     closeModal();
   } catch (error) {
-    console.error(error);
+
   }
 };
 

@@ -106,7 +106,6 @@ export default function UpdateClassSemester({
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.log(error);
       toast.error((error as ErrorForm)?.data?.data?.message || "Failed to update class semester");
     }
   };

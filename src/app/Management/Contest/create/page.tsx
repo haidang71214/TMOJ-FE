@@ -62,7 +62,7 @@ export default function CreateContestPage() {
       toast.success("Tạo contest thành công!");
       router.push(`/Management/Contest`);
     } catch (error) {
-      console.error("Failed to create contest:", error);
+
       const apiError = error as ErrorForm;
       toast.error(apiError?.data?.data?.message || "Đã xảy ra lỗi khi tạo contest");
     }
@@ -375,3 +375,4 @@ export default function CreateContestPage() {
     </div>
   );
 }
+

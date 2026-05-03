@@ -35,7 +35,6 @@ export const SubmissionDetailModal = ({
     if (detail) {
     }
     if (error) {
-      console.error("Error fetching submission detail:", error);
     }
   }, [detail, error]);
 

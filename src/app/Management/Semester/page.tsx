@@ -45,7 +45,6 @@ export default function SemesterPage() {
   const isManagerOrAdmin = userProfile?.role?.toLowerCase() === "manager" || userProfile?.role?.toLowerCase() === "admin";
 
   const { data, isLoading, isError, error, refetch } = useGetALLSemestersQuery();
-  console.log(data);
   const [updateSemester] = useUpdateSemesterMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -122,7 +121,6 @@ await updateSemester({
 
     // refetch(); // nếu cần reload list
   } catch (err: unknown) {
-  console.error("Toggle failed:", err);
 
   const error = err as ErrorForm;
 

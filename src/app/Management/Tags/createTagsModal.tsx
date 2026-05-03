@@ -59,7 +59,6 @@ export default function CreateTagsModal({ isOpen, onOpenChange }: Props) {
       };
 
       const a = await createTag(payload).unwrap();
-      console.log(a);
       
       toast.success(t('tags.created_success') || (language === 'vi' ? "Tạo nhãn thành công" : "Tag created successfully"));
       setName("");

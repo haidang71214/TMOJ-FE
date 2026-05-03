@@ -152,7 +152,6 @@ export default function ClassListPage() {
 const handleExportTemplateClass = async()=>{
     try {
     const blob = await exportClassTemplate().unwrap();
-      console.log(blob);
       
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -163,7 +162,7 @@ const handleExportTemplateClass = async()=>{
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Download failed", error);
+
   }
   }
 
@@ -183,7 +182,7 @@ const handleExportTemplateClass = async()=>{
       toast.success(t("class_management.import_success") || "Classes imported successfully");
       refetch();
     } catch (error: any) {
-      console.error("Import failed", error);
+
       const errorMessage = error?.data?.message || t("class_management.import_failed") || "Failed to import classes";
       toast.error(errorMessage);
     } finally {

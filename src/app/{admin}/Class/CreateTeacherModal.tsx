@@ -44,7 +44,7 @@ export default function CreateTeacherModal() {
       await createUser(payload).unwrap();
       closeModal();
     } catch (error) {
-      console.error(error);
+
     }
   };
 
@@ -227,3 +227,4 @@ export default function CreateTeacherModal() {
     </div>
   );
 }
+

@@ -48,7 +48,6 @@ export default function CreateProblemForm() {
   const isManager = userData?.role?.toLowerCase() === "manager" || userData?.role?.includes("manager");
   const isAdmin = userData?.role?.toLowerCase() === "admin" || userData?.role?.includes("admin");
   const isPrivileged = isAdmin || isTeacher || isManager;
-  console.log("Roles:", { isAdmin, isManager, isTeacher, isPrivileged });
   
   // ── STEP 1: Problem form ──────────────────────────────────────────────────
   const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({

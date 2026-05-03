@@ -87,7 +87,6 @@ export default function GlobalProblemListPage() {
     error,
     refetch,
   } = useGetProblemListQueryQuery();
-  console.log(apiResponse);
   const [updateDifficulty] = useUpdateProblemDifficultyMutation();
 
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {
@@ -177,7 +176,6 @@ export default function GlobalProblemListPage() {
   // ── Transform API data → display format ─────────────────────
   const allProblems = useMemo<DisplayProblem[]>(() => {
     if (!apiResponse?.data) return [];
-    console.log(apiResponse);
     
     return apiResponse.data.map((p) => ({
       id: p.id,
@@ -266,7 +264,6 @@ export default function GlobalProblemListPage() {
       </div>
     );
   }
-console.log(allProblems);
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">

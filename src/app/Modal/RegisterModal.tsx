@@ -74,7 +74,6 @@ export default function RegisterModal() {
         email,
         password,
       }).unwrap();
-      console.log("res", res);
       
       addToast({
         title: language === 'vi'
@@ -85,7 +84,6 @@ export default function RegisterModal() {
 
       closeModal();
     } catch (error: unknown) {
-      console.log(error);
       
       const err = error as ErrorForm;
 

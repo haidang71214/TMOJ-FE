@@ -146,7 +146,7 @@ export default function EditorialManagementModal({
         });
       }
     } catch (error: any) {
-      console.error("AI Editorial Error:", error);
+
       const detail = error?.data?.detail || error?.data?.message || "An error occurred while generating AI editorial";
       addToast({
         title: "AI Generation Failed",
@@ -335,3 +335,4 @@ export default function EditorialManagementModal({
     </Modal>
   );
 }
+

@@ -98,7 +98,6 @@ export default function CreateProblemStudyPlanPage() {
 
     try {
       const formData = new FormData();
-      console.log(form.statusCode);
       formData.append("studyPlanId", studyPlanId);
       formData.append("slug", form.slug);
       formData.append("title", form.title);
@@ -133,13 +132,13 @@ export default function CreateProblemStudyPlanPage() {
 
         setCreatedTestSetId(ts?.data.id ?? null);
       } catch (testsetError) {
-        console.error("Create testset failed:", testsetError);
+
         addToast({ title: "Problem created, but failed to create default test set", color: "warning" });
       }
 
       setStep(1);
     } catch (error) {
-      console.error("Create problem failed:", error);
+
       addToast({ title: "Create problem failed", color: "danger" });
     }
   };
@@ -166,7 +165,7 @@ export default function CreateProblemStudyPlanPage() {
       setZipFile(null);
       if (zipRef.current) zipRef.current.value = "";
     } catch (error) {
-      console.error("Upload testcase failed:", error);
+
       addToast({ title: "Upload testcase failed", color: "danger" });
     }
   };
@@ -506,3 +505,4 @@ export default function CreateProblemStudyPlanPage() {
     </div>
   );
 }
+

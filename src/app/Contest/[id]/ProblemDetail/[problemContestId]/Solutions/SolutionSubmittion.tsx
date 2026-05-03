@@ -297,7 +297,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Run thất bại.",
         color: "danger"
@@ -344,7 +343,6 @@ export default function SolutionSubmittion({
         })
         return;
       } catch (error) {
-        console.error(error)
         addToast({
           title: "Nộp bài contest thất bại.",
           color: "danger"

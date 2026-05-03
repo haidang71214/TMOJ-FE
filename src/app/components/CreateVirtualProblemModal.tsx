@@ -37,7 +37,6 @@ export default function CreateVirtualProblemModal({
   const handleCreate = async () => {
 
     if (!problem) {
-      console.warn("⚠️ No problem selected for cloning");
       return;
     }
 
@@ -56,7 +55,7 @@ export default function CreateVirtualProblemModal({
       });
       onOpenChange(false);
     } catch (error) {
-      console.error("❌ Mutation Error:", error);
+
       const apiError = error as ErrorForm;
       addToast({
         title: "Error",
@@ -163,3 +162,4 @@ export default function CreateVirtualProblemModal({
     </Modal>
   );
 }
+

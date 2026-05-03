@@ -168,10 +168,8 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
         slotNo: slotNo,
         slotTitle: `Contest ${slotTitle.trim()}`,
       };
-      console.log(body);
       
    const res =   await createContest({ classSemesterId, body }).unwrap();
-      console.log(res);
       toast.success(t("contest.createSuccess") || "Class contest created successfully!");
       onCreated?.();
       closeModal();

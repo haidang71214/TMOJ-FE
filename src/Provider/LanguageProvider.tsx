@@ -33,7 +33,7 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
         const module = await import(`../locales/${language}.json`);
         setTranslations(module.default);
       } catch (error) {
-        console.error(`Failed to load translation for ${language}`, error);
+
       }
     };
     loadTranslations();
@@ -50,3 +50,4 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
     </LanguageContext.Provider>
   );
 }
+

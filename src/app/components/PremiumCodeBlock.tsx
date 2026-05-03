@@ -39,7 +39,7 @@ export default function PremiumCodeBlock({ blocks }: PremiumCodeBlockProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Unable to copy", err);
+
     }
   };
 
@@ -140,3 +140,4 @@ function getLanguageColor(lang: string) {
   if (l.includes("js") || l.includes("ts") || l.includes("javascript")) return "bg-yellow-300";
   return "bg-slate-400";
 }
+

@@ -45,7 +45,6 @@ export default function GlobalProblemEditPage({
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
   const problemData = detailData as any;
-  console.log(problemData);
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
 
@@ -184,7 +183,6 @@ export default function GlobalProblemEditPage({
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
       setStep(1);
     } catch (error) {
-      console.error("Update problem failed:", error);
       const err = error as ErrorForm;
       addToast({ title: "Update Failed", description: err?.data?.data?.message || "Failed to update problem", color: "danger" });
     }

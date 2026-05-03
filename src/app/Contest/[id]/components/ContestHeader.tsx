@@ -160,41 +160,49 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
               tabContent: "group-data-[selected=true]:text-[#FF5C00] text-slate-900 dark:text-white font-black italic uppercase text-xs transition-all duration-300"
             }}
           >
-            <Tab
-              key="info"
-              href={`/Contest/${contestId}`}
-              title={
-                <div className="flex items-center gap-2 px-1">
-                  <Info className="w-4 h-4" />
-                  <span>Information</span>
-                </div>
-              }
-            />
+            {(() => {
+              const status = contestData?.status?.toLowerCase();
+              const isEnded = status === "ended" || status === "past" || (contestData?.endAt && new Date(contestData.endAt) < new Date());
+              if (isEnded) return null;
+
+              return (
+                <Tab
+                  key="info"
+                  href={`/Contest/${contestId}`}
+                  title={
+                    <div className="flex items-center gap-2 px-1">
+                      <Info className="w-4 h-4" />
+                      <span>Information</span>
+                    </div>
+                  }
+                />
+              );
+            })()}
 
             {currentUser && (
-              <>
-                <Tab
-                  key="leaderboard"
-                  href={`/Contest/${contestId}/Scoreboard`}
-                  title={
-                    <div className="flex items-center gap-2 px-1">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>Scoreboard</span>
-                    </div>
-                  }
-                />
+              <Tab
+                key="leaderboard"
+                href={`/Contest/${contestId}/Scoreboard`}
+                title={
+                  <div className="flex items-center gap-2 px-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Scoreboard</span>
+                  </div>
+                }
+              />
+            )}
 
-                <Tab
-                  key="teams"
-                  href={`/Contest/${contestId}/Teams`}
-                  title={
-                    <div className="flex items-center gap-2 px-1">
-                      <Users className="w-4 h-4" />
-                      <span>{isStudent ? "My Team" : "Participants"}</span>
-                    </div>
-                  }
-                />
-              </>
+            {currentUser && (
+              <Tab
+                key="teams"
+                href={`/Contest/${contestId}/Teams`}
+                title={
+                  <div className="flex items-center gap-2 px-1">
+                    <Users className="w-4 h-4" />
+                    <span>{isStudent ? "My Team" : "Participants"}</span>
+                  </div>
+                }
+              />
             )}
           </Tabs>
         </div>

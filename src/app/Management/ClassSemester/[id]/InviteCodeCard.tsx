@@ -75,7 +75,6 @@ export default function InviteCodeCard({ classSemesterId, classCode, semesterCod
     } catch (err) {
       const apiError = err as ErrorForm;
       addToast({ title: t('class_semester.invite_code_failed') || (language === 'vi' ? 'Tạo mã mời thất bại' : 'Failed to create invite code'), description: apiError?.data?.data?.message || "", color: "danger" });
-      console.error(err);
     }
   };
 
@@ -86,7 +85,6 @@ export default function InviteCodeCard({ classSemesterId, classCode, semesterCod
     } catch (err) {
       const apiError = err as ErrorForm;
       addToast({ title: t('class_semester.invite_code_delete_failed') || (language === 'vi' ? 'Xóa mã mời thất bại' : 'Failed to delete invite code'), description: apiError?.data?.data?.message || "", color: "danger" });
-      console.error(err);
     }
   };
 

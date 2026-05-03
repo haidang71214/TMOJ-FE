@@ -254,7 +254,8 @@ export default function ScoreboardPage() {
                       );
                     }
 
-                    const attempt = row.problems.find((ap) => ap.problemId === columnKey);
+                    const problemId = columnKey.toString().startsWith("problem-") ? columnKey.toString().replace("problem-", "") : columnKey;
+                    const attempt = row.problems.find((ap) => ap.problemId === problemId);
                     return <TableCell>{data?.scoringMode === "ioi" ? renderIOIProblemCell(attempt as IOIProblemAttemptDTO) : renderACMProblemCell(attempt as ACMProblemAttemptDTO)}</TableCell>;
                   }}
                 </TableRow>

@@ -38,7 +38,7 @@ export default function CreateUserModal() {
       await createUser(payload).unwrap();
       closeModal();
     } catch (error) {
-      console.error(error);
+
     }
   };
 
@@ -203,3 +203,4 @@ export default function CreateUserModal() {
     </div>
   );
 }
+

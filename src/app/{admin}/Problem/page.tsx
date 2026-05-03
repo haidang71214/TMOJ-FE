@@ -71,7 +71,6 @@ export default function ProblemManagementPage() {
 
   const { data: problemListData, isLoading: isQueryLoading, refetch } = useGetProblemListQueryQuery();
   const apiProblems: Problem[] = problemListData?.data || [];
-  console.log("apiProblems", problemListData);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProblem, setIsCreatingProblem] = useState(false);
@@ -127,8 +126,6 @@ export default function ProblemManagementPage() {
 
   const pendingProblems = filteredProblems;
   const approvedProblems = filteredProblems;
-  console.log("approvedProblems", approvedProblems);
-  console.log("pendingProblems", pendingProblems);
   const handleApprove = (problem: Problem) => {
     setSelectedProblem(problem);
     setIsApproveModalOpen(true);

@@ -47,7 +47,6 @@ export default function CreateBankForm() {
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
   const isTeacher = userData?.role?.toLowerCase() === "teacher" || userData?.role?.includes("teacher");
   const isManager = userData?.role?.toLowerCase() === "manager" || userData?.role?.includes("manager");
-  console.log(isManager, isTeacher);
   
   // ── STEP 1: Problem form ──────────────────────────────────────────────────
   const [form, setForm] = React.useState<CreateProblemDraftRequest | any>({

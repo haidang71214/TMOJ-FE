@@ -118,7 +118,7 @@ export const CommentInput = ({
       setContent("");
       if (onCancel) onCancel();
     } catch (error) {
-      console.error("Failed to submit comment:", error);
+
       toast.error("Lỗi Reply: " + (error instanceof Error ? error.message : JSON.stringify((error as any)?.data || (error as any)?.message || error)));
     }
   };
@@ -172,3 +172,4 @@ export const CommentInput = ({
     </div>
   );
 };
+

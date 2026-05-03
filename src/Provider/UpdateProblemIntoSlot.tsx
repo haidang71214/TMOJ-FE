@@ -94,7 +94,7 @@ export default function UpdateProblemIntoSlot({
       });
 
     } catch (err) {
-      console.error(err);
+
       setItems(previous);
 
       addToast({
@@ -109,7 +109,6 @@ export default function UpdateProblemIntoSlot({
       toast.error(t('class_semester.no_problems_to_update') || (language === 'vi' ? 'Không có bài tập để cập nhật' : 'No problems to update'));
       return;
     }
-    console.log( items.map(({ title, ...rest }) => rest),);
     
     try {
       await updateProblems({
@@ -121,7 +120,7 @@ export default function UpdateProblemIntoSlot({
       toast.success(t('class_semester.update_slot_success') || (language === 'vi' ? 'Cập nhật thành công!' : 'Update exam problems success!'));
       closeModal();
     } catch (err) {
-      console.error(err);
+
       toast.error(t('class_semester.update_failed') || (language === 'vi' ? 'Cập nhật thất bại' : 'Update failed'));
     }
   };

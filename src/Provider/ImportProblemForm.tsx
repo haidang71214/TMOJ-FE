@@ -199,7 +199,7 @@ export default function AddProblemToSlotForm({ semesterId, slotId }: Props) {
       closeModal();
       toast.success(t('class_management.add_problem_success') || "Add assignment to exam Success!");
     } catch (err) {
-      console.error(err);
+
       toast.error(t('class_management.add_problem_failed') || "Can not add assignment, please act again.");
     }
   };

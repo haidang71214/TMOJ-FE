@@ -364,7 +364,6 @@ export default function ContestRegistrationPage() {
       toast.success(result.message || "Registered for contest successfully!");
       router.push(`/Contest/${contestId}`);
     } catch (error) {
-      console.error("❌ REGISTRATION ERROR:", error);
       const apiError = error as ErrorForm;
       const serverMsg = apiError?.data?.data?.message;
       toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");

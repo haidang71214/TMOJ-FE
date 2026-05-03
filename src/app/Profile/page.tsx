@@ -112,7 +112,6 @@ export default function ProfilePage() {
 
   // ── Gamification ──
   const { data: gMeResponse } = useGetGamificationMeQuery();
-  console.log("Gamification", gMeResponse);
   const { data: gBadgesResponse } = useGetBadgesQuery();
   const { data: gProgressResponse } = useGetBadgeProgressQuery();
   const { data: gStreakResponse } = useGetStreakQuery();

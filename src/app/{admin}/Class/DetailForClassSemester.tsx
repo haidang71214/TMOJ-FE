@@ -88,7 +88,6 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
   const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId);
 
   const slots = slotData?.data ?? [];
-  console.log(classData);
   const openCreateSlotModal = () => {
     openModal({
       content: <CreateSlotForm semesterId={semesterId} />,
@@ -114,7 +113,7 @@ export default function ClassSemesterDetail({ id, onBack,nameClass,semesterCode 
         color: "success",
       });
     } catch (err) {
-      console.error(err);
+
       addToast({
         title: "Problem removed failed",
         color: "danger",

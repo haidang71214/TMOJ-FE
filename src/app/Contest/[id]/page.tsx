@@ -101,9 +101,7 @@ export default function ContestDetailPage() {
     document.body.removeChild(textArea);
   };
 
-  const showInviteCode = contest?.status?.toLowerCase() === "upcoming" && contest?.inviteCode && (
-    contest.visibility?.toLowerCase() === "public" || isAdminOrTeacher
-  );
+  const showInviteCode = (status === "upcoming" || status === "draft") && !!contest?.inviteCode;
 
   return (
     <div className="w-full">
@@ -245,53 +243,53 @@ export default function ContestDetailPage() {
                 const status = contest?.status?.toLowerCase();
                 const isEnded = status === "ended" || status === "past" || (contest?.endAt && new Date(contest.endAt) < new Date());
                 const isUpcoming = status === "upcoming" || status === "draft";
-                
+
                 if (isUpcoming || isEnded) return null;
-                
+
                 return (
                   <div className="space-y-6 pt-4">
-                  <div className="flex items-center justify-between px-2">
-                    <h3 className="text-2xl font-[1000] italic uppercase text-slate-900 dark:text-white">Problem <span className="text-[#FF5C00]">List</span></h3>
-                    <Chip size="sm" variant="flat" className="bg-[#FF5C00]/10 text-[#FF5C00] font-black italic uppercase border-none">{problems.length} Challenges</Chip>
-                  </div>
+                    <div className="flex items-center justify-between px-2">
+                      <h3 className="text-2xl font-[1000] italic uppercase text-slate-900 dark:text-white">Problem <span className="text-[#FF5C00]">List</span></h3>
+                      <Chip size="sm" variant="flat" className="bg-[#FF5C00]/10 text-[#FF5C00] font-black italic uppercase border-none">{problems.length} Challenges</Chip>
+                    </div>
 
-                  <div className="bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border-none overflow-hidden">
-                    <Table
-                      aria-label="Problems table"
-                      removeWrapper
-                      classNames={{
-                        base: "min-w-full",
-                        table: "min-w-full",
-                        th: "bg-[#071739] text-white/50 font-black italic uppercase text-[10px] py-6 first:pl-10 last:pr-10 border-none",
-                        td: "py-5 text-sm font-bold border-b border-slate-100 dark:border-white/5 group-last:border-none px-10",
-                        tr: "hover:bg-[#FF5C00]/5 dark:hover:bg-[#FF5C00]/10 transition-all cursor-pointer group",
-                      }}
-                    >
-                      <TableHeader>
-                        <TableColumn key="ordinal" className="w-[80px] text-center">#</TableColumn>
-                        <TableColumn key="title">Challenge Name</TableColumn>
-                        <TableColumn key="points" className="text-center w-[120px]">Points</TableColumn>
-                      </TableHeader>
-                      <TableBody items={problems}>
-                        {(item) => (
-                          <TableRow key={item.problemId} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.problemId}?contestProblemId=${item.id}`)}>
-                            <TableCell className="text-center">
-                              <span className="text-slate-400 font-black italic">{item.ordinal}</span>
-                            </TableCell>
-                            <TableCell>
-                              <span className="font-black italic uppercase text-slate-800 dark:text-slate-200 group-hover:text-[#FF5C00] transition-colors tracking-tight">
-                                {item.title}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Chip size="sm" className="bg-green-500/10 text-green-600 font-[1000] italic border-none h-7 px-4">
-                                {item.points} PTS
-                              </Chip>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                    <div className="bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border-none overflow-hidden">
+                      <Table
+                        aria-label="Problems table"
+                        removeWrapper
+                        classNames={{
+                          base: "min-w-full",
+                          table: "min-w-full",
+                          th: "bg-[#071739] text-white/50 font-black italic uppercase text-[10px] py-6 first:pl-10 last:pr-10 border-none",
+                          td: "py-5 text-sm font-bold border-b border-slate-100 dark:border-white/5 group-last:border-none px-10",
+                          tr: "hover:bg-[#FF5C00]/5 dark:hover:bg-[#FF5C00]/10 transition-all cursor-pointer group",
+                        }}
+                      >
+                        <TableHeader>
+                          <TableColumn key="ordinal" className="w-[80px] text-center">#</TableColumn>
+                          <TableColumn key="title">Challenge Name</TableColumn>
+                          <TableColumn key="points" className="text-center w-[120px]">Points</TableColumn>
+                        </TableHeader>
+                        <TableBody items={problems}>
+                          {(item) => (
+                            <TableRow key={item.problemId} onClick={() => router.push(`/Contest/${contestId}/Problems/${item.problemId}?contestProblemId=${item.id}`)}>
+                              <TableCell className="text-center">
+                                <span className="text-slate-400 font-black italic">{item.ordinal}</span>
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-black italic uppercase text-slate-800 dark:text-slate-200 group-hover:text-[#FF5C00] transition-colors tracking-tight">
+                                  {item.title}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Chip size="sm" className="bg-green-500/10 text-green-600 font-[1000] italic border-none h-7 px-4">
+                                  {item.points} PTS
+                                </Chip>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 );

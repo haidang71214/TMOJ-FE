@@ -86,6 +86,10 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
     if (!title.trim()) newErrors.title = t("slot.titleRequired") || "Exam title is required";
     if (slotNo < 1) newErrors.slotNo = t("slot.slotNoMin") || "Exam number must be at least 1";
 
+    if (!openAt) newErrors.openAt = t("slot.openAtRequired") || "Open time is required";
+    if (!dueAt) newErrors.dueAt = t("slot.dueAtRequired") || "Due time is required";
+    if (!closeAt) newErrors.closeAt = t("slot.closeAtRequired") || "Close time is required";
+
     if (mode === "problemset" && selectedProblems.length === 0) {
       newErrors.problems = t("slot.problemRequiredForProblemset") || "At least one problem is required for Problem Set mode";
     }
@@ -268,37 +272,43 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
         >
           <div className="flex flex-col gap-1">
             <div className="text-sm font-medium text-orange-700 dark:text-orange-400">
-              {t("slot.openAt") || "Open At"} <RequiredStar rules={[t("common.optional") || "Optional"]} />
+              {t("slot.openAt") || "Open At"} <RequiredStar rules={[t("common.required") || "Required"]} />
             </div>
             <Input
               type="datetime-local"
               value={openAt}
               onValueChange={setOpenAt}
               variant="bordered"
+              isInvalid={!!errors.openAt}
+              errorMessage={errors.openAt}
             />
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="text-sm font-medium text-orange-700 dark:text-orange-400">
-              {t("slot.dueAt") || "Due At"} <RequiredStar rules={[t("common.optional") || "Optional"]} />
+              {t("slot.dueAt") || "Due At"} <RequiredStar rules={[t("common.required") || "Required"]} />
             </div>
             <Input
               type="datetime-local"
               value={dueAt}
               onValueChange={setDueAt}
               variant="bordered"
+              isInvalid={!!errors.dueAt}
+              errorMessage={errors.dueAt}
             />
           </div>
 
           <div className="flex flex-col gap-1">
             <div className="text-sm font-medium text-orange-700 dark:text-orange-400">
-              {t("slot.closeAt") || "Close At"} <RequiredStar rules={[t("common.optional") || "Optional"]} />
+              {t("slot.closeAt") || "Close At"} <RequiredStar rules={[t("common.required") || "Required"]} />
             </div>
             <Input
               type="datetime-local"
               value={closeAt}
               onValueChange={setCloseAt}
               variant="bordered"
+              isInvalid={!!errors.closeAt}
+              errorMessage={errors.closeAt}
             />
           </div>
         </div>

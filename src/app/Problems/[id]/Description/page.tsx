@@ -34,12 +34,10 @@ export default function DescriptionTab() {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useTranslation();
   const { data: userData, } = useGetUserInformationQuery();
-  console.log("aaaaaaaaaaa", userData);
   const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery(
     { id },
     { skip: !id }
   );
-  console.log("aaaa", response);
 
   const problem = response as Problem | undefined;
 

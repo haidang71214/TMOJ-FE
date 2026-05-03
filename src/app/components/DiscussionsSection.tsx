@@ -47,7 +47,7 @@ export default function DiscussionsSection({ brandOrange, brandNavy }: { brandOr
               });
             }
           } catch (err) {
-            console.error(`Failed to fetch discussions for problem ${problem.id}`, err);
+
           }
         }
 
@@ -126,3 +126,4 @@ export default function DiscussionsSection({ brandOrange, brandNavy }: { brandOr
     </div>
   );
 }
+

@@ -1895,6 +1895,20 @@ export interface WalletBalanceResponse {
   };
 }
 
+export interface AdjustCoinRequest {
+  userId?: string | null;
+  username?: string | null;
+  walletId?: string | null;
+  amount: number;
+  note?: string | null;
+}
+
+export interface AdjustCoinResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
 export interface WalletTransaction {
   type: "deposit" | "withdraw";
   amount: number;
@@ -2069,6 +2083,62 @@ export interface RankingContestItem {
 
 export interface RankingContestsResponse {
   data: RankingContestItem[];
+  message: string;
+}
+
+// ─── ELO-MMR RATING ──────────────────────────────────────────────
+export interface RatingLeaderboardRequest {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+export interface RatingLeaderboardRow {
+  rank: number;
+  userId: string;
+  username: string;
+  fullname: string;
+  avatarUrl: string | null;
+  rating: number;
+  maxRating: number;
+  rankTitle: string | null;
+  rankClass: string | null;
+  timesPlayed: number;
+  lastCompetedAt: string | null;
+}
+
+export interface RatingLeaderboardResponse {
+  data: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    rows: RatingLeaderboardRow[];
+  };
+  message: string;
+}
+
+export interface UserRatingHistoryRow {
+  contestId: string;
+  oldRating: number;
+  newRating: number;
+  ratingChange: number;
+  rankInContest: number;
+  score: number | null;
+  processedAt: string | null;
+}
+
+export interface UserRatingHistoryResponse {
+  data: UserRatingHistoryRow[];
+  message: string;
+}
+
+export interface RecalculateContestRatingsResponse {
+  data: {
+    participants: number;
+    skipped: boolean;
+    reason: string | null;
+  };
   message: string;
 }
 

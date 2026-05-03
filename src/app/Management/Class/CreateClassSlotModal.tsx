@@ -16,7 +16,7 @@ import {
 } from "@heroui/react";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-  import { Selection } from "@react-types/shared";
+import { Selection } from "@react-types/shared";
 import { useModal } from "@/Provider/ModalProvider";
 import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useCreateClassSlotMutation } from "@/store/queries/ClassSlot";
@@ -39,24 +39,21 @@ export default function CreateSlotForm({ semesterId }: CreateSlotFormProps) {
   const { t } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
-  console.log("semesterId", semesterId);
-  
+
   const [page, setPage] = useState(1);
   const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListPublicQuery({ page, pageSize: 5 });
-  console.log("problemResponse", problemResponse);
-  
+
   const problems = problemResponse?.data || [];
   const totalPages = problemResponse?.pagination?.totalPages || 1;
-  console.log("problems", problems);
-  
+
   const [slotNo, setSlotNo] = useState<number>(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState("");
   const [mode, setMode] = useState<"problemset" | "contest">("problemset");
   const [openAt, setOpenAt] = useState<string>("");
-const [dueAt, setDueAt] = useState<string>("");
-const [closeAt, setCloseAt] = useState<string>("");
+  const [dueAt, setDueAt] = useState<string>("");
+  const [closeAt, setCloseAt] = useState<string>("");
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -92,9 +89,9 @@ const [closeAt, setCloseAt] = useState<string>("");
         description: description.trim() || undefined,
         rules: rules.trim() || undefined,
         openAt: openAt ? new Date(openAt).toISOString() : undefined,
-      dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
-      closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
-            mode,
+        dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
+        closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
+        mode,
         problems: selectedProblems.map((p, index) => ({
           problemId: p.problemId,
           ordinal: index,          // 0, 1, 2,...
@@ -116,21 +113,21 @@ const [closeAt, setCloseAt] = useState<string>("");
     }
   };
   const [search, setSearch] = useState("");
-const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+  const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
   const filteredProblems = problems.filter((p: Problem) => {
-  const matchSearch =
-    !search ||
-    (p.title || "")
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const matchSearch =
+      !search ||
+      (p.title || "")
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-  const matchDifficulty =
-    !difficultyFilter || p.difficulty === difficultyFilter;
+    const matchDifficulty =
+      !difficultyFilter || p.difficulty === difficultyFilter;
 
-  return matchSearch && matchDifficulty;
-});
+    return matchSearch && matchDifficulty;
+  });
 
-const handleSelectionChange = (keys : Selection) => {
+  const handleSelectionChange = (keys: Selection) => {
     const selectedIds = Array.from(keys) as string[];
 
     // Tạo danh sách mới, giữ thông tin cũ nếu có, cập nhật ordinal theo thứ tự mới
@@ -139,11 +136,11 @@ const handleSelectionChange = (keys : Selection) => {
       return existing
         ? { ...existing, ordinal: index }
         : {
-            problemId: id,
-            ordinal: index,
-            points: 0,
-            isRequired: true, // mặc định required
-          };
+          problemId: id,
+          ordinal: index,
+          points: 0,
+          isRequired: true, // mặc định required
+        };
     });
 
     setSelectedProblems(newSelected);
@@ -248,48 +245,48 @@ const handleSelectionChange = (keys : Selection) => {
           <SelectItem key="problemset">{t("slot.modeProblemSet") || "Problem Set (Practice)"}</SelectItem>
           <SelectItem key="contest">{t("slot.modeContest") || "Contest (Timed Competition)"}</SelectItem>
         </Select>
-         <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
 
-  <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">{t("slot.openAt") || "Open At"} <RequiredStar rules={[t("common.required") || "Required",]} /></div>
-    <Input
-      type="datetime-local"
-      labelPlacement="outside"
-      value={openAt}
-      onValueChange={setOpenAt}
-      variant="bordered"
-      isInvalid={!!errors.openAt}
-      errorMessage={errors.openAt}
-    />
-  </div>
+          <div className="flex flex-col gap-1">
+            <div className="text-sm font-medium">{t("slot.openAt") || "Open At"} <RequiredStar rules={[t("common.required") || "Required",]} /></div>
+            <Input
+              type="datetime-local"
+              labelPlacement="outside"
+              value={openAt}
+              onValueChange={setOpenAt}
+              variant="bordered"
+              isInvalid={!!errors.openAt}
+              errorMessage={errors.openAt}
+            />
+          </div>
 
-  <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">{t("slot.dueAt") || "Due At"} <RequiredStar rules={[t("common.required") || "Required"]}/> </div>
-    <Input
-      type="datetime-local"
-      labelPlacement="outside"
-      value={dueAt}
-      onValueChange={setDueAt}
-      variant="bordered"
-      isInvalid={!!errors.dueAt}
-      errorMessage={errors.dueAt}
-    />
-  </div>
+          <div className="flex flex-col gap-1">
+            <div className="text-sm font-medium">{t("slot.dueAt") || "Due At"} <RequiredStar rules={[t("common.required") || "Required"]} /> </div>
+            <Input
+              type="datetime-local"
+              labelPlacement="outside"
+              value={dueAt}
+              onValueChange={setDueAt}
+              variant="bordered"
+              isInvalid={!!errors.dueAt}
+              errorMessage={errors.dueAt}
+            />
+          </div>
 
-  <div className="flex flex-col gap-1">
-    <div className="text-sm font-medium">{t("slot.closeAt") || "Close At"} <RequiredStar rules={[t("common.required") || "Required"]}/> </div>
-    <Input
-      type="datetime-local"
-      labelPlacement="outside"
-      value={closeAt}
-      onValueChange={setCloseAt}
-      variant="bordered"
-      isInvalid={!!errors.closeAt}
-      errorMessage={errors.closeAt}
-    />
-  </div>
+          <div className="flex flex-col gap-1">
+            <div className="text-sm font-medium">{t("slot.closeAt") || "Close At"} <RequiredStar rules={[t("common.required") || "Required"]} /> </div>
+            <Input
+              type="datetime-local"
+              labelPlacement="outside"
+              value={closeAt}
+              onValueChange={setCloseAt}
+              variant="bordered"
+              isInvalid={!!errors.closeAt}
+              errorMessage={errors.closeAt}
+            />
+          </div>
 
-</div>
+        </div>
         {/* Problems Selection */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -303,29 +300,29 @@ const handleSelectionChange = (keys : Selection) => {
               </Chip>
             )}
           </div>
-            <div className="flex gap-2">
-  <Input
-    placeholder={t("slot.searchProblems") || "Search problems..."}
-    value={search}
-    onValueChange={setSearch}
-    variant="bordered"
-  />
+          <div className="flex gap-2">
+            <Input
+              placeholder={t("slot.searchProblems") || "Search problems..."}
+              value={search}
+              onValueChange={setSearch}
+              variant="bordered"
+            />
 
-  <Select
-    placeholder={t("slot.difficulty") || "Difficulty"}
-    selectedKeys={difficultyFilter ? [difficultyFilter] : []}
-    onSelectionChange={(keys) => {
-      const value = Array.from(keys)[0] as string;
-      setDifficultyFilter(value || null);
-    }}
-    variant="bordered"
-    className="w-40"
-  >
-    <SelectItem key="easy">{t("slot.diffEasy") || "Easy"}</SelectItem>
-    <SelectItem key="medium">{t("slot.diffMedium") || "Medium"}</SelectItem>
-    <SelectItem key="hard">{t("slot.diffHard") || "Hard"}</SelectItem>
-  </Select>
-</div>
+            <Select
+              placeholder={t("slot.difficulty") || "Difficulty"}
+              selectedKeys={difficultyFilter ? [difficultyFilter] : []}
+              onSelectionChange={(keys) => {
+                const value = Array.from(keys)[0] as string;
+                setDifficultyFilter(value || null);
+              }}
+              variant="bordered"
+              className="w-40"
+            >
+              <SelectItem key="easy">{t("slot.diffEasy") || "Easy"}</SelectItem>
+              <SelectItem key="medium">{t("slot.diffMedium") || "Medium"}</SelectItem>
+              <SelectItem key="hard">{t("slot.diffHard") || "Hard"}</SelectItem>
+            </Select>
+          </div>
 
           {isLoadingProblems ? (
             <div className="flex items-center justify-center gap-3 py-6 text-gray-500 dark:text-slate-400">
@@ -337,46 +334,46 @@ const handleSelectionChange = (keys : Selection) => {
             </div>
           ) : (
             <>
-            <div className="h-64 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/30">
-  <Listbox
-    selectionMode="multiple"
-    selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
-    onSelectionChange={handleSelectionChange}
-    className="p-1"
-  >
-    {filteredProblems.map((prob: Problem, index: number) => (
-      <ListboxItem
-        key={prob.id}
-        textValue={prob.title}
-        className="data-[hover=true]:bg-indigo-50 dark:data-[hover=true]:bg-indigo-900/20"
-      >
-        <div 
-          className="flex flex-col py-1 animate-fade-in-right opacity-0"
-          style={{ animationDelay: `${index * 50}ms` }}
-        >
-          <span className="font-medium">{prob.title}</span>
+              <div className="h-64 overflow-y-auto border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/30">
+                <Listbox
+                  selectionMode="multiple"
+                  selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
+                  onSelectionChange={handleSelectionChange}
+                  className="p-1"
+                >
+                  {filteredProblems.map((prob: Problem, index: number) => (
+                    <ListboxItem
+                      key={prob.id}
+                      textValue={prob.title}
+                      className="data-[hover=true]:bg-indigo-50 dark:data-[hover=true]:bg-indigo-900/20"
+                    >
+                      <div
+                        className="flex flex-col py-1 animate-fade-in-right opacity-0"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <span className="font-medium">{prob.title}</span>
 
-          {prob.difficulty && (
-            <span className="text-xs text-gray-500 dark:text-slate-400">
-              {t("slot.difficulty") || "Difficulty"}: {prob.difficulty}
-            </span>
-          )}
-        </div>
-      </ListboxItem>
-    ))}
-  </Listbox>
-</div>
-<div className="flex justify-center mt-2">
-  <Pagination
-    isCompact
-    showControls
-    color="primary"
-    page={page}
-    total={totalPages}
-    onChange={setPage}
-  />
-</div>
-</>
+                        {prob.difficulty && (
+                          <span className="text-xs text-gray-500 dark:text-slate-400">
+                            {t("slot.difficulty") || "Difficulty"}: {prob.difficulty}
+                          </span>
+                        )}
+                      </div>
+                    </ListboxItem>
+                  ))}
+                </Listbox>
+              </div>
+              <div className="flex justify-center mt-2">
+                <Pagination
+                  isCompact
+                  showControls
+                  color="primary"
+                  page={page}
+                  total={totalPages}
+                  onChange={setPage}
+                />
+              </div>
+            </>
           )}
 
           {/* Selected Problems List with Order & Required Toggle */}
@@ -404,9 +401,9 @@ const handleSelectionChange = (keys : Selection) => {
                         </Chip>
                         <div>
                           <p className="font-medium text-gray-800 dark:text-slate-200">
-                            {prob?.title  || (t("slot.unknownProblem") || "Unknown Problem")}
+                            {prob?.title || (t("slot.unknownProblem") || "Unknown Problem")}
                           </p>
-                         
+
                         </div>
                       </div>
 

@@ -74,16 +74,16 @@ export default function RegisterModal() {
         email,
         password,
       }).unwrap();
-      console.log("res", res);
       
       addToast({
-        title: language === 'vi' ? "Tạo tài khoản thành công!" : "Account created successfully!",
+        title: language === 'vi'
+          ? "Tạo tài khoản thành công! Vui lòng kiểm tra email và nhấn vào liên kết để xác minh và đăng nhập."
+          : "Account created! Please check your email and click the link to verify and sign in.",
         color: "success",
       });
 
       closeModal();
     } catch (error: unknown) {
-      console.log(error);
       
       const err = error as ErrorForm;
 

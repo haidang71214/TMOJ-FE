@@ -61,7 +61,7 @@ export default function SemesterComponents() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to download template:", error);
+
     }
   };
 
@@ -74,7 +74,7 @@ export default function SemesterComponents() {
         await importSemesters(formData).unwrap();
         refetch();
       } catch (error) {
-        console.error("Import failed:", error);
+
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -95,7 +95,7 @@ export default function SemesterComponents() {
         },
       }).unwrap();
     } catch (err) {
-      console.error("Toggle failed:", err);
+
     }
   };
 
@@ -313,3 +313,4 @@ export default function SemesterComponents() {
     </div>
   );
 }
+

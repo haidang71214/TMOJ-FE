@@ -102,7 +102,6 @@ export default function CreateClassSemester({
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.log(error);
       toast.error((error as ErrorForm)?.data?.data?.message|| "Failed to create class");
     }
   };

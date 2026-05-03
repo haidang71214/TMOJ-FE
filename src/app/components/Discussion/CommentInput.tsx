@@ -38,13 +38,13 @@ export const CommentInput = ({
   const user = useAppSelector((state) => state.auth.user);
   const [createDiscussion, { isLoading: isCreatingDiscussion }] = useCreateDiscussionMutation();
   const [createComment, { isLoading: isCreatingComment }] = useCreateCommentMutation();
-  
+
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   const isSubmitting = isCreatingDiscussion || isCreatingComment || isUpdating;
 
   const generateGuid = () => {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0,
         v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
@@ -73,9 +73,7 @@ export const CommentInput = ({
         if (parentId) {
           payload.parentId = parentId;
         }
-        console.log("🔥 Payload for CREATE_COMMENT:", payload);
         const res = await createComment({ discussionId, ...payload }).unwrap();
-        console.log("🔥 Response from CREATE_COMMENT:", res);
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }
@@ -99,9 +97,7 @@ export const CommentInput = ({
           content: content.trim(),
           title: "Discussion", // Optional title
         };
-        console.log("🔥 Payload for CREATE_DISCUSSION:", payload);
         const res = await createDiscussion(payload).unwrap();
-        console.log("🔥 Response from CREATE_DISCUSSION:", res);
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }
@@ -122,7 +118,7 @@ export const CommentInput = ({
       setContent("");
       if (onCancel) onCancel();
     } catch (error) {
-      console.error("Failed to submit comment:", error);
+
       toast.error("Lỗi Reply: " + (error instanceof Error ? error.message : JSON.stringify((error as any)?.data || (error as any)?.message || error)));
     }
   };
@@ -134,7 +130,7 @@ export const CommentInput = ({
           {t("discussion.replying_to") || (language === "vi" ? "Đang trả lời:" : "Replying to:")} <span className="font-bold text-blue-500">@{targetUser}</span>
         </span>
       )}
-      
+
       <div className="flex items-start gap-3">
         <Avatar
           size="sm"
@@ -149,10 +145,10 @@ export const CommentInput = ({
           onChange={(e) => setContent(e.target.value)}
         />
       </div>
-      
+
       <div className="flex justify-end gap-2 mt-2">
         {onCancel && (
-          <button 
+          <button
             type="button"
             onClick={onCancel}
             className="px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
@@ -160,15 +156,15 @@ export const CommentInput = ({
             {t("common.cancel") || (language === "vi" ? "Hủy" : "Cancel")}
           </button>
         )}
-        <button 
+        <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
           className="px-4 py-1.5 flex items-center gap-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting && <Spinner size="sm" color="white" />}
-          {isEdit 
+          {isEdit
             ? (t("discussion.save_edit") || (language === "vi" ? "Lưu chỉnh sửa" : "Save changes"))
-            : isReply 
+            : isReply
               ? (t("discussion.reply_btn") || (language === "vi" ? "Trả lời" : "Reply"))
               : (t("discussion.submit") || (language === "vi" ? "Gửi bình luận" : "Comment"))}
         </button>
@@ -176,3 +172,4 @@ export const CommentInput = ({
     </div>
   );
 };
+

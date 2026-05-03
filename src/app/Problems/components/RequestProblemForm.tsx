@@ -116,14 +116,14 @@ export default function RequestProblemForm() {
         }).unwrap();
         setCreatedTestSetId(ts?.data.id ?? null);
       } catch (tsError: any) {
-        console.error("Create testset failed:", tsError);
+
         addToast({ title: "Warning", description: "Problem draft requested, but failed to create default test set.", color: "warning" });
       }
 
       setStep(1);
     } catch (error) {
       const err = error as ErrorForm;
-      console.error("Request problem failed:", err);
+
       addToast({ title: t('problem_create.create_failed') || (language === 'vi' ? "Tạo thất bại" : "Request Failed"), description: err?.data?.data?.message || t('problem_create.failed_draft') || (language === 'vi' ? "Không thể gửi yêu cầu tạo bài tập" : "Failed to request problem draft"), color: "danger" });
     }
   };
@@ -156,7 +156,7 @@ export default function RequestProblemForm() {
       return true;
     } catch (error) {
       const err = error as ErrorForm;
-      console.error("Upload testcase failed:", err);
+
       addToast({ title: t('problem_create.upload_failed') || (language === 'vi' ? "Tải lên thất bại" : "Upload Failed"), description: err?.data?.data?.message || t('problem_create.check_zip_format') || (language === 'vi' ? "Kiểm tra lại định dạng file zip." : "Check your zip file format."), color: "danger" });
       return false;
     }
@@ -537,3 +537,4 @@ export default function RequestProblemForm() {
     </div>
   );
 }
+

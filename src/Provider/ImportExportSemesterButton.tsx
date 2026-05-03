@@ -37,7 +37,6 @@ export default function SemesterImportExport() {
         color: "success",
       });
     } catch (error: unknown) {
-      console.error(error);
 
       let errorMessage = 'Tải template thất bại!';
 
@@ -78,7 +77,6 @@ export default function SemesterImportExport() {
 
     try {
       const a =  await importSemesters(formData).unwrap();
-      console.log(a);
       addToast({
         title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'),
         description: t('semester_management.import_success') || (language === 'vi' ? 'Import danh sách học kỳ thành công!' : 'Semester list imported successfully!'),
@@ -87,7 +85,6 @@ export default function SemesterImportExport() {
 
       e.target.value = '';
     } catch (error: unknown) {
-      console.error(error);
 
       let errorMessage = 'Import thất bại. Vui lòng kiểm tra file!';
 
@@ -121,7 +118,7 @@ export default function SemesterImportExport() {
       link.parentNode?.removeChild(link);
       addToast({ title: t('common.success') || (language === 'vi' ? 'Thành công' : 'Success'), description: language === 'vi' ? 'Export thành công!' : 'Export successfully!', color: "success" });
     } catch (error: unknown) {
-      console.error(error);
+
       let errorMessage = 'Export thất bại!';
       if (error && typeof error === 'object' && 'data' in error) {
         const err = error as ErrorForm;

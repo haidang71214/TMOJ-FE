@@ -35,7 +35,6 @@ export default function ClassDetailPage({
   const { data: classData, isLoading, refetch } = useGetClassDetailQuery({ id: classId });
   const classDetail = classData?.data;
   const instances = classDetail?.instances || [];
-  console.log(instances);
   
   // State cho Modal Create Class Semester
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

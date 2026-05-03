@@ -131,23 +131,16 @@ export default function NotificationsPage() {
     try {
       await markAsRead(id).unwrap();
     } catch (error) {
-      console.error("Failed to mark as read", error);
+
     }
   };
 
   const handleNotificationClick = async (n: NotificationDto) => {
-    console.log("🔔 Notification Clicked:", {
-      id: n.notificationId,
-      scopeId: n.scopeId,
-      scopeType: n.scopeType,
-      title: n.title
-    });
     // 1. Đánh dấu đã đọc
     handleMarkAsRead(n.notificationId, n.isRead);
 
     // 2. Điều hướng nếu có scopeId
     if (!n.scopeId) {
-      console.warn("⚠️ No scopeId found, skipping navigation");
       return;
     }
 
@@ -189,11 +182,10 @@ export default function NotificationsPage() {
           // Thông báo hệ thống có thể dẫn đến trang chi tiết hoặc giữ nguyên
           break;
         default:
-          console.warn("Unknown scopeType:", scopeType);
           break;
       }
     } catch (err) {
-      console.error("Failed to handle navigation", err);
+
       addToast({ title: "Không thể tìm thấy nội dung liên kết", color: "danger" });
     }
   };
@@ -416,3 +408,5 @@ export default function NotificationsPage() {
     </div>
   );
 }
+
+

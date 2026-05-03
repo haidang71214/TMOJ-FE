@@ -111,7 +111,6 @@ export default function SolutionSubmittion({
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
   const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
-  console.log("debug problem data : ", problemData);
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
@@ -207,7 +206,6 @@ export default function SolutionSubmittion({
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {
-    console.log("dasdadsa");
     if (runtimes.length > 0 && selectedRuntimeId === null) {
       const preferred = runtimes.find(r =>
         r.runtimeName.toLowerCase().includes("c++") ||
@@ -299,7 +297,6 @@ export default function SolutionSubmittion({
       })
 
     } catch (error) {
-      console.error(error)
       addToast({
         title: "Run thất bại.",
         color: "danger"
@@ -315,8 +312,7 @@ export default function SolutionSubmittion({
 
     // Nếu có classSemesterId và contestId thì dùng mutation mới
     if (classSemesterId && contestId && contestProblemId) {
-      console.log(contestProblemId, selectedRuntimeId, code);
-      console.log(classSemesterId, contestId);
+
 
       try {
         const response = await postClassContestSubmission({
@@ -328,7 +324,6 @@ export default function SolutionSubmittion({
             language: selectedRuntimeId!
           }
         }).unwrap()
-        console.log("response submission", response);
         const newSubmissionId = response?.data?.submissionId
 
         if (!newSubmissionId) {
@@ -348,7 +343,6 @@ export default function SolutionSubmittion({
         })
         return;
       } catch (error) {
-        console.error(error)
         addToast({
           title: "Nộp bài contest thất bại.",
           color: "danger"

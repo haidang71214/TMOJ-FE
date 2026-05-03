@@ -13,7 +13,7 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { Activity, Award,ChevronDown, Clock, Inbox,  } from "lucide-react";
+import { Activity, Award, ChevronDown, Clock, Inbox, } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useGetSubmissionListByProblemQuery } from "@/store/queries/Submittion";
 import { SubmissionDetailModal } from "./SubmissionDetailModal";
@@ -42,14 +42,13 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: apiResponse, isLoading } = useGetSubmissionListByProblemQuery(
-    { 
-      problemId, 
-      page: 1, 
-      pageSize: 1000, 
-    }, 
+    {
+      problemId,
+      page: 1,
+      pageSize: 1000,
+    },
     { skip: !problemId }
   );
-  console.log(apiResponse);
 
   const handleRowClick = (submissionId: string) => {
     setSelectedSubmission(submissionId);
@@ -94,7 +93,7 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
     if (statusCode === "JD") return "Judging";
     if (statusCode === "CE") return "Compile Error";
     if (statusCode === "QU") return "In Queue";
-    
+
     switch (verdictCode?.toLowerCase()) {
       case "ac": return "Accepted";
       case "wa": return "Wrong Answer";
@@ -130,15 +129,15 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
             <span className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Pass Rate</span>
           </div>
           <p className="text-2xl font-black dark:text-white tracking-tight">
-            {unfilteredTotal > 0 
-              ? `${Math.round((allSubmissions.filter(s => s.status === "Accepted").length / unfilteredTotal) * 100)}%` 
+            {unfilteredTotal > 0
+              ? `${Math.round((allSubmissions.filter(s => s.status === "Accepted").length / unfilteredTotal) * 100)}%`
               : "0%"}
           </p>
         </div>
       </div>
-      
+
       <div className="flex gap-4 items-center">
-        <Select 
+        <Select
           label="Status"
           placeholder="Filter status"
           className="max-w-[200px]"
@@ -160,7 +159,7 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
           <SelectItem key="Internal Error">Internal Error</SelectItem>
         </Select>
 
-        <Select 
+        <Select
           label="Language"
           placeholder="Filter language"
           className="max-w-[200px]"
@@ -193,7 +192,7 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
             </div>
           ) : (
             <div>
-              <Table 
+              <Table
                 aria-label="Submissions table"
                 shadow="none"
                 className="dark:bg-transparent"
@@ -211,17 +210,16 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
                 </TableHeader>
                 <TableBody>
                   {items.map((item) => (
-                    <TableRow 
+                    <TableRow
                       key={item.id}
                       className="cursor-pointer group transition-colors"
                       onClick={() => handleRowClick(item.id)}
                     >
                       <TableCell>
-                        <span className={`font-black text-[14px] flex items-center gap-2 ${
-                            item.status === "Accepted" 
-                              ? "text-[#00c853]" 
-                              : item.status === "Pending" 
-                              ? "text-blue-500" 
+                        <span className={`font-black text-[14px] flex items-center gap-2 ${item.status === "Accepted"
+                            ? "text-[#00c853]"
+                            : item.status === "Pending"
+                              ? "text-blue-500"
                               : "text-[#ef4743] dark:text-[#fb4444]"
                           }`}
                         >
@@ -265,7 +263,7 @@ export const SubmissionsTab = ({ problemId }: SubmissionsTabProps) => {
         </CardBody>
       </Card>
 
-      <SubmissionDetailModal 
+      <SubmissionDetailModal
         submissionId={selectedSubmission}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

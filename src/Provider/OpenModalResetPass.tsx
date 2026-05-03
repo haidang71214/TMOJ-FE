@@ -7,9 +7,12 @@ import { useDispatch } from "react-redux";
 
 import { useModal } from "@/Provider/ModalProvider";
 import ResetPassModal from "@/app/Modal/ResetPassModal";
-import webStorageClient from "@/utils/webStorageClient";
-import { loginFromToken } from "@/store/slices/auth";
-import { BASE_URLS } from "@/constants";
+import {
+  useConfirmEmailMutation,
+  useConfirmPasswordChangeMutation,
+} from "@/store/queries/auth";
+import { clearLoginToken } from "@/store/slices/auth";
+import LoginModal from "@/app/Modal/LoginModal";
 
 export default function AutoOpenResetPassModal() {
   const searchParams = useSearchParams();
@@ -17,6 +20,8 @@ export default function AutoOpenResetPassModal() {
   const dispatch = useDispatch();
   const { openModal } = useModal();
   const handledRef = useRef(false);
+  const [confirmEmail] = useConfirmEmailMutation();
+  const [confirmPasswordChange] = useConfirmPasswordChangeMutation();
 
   useEffect(() => {
     if (handledRef.current) return;
@@ -43,15 +48,13 @@ export default function AutoOpenResetPassModal() {
       return;
     }
 
-    if (action === "email-verified") {
-      const status = searchParams.get("status");
+    if (action === "confirm-email") {
+      const email = searchParams.get("email") ?? "";
+      const token = searchParams.get("token") ?? "";
 
-      if (status !== "success") {
-        const message = searchParams.get("message");
+      if (!email || !token) {
         addToast({
-          title: message
-            ? decodeURIComponent(message)
-            : "Xác minh email thất bại",
+          title: "Liên kết xác minh không hợp lệ",
           color: "danger",
         });
         router.replace("/");
@@ -60,47 +63,64 @@ export default function AutoOpenResetPassModal() {
 
       (async () => {
         try {
-          const res = await fetch(
-            `${BASE_URLS}api/v1/Auth/refresh-token`,
-            {
-              method: "POST",
-              credentials: "include",
-              headers: { "Content-Type": "application/json" },
-              body: "{}",
-            }
-          );
-
-          if (!res.ok) throw new Error("refresh failed");
-
-          const json = await res.json();
-          const data = json?.data ?? json;
-          const accessToken = data?.accessToken;
-          const refreshToken = data?.refreshToken;
-          const user = data?.user;
-
-          if (accessToken) webStorageClient.setToken(accessToken);
-          if (refreshToken) webStorageClient.setRefreshToken(refreshToken);
-          if (user) {
-            webStorageClient.setUser(user);
-            dispatch(loginFromToken(user));
-          }
-
+          await confirmEmail({ email, token }).unwrap();
+          // authSlice.extraReducers (confirmEmail.matchFulfilled) đã tự
+          // lưu token + user + set authenticated state.
           addToast({
             title: "Xác minh email & đăng nhập thành công",
             color: "success",
           });
-        } catch {
+        } catch (e: any) {
           addToast({
             title:
-              "Xác minh email thành công, vui lòng đăng nhập lại",
-            color: "warning",
+              e?.data?.message ||
+              e?.message ||
+              "Xác minh email thất bại. Liên kết có thể đã hết hạn.",
+            color: "danger",
           });
         } finally {
           router.replace("/");
         }
       })();
     }
-  }, [searchParams, openModal, router, dispatch]);
+
+    if (action === "confirm-password-change") {
+      const email = searchParams.get("email") ?? "";
+      const token = searchParams.get("token") ?? "";
+
+      if (!email || !token) {
+        addToast({
+          title: "Liên kết xác minh đổi mật khẩu không hợp lệ",
+          color: "danger",
+        });
+        router.replace("/");
+        return;
+      }
+
+      (async () => {
+        try {
+          await confirmPasswordChange({ email, token }).unwrap();
+          // Logout phía client
+          dispatch(clearLoginToken());
+          addToast({
+            title: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
+            color: "success",
+          });
+          router.replace("/");
+          openModal({ content: <LoginModal /> });
+        } catch (e: any) {
+          addToast({
+            title:
+              e?.data?.message ||
+              e?.message ||
+              "Xác minh đổi mật khẩu thất bại. Liên kết có thể đã hết hạn.",
+            color: "danger",
+          });
+          router.replace("/");
+        }
+      })();
+    }
+  }, [searchParams, openModal, router, confirmEmail, confirmPasswordChange, dispatch]);
 
   return null;
 }

@@ -198,7 +198,6 @@ export default function ProblemDetailsPage() {
     return () => clearInterval(interval);
   }, [problemId]);
 
-  console.log(submissionData)
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
   const { size: leftWidth, onMouseDown: onHDrag } = useResize(

@@ -19,7 +19,7 @@ const CountdownTimer = ({ endAt, status }: { endAt: string, status: string }) =>
 
   useEffect(() => {
     const target = new Date(endAt).getTime();
-    
+
     const updateTimer = () => {
       const now = Date.now();
       const diff = target - now;
@@ -101,7 +101,7 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
               <h1 className="text-5xl md:text-7xl font-[1000] italic uppercase leading-[0.85] tracking-[calc(-0.05em)] max-w-3xl">
                 {contestData.title}
               </h1>
-              
+
               {contestData.status?.toLowerCase() === "running" && (
                 <CountdownTimer endAt={contestData.endAt} status={contestData.status} />
               )}
@@ -149,7 +149,6 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
             selectedKey={selectedTab}
             onSelectionChange={(key) => {
               if (key === "leaderboard") {
-                console.log("Refetching Scoreboard via tag invalidation...");
                 dispatch(contestApi.util.invalidateTags([{ type: "Contest", id: `scoreboard_${contestId}` }]));
               }
             }}
@@ -161,41 +160,49 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
               tabContent: "group-data-[selected=true]:text-[#FF5C00] text-slate-900 dark:text-white font-black italic uppercase text-xs transition-all duration-300"
             }}
           >
-            <Tab
-              key="info"
-              href={`/Contest/${contestId}`}
-              title={
-                <div className="flex items-center gap-2 px-1">
-                  <Info className="w-4 h-4" />
-                  <span>Information</span>
-                </div>
-              }
-            />
+            {(() => {
+              const status = contestData?.status?.toLowerCase();
+              const isEnded = status === "ended" || status === "past" || (contestData?.endAt && new Date(contestData.endAt) < new Date());
+              if (isEnded) return null;
+
+              return (
+                <Tab
+                  key="info"
+                  href={`/Contest/${contestId}`}
+                  title={
+                    <div className="flex items-center gap-2 px-1">
+                      <Info className="w-4 h-4" />
+                      <span>Information</span>
+                    </div>
+                  }
+                />
+              );
+            })()}
 
             {currentUser && (
-              <>
-                <Tab
-                  key="leaderboard"
-                  href={`/Contest/${contestId}/Scoreboard`}
-                  title={
-                    <div className="flex items-center gap-2 px-1">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>Scoreboard</span>
-                    </div>
-                  }
-                />
+              <Tab
+                key="leaderboard"
+                href={`/Contest/${contestId}/Scoreboard`}
+                title={
+                  <div className="flex items-center gap-2 px-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Scoreboard</span>
+                  </div>
+                }
+              />
+            )}
 
-                <Tab
-                  key="teams"
-                  href={`/Contest/${contestId}/Teams`}
-                  title={
-                    <div className="flex items-center gap-2 px-1">
-                      <Users className="w-4 h-4" />
-                      <span>{isStudent ? "My Team" : "Participants"}</span>
-                    </div>
-                  }
-                />
-              </>
+            {currentUser && (
+              <Tab
+                key="teams"
+                href={`/Contest/${contestId}/Teams`}
+                title={
+                  <div className="flex items-center gap-2 px-1">
+                    <Users className="w-4 h-4" />
+                    <span>{isStudent ? "My Team" : "Participants"}</span>
+                  </div>
+                }
+              />
             )}
           </Tabs>
         </div>

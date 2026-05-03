@@ -9,7 +9,10 @@ const authEndpoint = {
   REGISTER: `${API_PREFIX}/Auth/register`,
   LOGOUT: `${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD: `${API_PREFIX}/Auth/forgot-password`,
-  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`
+  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`,
+  CONFIRM_EMAIL: `${API_PREFIX}/Auth/confirm-email`,
+  CONFIRM_PASSWORD_CHANGE: `${API_PREFIX}/Auth/confirm-password-change`,
+  CHANGE_PASSWORD: `${API_PREFIX}/Auth/change-password`,
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,
@@ -227,8 +230,8 @@ const ContestEndpoint = {
   UNFREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
   REMIX: `${API_PREFIX}/contests/{id}/remix`,
-  ARCHIVE: `${API_PREFIX}/contests/{contestId}/archive`,
-  VIRTUAL: `${API_PREFIX}/contests/{contestId}/virtual`,
+  ARCHIVE: `${API_PREFIX}/contests/{id}/archive`,
+  VIRTUAL: `${API_PREFIX}/contests/{id}/virtual`,
 };
 
 const TeamEndpoint = {
@@ -339,6 +342,7 @@ const PaymentEndpoint = {
 const WalletEndpoint = {
   BALANCE: `${API_PREFIX}/wallet`,
   TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
+  ADJUST_COIN: `${API_PREFIX}/wallet/adjust-coin`,
 };
 
 const AnnouncementEndpoint = {
@@ -368,6 +372,9 @@ const StoreEndpoint = {
 const RankingEndpoint = {
   GLOBAL: `${API_PREFIX}/ranking/global`,
   CONTESTS: `${API_PREFIX}/ranking/contests`,
+  RATING: `${API_PREFIX}/ranking/rating`,
+  USER_RATING_HISTORY: `${API_PREFIX}/ranking/users/{userId}/rating-history`,
+  ADMIN_RECALCULATE: `${API_PREFIX}/ranking/admin/contests/{contestId}/recalculate-ratings`,
 };
 
 const AiEndpoint = {

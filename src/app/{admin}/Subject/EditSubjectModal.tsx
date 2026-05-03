@@ -31,7 +31,7 @@ export default function EditSubjectModal({ subject }: EditSubjectModalProps) {
       await updateSubject({ id: subject.subjectId, body: form }).unwrap();
       closeModal();
     } catch (error) {
-      console.error(error);
+
     }
   };
 

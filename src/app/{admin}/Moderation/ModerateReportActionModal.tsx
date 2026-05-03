@@ -101,7 +101,7 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
                 for (const pr of pendingToAutoApprove) {
                   try {
                     await approveReport({ id: pr.id, reason: "Hệ thống tự động duyệt do đạt ngưỡng vi phạm." }).unwrap();
-                  } catch (subErr) { console.error(subErr); }
+                  } catch (subErr) {  }
                 }
               }
 
@@ -136,7 +136,6 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
                   await lockUser(authorId).unwrap();
                   toast.success(`Tài khoản ${selectedReport.authorName || authorId} đã bị khóa tự động do vi phạm ${effectiveAuthorCount} lần!`);
                 } else {
-                  console.log(`Skipping auto-lock for ${authorId}: isStudent=${isStudent}, isSelf=${isSelf}`);
                 }
 
                 // Tự động ẩn/xóa toàn bộ nội dung vi phạm của người dùng này
@@ -153,14 +152,14 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
                       await deleteDiscussion({ id: tId }).unwrap();
                     }
                   } catch (subErr) {
-                    console.error(`Lỗi auto-hide nội dung ${targetKey}:`, subErr);
+
                   }
                 }
                 toast.success(`Đã tự động ẩn các nội dung vi phạm của ${selectedReport.authorName || authorId}.`);
               }
 
             } catch (autoErr) {
-              console.error("Lỗi auto-action (background):", autoErr);
+
             }
           })();
 
@@ -301,3 +300,4 @@ export default function ModerateReportActionModal({ selectedReport, onSuccess }:
     </div>
   );
 }
+

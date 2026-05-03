@@ -11,7 +11,6 @@ import { SemesterItem } from "@/types";
  */
 export function useCurrentSemester() {
   const { data, isLoading, error, refetch } = useGetSemestersQuery();
-  console.log(data);
   const currentSemester = useMemo<SemesterItem | null>(() => {
     if (!data?.data?.items || data.data.items.length === 0) return null;
     

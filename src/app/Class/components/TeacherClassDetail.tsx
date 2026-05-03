@@ -124,7 +124,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         color:"success"
       });
     } catch (err) {
-      console.error(err);
+
       addToast({
         title:(t('class_semester.problem_removed_fail') || "Problem removed fail"),
         color:"danger"
@@ -149,7 +149,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         color: "success"
       });
     } catch (error) {
-      console.error("Failed to export class", error);
+
        addToast({
         title:(t('class_semester.export_fail') || "Export failed"),
         color:"danger"
@@ -174,7 +174,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         color: "success"
       });
     } catch (error) {
-      console.error("Failed to export template:", error);
+
       addToast({
         title: (t('class_semester.export_template_fail') || "Failed to export template"),
         color: "danger"
@@ -198,7 +198,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         color: "success"
       });
     } catch (error) {
-      console.error("Failed to import students", error);
+
       addToast({
         title: (t('class_semester.import_failed') || "Import Failed"),
         color: "danger"
@@ -218,7 +218,7 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
         color: "success"
       });
     } catch (err) {
-      console.error(err);
+
       addToast({
         title: t('common.error') || (language === 'vi' ? 'Có lỗi xảy ra' : 'An error occurred'),
         color: "danger"
@@ -738,3 +738,4 @@ export default function TeacherClassDetail({ semesterId }: { semesterId: string 
     </div>
   );
 }
+

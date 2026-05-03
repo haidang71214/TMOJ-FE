@@ -26,6 +26,7 @@ import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
 
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
+
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTestsetSamplesQuery } from "@/store/queries/problem";
@@ -126,7 +127,6 @@ export default function ProblemDetailsPage() {
     { submissionId: submissionId! },
     { skip: !submissionId }
   );
-  console.log(submissionData)
   // Horizontal split: left panel width
   const containerRef = useRef<HTMLDivElement>(null);
   const { size: leftWidth, onMouseDown: onHDrag } = useResize(
@@ -176,31 +176,31 @@ export default function ProblemDetailsPage() {
             style={{ width: leftWidth, minWidth: 260, maxWidth: 900 }}
             className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0 animate-fade-in-right"
           >
-          {/* Tab bar */}
-          <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
-            {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
-              const isActive = activeLeftTab === key;
-              const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
-              return (
-                <div key={key} className="animate-fade-in-right" style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}>
-                  <button
-                    onClick={() => setActiveLeftTab(key)}
-                    className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+            {/* Tab bar */}
+            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
+              {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
+                const isActive = activeLeftTab === key;
+                const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
+                return (
+                  <div key={key} className="animate-fade-in-right" style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}>
+                    <button
+                      onClick={() => setActiveLeftTab(key)}
+                      className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
                       ${isActive
-                        ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
-                      }
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        }
                       after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
-                  >
-                    <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
-                    {label}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    >
+                      <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                      {label}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
 
-          <div className="flex-1 overflow-hidden">{renderLeftContent()}</div>
+            <div className="flex-1 overflow-hidden">{renderLeftContent()}</div>
           </div>
         )}
 
@@ -368,7 +368,7 @@ export default function ProblemDetailsPage() {
                         const results = data?.results || [];
                         const isCE = data?.verdictCode?.toLowerCase() === "ce";
                         const totalTestcases = isCE ? 0 : results.length;
-                        const passedTestcases = isCE ? 0 : results.filter((r: any) => 
+                        const passedTestcases = isCE ? 0 : results.filter((r: any) =>
                           r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
                         ).length;
 
@@ -396,10 +396,9 @@ export default function ProblemDetailsPage() {
                             {/* Result Header */}
                             <div className="flex items-center justify-between mb-6">
                               <div className="flex items-center gap-3">
-                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${
-                                  data?.verdictCode === VerdictCode.AC ? "text-emerald-500" : 
-                                  data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
-                                }`}>
+                                <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" :
+                                    data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                  }`}>
                                   {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
                                 </h2>
                                 <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
@@ -422,11 +421,11 @@ export default function ProblemDetailsPage() {
                                 <div className="text-xl font-black">
                                   {data?.timeMs || 0} ms
                                 </div>
-                                <Progress 
-                                  size="sm" 
-                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)} 
-                                  color="primary" 
-                                  className="mt-2" 
+                                <Progress
+                                  size="sm"
+                                  value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)}
+                                  color="primary"
+                                  className="mt-2"
                                 />
                               </div>
                               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
@@ -489,7 +488,8 @@ export default function ProblemDetailsPage() {
                             )}
 
                             {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-                           
+
+
                             {data?.verdictCode === VerdictCode.AC && (
                               <div className="flex flex-col items-center justify-center py-12 gap-6 animate-fade-in">
                                 <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">

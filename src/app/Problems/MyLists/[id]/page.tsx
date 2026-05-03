@@ -130,7 +130,6 @@ export default function MyListDetailPage() {
           orderIndex: index + 1
         }))
       };
-      console.log("Reorder Payload:", payload);
       await reorderItems({ id: currentId, body: payload }).unwrap();
     } catch (err) {
       const apiError = err as ErrorForm;
@@ -138,9 +137,6 @@ export default function MyListDetailPage() {
     }
   };
   const activeMeta = isFavoritePage ? null : getMeta(rawDetail);
-  console.log("Collection items structure:", { currentId, isFavoritePage, rawDetail, rawFav, items, activeMeta });
-  console.log("rawDetail", rawDetail);
-  console.log("rawFav", rawFav);
   // States for Editing
   const [listTitle, setListTitle] = useState(currentId === "Favorite" ? "Favorite Problems" : "Loading...");
   const [listDesc, setListDesc] = useState("Your collections");
@@ -470,7 +466,6 @@ export default function MyListDetailPage() {
                   const targetId = item.problemId || item.contestId || item.id;
                   const route = isProblem ? `/Problems/${targetId}` : `/Contest/${targetId}`;
 
-                  if (idx === 0) console.log("First item sample:", item);
 
                   return (
                     <Reorder.Item

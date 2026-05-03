@@ -77,7 +77,7 @@ export default function SubjectListPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to download template", error);
+
     }
   };
 
@@ -94,7 +94,7 @@ export default function SubjectListPage() {
         fileInputRef.current.value = "";
       }
     } catch (error) {
-      console.error("Failed to import class", error);
+
     }
   };
   
@@ -110,7 +110,7 @@ export default function SubjectListPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to export subjects", error);
+
     }
   };
 
@@ -321,3 +321,4 @@ export default function SubjectListPage() {
     </div>
   );
 }
+

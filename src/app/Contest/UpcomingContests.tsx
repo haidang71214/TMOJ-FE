@@ -40,6 +40,7 @@ import {
   useJoinContestByCodeMutation
 } from "@/store/queries/Contest";
 import { useJoinTeamByCodeMutation } from "@/store/queries/Team";
+import { useGetRatingLeaderboardQuery } from "@/store/queries/ranking";
 import { useGetFavoriteContestsQuery, useToggleContestFavoriteMutation } from "@/store/queries/favorites";
 import { toast } from "sonner";
 import { ContestDto, ErrorForm } from "@/types";
@@ -48,12 +49,7 @@ import { RootState } from "@/store";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
 
-const globalRanking = [
-  { rank: 1, name: "Miruu", rating: 3703, attended: 26, crown: "gold" },
-  { rank: 2, name: "Neal Wu", rating: 3686, attended: 51, crown: "silver" },
-  { rank: 3, name: "Yawn_Sean", rating: 3645, attended: 84, crown: "bronze" },
-  { rank: 4, name: "Xiao_Yang", rating: 3611, attended: 107 },
-];
+
 
 
 
@@ -80,6 +76,13 @@ export default function UpcomingContests() {
   const [unregisterContest] = useUnregisterContestMutation();
   const [joinContestByCode, { isLoading: isJoiningContest }] = useJoinContestByCodeMutation();
   const [joinTeamByCode, { isLoading: isJoiningTeam }] = useJoinTeamByCodeMutation();
+
+  // 1.5 Fetch real Elo ranking
+  const { data: eloRankingResponse } = useGetRatingLeaderboardQuery({
+    page: 1,
+    pageSize: 5,
+  });
+  const eloRanking = useMemo(() => eloRankingResponse?.data?.rows || [], [eloRankingResponse]);
 
   const isJoining = isJoiningContest || isJoiningTeam;
 
@@ -418,7 +421,7 @@ export default function UpcomingContests() {
                             onPress={async () => {
                               const targetId = contest.id || (contest as any).contestId;
                               if (!targetId) {
-                                console.error("Contest ID is missing", contest);
+
                                 return;
                               }
                               if (window.confirm(`Bạn có chắc chắn muốn hủy đăng ký cuộc thi "${contest.title}" không?`)) {
@@ -429,7 +432,7 @@ export default function UpcomingContests() {
                                     color: "success",
                                   });
                                 } catch (err) {
-                                  console.error("Failed to unregister:", err);
+
                                   addToast({
                                     title: "Hủy đăng ký thất bại!",
                                     color: "danger",
@@ -495,7 +498,7 @@ export default function UpcomingContests() {
                       className="font-black italic uppercase text-[10px] rounded-lg h-9 px-6 transition-all duration-300 hover:bg-[#FF5C00] hover:text-white"
                       onPress={() => {
                         const targetId = contest.id || (contest as any).contestId;
-                        router.push(`/Contest/${targetId}/ranking`);
+                        router.push(`/Contest/${targetId}/Scoreboard`);
                       }}
                     >
                       Results
@@ -530,22 +533,23 @@ export default function UpcomingContests() {
           <div className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5">
             <div className="flex items-center gap-2 mb-8 border-l-4 border-[#FF5C00] pl-4">
               <h2 className="text-xl font-[1000] uppercase italic leading-none">
-                Global<br /><span className="text-[#FF5C00]">Ranking</span>
+                Elo<br /><span className="text-[#FF5C00]">Ranking</span>
               </h2>
             </div>
             <div className="space-y-6">
-              {globalRanking.map((u) => (
-                <div key={u.rank} className="flex gap-4 items-center">
+              {eloRanking.map((u) => (
+                <div key={u.userId} className="flex gap-4 items-center">
                   <div className={`font-black text-xs w-5 ${u.rank <= 3 ? "text-[#FF5C00]" : "text-slate-400"}`}>
-                    0{u.rank}
+                    {u.rank.toString().padStart(2, "0")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black uppercase italic text-sm truncate flex items-center gap-2">
-                      {u.name} {u.crown && "👑"}
+                      {u.fullname || u.username}
+                      {u.rank === 1 && "👑"}
                     </div>
                     <div className="flex justify-between items-center mt-1">
                       <span className="text-[9px] font-black text-slate-400 uppercase italic">ELO {u.rating}</span>
-                      <span className="text-[8px] font-bold text-[#FF5C00] uppercase">{u.attended} Matches</span>
+                      <span className="text-[8px] font-bold text-[#FF5C00] uppercase">{u.timesPlayed} Matches</span>
                     </div>
                   </div>
                 </div>
@@ -555,7 +559,7 @@ export default function UpcomingContests() {
               fullWidth
               variant="light"
               className="mt-8 font-black uppercase italic text-[10px] text-slate-400 hover:text-[#FF5C00]"
-              onPress={() => router.push("/Ranking")}
+              onPress={() => router.push("/Ranking/rating")}
             >
               View Full
             </Button>
@@ -571,3 +575,4 @@ export default function UpcomingContests() {
     </div>
   );
 }
+

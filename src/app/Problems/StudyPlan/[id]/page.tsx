@@ -36,7 +36,6 @@ export default function PackageEnrollPage() {
       refetchEnrollment();
       alert("Enrolled successfully!");
     } catch (error) {
-      console.error("Enrollment failed:", error);
       alert("Failed to enroll. Please try again.");
     }
   };
@@ -47,7 +46,6 @@ export default function PackageEnrollPage() {
       refetchEnrollment();
       alert("Plan purchased successfully!");
     } catch (error: any) {
-      console.error("Purchase failed:", error);
       const msg = error?.data?.message || "Failed to purchase. Please check your balance.";
       alert(msg);
     }

@@ -105,7 +105,6 @@ export default function ContestRegistrationPage() {
 
   // APIs
   const { data: contestResult, isLoading: isContestLoading } = useGetContestDetailQuery(contestId);
-  console.log("contestResult", contestResult);
   const [registerContest, { isLoading: isRegistering }] = useRegisterContestMutation();
   const [createTeam, { isLoading: isCreatingTeam }] = useCreateTeamMutation();
   const [joinContestTeamByCode, { isLoading: isJoiningTeamByCode }] = useJoinContestTeamByCodeMutation();
@@ -139,9 +138,7 @@ export default function ContestRegistrationPage() {
 
   useEffect(() => {
     if (teamDetail) {
-      console.log("🔍 TEAM DETAIL DATA:", teamDetail);
       if (teamDetail.data.members?.length > 0) {
-        console.log("👤 FIRST MEMBER SAMPLE:", teamDetail.data.members[0]);
       }
     }
   }, [teamDetail]);
@@ -154,7 +151,6 @@ export default function ContestRegistrationPage() {
   // Restore state if user is already in a team
   useEffect(() => {
     if (myTeamInContest) {
-      console.log("♻️ Restoring state from current team:", myTeamInContest);
       setCreatedTeamId(myTeamInContest.teamId || myTeamInContest.id || null);
       setTeamInviteCode(myTeamInContest.inviteCode);
       setTeamName(myTeamInContest.teamName);
@@ -166,7 +162,6 @@ export default function ContestRegistrationPage() {
   useEffect(() => {
     if (contestData && !allowTeams) {
       setRegMode("individual");
-      console.log("ℹ️ Contest is Solo-Only. Team modes disabled.");
     }
   }, [contestData, allowTeams]);
 
@@ -237,7 +232,6 @@ export default function ContestRegistrationPage() {
         avatarUrl: teamAvatarPreview || ""
       }).unwrap();
       setCreatedTeamId(result.data.teamId);
-      console.log("result", result.data);
       setTeamInviteCode(result.data.inviteCode);
       toast.success("Team created successfully! Now add your members.");
     } catch (error) {
@@ -360,11 +354,7 @@ export default function ContestRegistrationPage() {
         memberIds: sortedMemberIds
       };
 
-      console.group("🚀 CONTEST REGISTRATION DEBUG");
-      console.log("Payload Settings:", { regMode, createdTeamId });
-      console.log("Final Payload:", payload);
-      console.log("Team Data from Server:", teamDetail?.data);
-      console.groupEnd();
+
 
       const result = await registerContest({
         contestId,
@@ -374,7 +364,6 @@ export default function ContestRegistrationPage() {
       toast.success(result.message || "Registered for contest successfully!");
       router.push(`/Contest/${contestId}`);
     } catch (error) {
-      console.error("❌ REGISTRATION ERROR:", error);
       const apiError = error as ErrorForm;
       const serverMsg = apiError?.data?.data?.message;
       toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");

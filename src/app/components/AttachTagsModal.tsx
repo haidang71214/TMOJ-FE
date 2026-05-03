@@ -78,7 +78,7 @@ export default function AttachTagsModal({
     onClose();
     addToast({title:"success",color:"success"})
     } catch (err) {
-      console.error("❌ Full error:", err);
+
       const apiError = err as ErrorForm;
       addToast({
         title: "Error",
@@ -198,3 +198,4 @@ export default function AttachTagsModal({
     </Modal>
   );
 }
+

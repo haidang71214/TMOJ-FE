@@ -44,7 +44,7 @@ import { useRouter } from "next/navigation";
 import ArchiveProblemModal from "@/app/components/ArchiveProblemModal";
 import AttachTagsModal from "@/app/components/AttachTagsModal";
 import EditorialManagementModal from "@/app/components/EditorialManagementModal";
-import { useGetProblemListQueryQuery, useUpdateProblemDifficultyMutation, useDownloadProblemStatementMutation } from "@/store/queries/problem";
+import { useGetProblemListQueryQuery, useUpdateProblemDifficultyMutation, useDownloadProblemStatementMutation, useDownloadTestsetZipMutation } from "@/store/queries/problem";
 import { ErrorForm } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -60,6 +60,7 @@ interface DisplayProblem {
   contest: string;                 // tạm để "None" vì API chưa có
   tags: { id: string; name: string }[];
   problemMode: string;
+  primaryTestsetId: string;
 }
 
 export default function GlobalProblemListPage() {
@@ -121,6 +122,30 @@ export default function GlobalProblemListPage() {
     }
   };
 
+  const [downloadTestsetZip] = useDownloadTestsetZipMutation();
+
+  const handleDownloadTestsetZip = async (problemId: string, testsetId: string, slug: string) => {
+    if (!testsetId) {
+      addToast({ title: "Error", description: "No primary testset found", color: "danger" });
+      return;
+    }
+    try {
+      const blob = await downloadTestsetZip({ problemId, testsetId }).unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `testset_${slug}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      addToast({ title: t('common.success') || "Success", description: "Testset ZIP downloaded successfully", color: "success" });
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: "Download Failed", description: err?.data?.data?.message || "Could not download testset zip", color: "danger" });
+    }
+  };
+
   // ── Modal Archive ───────────────────────────────────────────
   const archiveModal = useDisclosure();
   const [selectedProblem, setSelectedProblem] = useState<DisplayProblem | null>(null);
@@ -152,7 +177,8 @@ export default function GlobalProblemListPage() {
   // ── Transform API data → display format ─────────────────────
   const allProblems = useMemo<DisplayProblem[]>(() => {
     if (!apiResponse?.data) return [];
-
+    console.log(apiResponse);
+    
     return apiResponse.data.map((p) => ({
       id: p.id,
       slug: p.slug || p.id.split("-")[0] || p.id,
@@ -165,6 +191,7 @@ export default function GlobalProblemListPage() {
       contest: "None", // field này chưa có trong API response
       tags: p.tags?.map(t => ({ id: t.id, name: t.name })) || [],
       problemMode: p.problemMode || "amateur",
+      primaryTestsetId: p.primaryTestsetId,
     }));
   }, [apiResponse]);
 
@@ -239,6 +266,7 @@ export default function GlobalProblemListPage() {
       </div>
     );
   }
+console.log(allProblems);
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -276,32 +304,6 @@ export default function GlobalProblemListPage() {
           value={searchQuery}
           onValueChange={setSearchQuery}
         />
-
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              variant="flat"
-              className="h-12 rounded-xl bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-black text-[10px] uppercase tracking-widest px-5 active-press animate-fade-in-up"
-              style={{ animationFillMode: 'both', animationDelay: '400ms' }}
-              startContent={<SortAsc size={16} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              {t('problem_management.sort_by') || "Sort By"}
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label="Sort Options"
-            className="font-bold uppercase text-[10px]"
-            selectionMode="single"
-            selectedKeys={new Set([sortBy])}
-            onSelectionChange={(keys) => setSortBy((Array.from(keys)[0] as string) || "newest")}
-          >
-            <DropdownItem key="newest">{t('problem_management.latest_id') || "Latest ID"}</DropdownItem>
-            <DropdownItem key="title">{t('problem_management.title_az') || "Title A-Z"}</DropdownItem>
-            <DropdownItem key="ac">{t('problem_management.ac_rate') || "AC Rate"}</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-
         <Select
           placeholder={t('problem_management.difficulty') || "Difficulty"}
           className="w-44 animate-fade-in-up"
@@ -326,29 +328,6 @@ export default function GlobalProblemListPage() {
             {t('problem_management.hard') || "Hard"}
           </SelectItem>
         </Select>
-
-        <Select
-          placeholder="Status"
-          className="w-44 animate-fade-in-up"
-          style={{ animationFillMode: 'both', animationDelay: '550ms' }}
-          classNames={{
-            trigger:
-              "bg-white dark:bg-[#111c35] rounded-xl h-12 border border-slate-200 dark:border-white/5 shadow-sm",
-          }}
-          selectedKeys={new Set([filterStatus])}
-          onSelectionChange={(keys) => setFilterStatus((Array.from(keys)[0] as string) || "all")}
-        >
-          <SelectItem key="all" className="font-bold uppercase text-[10px] text-slate-500">
-            All Status
-          </SelectItem>
-          <SelectItem key="draft" className="font-bold uppercase text-[10px]">
-            Draft
-          </SelectItem>
-          <SelectItem key="published" className="font-bold uppercase text-[10px] text-blue-500">
-            Published
-          </SelectItem>
-        </Select>
-
         <Button
           isIconOnly
           className="h-12 w-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active-press ml-auto animate-fade-in-up"
@@ -396,7 +375,6 @@ export default function GlobalProblemListPage() {
             <TableColumn>{t('problem_management.difficulty') || "DIFFICULTY"}</TableColumn>
             <TableColumn className="text-center">{t('problem_management.mode') || "MODE"}</TableColumn>
             <TableColumn>{t('problem_management.source') || "SOURCE"}</TableColumn>
-            <TableColumn>{t('problem_management.access') || "ACCESS"}</TableColumn>
             <TableColumn className="text-right">{t('problem_management.operations') || "OPERATIONS"}</TableColumn>
           </TableHeader>
           <TableBody emptyContent={t('problem_management.empty_state') || "Chưa có bài tập nào"}>
@@ -480,20 +458,28 @@ export default function GlobalProblemListPage() {
                   </Chip>
                 </TableCell>
                 <TableCell>
-                  <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
-                    <span
-                      onClick={(e) => { e.stopPropagation(); handleDownloadStatement(p.id, p.slug); }}
-                      className="flex items-center justify-center gap-1.5 w-fit mx-auto cursor-pointer text-slate-400 hover:text-emerald-500 transition-colors group"
-                    >
-                      <Download size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:scale-110" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">PDF</span>
-                    </span>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-md tracking-tighter border border-slate-200/50 dark:border-white/5">
-                    {p.access ? (t('common.public') || "PUBLIC") : (t('common.draft') || "DRAFT")}
-                  </span>
+                  <div className="flex flex-col items-center justify-center gap-2 mx-auto">
+                    <Tooltip content={t('problem_management.dl_statement') || "Download Statement"} className="font-bold text-[10px]">
+                      <span
+                        onClick={(e) => { e.stopPropagation(); handleDownloadStatement(p.id, p.slug); }}
+                        className="flex items-center justify-center gap-1.5 w-fit cursor-pointer text-slate-400 hover:text-emerald-500 transition-colors group"
+                      >
+                        <Download size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:scale-110" />
+                        <span className="text-[9px] font-black uppercase tracking-wider">PDF</span>
+                      </span>
+                    </Tooltip>
+                    {p.primaryTestsetId && (
+                      <Tooltip content="Download Testset ZIP" className="font-bold text-[10px]">
+                        <span
+                          onClick={(e) => { e.stopPropagation(); handleDownloadTestsetZip(p.id, p.primaryTestsetId, p.slug); }}
+                          className="flex items-center justify-center gap-1.5 w-fit cursor-pointer text-slate-400 hover:text-blue-500 transition-colors group"
+                        >
+                          <Download size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:scale-110" />
+                          <span className="text-[9px] font-black uppercase tracking-wider">ZIP</span>
+                        </span>
+                      </Tooltip>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">

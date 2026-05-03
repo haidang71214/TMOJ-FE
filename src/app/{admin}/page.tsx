@@ -6,7 +6,6 @@ import {
   FileCode,
   Trophy,
   Users,
-  Settings,
   Package,
   Coins,
   Bell,
@@ -80,7 +79,6 @@ const NAV_GROUPS = [
     label: "System",
     items: [
       { tKey: "admin_sidebar.moderation", defaultVi: "Kiểm duyệt & Báo cáo", defaultEn: "Moderation", key: "moderation", icon: Shredder },
-      { tKey: "admin_sidebar.settings", defaultVi: "Cài đặt", defaultEn: "Settings", key: "settings", icon: Settings },
     ],
   },
 ];

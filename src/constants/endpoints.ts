@@ -70,6 +70,7 @@ const ProblemListEndpoint = {
 // phần này nhớ tách biệt 2 cái, và kiểm soát cờ cho 2 cái khác nhau để update vào state.
 const TestsetEndpoint = {
   GET_SAMPLES: `${API_LON}/Testsets/{problemId}/{testsetId}/samples`,
+  DOWNLOAD_ZIP: `${API_LON}/Testsets/{problemId}/{testsetId}/download-zip`,
 };
 const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post

@@ -1770,6 +1770,7 @@ export interface ProblemBankListItemDto {
   createdAt: string;
   problemMode: string;
   scoringCode: string;
+  primaryTestsetId: string;
   tags: {
     id: string;
     name: string;

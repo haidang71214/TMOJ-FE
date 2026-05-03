@@ -15,6 +15,19 @@
     "required": "Bắt buộc",
     "none": "Không có"
   },
+  "sidebar": {
+    "dashboard": "Bảng Điều Khiển",
+    "problem": "Bài Tập",
+    "contest": "Cuộc Thi",
+    "class": "Lớp Học",
+    "teacher": "Giáo Viên",
+    "subject": "Môn Học",
+    "studyPlan": "Lộ Trình Học",
+    "inPlanProblem": "Bài Tập Trong Lộ Trình",
+    "bankProblem": "Ngân Hàng Bài Tập",
+    "semester": "Học Kỳ",
+    "tags": "Nhãn"
+  },
   "problems": "Khám Phá",
   "studyplan": "Lộ trình",
   "contest": "Cuộc Thi",

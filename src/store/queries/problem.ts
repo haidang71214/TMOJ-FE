@@ -93,7 +93,7 @@ export const problemApi = baseApi.injectEndpoints({
         method: "PUT",
         body,
       }),
-      invalidatesTags: ["Problem"],
+      invalidatesTags: ["Problem","ProblemDetail"],
     }),
     updateProblemDifficulty: builder.mutation<any, { problemId: string; difficulty: string }>({
       query: ({ problemId, difficulty }) => ({
@@ -106,6 +106,13 @@ export const problemApi = baseApi.injectEndpoints({
     downloadProblemStatement: builder.mutation<Blob, string>({
       query: (problemId) => ({
         url: ProblemEndPoint.DOWNLOAD_PROBLEM_STATEMENT.replace("{problemId}", problemId),
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+    downloadTestsetZip: builder.mutation<Blob, { problemId: string; testsetId: string }>({
+      query: ({ problemId, testsetId }) => ({
+        url: TestsetEndpoint.DOWNLOAD_ZIP.replace("{problemId}", problemId).replace("{testsetId}", testsetId),
         method: "GET",
         responseHandler: (response) => response.blob(),
       }),
@@ -185,5 +192,6 @@ export const {
   useCreateVirtualProblemMutation,
   useCreateRemixProblemMutation,
   useGetInPlanProblemListQuery,
+  useDownloadTestsetZipMutation,
 } = problemApi;
 

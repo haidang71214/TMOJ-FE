@@ -108,11 +108,12 @@ export default function ResetPassModal({
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
 
-        {/* EMAIL (locked, prefilled từ link email) */}
+        {/* EMAIL (locked cứng — disabled, không cho focus/sửa) */}
         <Input
           type="email"
           placeholder="Email address"
           value={email}
+          isDisabled
           isReadOnly
           required
           startContent={
@@ -123,14 +124,14 @@ export default function ResetPassModal({
           }
           classNames={{
             inputWrapper:
-              "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] h-12 rounded-2xl opacity-80 cursor-not-allowed",
+              "bg-gray-100 dark:bg-[#333A45] border border-transparent dark:border-[#474F5D] h-12 rounded-2xl opacity-80 cursor-not-allowed pointer-events-none",
             input:
-              "font-bold ml-2 text-sm text-[#3F4755] dark:text-white placeholder:text-gray-500",
+              "font-bold ml-2 text-sm text-[#3F4755] dark:text-white placeholder:text-gray-500 select-none",
           }}
         />
 
-        {/* TOKEN ẩn — gửi cùng request, không hiển thị cho user */}
-        <input type="hidden" value={token} readOnly />
+        {/* TOKEN ẩn hoàn toàn — chỉ truyền theo request, không render trên UI */}
+        <input type="hidden" name="token" value={token} readOnly />
 
         {/* PASSWORD */}
         <PasswordInput

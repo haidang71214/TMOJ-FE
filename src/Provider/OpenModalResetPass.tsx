@@ -43,15 +43,13 @@ export default function AutoOpenResetPassModal() {
       return;
     }
 
-    if (action === "email-verified") {
-      const status = searchParams.get("status");
+    if (action === "confirm-email") {
+      const email = searchParams.get("email") ?? "";
+      const token = searchParams.get("token") ?? "";
 
-      if (status !== "success") {
-        const message = searchParams.get("message");
+      if (!email || !token) {
         addToast({
-          title: message
-            ? decodeURIComponent(message)
-            : "Xác minh email thất bại",
+          title: "Liên kết xác minh không hợp lệ",
           color: "danger",
         });
         router.replace("/");
@@ -60,17 +58,17 @@ export default function AutoOpenResetPassModal() {
 
       (async () => {
         try {
-          const res = await fetch(
-            `${BASE_URLS}api/v1/Auth/refresh-token`,
-            {
-              method: "POST",
-              credentials: "include",
-              headers: { "Content-Type": "application/json" },
-              body: "{}",
-            }
-          );
+          const res = await fetch(`${BASE_URLS}api/v1/Auth/confirm-email`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, token }),
+          });
 
-          if (!res.ok) throw new Error("refresh failed");
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => null);
+            throw new Error(errJson?.message ?? "verify failed");
+          }
 
           const json = await res.json();
           const data = json?.data ?? json;
@@ -89,11 +87,12 @@ export default function AutoOpenResetPassModal() {
             title: "Xác minh email & đăng nhập thành công",
             color: "success",
           });
-        } catch {
+        } catch (e) {
           addToast({
             title:
-              "Xác minh email thành công, vui lòng đăng nhập lại",
-            color: "warning",
+              (e as Error)?.message ||
+              "Xác minh email thất bại. Liên kết có thể đã hết hạn.",
+            color: "danger",
           });
         } finally {
           router.replace("/");

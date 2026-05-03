@@ -497,6 +497,7 @@ export interface SubmissionDetailDto {
   latestRun?: SubmissionRunDto;
   results: SubmissionCaseResultDto[];
   diagnostic?: SubmissionDiagnosticDto;
+  compileOutput?: string;
 }
 
 export interface SubmissionDetailResponse {

@@ -662,7 +662,7 @@ export default function ProfilePage() {
                 </h2>
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase italic">
-                Streak: {gStreak?.currentStreak ?? 0} Days 🔥
+                Streak: {gStreak?.currentStreak ?? 0} Days  
               </p>
             </CardHeader>
             <CardBody className="px-10 pb-10">

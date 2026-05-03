@@ -45,7 +45,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
   const itemsPerPage = 5;
 
   useEffect(() => {
-    console.log("🔥 GET_PROBLEM_DISCUSSIONS trigger with Response:", discussionResponse);
+    console.log("  GET_PROBLEM_DISCUSSIONS trigger with Response:", discussionResponse);
     if (discussionResponse?.data) {
       const respData = discussionResponse.data as any;
       if (Array.isArray(respData)) {
@@ -56,7 +56,7 @@ export const Discussion = ({ problemId, currentUserId: propUserId }: DiscussionP
         setComments(respData.data);
       } else if (typeof respData === "object" && respData !== null) {
         // Fallback or debug mode
-        console.log("🔥 Data is an object but no 'items' array found. Keys:", Object.keys(respData));
+        console.log("  Data is an object but no 'items' array found. Keys:", Object.keys(respData));
         setComments([]);
       } else {
         setComments([]);

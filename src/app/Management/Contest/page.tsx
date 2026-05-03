@@ -65,10 +65,12 @@ export default function ContestListPage() {
     search: undefined,
   });
 
-
   const [publishContest] = usePublishContestMutation();
   const [changeVisibility] = useChangeVisibilityMutation();
   const [deleteContest] = useDeleteContestMutation();
+  const [remixContest] = useRemixContestMutation();
+  const [archiveContest] = useArchiveContestMutation();
+  const [createVirtualContest] = useCreateVirtualContestMutation();
 
   const handlePublishToggle = async (id: string) => {
     try {
@@ -76,28 +78,111 @@ export default function ContestListPage() {
       toast.success("Cập nhật trạng thái hiển thị thành công");
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || "Không thể cập nhật trạng thái hiển thị");
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể cập nhật trạng thái hiển thị"
+      );
     }
   };
-  const handleChangeVisibility = async (id: string, visibility: string) => {
+
+  const handleRemix = async (id: string) => {
+    const toastId = toast.loading("Đang remix contest...");
     try {
-      await changeVisibility({ id, body: { visibilityCode: visibility } }).unwrap();
-      toast.success(`Chuyển sang chế độ ${visibility.toUpperCase()} thành công`);
+      const res = await remixContest(id).unwrap();
+      toast.success("Remix contest thành công", { id: toastId });
+      if (res.data) {
+        router.push(`/Management/Contest/${res.data}/edit?mode=remix`);
+      }
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`);
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể remix contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    const toastId = toast.loading("Đang archive contest...");
+    try {
+      await archiveContest(id).unwrap();
+      toast.success("Đã đưa contest vào kho lưu trữ", { id: toastId });
+      refetch();
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể archive contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleCreateVirtual = async (id: string) => {
+    const toastId = toast.loading("Đang tạo virtual contest...");
+    try {
+      const res = await createVirtualContest(id).unwrap();
+      toast.success("Tạo virtual contest thành công", { id: toastId });
+      if (res.data) {
+        router.push(`/Management/Contest/${res.data}/edit?mode=virtual`);
+      }
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        "Không thể tạo virtual contest",
+        {
+          id: toastId,
+        }
+      );
+    }
+  };
+
+  const handleChangeVisibility = async (id: string, visibility: string) => {
+    try {
+      await changeVisibility({
+        id,
+        body: { visibilityCode: visibility },
+      }).unwrap();
+      toast.success(
+        `Chuyển sang chế độ ${visibility.toUpperCase()} thành công`
+      );
+    } catch (error) {
+      const err = error as ErrorForm;
+      toast.error(
+        err?.data?.data?.message ||
+        err?.data?.message ||
+        `Không thể chuyển sang chế độ ${visibility.toUpperCase()}`
+      );
     }
   };
 
   const handleDeleteContest = async (id: string, title: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa cuộc thi "${title}" không? Hành động này không thể hoàn tác.`)) {
+    if (
+      window.confirm(
+        `Bạn có chắc chắn muốn xóa cuộc thi "${title}" không? Hành động này không thể hoàn tác.`
+      )
+    ) {
       try {
         await deleteContest(id).unwrap();
         toast.success("Xóa cuộc thi thành công");
         refetch();
       } catch (error) {
         const err = error as ErrorForm;
-        toast.error(err?.data?.data?.message || "Không thể xóa cuộc thi");
+        toast.error(
+          err?.data?.data?.message ||
+          err?.data?.message ||
+          "Không thể xóa cuộc thi"
+        );
       }
     }
   };

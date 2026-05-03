@@ -30,7 +30,7 @@ import {
   useGetContestDetailQuery
 } from "@/store/queries/Contest";
 import { toast } from "sonner";
-import { Problem, ContestProblemDto, ErrorForm } from "@/types";
+import { ContestProblemDto, ErrorForm } from "@/types";
 
 export default function ContestProblemsPage() {
   const router = useRouter();
@@ -43,11 +43,11 @@ export default function ContestProblemsPage() {
   const { data: response, isLoading: isLoadingProblems, refetch } = useGetContestProblemsQuery(contestId);
   const [addProblemToContest, { isLoading: isAdding }] = useAddProblemToContestMutation();
   const [removeProblemFromContest] = useRemoveProblemFromContestMutation();
-  console.log("response", response);
+
   const contestStatus = contestDetailResponse?.data?.status?.toLowerCase();
   const isLocked = contestStatus === "running" || contestStatus === "ended";
 
-  // Định nghĩa danh sách cột động để tránh lỗi TypeScript của HeroUI
+  // Định nghĩa danh sách cột động
   const columns = [
     { key: "id", label: "ID" },
     { key: "index", label: "INDEX" },
@@ -58,32 +58,18 @@ export default function ContestProblemsPage() {
     ...(!isLocked ? [{ key: "ops", label: "OPERATIONS", align: "right" }] : [])
   ];
 
-  // Debug log để kiểm tra dữ liệu thực tế từ API
-  React.useEffect(() => {
-    if (response) {
-      console.log("Contest Problems API Response:", response);
-    }
-  }, [response]);
-
-  // Bóc tách dữ liệu linh hoạt (hỗ trợ nhiều cấu trúc trả về của Backend)
+  // Bóc tách dữ liệu
   const problems = React.useMemo(() => {
     if (!response?.data) return [];
-
-    // Trường hợp 1: data.items (Chuẩn phổ biến)
     if (Array.isArray(response.data.items)) return response.data.items;
-
-    // Trường hợp 2: data trực tiếp là mảng
     if (Array.isArray(response.data)) return response.data;
-
-    // Trường hợp 3: data.data.items (Cấu trúc wrapper đôi)
     if ((response.data as any).data && Array.isArray((response.data as any).data.items)) {
       return (response.data as any).data.items;
     }
-
     return [];
   }, [response]) as ContestProblemDto[];
 
-  // Hàm điều hướng sang trang chỉnh sửa bài tập
+  // Hàm điều hướng
   const goToEdit = (problemId: string) => {
     router.push(`/Management/Contest/${contestId}/problems/${problemId}/edit`);
   };
@@ -100,7 +86,7 @@ export default function ContestProblemsPage() {
               alias: item.alias || undefined,
               points: item.points,
               ordinal: item.ordinal,
-              maxScore: item.points, // Default maxScore to points
+              maxScore: item.points,
             },
           }).unwrap()
         )
@@ -109,27 +95,109 @@ export default function ContestProblemsPage() {
       refetch();
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
+      toast.error(err?.data?.data?.message || err?.data?.message || "Đã xảy ra lỗi khi thêm bài tập");
     }
   };
 
   // Hàm xử lý xóa bài tập
   const handleDeleteProblem = async (contestProblemId: string, title?: string) => {
     try {
-      const res = await removeProblemFromContest({ contestId, contestProblemId }).unwrap();
-      console.log(res);
-
+      await removeProblemFromContest({ contestId, contestProblemId }).unwrap();
       toast.success("Đã xóa bài tập khỏi contest!");
       refetch();
     } catch (error) {
       const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || "Không thể xóa bài tập");
+      toast.error(err?.data?.data?.message || err?.data?.message || "Không thể xóa bài tập");
     }
   };
 
+  // Hàm render cell linh hoạt
+  const renderCell = React.useCallback(
+    (p: ContestProblemDto, columnKey: React.Key, idx: number) => {
+      switch (columnKey) {
+        case "id":
+          return (
+            <span className="text-slate-400 font-black italic text-xs">
+              #{p.problemId.substring(0, 8)}
+            </span>
+          );
+        case "index":
+          return (
+            <span className="text-xl font-black text-blue-600 dark:text-[#FF5C00] italic">
+              {p.displayIndex || idx + 1}
+            </span>
+          );
+        case "name":
+          return (
+            <div
+              className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/Problems/${p.problemId}`, "_blank");
+              }}
+            >
+              <span className="text-base font-black uppercase text-slate-700 dark:text-slate-200 leading-none">
+                {(p as any).problemTitle || (p as any).title || "Untitled Problem"}
+              </span>
+              <ExternalLink size={14} className="text-slate-400 group-hover:text-blue-600" />
+            </div>
+          );
+        case "alias":
+          return (
+            <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
+              {p.alias || p.problemId.substring(0, 12)}
+            </span>
+          );
+        case "points":
+          return <span className="font-bold">{p.points || 0}</span>;
+        case "visible":
+          return (
+            <Switch
+              size="sm"
+              isDisabled={isLocked}
+              defaultSelected={true}
+              classNames={{
+                wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+              }}
+            />
+          );
+        case "ops":
+          return (
+            <div className="flex justify-end gap-2">
+              <Tooltip content="Edit Details" className="font-bold text-[10px]">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="flat"
+                  onPress={() => goToEdit(p.problemId)}
+                  className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                >
+                  <Edit size={16} />
+                </Button>
+              </Tooltip>
+
+              <Tooltip content="Remove from Contest" className="font-bold text-[10px]">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="flat"
+                  onPress={() => handleDeleteProblem(p.id!, p.alias)}
+                  className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </Tooltip>
+            </div>
+          );
+        default:
+          return null;
+      }
+    },
+    [isLocked, contestId]
+  );
+
   return (
     <div className="flex flex-col gap-8 pb-20 p-2">
-      {/* HEADER SECTION */}
       <div className="flex flex-col gap-6 border-b border-slate-200 dark:border-white/10 pb-8">
         <Button
           variant="light"
@@ -173,7 +241,6 @@ export default function ContestProblemsPage() {
         </div>
       </div>
 
-      {/* TABLE SECTION */}
       <Table
         aria-label="Contest Problem List"
         removeWrapper
@@ -185,10 +252,7 @@ export default function ContestProblemsPage() {
       >
         <TableHeader columns={columns}>
           {(column) => (
-            <TableColumn
-              key={column.key}
-              className={column.align === "right" ? "text-right" : ""}
-            >
+            <TableColumn key={column.key} className={column.align === "right" ? "text-right" : ""}>
               {column.label}
             </TableColumn>
           )}
@@ -295,11 +359,9 @@ export default function ContestProblemsPage() {
         excludedProblemIds={problems.map(p => p.problemId)}
       />
 
-      {/* FOOTER DECOR */}
       <div className="flex justify-center opacity-20 italic font-black uppercase text-[10px] tracking-[1em] text-slate-400 pt-10">
         TMOJ &bull; PROBLEMS &bull; SYSTEM
       </div>
-
     </div>
   );
 }

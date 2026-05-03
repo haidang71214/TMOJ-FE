@@ -130,6 +130,7 @@ export interface Problem {
   acceptancePercent: number | null;
   timeLimitMs: number;
   memoryLimitKb: number;
+  points?: number;
   createdAt: string;
   createdBy: string;
   updatedAt: string;
@@ -154,6 +155,62 @@ export interface Problem {
 }
 export interface ProblemListResponse {
   data: Problem[];
+  message: string | null;
+  traceId: string;
+}
+
+export interface ProblemSolvedStats {
+  userId: string;
+  visibilityCode: string | null;
+  solvedSourceCode: string | null;
+  totalSolved: number;
+  byVisibility: {
+    code: string;
+    count: number;
+  }[];
+  bySource: {
+    code: string;
+    count: number;
+  }[];
+}
+
+export interface ProblemSolvedStatsResponse {
+  data: ProblemSolvedStats;
+  message: string | null;
+  traceId: string;
+}
+
+export interface SolvedProblemItem {
+  problemId: string;
+  slug: string;
+  title: string;
+  difficulty: string;
+  typeCode: string | null;
+  visibilityCode: string;
+  statusCode: string;
+  problemMode: string | null;
+  problemSource: string | null;
+  acceptedSubmissionsCount: number;
+  firstSolvedAt: string;
+  lastSolvedAt: string;
+  solvedSourceCodes: string[];
+  bestSubmissionId: string;
+  bestTimeMs: number | null;
+  bestMemoryKb: number | null;
+}
+
+export interface ProblemSolvedListData {
+  userId: string;
+  visibilityCode: string | null;
+  solvedSourceCode: string | null;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  items: SolvedProblemItem[];
+}
+
+export interface ProblemSolvedListResponse {
+  data: ProblemSolvedListData;
   message: string | null;
   traceId: string;
 }
@@ -318,20 +375,13 @@ export type PracticePackage = {
   createdAt: string;
   problems?: string[];
 };
-export interface Problem {
-  id: string;
-  title: string;
-  difficulty: "easy" | "medium" | "hard"; // lowercase như trong mock
-  points: number;
-  // thêm field khác nếu cần, ví dụ:
-  // acceptance?: string;
-  // tags?: string[];
-}
+
 export interface ErrorForm {
   data: Data;
 }
 export interface Data {
-  data: MessageError;
+  data?: MessageError;
+  message?: string;
 }
 
 export interface MessageError {
@@ -431,9 +481,11 @@ export interface SubmissionResponse {
 
 export interface SubmissionListItemDto {
   id: string;
-  userId: string;
   problemId: string;
-  statusCode: string | null;
+  userId: string;
+  runtimeId?: string | null;
+  language?: string | null;
+  statusCode: string;
   verdictCode: string | null;
   finalScore: number | null;
   timeMs: number | null;
@@ -442,8 +494,86 @@ export interface SubmissionListItemDto {
   judgedAt: string | null;
 }
 
+export interface SubmissionRunDto {
+  id: string;
+  submissionId: string;
+  statusCode: string;
+  verdictCode?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  judgedAt?: string;
+}
+
+export interface SubmissionCaseResultDto {
+  ordinal: number;
+  statusCode: string;
+  verdictCode?: string;
+  timeMs?: number;
+  memoryKb?: number;
+  message?: string;
+  checkerMessage?: string;
+  actualOutput?: string;
+  expectedOutput?: string;
+}
+
+export interface SubmissionDiagnosticDto {
+  compileStdout?: string;
+  compileStderr?: string;
+  compileExitCode?: number;
+}
+
+export interface SubmissionDetailDto {
+  submissionId: string;
+  userId: string;
+  problemId: string;
+  problemSlug?: string;
+  problemTitle?: string;
+  problemMode?: string;
+  problemVisibilityCode?: string;
+  problemTimeLimitMs?: number;
+  problemMemoryLimitKb?: number;
+  runtimeId?: string;
+  language?: string;
+  runtimeName?: string;
+  runtimeVersion?: string;
+  runtimeProfileKey?: string;
+  runtimeSourceFileName?: string;
+  runtimeCompileCommand?: string;
+  runtimeRunCommand?: string;
+  testsetId?: string;
+  statusCode: string;
+  verdictCode?: string;
+  finalScore?: number;
+  timeMs?: number;
+  memoryKb?: number;
+  sourceCode?: string;
+  note?: string;
+  createdAt: string;
+  judgedAt?: string;
+  latestRun?: SubmissionRunDto;
+  results: SubmissionCaseResultDto[];
+  diagnostic?: SubmissionDiagnosticDto;
+  compileOutput?: string;
+}
+
+export interface SubmissionDetailResponse {
+  data: SubmissionDetailDto;
+  message: string | null;
+  traceId: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+}
+
 export interface SubmissionListResponse {
   data: SubmissionListItemDto[];
+  pagination: PaginationMeta;
   message: string | null;
   traceId: string | null;
 }
@@ -708,6 +838,7 @@ export interface DiscussionCommentItem {
   content: string;
   createdAt: string;
   updatedAt?: string;
+  isHidden: boolean;
   children: DiscussionCommentItem[];
 }
 
@@ -725,6 +856,7 @@ export interface DiscussionItem {
   updatedAt?: string;
   voteCount: number;
   userVote: number;
+  isHidden: boolean;
   comments: DiscussionCommentItem[];
 }
 
@@ -763,6 +895,7 @@ export interface DiscussionCommentDetail {
   updatedAt?: string;
   voteCount: number;
   userVote: number;
+  isHidden: boolean;
   replies: DiscussionCommentDetail[];
 }
 
@@ -815,6 +948,77 @@ export interface VoteDiscussionRequest {
   id: string;
   voteType: number;
 }
+
+// ── Dashboard API Definitions ───────────────────────
+
+export interface DashboardSummary {
+  totalUsers: number;
+  activeContests: number;
+  monthlyRevenue: number;
+  submissionsToday: number;
+  userGrowthPercentage: number;
+  revenueGrowthPercentage: number;
+}
+
+export interface UserGrowthData {
+  label: string;
+  value: number;
+}
+
+export interface RevenueByPackageData {
+  packageName: string;
+  revenue: number;
+}
+
+export interface SubmissionStatsData {
+  accepted: number;
+  wrongAnswer: number;
+  timeLimitExceeded: number;
+  compileError: number;
+  runtimeError: number;
+  others: number;
+}
+
+export interface DashboardAlert {
+  type: "info" | "warning" | "success" | "error";
+  message: string;
+  detail: string;
+}
+
+export interface DashboardStatsData {
+  summary: DashboardSummary;
+  userGrowth: UserGrowthData[];
+  revenueByPackage: RevenueByPackageData[];
+  submissionStats: SubmissionStatsData;
+  alerts: DashboardAlert[];
+}
+
+export interface DashboardStatsResponse {
+  data: DashboardStatsData;
+  message: string;
+  traceId: string | null;
+}
+
+
+// ── Discussion History Definitions ────────────────
+
+export interface DiscussionHistoryItem {
+  id: string;
+  discussionId: string;
+  problemId: string;
+  problemTitle: string;
+  type: "discussion" | "comment";
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface DiscussionHistoryResponse {
+  data: DiscussionHistoryItem[];
+  message: string | null;
+  traceId: string | null;
+}
+
 export interface UpdateSlotProblemRequest {
   problemId: string;
   ordinal: number;
@@ -929,6 +1133,7 @@ export interface ContestProblemDto {
   problemId: string;
   problemTitle?: string;
   alias?: string;
+  title?: string;
   ordinal?: number;
   displayIndex?: number;
   points?: number;
@@ -994,6 +1199,24 @@ export interface UpdateContestResponse {
   success: boolean;
   data: boolean;
   message: string;
+}
+
+export interface RemixContestResponse {
+  success: boolean;
+  message: string;
+  data: string;
+}
+
+export interface ArchiveContestResponse {
+  success: boolean;
+  message: string;
+  data: boolean;
+}
+
+export interface CreateVirtualContestResponse {
+  success: boolean;
+  message: string;
+  data: string;
 }
 
 export interface ChangeVisibilityRequest {
@@ -1101,6 +1324,8 @@ export interface ScoreboardRowDTO {
   userId: string;
   username: string;
   avatarUrl?: string;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
   fullname?: string;
   totalSolved: number;
   totalPenalty: number;
@@ -1119,7 +1344,8 @@ export interface ContestProblemHeaderDTO {
 export interface ScoreboardResponseDTO {
   contestId: string;
   contestName: string;
-  status: "upcoming" | "running" | "ended";
+  scoringMode?: string;
+  status: "upcoming" | "running" | "ended" | string;
   frozen: boolean;
   problems: ContestProblemHeaderDTO[];
   rows: ScoreboardRowDTO[];
@@ -1159,6 +1385,8 @@ export interface TeamMember {
   displayName?: string;
   email?: string;
   avatarUrl?: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
 }
 
 export interface TeamDetail {
@@ -1309,6 +1537,8 @@ export interface ContestParticipantMember {
   avatarUrl: string | null;
   username: string;
   rollNumber: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
 }
 
 export interface ContestParticipantTeam {
@@ -1409,30 +1639,124 @@ export interface ReorderCollectionRequest {
 export interface CreateStudyPlanRequest {
   title: string | null;
   description: string | null;
-  isPublic: boolean;
-  isPaid: boolean;
-  price: number;
+  creatorId: string;
+  price?: number;
+  isPaid?: boolean;
+  imageUrl?: string | null;
+}
+
+export interface UpdateStudyPlanRequest {
+  id: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  isPaid?: boolean;
+  imageUrl?: string | null;
 }
 
 export interface CreateStudyPlanResponse {
-  // bạn có thể điều chỉnh theo response thực tế của API
-  data?: any;
-  message?: string;
-  success?: boolean;
+  data: string; // studyPlanId
+  success: boolean;
 }
-export interface StudyPlanItem {
+
+export interface StudyPlan {
   id: string;
   title: string;
-  order: number;
+  description?: string;
   problemCount: number;
+  creatorId: string;
+  price: number;
+  isPaid: boolean;
+  isCompleted: boolean;
+  isUnlocked: boolean;
+  isPurchased: boolean;
+  imageUrl: string | null;
+  enrollmentCount: number;
+  isEnrolled: boolean;
+  order: number;
+}
+
+export interface StudyPlanItem {
+  studyPlanItemId: string;
+  problemId: string;
+  problemTitle?: string;
+  problemSlug?: string;
+  problemDescription?: string;
+  order: number;
   isCompleted: boolean;
   isUnlocked: boolean;
 }
 
+export interface GetStudyPlanDetailResponse {
+  data: {
+    id: string;
+    title: string;
+    description?: string;
+    items: StudyPlanItem[];
+    price: number;
+    isPaid: boolean;
+    imageUrl?: string | null;
+    order: number;
+    isOwned: boolean;
+    isPurchased: boolean;
+    isEnrolled: boolean;
+  };
+  message: string;
+}
+
 export interface GetStudyPlansResponse {
-  data: StudyPlanItem[];
+  data: StudyPlan[];
   message: string;
   traceId: string | null;
+}
+
+export interface UnlockedPlanItem {
+  id: string;
+  title: string;
+  isUnlocked: boolean;
+  isCompleted: boolean;
+}
+
+export interface StudyPlanEnrollmentResponse {
+  studyPlanId?: string;
+  userId?: string;
+  isEnrolled: boolean;
+  isPurchased: boolean;
+  isCompleted?: boolean;
+  totalItems?: number;
+  completedItems?: number;
+  progressPercent?: number;
+}
+
+export interface StudyPlanNextItemResponse {
+  nextItemId: string;
+  nextProblemId?: string;
+}
+
+export interface StudyPlanStatsResponse {
+  totalUsers: number;
+  completionRate: number;
+  avgProgress: number;
+}
+
+export interface StudyProgressItem {
+  studyPlanId: string;
+  title: string;
+  totalItems: number;
+  completedItems: number;
+  progressPercent: number;
+}
+
+export interface StudyPlanProgressResponse {
+  studyPlanId: string;
+  totalItems: number;
+  completedItems: number;
+  progressPercent: number;
+  items: any[];
+}
+
+export interface MyStudyProgressResponse {
+  items: StudyProgressItem[];
 }
 
 export interface ProblemBankListItemDto {
@@ -1442,6 +1766,7 @@ export interface ProblemBankListItemDto {
   difficulty: string;
   acceptancePercent: number | null;
   statusCode: string;
+  visibilityCode: string;
   createdAt: string;
   problemMode: string;
   scoringCode: string;
@@ -1518,6 +1843,17 @@ export interface CreateVNPayPaymentRequest {
   returnUrl?: string;
 }
 
+export interface CreatePayOsPaymentRequest {
+  amount: number;
+}
+
+export interface CreatePayOsPaymentResponse {
+  data: {
+    paymentId: string;
+    paymentUrl: string;
+  };
+}
+
 export interface CreateVNPayPaymentResponse {
   data: {
     paymentId: string;
@@ -1563,6 +1899,18 @@ export interface WalletTransaction {
   amount: number;
   direction: "in" | "out";
   status: "pending" | "completed" | "failed" | "reversed";
+  createdAt: string;
+}
+
+export interface VerifyPayOsRequest {
+  orderCode: number;
+}
+
+export interface VerifyPayOsResponse {
+  data: {
+    status: string;
+    coinsAdded: boolean;
+  };
 }
 
 export interface WalletTransactionsResponse {
@@ -1762,3 +2110,55 @@ export interface ClassContestDetailResponse {
   traceId: string | null;
 }
 
+export interface ClassTotalRankingSlotStat {
+  slotId: string;
+  slotTitle: string;
+  solved: number;
+  penalty: number;
+}
+
+export interface ClassTotalRankingRow {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  equippedFrameUrl?: string | null;
+  frameUrl?: string | null;
+  rank: number;
+  totalSolved: number;
+  totalPenalty: number;
+  slotStats: ClassTotalRankingSlotStat[];
+}
+
+export interface ClassTotalRankingSlot {
+  slotId: string;
+  slotNo: number;
+  title: string;
+  dueAt: string;
+}
+
+export interface ClassTotalRankingData {
+  className: string;
+  classSemesterId: string;
+  lastUpdated: string;
+  subjectName: string;
+  rankings: ClassTotalRankingRow[];
+  slots: ClassTotalRankingSlot[];
+}
+
+export interface ClassTotalRankingResponse {
+  data: ClassTotalRankingData;
+  message: string;
+}
+export interface SubmitContestPublicRequest {
+  contestProblemId: string;
+  code: string;
+  language: string;
+}
+export interface UploadStudyPlanImageResponse {
+  data: {
+    imageUrl: string;
+  };
+  success: boolean;
+  message: string;
+}

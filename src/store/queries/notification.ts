@@ -1,5 +1,5 @@
-import { NotificationEndpoint } from "@/constants/endpoints";
-import { BroadcastNotificationCommand, CreateNotificationRequestDto, NotificationDto } from "@/types/notification";
+import { NotificationEndpoint, SettingsEndpoint } from "@/constants/endpoints";
+import { BroadcastNotificationCommand, CreateNotificationRequestDto, NotificationDto, NotificationSettingsDto } from "@/types/notification";
 import { baseApi } from "../base";
 
 export const notificationApi = baseApi.injectEndpoints({
@@ -10,6 +10,11 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      transformResponse: (response: any) => {
+        if (response && response.data && response.data.data) return response.data.data;
+        if (response && response.data) return response.data;
+        return response;
+      },
       invalidatesTags: ["Notification"],
     }),
     broadcastNotification: builder.mutation<{ message: string; targetCount: number }, BroadcastNotificationCommand>({
@@ -18,11 +23,17 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      transformResponse: (response: any) => {
+        if (response && response.data && response.data.data) return response.data.data;
+        if (response && response.data) return response.data;
+        return response;
+      },
       invalidatesTags: ["Notification"],
     }),
     getUserNotifications: builder.query<NotificationDto[], string>({
       query: (userId) => NotificationEndpoint.GET_NOTIFICATION_BY_USER.replace("{userId}", userId),
       transformResponse: (response: any) => {
+        if (response && response.data && response.data.data) return response.data.data;
         if (response && response.data) return response.data;
         return response || [];
       },
@@ -31,6 +42,7 @@ export const notificationApi = baseApi.injectEndpoints({
     getAllNotifications: builder.query<NotificationDto[], void>({
       query: () => NotificationEndpoint.GET_ALL_NOTIFICATION,
       transformResponse: (response: any) => {
+        if (response && response.data && response.data.data) return response.data.data;
         if (response && response.data) return response.data;
         return response || [];
       },
@@ -50,6 +62,27 @@ export const notificationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Notification"],
     }),
+    getNotificationSettings: builder.query<NotificationSettingsDto, void>({
+      query: () => ({
+        url: SettingsEndpoint.NOTIFICATION_SETTINGS,
+        method: "GET",
+      }),
+      transformResponse: (response: any) => {
+        // Unwrap nested data according to the actual API response structure
+        if (response && response.data && response.data.data) return response.data.data;
+        if (response && response.data) return response.data;
+        return response;
+      },
+      providesTags: ["Settings"],
+    }),
+    updateNotificationSettings: builder.mutation<void, NotificationSettingsDto>({
+      query: (body) => ({
+        url: SettingsEndpoint.NOTIFICATION_SETTINGS,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Settings"],
+    }),
   }),
 });
 
@@ -60,4 +93,6 @@ export const {
   useGetAllNotificationsQuery,
   useMarkNotificationAsReadMutation,
   useDeleteNotificationMutation,
+  useGetNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
 } = notificationApi;

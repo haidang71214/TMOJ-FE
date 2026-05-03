@@ -81,9 +81,9 @@ export default function ClassDetailPage({
       </div>
     );
   }
-  const handleViewSemester =(id:string,semesterCode:string) =>{
+  const handleViewSemester =(id:string,semesterCode:string,classId:string) =>{
     router.push(
-    `/Management/ClassSemester/${id}?classCode=${classDetail.classCode}&semesterCode=${semesterCode}`
+    `/Management/ClassSemester/${id}?classCode=${classDetail.classCode}&semesterCode=${semesterCode}&classId=${classId}`
   );
   }
   return (
@@ -161,7 +161,8 @@ export default function ClassDetailPage({
   style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}
   onClick={() => handleViewSemester(
     instance.classSemesterId, 
-     instance?.semesterCode
+     instance?.semesterCode,
+     classId
   )}
 >
                 {/* ID */}

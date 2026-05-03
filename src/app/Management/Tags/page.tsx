@@ -61,7 +61,7 @@ export default function TagsManagementPage() {
     return (
       <div className="flex flex-col h-full items-center justify-center min-h-[500px]">
         <Spinner size="lg" color="primary" />
-        <p className="mt-4 text-white/40 font-bold uppercase tracking-widest text-[10px] italic">
+        <p className="mt-4 text-slate-400 dark:text-white/40 font-bold uppercase tracking-widest text-[10px] italic">
           {language === 'vi' ? "Đang tải danh sách nhãn..." : "Loading tags repository..."}
         </p>
       </div>
@@ -74,7 +74,7 @@ export default function TagsManagementPage() {
         <div className="text-red-500 text-2xl mb-4 font-black uppercase tracking-tighter italic">
           {language === 'vi' ? "Đã có lỗi xảy ra" : "Error occurred"}
         </div>
-        <p className="text-white/30 mb-6 font-medium italic">
+        <p className="text-slate-500 dark:text-white/30 mb-6 font-medium italic">
           {(error as ErrorForm)?.data?.data?.message || (language === 'vi' ? "Không thể tải danh sách nhãn." : "Unable to load tags list.")}
         </p>
         <Button
@@ -112,19 +112,19 @@ export default function TagsManagementPage() {
       {/* FILTER BAR */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="relative group flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20 group-focus-within:text-[#3B5BFF] transition-colors" size={16} />
           <input
             placeholder={language === 'vi' ? "Tìm theo tên hoặc đường dẫn..." : "Search by name or slug..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-[#1E2B42] border border-white/10"
+            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-700 dark:text-white/80 placeholder:text-slate-400 dark:placeholder:text-white/25 outline-none focus:border-[#3B5BFF] transition-all bg-white dark:bg-[#1E2B42] border border-slate-200 dark:border-white/10"
           />
         </div>
 
         <Button
           isIconOnly
           variant="flat"
-          className="h-11 w-11 rounded-xl bg-white/5 text-white/30 hover:bg-white/10 hover:text-white transition-all ml-auto"
+          className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/30 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-white transition-all ml-auto"
           onPress={refetch}
         >
           <RefreshCw size={18} />
@@ -132,14 +132,14 @@ export default function TagsManagementPage() {
       </div>
 
       {/* TABLE */}
-      <div className="rounded-[2.5rem] overflow-hidden border border-white/5" style={{ background: "#162035", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
+      <div className="rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#162035] shadow-[0_20px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.2)]">
         <Table
           aria-label="Tags Management Table"
           removeWrapper
           classNames={{
-            th: "bg-[#1E2B42] text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-white/[0.08] py-5 px-6",
-            td: "py-5 px-6 text-sm border-b border-white/[0.05] text-white/80",
-            tr: "hover:bg-white/[0.03] transition-colors group/row",
+            th: "bg-slate-100 dark:bg-[#1E2B42] text-slate-500 dark:text-white/40 text-[11px] font-black uppercase tracking-widest border-b border-slate-200 dark:border-white/[0.08] py-5 px-6",
+            td: "py-5 px-6 text-sm border-b border-slate-100 dark:border-white/[0.05] text-slate-700 dark:text-white/80",
+            tr: "hover:bg-slate-200/50 dark:hover:bg-white/[0.03] transition-colors group/row",
           }}
         >
           <TableHeader>
@@ -153,18 +153,18 @@ export default function TagsManagementPage() {
             {items.map((tag, index) => (
               <TableRow key={tag.id}>
                 <TableCell>
-                  <span className="text-white/30 font-black italic text-xs tracking-tighter">#{tag.id.substring(0, 8)}</span>
+                  <span className="text-slate-400 dark:text-white/30 font-black italic text-xs tracking-tighter">#{tag.id.substring(0, 8)}</span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-4">
                     <div
-                      className="flex items-center justify-center w-10 h-10 rounded-xl shadow-lg border border-white/5"
+                      className="flex items-center justify-center w-10 h-10 rounded-xl shadow-lg border border-slate-200 dark:border-white/5 bg-white dark:bg-transparent"
                       style={{ backgroundColor: tag.color ? `${tag.color}15` : 'rgba(16, 185, 129, 0.1)', color: tag.color || '#10B981' }}
                     >
                       {React.createElement(getIconComponent(tag.icon), { size: 18 })}
                     </div>
                     <span
-                      className="text-base font-black uppercase italic tracking-tight group-hover/row:scale-105 transition-transform origin-left"
+                      className="text-base font-black uppercase italic tracking-tight group-hover/row:scale-105 transition-transform origin-left text-slate-700 dark:text-white"
                       style={{ color: tag.color || undefined }}
                     >
                       {tag.name || "UNNAMED"}
@@ -173,7 +173,7 @@ export default function TagsManagementPage() {
                 </TableCell>
                 <TableCell>
                   <span
-                    className="text-[10px] font-black px-3 py-1.5 rounded-lg lowercase border border-white/5 tracking-wider bg-white/5 text-white/50"
+                    className="text-[10px] font-black px-3 py-1.5 rounded-lg lowercase border border-slate-200 dark:border-white/5 tracking-wider bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50"
                   >
                     {tag.slug || "none"}
                   </span>
@@ -199,7 +199,7 @@ export default function TagsManagementPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-white/5 hover:bg-[#3B5BFF]/20 text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-[#3B5BFF]/20 text-slate-500 dark:text-white/30 hover:text-[#7B9FFF] rounded-xl h-9 w-9 transition-all"
                       >
                         <Edit size={16} />
                       </Button>
@@ -209,7 +209,7 @@ export default function TagsManagementPage() {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        className="bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
+                        className="bg-slate-100 dark:bg-white/5 hover:bg-red-500/20 text-slate-500 dark:text-white/30 hover:text-red-500 rounded-xl h-9 w-9 transition-all"
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -222,7 +222,7 @@ export default function TagsManagementPage() {
         </Table>
 
         {totalItems > 0 && (
-          <div className="flex w-full justify-center py-8 border-t border-white/5">
+          <div className="flex w-full justify-center py-8 border-t border-slate-200 dark:border-white/5">
             <Pagination
               showControls
               showShadow
@@ -234,7 +234,9 @@ export default function TagsManagementPage() {
               classNames={{
                 cursor: "bg-[#3B5BFF] text-white font-black",
                 wrapper: "gap-2",
-                item: "text-white/60 hover:text-white hover:bg-white/10",
+                item: "text-slate-500 dark:text-white/60 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 bg-slate-100 dark:bg-transparent",
+                prev: "bg-slate-100 dark:bg-transparent",
+                next: "bg-slate-100 dark:bg-transparent",
               }}
             />
           </div>

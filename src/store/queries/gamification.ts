@@ -10,9 +10,12 @@ import {
   AdminBadge,
   AdminBadgeRule,
   CreateBadgeRequest,
+  UpdateBadgeRequest,
   CreateBadgeRuleRequest,
   LeaderboardResponse,
-  DailyActivity
+  DailyActivity,
+  Mission,
+  ClaimResponse
 } from "@/types/gamification";
 
 export const gamificationApi = baseApi.injectEndpoints({
@@ -50,6 +53,21 @@ export const gamificationApi = baseApi.injectEndpoints({
       query: () => GamificationEndpoint.DAILY_ACTIVITIES,
       providesTags: ["Gamification"],
     }),
+    getMissions: builder.query<Mission[], void>({
+      query: () => GamificationEndpoint.MISSIONS,
+      transformResponse: (response: any) => {
+        if (response && response.data) return response.data;
+        return response || [];
+      },
+      providesTags: ["Gamification"],
+    }),
+    claimMission: builder.mutation<ClaimResponse, string>({
+      query: (ruleId) => ({
+        url: GamificationEndpoint.CLAIM_MISSION.replace("{ruleId}", ruleId),
+        method: "POST",
+      }),
+      invalidatesTags: ["Gamification"],
+    }),
 
     // ADMIN APIs
     getAdminBadges: builder.query<AdminBadge[], void>({
@@ -60,19 +78,19 @@ export const gamificationApi = baseApi.injectEndpoints({
       },
       providesTags: ["Gamification"],
     }),
-    createBadge: builder.mutation<{ id: string }, CreateBadgeRequest>({
-      query: (body) => ({
+    createBadge: builder.mutation<{ id: string }, FormData>({
+      query: (formData) => ({
         url: GamificationEndpoint.BADGES,
         method: "POST",
-        body,
+        body: formData,
       }),
       invalidatesTags: ["Gamification"],
     }),
-    updateBadge: builder.mutation<void, { id: string; name: string; iconUrl: string; description: string; badgeCode: string; badgeCategory: string; badgeLevel: number; isRepeatable: boolean }>({
-      query: ({ id, ...body }) => ({
+    updateBadge: builder.mutation<void, { id: string; formData: FormData }>({
+      query: ({ id, formData }) => ({
         url: AdminGamificationEndpoint.BADGE_ID.replace("{id}", id),
         method: "PUT",
-        body: { badgeId: id, ...body },
+        body: formData,
       }),
       invalidatesTags: ["Gamification"],
     }),
@@ -134,4 +152,6 @@ export const {
   useCreateBadgeRuleMutation,
   useUpdateBadgeRuleMutation,
   useDeleteBadgeRuleMutation,
+  useGetMissionsQuery,
+  useClaimMissionMutation,
 } = gamificationApi;

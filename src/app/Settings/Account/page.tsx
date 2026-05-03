@@ -1,11 +1,12 @@
 "use client";
 
 import { Card, CardBody, Button, Input } from "@heroui/react";
-import { Mail, Lock, ShieldAlert, Trash2 } from "lucide-react";
+import { Mail, Lock, ShieldAlert, Trash2, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useUpdateMeMutation, useUpdateAvatarMutation, useDeleteAvatarMutation } from "@/store/queries/usersProfile";
+import { useUpdateAvatarMutation, useDeleteAvatarMutation } from "@/store/queries/usersProfile";
+import { useChangePasswordMutation } from "@/store/queries/auth";
 import { toast } from "sonner";
 import { ErrorForm } from "@/types";
 
@@ -18,10 +19,23 @@ export default function AccountSettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const [updateMe, { isLoading: isUpdatingMe }] = useUpdateMeMutation();
+  const eyeBtn = (visible: boolean, toggle: () => void) => (
+    <button
+      type="button"
+      onClick={toggle}
+      className="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 active:scale-90"
+    >
+      {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  );
+
   const [updateAvatar, { isLoading: isUpdatingAvatar }] = useUpdateAvatarMutation();
   const [deleteAvatar, { isLoading: isDeletingAvatar }] = useDeleteAvatarMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
 
   const handle_select_avatar = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,25 +71,52 @@ export default function AccountSettingsPage() {
   };
 
   const handle_update_password = async () => {
-    if (!newPassword || !confirmPassword) {
-      toast.error("Please fill in all password fields.");
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Vui lòng nhập đầy đủ các trường mật khẩu.");
       return;
     }
+
+    const rules = {
+      length: newPassword.length >= 10,
+      upper: /[A-Z]/.test(newPassword),
+      lower: /[a-z]/.test(newPassword),
+      number: /[0-9]/.test(newPassword),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword),
+    };
+    if (!Object.values(rules).every(Boolean)) {
+      const missing: string[] = [];
+      if (!rules.length) missing.push("ít nhất 10 ký tự");
+      if (!rules.upper) missing.push("1 chữ hoa");
+      if (!rules.lower) missing.push("1 chữ thường");
+      if (!rules.number) missing.push("1 chữ số");
+      if (!rules.special) missing.push("1 ký tự đặc biệt");
+      toast.error(`Mật khẩu mới chưa đạt yêu cầu: cần ${missing.join(", ")}.`);
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast.error("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
       return;
     }
     try {
-      await updateMe({
-        password: newPassword
-      }).unwrap();
-      toast.success("Password updated successfully!");
+      await changePassword({ currentPassword, newPassword }).unwrap();
+      toast.success(
+        "Đã gửi email xác minh đổi mật khẩu. Vui lòng kiểm tra hộp thư và nhấn vào liên kết để hoàn tất."
+      );
       setNewPassword("");
       setConfirmPassword("");
       setCurrentPassword("");
     } catch (error) {
-      const err = error as ErrorForm;
-      toast.error(err?.data?.data?.message || "Failed to update password.");
+      const err = error as ErrorForm & { data?: { message?: string } };
+      toast.error(
+        err?.data?.message ||
+          err?.data?.data?.message ||
+          "Đổi mật khẩu thất bại."
+      );
     }
   };
 
@@ -128,34 +169,46 @@ export default function AccountSettingsPage() {
           <CardBody className="p-6 md:p-8 space-y-6">
             <Input
               startContent={<Lock size={18} />}
+              endContent={eyeBtn(showCurrent, () => setShowCurrent((p) => !p))}
               label="Current password"
-              type="password"
+              type={showCurrent ? "text" : "password"}
               variant="bordered"
               value={currentPassword}
               onValueChange={setCurrentPassword}
             />
 
             <Input
+              startContent={<Lock size={18} />}
+              endContent={eyeBtn(showNew, () => setShowNew((p) => !p))}
               label="New password"
-              type="password"
+              type={showNew ? "text" : "password"}
               variant="bordered"
               value={newPassword}
               onValueChange={setNewPassword}
+              description="Tối thiểu 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
             />
 
             <Input
+              startContent={<Lock size={18} />}
+              endContent={eyeBtn(showConfirm, () => setShowConfirm((p) => !p))}
               label="Confirm new password"
-              type="password"
+              type={showConfirm ? "text" : "password"}
               variant="bordered"
               value={confirmPassword}
               onValueChange={setConfirmPassword}
+              isInvalid={confirmPassword.length > 0 && confirmPassword !== newPassword}
+              errorMessage={
+                confirmPassword.length > 0 && confirmPassword !== newPassword
+                  ? "Mật khẩu xác nhận không khớp"
+                  : undefined
+              }
             />
 
             <div className="flex justify-end">
               <Button
                 className="bg-[#00FF41] text-[#071739] font-[900] rounded-xl px-6"
                 onPress={handle_update_password}
-                isLoading={isUpdatingMe}
+                isLoading={isChangingPassword}
               >
                 Update password
               </Button>

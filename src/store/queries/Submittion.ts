@@ -1,4 +1,4 @@
-import { Runtime, RuntimeResponse, SubmissionResponse, SubmitResponseV2, SubmissionListResponse } from "@/types";
+import { Runtime, RuntimeResponse, SubmissionResponse, SubmitResponseV2, SubmissionListResponse, SubmissionDetailResponse } from "@/types";
 import { baseApi } from "../base";
 import { RuntimeEndpoint, SubmittionEndPoint } from "@/constants/endpoints";
 
@@ -12,25 +12,44 @@ export const SubmitionApi = baseApi.injectEndpoints({
   }),
   invalidatesTags: ["submittion", "ProblemDetail"],
 }),
-getSubmission: builder.query<SubmitResponseV2, {submissionId:string}>({
-    query: ({submissionId}) => ({
-      url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
-      method: "GET",
+    getSubmission: builder.query<SubmissionResponse, {submissionId:string}>({
+        query: ({submissionId}) => ({
+          url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}",submissionId),
+          method: "GET",
+        }),
+        async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+          try {
+            await queryFulfilled;
+            // Kích hoạt rtk-query chọc API list tự động refetch lại mọi lần GET_SUBMITTION hoàn thành
+            dispatch(baseApi.util.invalidateTags(["ProblemDetail"]));
+          } catch (e) {
+            // silently ignore error map
+          }
+        },
+      }),
+    getSubmissionDetail: builder.query<SubmissionDetailResponse, string>({
+      query: (submissionId) => ({
+        url: SubmittionEndPoint.GET_SUBMITTION.replace("{submissionId}", submissionId),
+        method: "GET",
+      }),
+      providesTags: ["submittion"],
     }),
-    async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-      try {
-        await queryFulfilled;
-        // Kích hoạt rtk-query chọc API list tự động refetch lại mọi lần GET_SUBMITTION hoàn thành
-        dispatch(baseApi.util.invalidateTags(["ProblemDetail"]));
-      } catch (e) {
-        // silently ignore error map
-      }
-    },
-  }),
-getSubmissionListByProblem: builder.query<SubmissionListResponse, string>({
-  query: (problemId) => ({
+getSubmissionListByProblem: builder.query<SubmissionListResponse, { 
+  problemId: string; 
+  page?: number; 
+  pageSize?: number;
+  verdictCode?: string;
+  language?: string;
+}>({
+  query: ({ problemId, page = 1, pageSize = 10, verdictCode, language }) => ({
     url: SubmittionEndPoint.GET_SUBMISSIONS_LIST_BY_PROBLEM.replace("{problemId}", problemId),
     method: "GET",
+    params: { 
+      page, 
+      pageSize,
+      verdictCode: verdictCode === "Status" ? undefined : verdictCode,
+      language: language === "Language" ? undefined : language,
+    },
   }),
   providesTags: ["ProblemDetail"],
 }),
@@ -54,6 +73,7 @@ getRuntimeList: builder.query<RuntimeResponse, void>({
 
 export const {
   useGetSubmissionQuery,
+  useGetSubmissionDetailQuery,
   usePostSubmissionMutation,
   useGetRuntimeListQuery,
   useGetRuntimeDetailQuery,

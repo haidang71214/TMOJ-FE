@@ -29,9 +29,9 @@ export const ADMIN_TR_HOVER = "hover:bg-white/[0.03] transition-colors last:bord
 export const ADMIN_THEAD_BG = "bg-[#1E2B42]";
 
 // Page header helpers
-export const ADMIN_H1 = "text-3xl font-black tracking-tight text-white";
-export const ADMIN_SUBTITLE = "text-xs font-semibold uppercase tracking-widest text-white/35 mt-1";
-export const ADMIN_PAGE_WRAPPER = "min-h-full p-6 md:p-8 space-y-8 text-white";
+export const ADMIN_H1 = "text-3xl font-black tracking-tight text-slate-800 dark:text-white";
+export const ADMIN_SUBTITLE = "text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-white/35 mt-1";
+export const ADMIN_PAGE_WRAPPER = "min-h-full p-6 md:p-8 space-y-8 text-slate-800 dark:text-white";
 
 // Input search bar style for admin
 export const adminInputClass = {

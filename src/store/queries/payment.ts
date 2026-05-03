@@ -2,11 +2,15 @@ import { PaymentEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
 import {
   ConversionRateResponse,
+  CreatePayOsPaymentRequest,
+  CreatePayOsPaymentResponse,
   CreateVNPayPaymentRequest,
   CreateVNPayPaymentResponse,
   PaymentHistoryResponse,
   PaymentResponse,
-  VNPayCallbackResponse
+  VNPayCallbackResponse,
+  VerifyPayOsRequest,
+  VerifyPayOsResponse,
 } from "@/types";
 
 export const paymentApi = baseApi.injectEndpoints({
@@ -19,6 +23,22 @@ export const paymentApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ["Payment"],
+    }),
+    createPayOsPayment: builder.mutation<CreatePayOsPaymentResponse, CreatePayOsPaymentRequest>({
+      query: (body) => ({
+        url: PaymentEndpoint.PAYOS_CREATE,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Payment"],
+    }),
+    verifyPayOsPayment: builder.mutation<VerifyPayOsResponse, VerifyPayOsRequest>({
+      query: (body) => ({
+        url: PaymentEndpoint.PAYOS_VERIFY,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Payment", "Wallet"],
     }),
     getVNPayCallback: builder.query<VNPayCallbackResponse, { vnp_TxnRef: string; vnp_ResponseCode: string }>({
       query: (params) => ({
@@ -70,6 +90,8 @@ export const paymentApi = baseApi.injectEndpoints({
 
 export const {
   useCreateVNPayPaymentMutation,
+  useCreatePayOsPaymentMutation,
+  useVerifyPayOsPaymentMutation,
   useGetVNPayCallbackQuery,
   useGetVNPayReturnQuery,
   useGetPaymentDetailQuery,

@@ -1,240 +1,550 @@
 "use client";
+export const dynamic = "force-dynamic";
 
-import { useRouter, useParams, usePathname } from "next/navigation";
-import { 
-  FileText, AlertTriangle, FileDown, Clock, Search,
-  Check, Hash, BookOpen, Tag, Code, PenTool, MonitorPlay,
-  Download, Printer, ChevronRight, Share, ZoomIn, ZoomOut,
-  CheckCircle2
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import {
+  AlignLeft,
+  BookOpen,
+  Lightbulb,
+  Send,
+  AlertCircle,
+  XCircle,
+  Zap,
+  Maximize2,
+  Minimize2,
+  ChevronLeft,
+  ChevronRight,
+  TriangleAlert,
+  FlaskConical,
+  CheckSquare,
+  Clock,
+  Database,
 } from "lucide-react";
-import { 
-  Button, Card, CardBody, Divider, Chip
-} from "@heroui/react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Skeleton, Chip, Divider, Progress, Button } from "@heroui/react";
+import SolutionSubmittion from "./Solutions/SolutionSubmittion";
+import DescriptionTab from "./Description/page";
+import AiDebugAssistant from "@/app/components/AiDebugAssistant";
+import { useGetSubmissionQuery } from "@/store/queries/Submittion";
+import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
+import { useGetTestsetSamplesQuery } from "@/store/queries/problem";
+import { VerdictCode, Problem } from "@/types";
+import SubmissionsTab from "../../ProblemDetail/[problemContestId]/Submissions";
 
-export default function ProblemInContestPage() {
-  const router = useRouter();
+// ── Tab config ────────────────────────────────────────────────────────────
+const LEFT_TABS = [
+  { key: "description", tKey: "problem_workspace.description", defaultVi: "Mô tả", defaultEn: "Description", Icon: AlignLeft },
+  { key: "submissions", tKey: "problem_workspace.submissions", defaultVi: "Lịch sử nộp", defaultEn: "Submissions", Icon: Send },
+] as const;
+
+type LeftTabKey = (typeof LEFT_TABS)[number]["key"];
+
+// ── Right bottom tabs ─────────────────────────────────────────────────────
+const BOTTOM_TABS = [
+  { key: "testcase", tKey: "problem_workspace.testcase", defaultVi: "Bộ Test", defaultEn: "Testcase", Icon: FlaskConical },
+  { key: "result", tKey: "problem_workspace.test_result", defaultVi: "Kết quả", defaultEn: "Test Result", Icon: CheckSquare },
+] as const;
+
+type BottomTabKey = (typeof BOTTOM_TABS)[number]["key"];
+
+// ── Resizable hook ────────────────────────────────────────────────────────
+function useResize(
+  initial: number,
+  min: number,
+  max: number,
+  direction: "horizontal" | "vertical"
+) {
+  const [size, setSize] = useState(initial);
+  const dragging = useRef(false);
+  const startPos = useRef(0);
+  const startSize = useRef(initial);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      dragging.current = true;
+      startPos.current = direction === "horizontal" ? e.clientX : e.clientY;
+      startSize.current = size;
+
+      const onMove = (ev: MouseEvent) => {
+        if (!dragging.current) return;
+        const delta =
+          direction === "horizontal"
+            ? ev.clientX - startPos.current
+            : ev.clientY - startPos.current;
+        setSize(Math.min(max, Math.max(min, startSize.current + delta)));
+      };
+      const onUp = () => {
+        dragging.current = false;
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [direction, max, min, size]
+  );
+
+  return { size, onMouseDown };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+export default function ProblemDetailsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const contestId = params.id as string;
   const problemId = params.ProblemInContest as string;
+  const contestProblemId = searchParams.get("contestProblemId") as string;
+  const { t, language } = useTranslation();
+
+  const { data: problemResponse } = useGetDetailProblemPublicQuery({ id: problemId });
+  const problem = problemResponse as Problem | undefined;
+  const primaryTestsetId = problem?.primaryTestsetId;
+
+  const { data: samplesResponse, isLoading: isLoadingSamples } = useGetTestsetSamplesQuery(
+    { problemId, testsetId: primaryTestsetId! },
+    { skip: !problemId || !primaryTestsetId }
+  );
+  console.log("problem",problemResponse);
+  
+  console.log("aaaaaaaaaaaaaaaaaaaa",samplesResponse);
+  const samples = samplesResponse || [];
+
+  const [activeLeftTab, setActiveLeftTab] = useState<LeftTabKey>("description");
+  const [activeBottomTab, setActiveBottomTab] = useState<BottomTabKey>("testcase");
+  const [activeCase, setActiveCase] = useState(0);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [submissionType, setSubmissionType] = useState<"run" | "submit" | null>(null);
+
+  // Layout states
+  const [isLeftVisible, setIsLeftVisible] = useState(true);
+  const [isEditorMaximized, setIsEditorMaximized] = useState(false);
+  const [isResultMaximized, setIsResultMaximized] = useState(false);
+
+  const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
+    { submissionId: submissionId! },
+    { skip: !submissionId }
+  );
+  console.log(submissionData)
+  // Horizontal split: left panel width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { size: leftWidth, onMouseDown: onHDrag } = useResize(
+    520,
+    260,
+    900,
+    "horizontal"
+  );
+
+  // Vertical split in right panel: editor height (top portion)
+  const rightPanelRef = useRef<HTMLDivElement>(null);
+  const { size: editorHeight, onMouseDown: onVDrag } = useResize(
+    500,
+    160,
+    700,
+    "vertical"
+  );
+
+  // Reset tab when navigating to a new problem
+  useEffect(() => {
+    setActiveLeftTab("description");
+  }, [problemId]);
+
+  const renderLeftContent = () => {
+    switch (activeLeftTab) {
+      case "description":
+        return <DescriptionTab />;
+      case "submissions":
+        return (
+          <SubmissionsTab
+            problemId={problemId}
+          />
+        );
+    }
+  };
 
   return (
-    <div className="w-full text-slate-800 dark:text-slate-200 pb-20">
-
-      {/* PROBLEM SPECIFIC SUB-HEADER */}
-      <div className="bg-white dark:bg-[#1e293b]/70 border-b border-slate-200 dark:border-slate-800 py-3 sm:py-4 shadow-sm relative z-10 transition-all">
-        <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">
-            A: Area Query
-          </h1>
-          <Button 
-            variant="light" 
-            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium px-4 h-9 w-fit shrink-0"
-            startContent={<FileDown className="w-4 h-4" />}
+    <div className="flex flex-col h-screen bg-[#EBEBEB] dark:bg-[#101828] overflow-hidden font-sans text-[#262626] dark:text-[#F9FAFB] transition-colors duration-300">
+      {/* ── MAIN AREA ───────────────────────────────────────────── */}
+      <main
+        ref={containerRef}
+        className="flex flex-1 overflow-hidden p-2 gap-2"
+      >
+        {/* ═══ PANEL LEFT ═══════════════════════════════════════ */}
+        {isLeftVisible && (
+          <div
+            style={{ width: leftWidth, minWidth: 260, maxWidth: 900 }}
+            className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0 animate-fade-in-right"
           >
-            Xem dạng PDF
-          </Button>
-        </div>
-      </div>
-
-      <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        
-        {/* ALERT BANNER */}
-        <div className="mb-6 bg-orange-50 dark:bg-[#F26F21]/10 border border-orange-200 dark:border-[#F26F21]/30 rounded-lg p-3 sm:px-4 flex items-start sm:items-center gap-3 text-[14.5px] text-slate-700 dark:text-slate-300">
-          <AlertTriangle className="w-5 h-5 text-[#F26F21] dark:text-[#F26F21] shrink-0 mt-0.5 sm:mt-0" />
-          <p>
-            If the problem statement is not displaying correctly, you can download it here:{" "}
-            <a href="#" className="font-medium text-[#F26F21] hover:underline underline-offset-2">Problem Statement</a>
-          </p>
-        </div>
-
-        {/* MAIN LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT: PDF VIEWER MOCK */}
-          <div className="lg:col-span-9 w-full">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm bg-[#323639] flex flex-col h-[800px]">
-              
-              {/* PDF TOOLBAR */}
-              <div className="bg-[#323639] border-b border-[#202224] h-12 px-4 flex items-center justify-between text-slate-300 selection:bg-transparent">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
-                    <span className="text-[13px] font-medium tracking-wide">2023regional</span>
+            {/* Tab bar */}
+            <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
+              {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
+                const isActive = activeLeftTab === key;
+                const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
+                return (
+                  <div key={key} className="animate-fade-in-right" style={{ animationFillMode: 'both', animationDelay: `${100 + index * 50}ms` }}>
+                    <button
+                      onClick={() => setActiveLeftTab(key)}
+                      className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+                      ${isActive
+                          ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                        }
+                      after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
+                    >
+                      <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                      {label}
+                    </button>
                   </div>
-                </div>
-                
-                <div className="flex flex-1 justify-center items-center gap-4">
-                  <span className="text-[13px]">1 / 4</span>
-                  <div className="h-4 w-[1px] bg-slate-600"></div>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1.5 hover:bg-white/10 rounded transition-colors"><ZoomOut className="w-[15px] h-[15px]" /></button>
-                    <span className="text-[13px] w-12 text-center">95%</span>
-                    <button className="p-1.5 hover:bg-white/10 rounded transition-colors"><ZoomIn className="w-[15px] h-[15px]" /></button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button className="p-2 hover:bg-white/10 rounded transition-colors"><Download className="w-[17px] h-[17px]" /></button>
-                  <button className="p-2 hover:bg-white/10 rounded transition-colors"><Printer className="w-[17px] h-[17px]" /></button>
-                </div>
-              </div>
-
-              {/* PDF CONTENT AREA */}
-              <div className="flex-1 overflow-y-auto w-full flex justify-center py-6 styled-scrollbar relative">
-                
-                {/* Thumbnails Sidebar (decorative) */}
-                <div className="absolute left-6 top-6 flex flex-col gap-4 opacity-70 hidden md:flex">
-                  <div className="w-24 h-[135px] bg-white border-2 border-[#F26F21] shadow flex items-center justify-center p-2 rounded-sm cursor-pointer">
-                    <div className="w-full h-full border border-slate-100 bg-slate-50 flex items-start justify-center p-1">
-                      <div className="w-10 h-1 bg-[#F26F21]/30 rounded-full mt-2"></div>
-                    </div>
-                  </div>
-                  <div className="w-24 h-[135px] bg-white opacity-50 shadow flex items-center justify-center p-2 rounded-sm cursor-pointer hover:opacity-100 transition-opacity">
-                    <div className="w-full h-full border border-slate-100 bg-slate-50"></div>
-                  </div>
-                </div>
-
-                {/* Main PDF Page */}
-                <div className="bg-white w-full max-w-[800px] min-h-[1000px] shadow-lg rounded-sm p-12 md:p-20 text-slate-900 pb-32">
-                  <div className="text-center space-y-4 mb-10">
-                    <h2 className="font-serif text-2xl md:text-3xl font-bold border-b border-black pb-4">
-                      <span className="text-[#F26F21]">■</span> ICPC Asia Pacific - Hue City Regional Contest <span className="text-[#F26F21]">■</span>
-                      <br/>
-                      <span className="text-lg font-medium tracking-wide block mt-2">Hue University of Sciences – 8 December 2023</span>
-                    </h2>
-                    
-                    <div className="pt-8">
-                      <h3 className="text-[28px] font-bold">Problem A<br/>Area Query</h3>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6 text-[15.5px] leading-relaxed font-serif">
-                    <p>
-                      You are given a convex polygon with <span className="font-mono italic text-[14px]">n</span> vertices on the Cartesian plane. Its vertices are numbered from 1 to <span className="font-mono italic text-[14px]">n</span> in clockwise order. The <span className="font-mono italic text-[14px]">i</span>-th vertex has coordinates (<span className="font-mono italic text-[14px]">x_i, y_i</span>).
-                    </p>
-                    <p>
-                      At the beginning, no diagonals of this polygon exist.
-                    </p>
-                    <p>
-                      Your task is to process <span className="font-mono italic text-[14px]">q</span> queries of three following types:
-                    </p>
-
-                    <ul className="pl-6 space-y-4 list-disc marker:text-slate-400">
-                      <li>
-                        <span className="font-mono bg-slate-100 px-1 py-0.5 rounded text-[14px]">A i j</span>: draw a new diagonal connecting the <span className="font-mono italic text-[14px]">i</span>-th vertex to the <span className="font-mono italic text-[14px]">j</span>-th vertex. It is guaranteed that the <span className="font-mono italic text-[14px]">i</span>-th vertex is not adjacent to the <span className="font-mono italic text-[14px]">j</span>-th vertex, the diagonal connecting these two vertices does not exist right before this query, and this diagonal does not intersect with any existing diagonals except at endpoints.
-                      </li>
-                      <li>
-                        <span className="font-mono bg-slate-100 px-1 py-0.5 rounded text-[14px]">R i j</span>: erase the diagonal connecting the <span className="font-mono italic text-[14px]">i</span>-th vertex to the <span className="font-mono italic text-[14px]">j</span>-th vertex. It is guaranteed that this diagonal exists right before this query.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT SIDEBAR */}
-          <div className="lg:col-span-3 space-y-5">
-            
-            {/* Submit Action */}
-            <Card className="shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#1e293b]/50">
-              <CardBody className="p-4 space-y-3">
-                <Button 
-                  className="w-full bg-[#F26F21] hover:bg-[#d95b16] text-white font-medium shadow-md shadow-orange-500/20 text-[15px] h-11"
-                  radius="sm"
-                  onClick={() => router.push(`/Contest/${contestId}/Problems/${problemId}/Submit`)}
-                >
-                  Submit Code
-                </Button>
-                <div className="space-y-1">
-                  <a href="#" className="flex items-center text-[#185adb] dark:text-sky-400 hover:underline px-2 py-1.5 text-[14.5px] font-medium transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-                    <BookOpen className="w-[18px] h-[18px] mr-2.5 opacity-70" />
-                    Submissions
-                  </a>
-                  <a href="#" className="flex items-center text-[#185adb] dark:text-sky-400 hover:underline px-2 py-1.5 text-[14.5px] font-medium transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-                    <CheckCircle2 className="w-[18px] h-[18px] mr-2.5 opacity-70" />
-                    Best Submission
-                  </a>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* Meta Info */}
-            <Card className="shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#1e293b]/50">
-              <CardBody className="p-4">
-                <ul className="space-y-4 text-[14px] text-slate-700 dark:text-slate-300">
-                  <li className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">Score:</span> 
-                    <span>2.00</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">Time Limit:</span> 
-                    <span>5.0s</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <MonitorPlay className="w-4 h-4 text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">Memory Limit:</span> 
-                    <span>512M</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FileDown className="w-4 h-4 text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">Input:</span> 
-                    <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[13px]">stdin</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Share className="w-4 h-4 text-slate-400" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">Output:</span> 
-                    <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[13px]">stdout</span>
-                  </li>
-                </ul>
-              </CardBody>
-            </Card>
-
-            {/* Accordion / Info blocks */}
-            <div className="space-y-4 pt-1 text-[14.5px]">
-              
-              {/* Nguồn bài */}
-              <div className="border-l-2 border-[#F26F21] pl-3 py-1">
-                <h4 className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100 mb-1">
-                  <PenTool className="w-[18px] h-[18px] text-slate-400" />
-                  Source:
-                </h4>
-                <p className="text-slate-600 dark:text-slate-400 ml-6 hover:text-[#F26F21] dark:hover:text-[#F26F21] cursor-pointer transition-colors leading-relaxed">
-                  ICPC 2023 Regional
-                </p>
-              </div>
-
-              {/* Dạng bài */}
-              <div className="border-l-2 border-slate-300 dark:border-slate-700 hover:border-[#F26F21] dark:hover:border-[#F26F21] transition-colors pl-3 py-1 group">
-                <h4 className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100 group-hover:text-[#F26F21] transition-colors cursor-pointer">
-                  <ChevronRight className="w-[18px] h-[18px] text-slate-400 group-hover:text-[#F26F21] transition-colors" />
-                  Problem Type
-                </h4>
-              </div>
-
-              {/* Ngôn ngữ cho phép */}
-              <div className="border-l-2 border-slate-300 dark:border-slate-700 pl-3 py-1">
-                <h4 className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100 mb-2 cursor-pointer transition-colors group">
-                  <ChevronRight className="w-[18px] h-[18px] text-slate-400 transform rotate-90 transition-transform" />
-                  Allowed Languages
-                </h4>
-                <div className="ml-6 flex flex-wrap gap-1.5">
-                  {["C", "C++", "Go", "Java", "Kotlin", "Pascal", "PyPy", "Python", "Rust", "Scratch"].map(lang => (
-                    <span key={lang} className="text-[12px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono tracking-tight hover:border-[#F26F21] dark:hover:border-[#F26F21] cursor-default transition-colors">
-                      {lang}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
+                );
+              })}
             </div>
 
+            {/* Content */}
+            <div className="flex-1 overflow-hidden">{renderLeftContent()}</div>
           </div>
-          
+        )}
+
+        {/* ── HORIZONTAL DRAG HANDLE ── */}
+        <div className="relative flex flex-col items-center">
+          {/* Toggle Left Sidebar Button */}
+          <button
+            onClick={() => setIsLeftVisible(!isLeftVisible)}
+            className="absolute top-1/2 -translate-y-1/2 -left-3 z-10 w-6 h-12 bg-white dark:bg-[#1C2737] border border-gray-200 dark:border-[#334155] rounded-full flex items-center justify-center shadow-md hover:text-[#FF5C00] transition-colors"
+          >
+            {isLeftVisible ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+          </button>
+
+          <div
+            onMouseDown={onHDrag}
+            className={`w-1.5 h-full shrink-0 cursor-col-resize group flex items-center justify-center ${!isLeftVisible ? 'pointer-events-none opacity-0' : ''}`}
+          >
+            <div className="w-1 h-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+          </div>
         </div>
-      </div>
+
+        {/* ═══ PANEL RIGHT ══════════════════════════════════════ */}
+        <div
+          ref={rightPanelRef}
+          className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
+        >
+          {/* ── RIGHT-TOP: CODE EDITOR ── */}
+          <div
+            className={`relative flex flex-col overflow-hidden rounded-xl transition-all duration-300 ${isResultMaximized ? 'h-0 opacity-0 pointer-events-none' : ''}`}
+            style={{ height: isResultMaximized ? 0 : (isEditorMaximized ? '100%' : editorHeight) }}
+          >
+            <SolutionSubmittion
+              editorHeight={isEditorMaximized ? "100%" : (isResultMaximized ? 0 : editorHeight)}
+              problemId={problemId}
+              contestId={contestId}
+              contestProblemId={contestProblemId}
+              onSubmitSuccess={() => setActiveLeftTab("submissions")}
+              onSubmissionIdChange={(id: string | null, type: "run" | "submit") => {
+                setSubmissionId(id);
+                setSubmissionType(type);
+                setActiveBottomTab("result");
+              }}
+              isMaximized={isEditorMaximized}
+              onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
+            />
+          </div>
+
+          {/* ── VERTICAL DRAG HANDLE ── */}
+          {!isEditorMaximized && !isResultMaximized && (
+            <div
+              onMouseDown={onVDrag}
+              className="h-1.5 shrink-0 cursor-row-resize group flex items-center justify-center"
+            >
+              <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+            </div>
+          )}
+
+          {/* ── RIGHT-BOTTOM: TESTCASE ── */}
+          <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 transition-all duration-300 ${isEditorMaximized ? 'h-0 flex-none opacity-0 pointer-events-none' : 'flex-1'} ${isResultMaximized ? 'h-full' : ''}`}>
+              {/* Bottom Tab bar */}
+              <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
+                {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
+                  const isActive = activeBottomTab === key;
+                  const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
+                  return (
+                    <div key={key} className="animate-fade-in-up" style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50}ms` }}>
+                      <button
+                        onClick={() => setActiveBottomTab(key)}
+                        className={`relative flex items-center gap-2 px-4 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump
+                          ${isActive
+                            ? "bg-white dark:bg-[#1C2737] text-[#FF5C00] dark:text-[#E3C39D] shadow-md border border-orange-100 dark:border-white/10 -translate-y-[2px]"
+                            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
+                          }
+                          after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 hover:after:w-[70%] after:bg-[#FF5C00] after:transition-all after:duration-300 after:rounded-full`}
+                      >
+                        <Icon size={14} className={isActive ? "text-[#FF5C00] dark:text-[#E3C39D]" : "opacity-70 group-hover:opacity-100"} />
+                        {label}
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Maximize Results Button */}
+                <div className="ml-auto pr-4">
+                  <button
+                    onClick={() => setIsResultMaximized(!isResultMaximized)}
+                    className="p-1.5 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-500 hover:text-[#FF5C00] transition-all"
+                    title={isResultMaximized ? "Restore" : "Maximize Results"}
+                  >
+                    {isResultMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Testcase content */}
+              <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4">
+                {activeBottomTab === "testcase" ? (
+                  <div className="space-y-4">
+                    {isLoadingSamples ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-8 w-48 rounded-lg" />
+                        <Skeleton className="h-24 w-full rounded-xl" />
+                        <Skeleton className="h-24 w-full rounded-xl" />
+                      </div>
+                    ) : samples.length > 0 ? (
+                      <>
+                        {/* Case selector content */}
+                        <div className="flex items-center gap-2">
+                          {samples.map((_: any, i: number) => (
+                            <button
+                              key={i}
+                              onClick={() => setActiveCase(i)}
+                              className={`px-3.5 py-1.5 rounded-lg text-[12px] font-black transition-all ${activeCase === i
+                                ? "bg-gray-900 dark:bg-[#E3C39D] text-white dark:text-[#101828] shadow-md"
+                                : "bg-gray-100 dark:bg-[#101828] text-gray-500 dark:text-[#667085] border dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#0D1B2A]"
+                                }`}
+                            >
+                              Case {i + 1}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Input fields */}
+                        <div>
+                          <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                            Input
+                          </p>
+                          <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                            <pre className="whitespace-pre-wrap">{samples[activeCase]?.input || "N/A"}</pre>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-[11px] font-black text-gray-400 dark:text-[#667085] mb-1.5 uppercase tracking-wider">
+                            Expected Output
+                          </p>
+                          <div className="w-full bg-gray-50 dark:bg-[#0D1B2A] border dark:border-[#334155] rounded-xl px-4 py-3 font-mono text-[13px] text-[#262626] dark:text-[#CDD5DB] focus-within:border-blue-400 dark:focus-within:border-[#E3C39D] transition-colors">
+                            <pre className="whitespace-pre-wrap">{samples[activeCase]?.output || "N/A"}</pre>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                        <TriangleAlert size={48} className="opacity-20 mb-4" />
+                        <p className="text-xs font-black uppercase tracking-widest">No samples available</p>
+                      </div>
+                    )}
+                  </div>
+                ) : submissionId ? (
+                  /* ACTUAL RESULT VIEW */
+                  <div className="space-y-6">
+                    {isLoadingResult ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-10 w-48 rounded-xl" />
+                        <div className="grid grid-cols-2 gap-4">
+                          <Skeleton className="h-20 w-full rounded-xl" />
+                          <Skeleton className="h-20 w-full rounded-xl" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="animate-fade-in">
+                        {(() => {
+                          const data = submissionData?.data as any;
+                          const results = data?.results || [];
+                          const isCE = data?.verdictCode?.toLowerCase() === "ce";
+                          const totalTestcases = isCE ? 0 : results.length;
+                          const passedTestcases = isCE ? 0 : results.filter((r: any) =>
+                            r.statusCode === "ac" || (r.actualOutput?.trim() === r.expectedOutput?.trim())
+                          ).length;
+
+                          const firstFailedResult = data?.failed?.[0] || results.find((r: any) => r.statusCode !== "ac");
+
+                          const getVerdictLabel = (code: string) => {
+                            const normalized = code.toLowerCase();
+                            const labels: Record<string, string> = {
+                              "ac": "Accepted",
+                              "wa": "Wrong Answer",
+                              "tle": "Time Limit Exceeded",
+                              "mle": "Memory Limit Exceeded",
+                              "rte": "Runtime Error",
+                              "re": "Runtime Error",
+                              "ce": "Compile Error",
+                              "ie": "Internal Error",
+                              "ir": "Invalid Return",
+                              "ole": "Output Limit Exceeded",
+                            };
+                            return labels[normalized] || code.toUpperCase();
+                          };
+
+                          return (
+                            <>
+                              {/* Result Header */}
+                              <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                  <h2 className={`text-2xl font-black italic uppercase tracking-tighter ${data?.verdictCode === VerdictCode.AC ? "text-emerald-500" :
+                                    data?.statusCode !== "done" ? "text-blue-500" : "text-rose-500"
+                                    }`}>
+                                    {data?.verdictCode ? getVerdictLabel(data.verdictCode) : "PENDING"}
+                                  </h2>
+                                  <Chip size="sm" variant="flat" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-white/5">
+                                    Runtime: {data?.timeMs || 0}ms
+                                  </Chip>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                  <Clock size={12} />
+                                  Submitted {data?.createdAt ? new Date(data.createdAt).toLocaleTimeString() : "just now"}
+                                </div>
+                              </div>
+
+                              {/* Stats Cards */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                  <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                    <Clock size={14} />
+                                    Total Runtime
+                                  </div>
+                                  <div className="text-xl font-black">
+                                    {data?.timeMs || 0} ms
+                                  </div>
+                                  <Progress
+                                    size="sm"
+                                    value={Math.min(((data?.timeMs || 0) / 2000) * 100, 100)}
+                                    color="primary"
+                                    className="mt-2"
+                                  />
+                                </div>
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border dark:border-white/5">
+                                  <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2">
+                                    <CheckSquare size={14} />
+                                    Testcases Passed
+                                  </div>
+                                  <div className="text-xl font-black">
+                                    {passedTestcases} / {totalTestcases}
+                                  </div>
+                                  <Progress
+                                    size="sm"
+                                    value={(passedTestcases / (totalTestcases || 1)) * 100}
+                                    color="success"
+                                    className="mt-2"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Compile Error Detail */}
+                              {data?.verdictCode === VerdictCode.CE && (
+                                <div className="space-y-4">
+                                  <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                    <div className="flex items-center gap-2 text-amber-500 font-black text-xs uppercase tracking-widest">
+                                      <TriangleAlert size={16} />
+                                      Compilation Error
+                                    </div>
+                                    <pre className="p-4 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed text-rose-400">
+                                      {data.compile?.stderr || data.compile?.stdout || "No error details available."}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Failed Testcase Detail (if any) */}
+                              {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
+                                <div className="space-y-4">
+                                  <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
+                                    <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
+                                      <AlertCircle size={16} />
+                                      Failed Testcase Detail
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                      {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
+                                        <div>
+                                          <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Error Message</p>
+                                          <pre className="p-3 bg-white dark:bg-black/30 rounded-xl text-xs font-mono border dark:border-white/5 whitespace-pre-wrap leading-relaxed">
+                                            {firstFailedResult?.message || firstFailedResult?.checkerMessage || "Wrong Answer: Output does not match expected output."}
+                                          </pre>
+                                        </div>
+                                      ) : (
+                                        <div className="py-2 text-slate-400 italic text-xs uppercase tracking-widest font-bold">
+                                          No detail available for this failure.
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
+                              {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
+                                <div className="mb-6">
+                                  <AiDebugAssistant
+                                    submissionId={submissionId!}
+                                    verdict={getVerdictLabel(data?.verdictCode)}
+                                    testcase={firstFailedResult ? {
+                                      input: firstFailedResult.input || "Check message",
+                                      expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
+                                      actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
+                                    } : undefined}
+                                  />
+                                </div>
+                              )}
+
+                              {data?.verdictCode === VerdictCode.AC && submissionType === "submit" && (
+                                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 animate-bounce">
+                                    <CheckSquare size={40} />
+                                  </div>
+                                  <h3 className="text-xl font-black uppercase tracking-tighter">Great Job!</h3>
+                                  <p className="text-sm text-slate-400">All testcases passed successfully.</p>
+                                  
+                                  <div className="mt-6 flex flex-col items-center gap-3">
+                                    <p className="text-emerald-500 font-black animate-pulse uppercase tracking-tighter">
+                                      Resolve next problem!
+                                    </p>
+                                    <Button 
+                                      variant="shadow"
+                                      color="success"
+                                      startContent={<ChevronLeft size={18} />}
+                                      onPress={() => window.location.href = `/Contest/${contestId}`}
+                                      className="font-black uppercase text-[12px] tracking-widest px-8 rounded-2xl"
+                                    >
+                                      Back to Contest
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Test Result placeholder */
+                  <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                    <CheckSquare size={36} strokeWidth={1.5} />
+                    <p className="text-[12px] font-bold uppercase tracking-widest">
+                      Run your code to see results
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+        </div>
+      </main>
     </div>
   );
 }

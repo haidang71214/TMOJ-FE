@@ -33,7 +33,7 @@ import { useDisclosure } from "@heroui/react";
 import CreateStudyPlanModal from "./CreateStudyPlanModal";
 
 import { useTranslation } from "@/hooks/useTranslation";
-import { useGetStudyPlansQuery } from "@/store/queries/StudyPlan";
+import { useGetStudyPlansQuery, useDeleteStudyPlanMutation } from "@/store/queries/StudyPlan";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { ErrorForm } from "@/types";
 
@@ -68,11 +68,21 @@ export default function StudyPlanListPage() {
     isError,
     error,
     refetch,
-  } = useGetStudyPlansQuery(
-    user?.userId ? { creatorId: user.userId } : undefined,
-    { skip: !user?.userId }
-  );
-  console.log(apiResponse);
+  } = useGetStudyPlansQuery();
+
+  const [deleteStudyPlan] = useDeleteStudyPlanMutation();
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this study plan?")) {
+      try {
+        await deleteStudyPlan(id).unwrap();
+        refetch();
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    }
+  };
+
   // ── Transform API data ─────────────────────────────────────
   const allStudyPlans = useMemo<StudyPlan[]>(() => {
     if (!apiResponse?.data) return [];
@@ -317,14 +327,13 @@ export default function StudyPlanListPage() {
                   <Chip
                     variant="flat"
                     size="sm"
-                    className={`font-black uppercase text-[9px] ${
-                      plan.isUnlocked
+                    className={`font-black uppercase text-[9px] ${plan.isUnlocked
                         ? "bg-blue-500/10 text-blue-500"
                         : "bg-amber-500/10 text-amber-500"
-                    }`}
+                      }`}
                   >
-                    {plan.isUnlocked 
-                      ? (t('common.unlocked') || (language === 'vi' ? "ĐÃ MỞ KHÓA" : "UNLOCKED")) 
+                    {plan.isUnlocked
+                      ? (t('common.unlocked') || (language === 'vi' ? "ĐÃ MỞ KHÓA" : "UNLOCKED"))
                       : (t('common.locked') || (language === 'vi' ? "ĐÃ KHÓA" : "LOCKED"))}
                   </Chip>
                 </TableCell>
@@ -361,7 +370,10 @@ export default function StudyPlanListPage() {
                       size="sm"
                       variant="flat"
                       className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 h-9 w-9"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(plan.id);
+                      }}
                     >
                       <Trash2 size={16} />
                     </Button>

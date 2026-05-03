@@ -1,11 +1,11 @@
-import { ProblemEndPoint, ProblemTemplateEndPoint } from "@/constants/endpoints";
+import { ProblemEndPoint, ProblemTemplateEndPoint, TestsetEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import {  
-  CreateProblemDraftResponse, 
-  ProblemListResponse, 
-  ProblemTestCaseUploadResponse, 
-  ProblemTestsetCreate, 
-  ProblemTestsetResponse, 
+import {
+  CreateProblemDraftResponse,
+  ProblemListResponse,
+  ProblemTestCaseUploadResponse,
+  ProblemTestsetCreate,
+  ProblemTestsetResponse,
   ProblemBankListResponse,
   CreateProblemTemplateRequest,
   CreateProblemTemplateResponse,
@@ -32,6 +32,14 @@ export const problemApi = baseApi.injectEndpoints({
       }),
       providesTags: ["ProblemBank"],
     }),
+    getInPlanProblemList: builder.query<ProblemBankListResponse, { page?: number; pageSize?: number; search?: string; difficulty?: string } | void>({
+      query: (params) => ({
+        url: ProblemEndPoint.GET_LIST_IN_PLAN,
+        method: "GET",
+        params: params || { page: 1, pageSize: 50 },
+      }),
+      providesTags: ["Problem"],
+    }),
     getProblemListPublic: builder.query<ProblemListResponse, void>({
       query: () => ({
         url: ProblemEndPoint.GET_LIST_PROBLEM_PUBLIC,
@@ -55,7 +63,7 @@ export const problemApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Problem"],
     }),
-    createTestSet: builder.mutation<ProblemTestsetResponse,{ id: string; body: ProblemTestsetCreate }>({
+    createTestSet: builder.mutation<ProblemTestsetResponse, { id: string; body: ProblemTestsetCreate }>({
       query: ({ id, body }) => ({
         url: ProblemEndPoint.CREATE_TESTSET_PROBLEM.replace("{id}", id),
         method: "POST",
@@ -63,13 +71,21 @@ export const problemApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Problem"],
     }),
-    createTestCase: builder.mutation<ProblemTestCaseUploadResponse,{ id: string; body: FormData }>({
+    createTestCase: builder.mutation<ProblemTestCaseUploadResponse, { id: string; body: FormData }>({
       query: ({ id, body }) => ({
         url: ProblemEndPoint.CREATE_TESTCASE_PROBLEM.replace("{id}", id),
         method: "POST",
         body,
       }),
       invalidatesTags: ["Problem"],
+    }),
+    getTestsetSamples: builder.query<any, { problemId: string; testsetId: string }>({
+      query: ({ problemId, testsetId }) => ({
+        url: TestsetEndpoint.GET_SAMPLES.replace("{problemId}", problemId).replace("{testsetId}", testsetId),
+        method: "GET",
+      }),
+      transformResponse: (response: any) => response.data.items,
+      providesTags: ["Problem"],
     }),
     updateProblemContent: builder.mutation<any, { problemId: string; body: FormData }>({
       query: ({ problemId, body }) => ({
@@ -158,6 +174,7 @@ export const {
   useUpdateProblemContentMutation,
   useUpdateProblemDifficultyMutation,
   useDownloadProblemStatementMutation,
+  useGetTestsetSamplesQuery,
   useGetProblemListPublicQuery,
   useCreateProblemStudentMutation,
   useDonateProblemMutation,
@@ -167,5 +184,6 @@ export const {
   useUpdateProblemTemplateMutation,
   useCreateVirtualProblemMutation,
   useCreateRemixProblemMutation,
+  useGetInPlanProblemListQuery,
 } = problemApi;
 

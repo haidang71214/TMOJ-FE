@@ -10,7 +10,7 @@ import {
   Input,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
-import {  Search as SearchIcon, Globe } from "lucide-react";
+import { Search as SearchIcon, Globe } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import ThemeToggle from "./ThemeToggle";
 import InformationInNavbar from "./InformationInNavbar";
@@ -19,6 +19,8 @@ import LoginModal from "@/app/Modal/LoginModal";
 import { useModal } from "./ModalProvider";
 import NotificationInNavbar from "./Notification";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import CartInNavbar from "./CartInNavbar";
+import CoinBalanceInNavbar from "./CoinBalanceInNavbar";
 
 export default function NavbarProvider() {
   const router = useRouter();
@@ -26,54 +28,61 @@ export default function NavbarProvider() {
   const { data: user } = useGetUserInformationQuery();
   const { t, language, setLanguage } = useTranslation();
   console.log(user);
-  
+
   const { openModal } = useModal();
 
   const handleLink = (link: string) => router.push(link);
   const AcmeLogo = () => (
-    <div className="relative drop-shadow-[0_2px_4px_rgba(255,98,0,0.4)] transition-transform group-hover:scale-110">
+    <div className="relative drop-shadow-[0_2px_8px_rgba(255,98,0,0.3)] transition-all group-hover:scale-110">
       <svg
-        fill="none"
+        width="32"
         height="32"
         viewBox="0 0 32 32"
-        width="32"
+        fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Curly braces icon - left { and right } */}
+        {/* Cột trụ chính */}
         <path
-          d="M8 6 C6 8, 6 12, 10 14 L10 18 C6 20, 6 24, 8 26"
+          d="M16 6V26M10 26H22"
           stroke="url(#logo-gradient)"
-          strokeWidth="3.5"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        {/* Thanh cân bằng ngang */}
+        <path
+          d="M5 11L16 8L27 11"
+          stroke="url(#logo-gradient)"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {/* Đĩa cân trái */}
         <path
-          d="M24 6 C26 8, 26 12, 22 14 L22 18 C26 20, 26 24, 24 26"
+          d="M5 11L2 19C2 19 3.5 21 6.5 21C9.5 21 11 19 11 19L8 11"
           stroke="url(#logo-gradient)"
-          strokeWidth="3.5"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-
-        {/* Optional: small code snippet line inside for more "code" feel */}
+        {/* Đĩa cân phải */}
         <path
-          d="M12 16 L20 16"
+          d="M27 11L30 19C30 19 28.5 21 25.5 21C22.5 21 21 19 21 19L24 11"
           stroke="url(#logo-gradient)"
-          strokeWidth="2"
+          strokeWidth="1.5"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
-
         <defs>
           <linearGradient
             id="logo-gradient"
-            x1="6"
-            y1="6"
-            x2="26"
+            x1="5"
+            y1="8"
+            x2="27"
             y2="26"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#FF6200" /> {/* cam đậm, neon code vibe */}
-            <stop offset="1" stopColor="#FFB74D" /> {/* cam sáng hơn */}
+            <stop stopColor="#FF6200" />
+            <stop offset="1" stopColor="#FFB74D" />
           </linearGradient>
         </defs>
       </svg>
@@ -90,7 +99,7 @@ export default function NavbarProvider() {
         <NavbarBrand className="max-w-fit mr-2">
           <div
             onClick={() => handleLink("/")}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
           >
             <AcmeLogo />
             <p className="font-black text-xl tracking-tighter text-[#071739] dark:text-white">
@@ -119,7 +128,7 @@ export default function NavbarProvider() {
               link = "/Class";
             }
             if (item === "Ranking") link = "/Ranking";
-            if (item === "Management") { 
+            if (item === "Management") {
               if (user?.role?.toLowerCase() === "teacher") {
                 link = "/Management/Contest";
               } else if (
@@ -128,7 +137,7 @@ export default function NavbarProvider() {
               ) {
                 link = "/Management/Problem";
               } else {
-                return null; 
+                return null;
               }
             }
             if (item === "Coin") link = "/Coin";
@@ -136,19 +145,18 @@ export default function NavbarProvider() {
             const isActive = pathname.startsWith(`/${item}`);
 
             return (
-              <NavbarItem 
+              <NavbarItem
                 key={item}
                 className="animate-fade-in-up"
                 style={{ animationFillMode: "both", animationDelay: `${index * 100}ms` }}
               >
                 <Link
                   onClick={() => handleLink(link)}
-                  style={{marginRight:20}}
-                  className={`font-black text-[16px] cursor-pointer transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-[#ff8904] after:left-1/2 after:-translate-x-1/2 after:-bottom-[20px] hover:after:w-full after:transition-all after:duration-300 ${
-                    isActive
-                      ? "text-[#ff8904] after:w-full"
-                      : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
-                  }`}
+                  style={{ marginRight: 20 }}
+                  className={`font-black text-[16px] cursor-pointer transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[3px] after:bg-[#ff8904] after:left-1/2 after:-translate-x-1/2 after:-bottom-[20px] hover:after:w-full after:transition-all after:duration-300 ${isActive
+                    ? "text-[#ff8904] after:w-full"
+                    : "text-[#4B6382] dark:text-[#A0AEC0] hover:text-[#071739] dark:hover:text-[#ff8904]"
+                    }`}
                 >
                   {t(item.toLowerCase()) || item}
                 </Link>
@@ -176,13 +184,15 @@ export default function NavbarProvider() {
         </NavbarItem>
 
         {user ? (
-          <div className="flex">
-           <InformationInNavbar  />
+          <div className="flex items-center gap-1">
+            <CoinBalanceInNavbar />
+            <CartInNavbar />
+            <InformationInNavbar />
             <NotificationInNavbar />
           </div>
         ) : (
           <div className="flex gap-2">
-            <NavbarItem 
+            <NavbarItem
               className="opacity-0 animate-fade-in-up"
               style={{ animationDelay: "100ms", animationFillMode: "both" }}
             >
@@ -198,7 +208,7 @@ export default function NavbarProvider() {
               </Button>
             </NavbarItem>
 
-            <NavbarItem 
+            <NavbarItem
               className="opacity-0 animate-fade-in-up"
               style={{ animationDelay: "200ms", animationFillMode: "both" }}
             >

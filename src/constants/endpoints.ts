@@ -4,11 +4,15 @@ export const API_LON = "api/v2";
 const authEndpoint = {
   LOGIN: `${API_PREFIX}/Auth/login`,
   GOOGLE_LOGIN: `${API_PREFIX}/auth/google-login`,
-  GITHUB_LOGIN: `${API_PREFIX}/Auth/github-login`,
+  GITHUB_OAUTH: `${API_PREFIX}/Auth/github`,
+  GITHUB_SESSION: `${API_PREFIX}/Auth/github/session`,
   REGISTER: `${API_PREFIX}/Auth/register`,
   LOGOUT: `${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD: `${API_PREFIX}/Auth/forgot-password`,
-  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`
+  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`,
+  CONFIRM_EMAIL: `${API_PREFIX}/Auth/confirm-email`,
+  CONFIRM_PASSWORD_CHANGE: `${API_PREFIX}/Auth/confirm-password-change`,
+  CHANGE_PASSWORD: `${API_PREFIX}/Auth/change-password`,
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,
@@ -56,6 +60,7 @@ const ProblemEndPoint = {
   GET_LIST_PROBLEM_BANK: `${API_LON}/Problems/banks`,
   CREATE_VIRTUAL_PROBLEM: `${API_LON}/Problems/virtual`,
   CREATE_REMIX_PROBLEM: `${API_LON}/Problems/remix`,
+  GET_LIST_IN_PLAN: "/api/v2/Problems/in-plan",
 }
 const ProblemListEndpoint = {
   // cẩn thận chỗ này, nó lấy problem public và nó không lấy hết problem
@@ -63,6 +68,9 @@ const ProblemListEndpoint = {
   GET_DETAIL_PUBLIC_PROBLEM: `${API_LON}/Problems/{id}`,
 }
 // phần này nhớ tách biệt 2 cái, và kiểm soát cờ cho 2 cái khác nhau để update vào state.
+const TestsetEndpoint = {
+  GET_SAMPLES: `${API_LON}/Testsets/{problemId}/{testsetId}/samples`,
+};
 const SubmittionEndPoint = {
   GET_SUBMITTION_FROM_USER: `${API_LON}/problems/{problemId}/submissions`, // thực ra cái này là post
   GET_SUBMITTION: `${API_LON}/submissions/{submissionId}`,
@@ -117,6 +125,13 @@ const ClassEndpoint = {
   CREATE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests`,
   GET_CLASS_CONTESTS: `${API_PREFIX}/Class/{classSemesterId}/contests`,
   GET_CLASS_CONTEST_DETAIL: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}`,
+  GET_CLASS_CONTEST_SCOREBOARD: `${API_PREFIX}/class/{classSemesterId}/contests/{contestId}/scoreboard`,
+  SUBMIT_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/submit`,
+  UPDATE_CLASS_CONTEST_PROBLEM: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems/{contestProblemId}`,
+  DELETE_CLASS_CONTEST_PROBLEM: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems/{contestProblemId}`,
+  ADD_PROBLEM_TO_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/problems`,
+  FREEZE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/freeze`,
+  UNFREEZE_CLASS_CONTEST: `${API_PREFIX}/Class/{classSemesterId}/contests/{contestId}/unfreeze`,
 }
 const SemesterEndpoint = {
   GET_PUBLIC_SEMESTER: `${API_PREFIX}/Semester`,
@@ -140,6 +155,7 @@ const ClassSlotEndpoint = {
   GET_SLOT_SCORES: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/scores`,
   GET_USER_SUBMISSION: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/submissions/{userId}`,
   GET_SLOT_RANKINGS: `${API_PREFIX}/class-semester/{semesterId}/slots/{slotId}/rankings`,
+  GET_CLASS_TOTAL_RANKING: `${API_PREFIX}/Class/{classId}/semester/{semesterId}/rankings`,
 };
 const NotificationEndpoint = {
   CREATE_NOTIFICATION: `/api/notification`,
@@ -164,6 +180,8 @@ const DiscussionEndpoint = {
   DELETE_COMMENT: `${API_PREFIX}/comments/{id}`,
   VOTE_COMMENT: `${API_PREFIX}/comments/{id}/vote`,
   HIDE_COMMENT: `${API_PREFIX}/comments/{id}/hide`,
+  CHANGE_VISIBILITY: `${API_PREFIX}/discussions/{id}/visibility`,
+  GET_HISTORY: `${API_PREFIX}/discussions/me/history`,
 };
 const TagEndpoint = {
   GET_TAGS: `${API_LON}/Problems/tags`,
@@ -206,6 +224,8 @@ const ContestEndpoint = {
   GET_SCOREBOARD: `${API_PREFIX}/contests/{id}/scoreboard`,
   FREEZE_CONTEST: `${API_PREFIX}/contests/{id}/freeze`,
   UNFREEZE_CONTEST: `${API_PREFIX}/contests/{id}/unfreeze`,
+  FREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/freeze`,
+  UNFREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
   REMIX: `${API_PREFIX}/contests/{id}/remix`,
   VIRTUAL: `${API_PREFIX}/contests/{id}/virtual`,
@@ -256,10 +276,29 @@ const CollectionEndpoint = {
 const StudyPlanEndpoint = {
   GET_ALL: `${API_PREFIX}/study-plans`,
   CREATE_STUDY_PLAN: `${API_PREFIX}/study-plans`,
-  CREATE_PROBLEM_INPLAN: `/problem/in-plan`,
+  UPDATE_STUDY_PLAN: `${API_PREFIX}/study-plans/{id}`,
+  DELETE_STUDY_PLAN: `${API_PREFIX}/study-plans/{id}`,
+  CREATE_PROBLEM_INPLAN: "/problem/in-plan",
   GET_DETAIL: `${API_PREFIX}/study-plans/{id}`,
   ADD_PROBLEM_TO_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
-}
+  REMOVE_PROBLEM_FROM_PLAN: `${API_PREFIX}/study-plans/{planId}/problems/{problemId}`,
+  BUY_STUDY_PLAN: `${API_PREFIX}/study-plans/{planId}/buy`,
+  ENROLL_STUDY_PLAN: `${API_PREFIX}/study-plans/{planId}/enroll`,
+  GET_UNLOCKED_PLANS: `${API_PREFIX}/study-plans/unlocked`,
+  GET_NEXT_ITEM: `${API_PREFIX}/study-plans/{planId}/next/{itemId}`,
+  GET_ENROLLMENT: `${API_PREFIX}/study-plans/{planId}/enrollment`,
+  GET_STATS: `${API_PREFIX}/study-plans/{planId}/stats`,
+  UPLOAD_IMAGE: `${API_PREFIX}/study-plans/upload-image`,
+};
+
+const StudyProgressEndpoint = {
+  COMPLETE_PLAN: `/api/study-progress/complete`,
+  GET_PLAN_PROGRESS: `/api/study-progress/plan/{planId}`,
+  COMPLETE_ITEM: `/api/study-progress/items/{studyPlanItemId}/complete`,
+  GET_MY_PROGRESS: `/api/study-progress/my`,
+  RESET_PROGRESS: `/api/study-progress/{planId}`,
+  GET_NEXT_ITEM: `/api/study-progress/items/{itemId}/next`,
+};
 const GamificationEndpoint = {
   ME: `${API_PREFIX}/gamification/me`,
   BADGES: `${API_PREFIX}/gamification/badges`,
@@ -268,6 +307,8 @@ const GamificationEndpoint = {
   HISTORY: `${API_PREFIX}/gamification/history`,
   LEADERBOARD: `${API_PREFIX}/gamification/leaderboard`,
   DAILY_ACTIVITIES: `${API_PREFIX}/gamification/daily-activities`,
+  MISSIONS: `${API_PREFIX}/gamification/missions`,
+  CLAIM_MISSION: `${API_PREFIX}/gamification/missions/{ruleId}/claim`,
 };
 
 const AdminGamificationEndpoint = {
@@ -286,6 +327,9 @@ const PaymentEndpoint = {
   VNPAY_CREATE: `${API_PREFIX}/payments/vnpay`,
   VNPAY_CALLBACK: `${API_PREFIX}/payments/vnpay/callback`,
   VNPAY_RETURN: `${API_PREFIX}/payments/vnpay/return`,
+  PAYOS_CREATE: `${API_PREFIX}/payments/payos`,
+  PAYOS_WEBHOOK: `${API_PREFIX}/payments/payos/webhook`,
+  PAYOS_VERIFY: `${API_PREFIX}/payments/payos/verify`,
   GET_BY_ID: `${API_PREFIX}/payments/{id}`,
   CONVERSION_RATE: `${API_PREFIX}/payments/conversion-rate`,
   HISTORY_ME: `${API_PREFIX}/payments/history/me`,
@@ -303,12 +347,45 @@ const AnnouncementEndpoint = {
   DELETE: `${API_PREFIX}/announcements/{id}`,
 };
 
+const SettingsEndpoint = {
+  NOTIFICATION_SETTINGS: "/api/v1/settings/notifications",
+};
+
+const StoreEndpoint = {
+  ITEMS: `${API_PREFIX}/store/items`,
+  ITEM_DETAIL: `${API_PREFIX}/store/items/{itemId}`,
+  BUY: `${API_PREFIX}/store/buy`,
+  MY_INVENTORY: `${API_PREFIX}/store/my-inventory`,
+  INVENTORY_DETAIL: `${API_PREFIX}/store/my-inventory/{inventoryId}`,
+  EQUIP: `${API_PREFIX}/store/my-inventory/{inventoryId}/equip`,
+  // Cart Endpoints
+  CART: `${API_PREFIX}/store/cart`,
+  CART_ITEM: `${API_PREFIX}/store/cart/{cartItemId}`,
+  CHECKOUT: `${API_PREFIX}/store/checkout`,
+  ADMIN_ORDERS: `${API_PREFIX}/store/admin/orders`,
+};
+
 const RankingEndpoint = {
   GLOBAL: `${API_PREFIX}/ranking/global`,
   CONTESTS: `${API_PREFIX}/ranking/contests`,
 };
 
+const AiEndpoint = {
+  DEBUG: `${API_LON}/submissions/{submissionId}/ai/debug`,
+  GENERATE_EDITORIAL: `${API_LON}/problems/{problemId}/ai/editorial-drafts`,
+};
+
+const DashboardEndpoint = {
+  STATS: `${API_PREFIX}/dashboard/stats`,
+};
+
+const ProblemSolvedEndpoint = {
+  GET_ME_STATS: `${API_LON}/ProblemSolved/me/stats`,
+  GET_ME: `${API_LON}/ProblemSolved/me`,
+};
+
 export {
+  DashboardEndpoint,
   RankingEndpoint,
   ProblemTemplateEndPoint,
   ClassSlotEndpoint,
@@ -332,9 +409,17 @@ export {
   FavoriteEndpoint,
   CollectionEndpoint,
   StudyPlanEndpoint,
+  StudyProgressEndpoint,
   GamificationEndpoint,
   AdminGamificationEndpoint,
   PaymentEndpoint,
   WalletEndpoint,
   AnnouncementEndpoint,
+  StoreEndpoint,
+  SettingsEndpoint,
+  AiEndpoint,
+  TestsetEndpoint,
+  ProblemSolvedEndpoint,
 };
+
+

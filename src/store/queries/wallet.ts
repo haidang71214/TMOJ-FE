@@ -5,11 +5,12 @@ import { WalletBalanceResponse, WalletTransactionsResponse } from "@/types";
 export const walletApi = baseApi.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    getWalletBalance: builder.query<WalletBalanceResponse, void>({
+    getWalletBalance: builder.query<number, void>({
       query: () => ({
         url: WalletEndpoint.BALANCE,
         method: "GET",
       }),
+      transformResponse: (response: WalletBalanceResponse) => response.data.balance,
       providesTags: ["Wallet"],
     }),
     getWalletTransactions: builder.query<WalletTransactionsResponse, { page?: number; pageSize?: number }>({

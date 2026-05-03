@@ -8,11 +8,12 @@ import { useDispatch } from "react-redux";
 import { baseApi } from "@/store/base";
 import { useLogoutMutation } from "@/store/queries/auth";
 import webStorageClient from "@/utils/webStorageClient";
+import { clearLoginToken } from "@/store/slices/auth";
 
 export default function Page() {
   const router = useRouter();
   const dispatch = useDispatch();
-    const [logout] = useLogoutMutation();
+  const [logout] = useLogoutMutation();
   useEffect(() => {
     const auto_logout = async () => {
       const host = window.location.host;
@@ -21,6 +22,7 @@ export default function Page() {
         await logout().unwrap();
 
         dispatch(baseApi.util.resetApiState());
+        dispatch(clearLoginToken());
         webStorageClient.logout();
 
         addToast({ title: "Logout successful!", color: "success" });
@@ -34,6 +36,7 @@ export default function Page() {
       } catch {
         // Dù API lỗi vẫn phải clear local state và redirect
         dispatch(baseApi.util.resetApiState());
+        dispatch(clearLoginToken());
         webStorageClient.logout();
         addToast({ title: "Logout Success", color: "success" });
 

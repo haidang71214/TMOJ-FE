@@ -12,7 +12,6 @@ import { Mail, User, Calendar, BookOpen, Users as UsersIcon, X } from "lucide-re
 import { useGetStudentByIdQuery } from "@/store/queries/user";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useModal } from "@/Provider/ModalProvider";
-import { motion } from "framer-motion";
 
 interface Props {
   studentId: string;
@@ -25,45 +24,30 @@ export default function StudentDetailModal({ studentId }: Props) {
 
   const { t, language } = useTranslation();
 
-  const studentData: any = data?.data;
+  // API thực tế trả về { data: { student: {...}, classes: [...] } }
+  const rawData = data as any;
+  const studentData = rawData?.data;
   const classes = studentData?.classes || [];
-  const student = studentData?.student;
+  const student = studentData?.student ?? studentData; // fallback nếu API wrap khác
 
   const handleClose = () => closeModal();
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
 
   return (
-    <motion.div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
-      onClick={handleBackdropClick}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div 
+      className="w-full bg-white dark:bg-[#0f172a] rounded-3xl overflow-hidden shadow-2xl border dark:border-white/10 relative flex flex-col"
+      style={{ maxHeight: "85vh" }}
     >
-      <motion.div 
-        className="w-full max-w-2xl bg-white dark:bg-[#0f172a] rounded-3xl overflow-hidden shadow-2xl border dark:border-white/10 relative flex flex-col"
-        style={{ maxHeight: "92vh" }}                    // Giới hạn chiều cao modal
-        onClick={(e) => e.stopPropagation()}
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      {/* Nút đóng */}
+      <Button
+        isIconOnly
+        variant="light"
+        size="sm"
+        className="absolute top-5 right-5 z-20"
+        onPress={handleClose}
       >
-        {/* Nút đóng */}
-        <Button
-          isIconOnly
-          variant="light"
-          size="sm"
-          className="absolute top-5 right-5 z-20"
-          onPress={handleClose}
-        >
-          <X size={24} className="text-slate-500 dark:text-slate-400" />
-        </Button>
+        <X size={24} className="text-slate-500 dark:text-slate-400" />
+      </Button>
 
         {/* Header - luôn cố định */}
         <div className="px-8 pt-8 pb-6 border-b border-divider dark:border-white/10 flex-shrink-0">
@@ -211,7 +195,6 @@ export default function StudentDetailModal({ studentId }: Props) {
             {t?.("common.close") || (language === "vi" ? "ĐÓNG" : "CLOSE")}
           </Button>
         </div>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 }

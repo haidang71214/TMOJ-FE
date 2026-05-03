@@ -87,22 +87,6 @@ const MOCK_RULES: AdminBadgeRule[] = [
   { id: "r3", badgeId: "3", badgeName: "Master Solver", ruleType: "solved", targetEntity: "problem", targetValue: 100, isActive: true },
 ];
 
-const MOCK_ACHIEVEMENTS_CHART = [
-  { level: "Lv 1", awarded: 1200 },
-  { level: "Lv 2", awarded: 850 },
-  { level: "Lv 3", awarded: 420 },
-  { level: "Lv 4", awarded: 180 },
-  { level: "Lv 5", awarded: 45 },
-  { level: "Lv 6", awarded: 12 },
-];
-
-const MOCK_STREAK_CHART = [
-  { day: "Day 1-3", users: 5420 },
-  { day: "Day 4-7", users: 2100 },
-  { day: "Day 8-14", users: 850 },
-  { day: "Day 15-30", users: 320 },
-  { day: ">30 Days", users: 115 },
-];
 
 export default function GamificationManagementPage() {
   const { showCelebration } = useGamification();
@@ -132,6 +116,7 @@ export default function GamificationManagementPage() {
   const [newBadgeCategory, setNewBadgeCategory] = useState("problem");
   const [newBadgeLevel, setNewBadgeLevel] = useState(1);
   const [newBadgeIsRepeatable, setNewBadgeIsRepeatable] = useState(false);
+  const [newBadgeIconFile, setNewBadgeIconFile] = useState<File | null>(null);
 
   // State cho form create rule
   const [newRuleBadgeId, setNewRuleBadgeId] = useState("");
@@ -155,6 +140,7 @@ export default function GamificationManagementPage() {
   const [editBadgeCategory, setEditBadgeCategory] = useState("problem");
   const [editBadgeLevel, setEditBadgeLevel] = useState(1);
   const [editBadgeIsRepeatable, setEditBadgeIsRepeatable] = useState(true);
+  const [editBadgeIconFile, setEditBadgeIconFile] = useState<File | null>(null);
 
   const openEditBadgeModal = (badge: AdminBadge) => {
     setSelectedBadge(badge);
@@ -165,6 +151,7 @@ export default function GamificationManagementPage() {
     setEditBadgeCategory(badge.badgeCategory);
     setEditBadgeLevel(badge.badgeLevel);
     setEditBadgeIsRepeatable(badge.isRepeatable);
+    setEditBadgeIconFile(null); // Reset file on open
     setIsEditBadgeOpen(true);
   };
 
@@ -178,18 +165,18 @@ export default function GamificationManagementPage() {
   };
 
   const handleCreateBadge = async () => {
+    const formData = new FormData();
+    formData.append("Name", newBadgeName);
+    formData.append("BadgeCode", newBadgeCode);
+    formData.append("Description", newBadgeDescription);
+    formData.append("BadgeCategory", newBadgeCategory);
+    formData.append("BadgeLevel", newBadgeLevel.toString());
+    formData.append("IsRepeatable", newBadgeIsRepeatable.toString());
+    if (newBadgeIconUrl) formData.append("IconUrl", newBadgeIconUrl);
+    if (newBadgeIconFile) formData.append("IconFile", newBadgeIconFile);
+
     try {
-      await createBadge({
-        dto: {
-          name: newBadgeName,
-          iconUrl: newBadgeIconUrl,
-          description: newBadgeDescription,
-          badgeCode: newBadgeCode,
-          badgeCategory: newBadgeCategory,
-          badgeLevel: newBadgeLevel,
-          isRepeatable: newBadgeIsRepeatable,
-        }
-      }).unwrap();
+      await createBadge(formData).unwrap();
       addToast({ title: "Tạo badge thành công!", color: "success" });
       setIsCreateBadgeOpen(false);
       // Reset form
@@ -200,6 +187,7 @@ export default function GamificationManagementPage() {
       setNewBadgeCategory("problem");
       setNewBadgeLevel(1);
       setNewBadgeIsRepeatable(false);
+      setNewBadgeIconFile(null);
     } catch (error) {
       addToast({ title: "Lỗi khi tạo badge", color: "danger" });
     }
@@ -207,16 +195,18 @@ export default function GamificationManagementPage() {
 
   const handleUpdateBadge = async () => {
     if (!selectedBadge) return;
+    const formData = new FormData();
+    formData.append("Name", editBadgeName);
+    formData.append("Description", editBadgeDescription);
+    formData.append("BadgeCategory", editBadgeCategory);
+    formData.append("BadgeLevel", editBadgeLevel.toString());
+    if (editBadgeIconUrl) formData.append("IconUrl", editBadgeIconUrl);
+    if (editBadgeIconFile) formData.append("IconFile", editBadgeIconFile);
+
     try {
       await updateBadge({
         id: selectedBadge.badgeId,
-        name: editBadgeName,
-        iconUrl: editBadgeIconUrl,
-        description: editBadgeDescription,
-        badgeCode: editBadgeCode,
-        badgeCategory: editBadgeCategory,
-        badgeLevel: editBadgeLevel,
-        isRepeatable: editBadgeIsRepeatable,
+        formData
       }).unwrap();
       addToast({ title: "Cập nhật badge thành công!", color: "success" });
       setIsEditBadgeOpen(false);
@@ -325,47 +315,11 @@ export default function GamificationManagementPage() {
         </Card>
       </div>
 
-      {/* NEW: CHARTS SECTION */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white/[0.03] border-white/[0.07] backdrop-blur-sm shadow-none p-6 rounded-2xl">
-          <h3 className="font-black uppercase tracking-widest text-[10px] mb-6 text-fuchsia-500/80">
-            Overall Achievements (By Level)
-          </h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={MOCK_ACHIEVEMENTS_CHART}>
-              <XAxis dataKey="level" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip />
-              <Bar dataKey="awarded" fill="#d946ef" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card className="bg-white/[0.03] border-white/[0.07] backdrop-blur-sm shadow-none p-6 rounded-2xl">
-          <h3 className="font-black uppercase tracking-widest text-[10px] mb-6 text-[#22C55E]/80">
-            Learning Streak Distribution
-          </h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={MOCK_STREAK_CHART}>
-              <defs>
-                <linearGradient id="colorStreak" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22C55E" stopOpacity={0.5} />
-                  <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip />
-              <Area type="monotone" dataKey="users" stroke="#22C55E" fillOpacity={1} fill="url(#colorStreak)" strokeWidth={3} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
 
       {/* TABS */}
       <Tabs color="primary" variant="underlined" classNames={{ tabList: "gap-6" }}>
-        <Tab title="Badges & Rules">
-          <div className="space-y-8">
+        <Tab title="Badges">
+          <div className="pt-4">
             {/* BADGES TABLE */}
             <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm overflow-hidden">
               <Table
@@ -381,7 +335,6 @@ export default function GamificationManagementPage() {
                   <TableColumn>ICON</TableColumn>
                   <TableColumn>NAME / CODE</TableColumn>
                   <TableColumn>CATEGORY</TableColumn>
-                  <TableColumn>LEVEL</TableColumn>
                   <TableColumn>REPEAT</TableColumn>
                   <TableColumn>CREATED AT</TableColumn>
                   <TableColumn>ACTIONS</TableColumn>
@@ -417,9 +370,6 @@ export default function GamificationManagementPage() {
                         >
                           {b.badgeCategory}
                         </Chip>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-black italic text-xs text-white/90">Lv {b.badgeLevel}</span>
                       </TableCell>
                       <TableCell>
                         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border w-fit ${b.isRepeatable ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-white/10 bg-white/5 text-white/40"}`}>
@@ -461,8 +411,11 @@ export default function GamificationManagementPage() {
                 </TableBody>
               </Table>
             </div>
+          </div>
+        </Tab>
 
-            {/* BADGE RULES */}
+        <Tab title="Rules">
+          <div className="pt-4">
             <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black uppercase text-white">Badge Award Rules</h2>
@@ -573,19 +526,6 @@ export default function GamificationManagementPage() {
             </div>
           </div>
         </Tab>
-
-        {/* Các tab khác giữ nguyên */}
-        <Tab title="Events & Transactions">
-          {/* ... code cũ */}
-        </Tab>
-
-        <Tab title="Streaks">
-          {/* ... code cũ */}
-        </Tab>
-
-        <Tab title="Settings">
-          {/* ... code cũ */}
-        </Tab>
       </Tabs>
 
       {/* MODAL CREATE BADGE */}
@@ -615,6 +555,23 @@ export default function GamificationManagementPage() {
                   value={newBadgeIconUrl}
                   onValueChange={setNewBadgeIconUrl}
                 />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Icon File (Direct Upload)</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setNewBadgeIconFile(e.target.files?.[0] || null)}
+                    className="block w-full text-sm text-slate-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-indigo-500/10 file:text-indigo-400
+                      hover:file:bg-indigo-500/20"
+                  />
+                  {newBadgeIconFile && (
+                    <p className="text-xs text-indigo-400">Selected: {newBadgeIconFile.name}</p>
+                  )}
+                </div>
                 <Textarea
                   label="Description"
                   placeholder="Describe the badge"
@@ -686,6 +643,23 @@ export default function GamificationManagementPage() {
                   value={editBadgeIconUrl}
                   onValueChange={setEditBadgeIconUrl}
                 />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Icon File (Direct Upload)</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEditBadgeIconFile(e.target.files?.[0] || null)}
+                    className="block w-full text-sm text-slate-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-indigo-500/10 file:text-indigo-400
+                      hover:file:bg-indigo-500/20"
+                  />
+                  {editBadgeIconFile && (
+                    <p className="text-xs text-indigo-400">Selected: {editBadgeIconFile.name}</p>
+                  )}
+                </div>
                 <Textarea
                   label="Description"
                   placeholder="Describe the badge"

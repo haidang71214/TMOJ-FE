@@ -28,28 +28,54 @@ export interface AdminBadge {
 }
 
 export interface CreateBadgeRequest {
-  dto: {
-    name: string;
-    iconUrl: string;
-    description: string;
-    badgeCode: string;
-    badgeCategory: string;
-    badgeLevel: number;
-    isRepeatable: boolean;
-  };
+  name: string;
+  iconUrl?: string;
+  iconFile?: File | null;
+  description?: string;
+  badgeCode: string;
+  badgeCategory: string;
+  badgeLevel: number;
+  isRepeatable: boolean;
+}
+
+export interface UpdateBadgeRequest {
+  id: string;
+  name: string;
+  iconUrl?: string;
+  iconFile?: File | null;
+  description?: string;
+  badgeCategory: string;
+  badgeLevel: number;
 }
 
 export interface Badge {
   badgeId: string;
   name: string;
-  awardedAt: string;
+  iconUrl?: string | null;
+  currentValue?: number;
+  targetValue?: number;
+  progressPercent?: number;
+  isCompleted?: boolean;
+  awardedAt?: string;
+  description?: string;
 }
 
+
+
 export interface BadgeProgress {
-  badge: string;
-  progress: number;
-  target: number;
+  badgeId: string;
+  name: string;
+  iconUrl?: string | null;
+  currentValue: number;
+  targetValue: number;
+  progressPercent: number;
+  isCompleted: boolean;
+  awardedAt?: string;
+  description?: string;
 }
+
+
+
 
 export interface StreakInfo {
   currentStreak: number;
@@ -102,4 +128,24 @@ export interface AdminBadgeRule {
   targetEntity: string;
   targetValue: number;
   isActive: boolean;
+}
+
+export interface Mission {
+  ruleId: string;
+  title: string;
+  description: string;
+  category: "CHECK-IN" | "CONTEST" | "PROFILE" | "CONTRIBUTION" | string;
+  rewardCoin: number;
+  rewardExp: number;
+  currentValue: number;
+  targetValue: number;
+  status: "LOCKED" | "READY" | "CLAIMED";
+  claimedAt: string | null;
+}
+
+export interface ClaimResponse {
+  success: boolean;
+  message: string;
+  addedCoin: number;
+  addedExp: number;
 }

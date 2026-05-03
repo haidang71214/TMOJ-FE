@@ -18,9 +18,9 @@ import {
   Skeleton
 } from "@heroui/react";
 
-import { Save, X, ChevronLeft } from "lucide-react";
+import { Save, X, ChevronLeft, ChevronRight, Upload, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useUpdateProblemContentMutation } from "@/store/queries/problem";
+import { useUpdateProblemContentMutation, useCreateTestCaseMutation, useCreateTestSetMutation } from "@/store/queries/problem";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTagsQuery } from "@/store/queries/Tags";
 import { RequiredStar } from "@/Common/RequiredStar";
@@ -29,13 +29,18 @@ import { ErrorForm } from "@/types";
 
 export default function GlobalProblemEditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const router = useRouter();
   const { t, language } = useTranslation();
   const unwrappedParams = use(params);
   const id = unwrappedParams.id;
+  const unwrappedSearchParams = use(searchParams);
+  const source = unwrappedSearchParams?.source as string;
+  const isBank = source === "bank";
 
   const { data: detailData, isLoading: isDetailLoading } = useGetDetailProblemPublicQuery({ id });
   const problemData = detailData as any;
@@ -43,12 +48,20 @@ export default function GlobalProblemEditPage({
   const [updateProblemContent, { isLoading: isUpdatingProblem }] = useUpdateProblemContentMutation();
   const { data: fetchTags, isLoading: isTagsLoading } = useGetTagsQuery();
 
+  const [zipFile, setZipFile] = React.useState<File | null>(null);
+  const [uploadedCases, setUploadedCases] = React.useState<{ name: string; total: number }[]>([]);
+  const zipRef = React.useRef<HTMLInputElement>(null);
+
+  const [createTestSet] = useCreateTestSetMutation();
+  const [createTestCase, { isLoading: isCreatingTestCase }] = useCreateTestCaseMutation();
+  const [step, setStep] = React.useState(0);
+
   const [form, setForm] = React.useState<any>({
     slug: "",
     title: "",
     typeCode: "algorithm",
     statusCode: "draft",
-    visibilityCode: "public",
+    visibilityCode: isBank ? "in-bank" : "public",
     scoringCode: "acm",
     descriptionMd: "",
     timeLimitMs: 1000,
@@ -70,7 +83,7 @@ export default function GlobalProblemEditPage({
         difficulty: problemData.difficulty?.toLowerCase() || "medium",
         statusCode: problemData.statusCode || "draft",
         scoringCode: problemData.scoringCode || "acm",
-        visibilityCode: problemData.visibilityCode || "public",
+        visibilityCode: problemData.visibilityCode || (isBank ? "in-bank" : "public"),
         typeCode: problemData.typeCode || "algorithm",
         tagIds: problemData.tags?.map((t: any) => t.id) || [],
         problemMode: problemData.problemMode || "amateur",
@@ -78,7 +91,65 @@ export default function GlobalProblemEditPage({
     }
   }, [problemData]);
 
-  const handleUpdate = async () => {
+  const handleUploadTestCase = async (): Promise<boolean> => {
+    if (!id) return false;
+    if (!zipFile) {
+      addToast({ title: t('common.error') || (language === 'vi' ? "Lỗi" : "Error"), description: t('problem_create.select_zip') || (language === 'vi' ? "Vui lòng chọn file zip" : "Please select a zip file"), color: "danger" });
+      return false;
+    }
+
+    try {
+      let targetTestsetId = problemData?.primaryTestsetId;
+      
+      if (!targetTestsetId) {
+        // Create one if it doesn't exist
+        const ts = await createTestSet({
+          id: id,
+          body: { type: "public", note: "" },
+        }).unwrap();
+        targetTestsetId = ts?.data.id;
+      }
+      
+      if (!targetTestsetId) {
+        addToast({ title: "Error", description: "Could not resolve Testset ID", color: "danger" });
+        return false;
+      }
+
+      const formData = new FormData();
+      formData.append("File", zipFile);
+      formData.append("ReplaceExisting", "true");
+      formData.append("TestsetId", targetTestsetId);
+
+      const res = await createTestCase({
+        id: id,
+        body: formData,
+      }).unwrap();
+
+      setUploadedCases((prev) => [
+        ...prev,
+        { name: zipFile.name, total: res.data?.total ?? 0 },
+      ]);
+      setZipFile(null);
+      if (zipRef.current) zipRef.current.value = "";
+      addToast({ title: t('common.success') || (language === 'vi' ? "Thành công" : "Success"), description: t('problem_create.upload_success') || (language === 'vi' ? "Tải testcase thành công!" : "Testcases uploaded successfully!"), color: "success" });
+      return true;
+    } catch (error) {
+      const err = error as ErrorForm;
+      addToast({ title: t('problem_create.upload_failed') || (language === 'vi' ? "Tải lên thất bại" : "Upload Failed"), description: err?.data?.data?.message || t('problem_create.check_zip_format') || (language === 'vi' ? "Kiểm tra lại định dạng file zip." : "Check your zip file format."), color: "danger" });
+      return false;
+    }
+  };
+
+  const handleFinish = async () => {
+    if (zipFile) {
+      const success = await handleUploadTestCase();
+      if (!success) return; // Stay on page if upload fails
+    }
+    addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
+    router.push(`/Problems/${id}`);
+  };
+
+  const handleStep1 = async () => {
     if (!form.slug || !form.title) {
       addToast({ title: t('common.error') || "Error", description: "Slug and Title are required", color: "danger" });
       return;
@@ -106,11 +177,9 @@ export default function GlobalProblemEditPage({
           formData.append("TagIds", tagId);
         });
       }
-      
     const a =   await updateProblemContent({ problemId: id, body: formData }).unwrap();  
-    console.log(a);
       addToast({ title: t('common.success') || "Success", description: "Problem updated successfully!", color: "success" });
-      // router.back();
+      setStep(1);
     } catch (error) {
       console.error("Update problem failed:", error);
       const err = error as ErrorForm;
@@ -126,6 +195,37 @@ export default function GlobalProblemEditPage({
       </div>
     );
   }
+
+  const StepIndicator = () => {
+    return (
+      <div className="flex items-center gap-0 mt-4 mb-2">
+        {[
+          { label: t('problem_create.step_info') || "Problem Info", description: t('problem_create.step_info_desc') || "Basic info & limits" },
+          { label: t('problem_create.step_testcases') || "TestCases", description: t('problem_create.step_testcases_desc') || "Upload zip file with test cases" },
+        ].map((s, i, arr) => (
+          <React.Fragment key={i}>
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all
+                ${i < step ? "bg-[#22C55E] text-white" : i === step ? "bg-[#071739] dark:bg-[#FF5C00] text-white" : "bg-slate-100 dark:bg-white/10 text-slate-400"}`}
+              >
+                {i < step ? <CheckCircle size={14} /> : i + 1}
+              </div>
+              <div className="hidden sm:block">
+                <div className={`text-[10px] font-black uppercase tracking-widest ${i === step ? "text-[#071739] dark:text-white" : "text-slate-400"}`}>
+                  {s.label}
+                </div>
+                <div className="text-[9px] text-slate-400">{s.description}</div>
+              </div>
+            </div>
+            {i < arr.length - 1 && (
+              <div className={`flex-1 h-px mx-4 ${i < step ? "bg-[#22C55E]" : "bg-slate-200 dark:bg-white/10"}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-8 pb-20 p-2 max-w-6xl mx-auto">
@@ -157,8 +257,10 @@ export default function GlobalProblemEditPage({
             </Chip>
           </div>
         </div>
+        <StepIndicator />
       </div>
 
+      {step === 0 && (
       <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
         
         <Input
@@ -357,22 +459,21 @@ export default function GlobalProblemEditPage({
           
           <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center">
             <Switch
-              isSelected={form.visibilityCode === "public"}
+              isSelected={isBank ? form.visibilityCode === "in-bank" : form.visibilityCode === "public"}
               onValueChange={(checked) =>
-                setForm({ ...form, visibilityCode: checked ? "public" : "private" })
+                setForm({ ...form, visibilityCode: checked ? (isBank ? "in-bank" : "public") : "private" })
               }
               classNames={{
                 wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
               }}
             >
               <span className="text-[11px] font-black uppercase italic text-slate-500 dark:text-slate-300">
-                {t('problem_create.visibility') || "Public Visible"}
+                {t('problem_create.visibility') || (isBank ? "In-Bank Visible" : "Public Visible")}
               </span>
             </Switch>
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
           <Button
             variant="flat"
@@ -383,15 +484,105 @@ export default function GlobalProblemEditPage({
             Discard Changes
           </Button>
           <Button
-            startContent={<Save size={20} strokeWidth={3} />}
-            onPress={handleUpdate}
+            startContent={<ChevronRight size={20} strokeWidth={3} />}
+            onPress={handleStep1}
             isLoading={isUpdatingProblem}
             className="bg-[#071739] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl transition-all hover:bg-[#22C55E] hover:shadow-green-500/20 active:scale-95"
           >
-            Update Repository Problem
+            Update & Next
           </Button>
         </div>
       </div>
+      )}
+
+      {step === 1 && (
+      <div className="bg-white dark:bg-[#0A0F1C] rounded-[2.5rem] p-10 shadow-sm border border-transparent dark:border-white/5 space-y-10">
+        <div className="flex flex-col gap-6">
+          <div className="flex gap-6 text-sm text-slate-400 font-bold">
+            <span>Global ID: <span className="text-black dark:text-white">#{id}</span></span>
+            {problemData?.primaryTestsetId && (
+              <span>TestSet ID: <span className="text-black dark:text-white">{problemData.primaryTestsetId}</span></span>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-black italic uppercase text-[#071739] dark:text-white">
+              {t('problem_create.step_testcases') || "TestCases"}
+            </h2>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] italic">
+              {t('problem_create.upload_zip') || "TestCase File (.zip)"}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div
+              className="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-400 transition-colors"
+              onClick={() => zipRef.current?.click()}
+            >
+              <Upload size={28} className="text-slate-400" />
+              <span className="text-[11px] font-bold text-slate-400">
+                {zipFile ? zipFile.name : (t('problem_create.upload_instruction') || "Click to select zip file")}
+              </span>
+              {zipFile && (
+                <span className="text-[10px] text-slate-300">{(zipFile.size / 1024).toFixed(1)} KB</span>
+              )}
+            </div>
+            <input
+              ref={zipRef}
+              type="file"
+              accept=".zip"
+              className="hidden"
+              onChange={(e) => setZipFile(e.target.files?.[0] ?? null)}
+            />
+          </div>
+
+          {uploadedCases.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                {t('problem_create.upload_history') || "Upload History"} ({uploadedCases.length})
+              </h3>
+              <div className="flex flex-col gap-2">
+                {uploadedCases.map((tc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-white/5 px-5 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle size={14} className="text-green-500" />
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-white/70">
+                        {tc.name}
+                      </span>
+                    </div>
+                    <Chip size="sm" variant="flat" color="success">{tc.total} {t('problem_create.cases') || "cases"}</Chip>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ACTION BUTTONS STEP 1 */}
+        <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-white/5">
+          <Button
+            variant="flat"
+            startContent={<ChevronLeft size={18} />}
+            className="rounded-xl font-black uppercase text-[10px] tracking-widest px-10 h-12 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-500 transition-all"
+            onClick={() => setStep(0)}
+          >
+            {t('common.cancel') || "Back"}
+          </Button>
+          <Button
+            startContent={<Save size={20} strokeWidth={3} />}
+            onPress={handleFinish}
+            isLoading={isCreatingTestCase}
+            isDisabled={isCreatingTestCase}
+            className="bg-[#22C55E] text-white font-black rounded-2xl h-14 px-20 uppercase text-[10px] tracking-[0.2em] shadow-xl hover:shadow-green-500/30 transition-all"
+          >
+            {t('problem_create.finish') || "Finish & View Problem"}
+          </Button>
+        </div>
+      </div>
+      )}
     </div>
   );
 }

@@ -30,19 +30,18 @@ import {
   Globe,
   EyeOff,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGetContestDetailQuery, useUpdateContestMutation } from "@/store/queries/Contest";
 import { toast } from "sonner";
 import { CreateContestRequest, ErrorForm } from "@/types";
+import { Suspense } from "react";
 
-export default function EditContestPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+function EditContestContent({ id }: { id: string }) {
   const router = useRouter();
-  const unwrappedParams = use(params);
-  const id = unwrappedParams.id;
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+  const isRemixMode = mode === "remix";
+  const isVirtualMode = mode === "virtual";
 
   // APIs
   const { data: contestResult, isLoading: isFetching } = useGetContestDetailQuery(id);
@@ -66,7 +65,8 @@ export default function EditContestPage({
   const isEnded = status === "ended";
 
   // Restricted means only endAt is editable
-  const isRestricted = isRunning;
+  // Nếu là Remix thì cho sửa tất cả (bypass isRestricted)
+  const isRestricted = isRunning && !isRemixMode;
   const isReadOnly = isEnded;
 
   useEffect(() => {
@@ -247,7 +247,7 @@ export default function EditContestPage({
             labelPlacement="outside"
             value={formData.startAt}
             onValueChange={(val) => setFormData(p => ({ ...p, startAt: val }))}
-            isDisabled={isRestricted || isReadOnly}
+            isDisabled={(isRestricted && !isVirtualMode) || isReadOnly}
             startContent={<CalendarDays size={18} className="text-slate-400" />}
             classNames={{
               inputWrapper:
@@ -395,5 +395,20 @@ export default function EditContestPage({
         }
       `}</style>
     </div>
+  );
+}
+
+export default function EditContestPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const unwrappedParams = use(params);
+  const id = unwrappedParams.id;
+
+  return (
+    <Suspense fallback={<Spinner size="lg" color="warning" />}>
+      <EditContestContent id={id} />
+    </Suspense>
   );
 }

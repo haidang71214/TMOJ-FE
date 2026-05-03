@@ -20,22 +20,26 @@ export default function ForgotPasswordModal() {
 const handleSubmit = async (e:any) => {
   e.preventDefault()
   try {
-    const data = await forgotpass({ email }).unwrap(); // 👈 truyền payload
+    const data = await forgotpass({ email }).unwrap();
     console.log(data);
-    
+
     addToast({
-      title: language === 'vi' ? "Đã gửi Email chứa URL bí mật." : "Secret URL already sent, please check your mail",
+      title: language === 'vi'
+        ? "Đã gửi email khôi phục. Vui lòng kiểm tra hộp thư và nhấn vào liên kết để tiếp tục."
+        : "Reset email sent. Please check your inbox and click the link to continue.",
       color: "success",
     });
 
-    openModal({
-      content: <ResetPassModal  />,
-    });
+    closeModal();
   } catch (error: unknown) {
-  const err = error as ErrorForm;
+  const err = error as ErrorForm & { data?: { message?: string; Message?: string } };
 
   addToast({
-    title: err?.data?.data?.message ?? (language === 'vi' ? "Gửi email thất bại" : "Failed to send reset email"),
+    title:
+      err?.data?.message ??
+      err?.data?.Message ??
+      err?.data?.data?.message ??
+      (language === 'vi' ? "Gửi email thất bại" : "Failed to send reset email"),
     color: "danger",
   });
 }
@@ -101,18 +105,6 @@ const handleSubmit = async (e:any) => {
         </Button>
        
       </form>
-      <div 
-        className="text-center opacity-0 animate-fade-in-up"
-        style={{ animationDelay: "400ms", animationFillMode: "both" }}
-      ><p 
-  onClick={() =>
-    openModal({
-      content: <ResetPassModal />,
-    })
-  } className="text-[12px] font-bold text-gray-400 dark:text-[#E3C39D] tracking-wide mt-2 uppercase cursor-pointer hover:underline transition-colors active:scale-95 text-center">
-      {language === 'vi' ? "Bấm vào đây nếu đã kiểm tra Email" : "click here if you already send reset email"}
-        </p></div>
- 
       {/* Social Login */}
       <div 
         className="flex flex-col gap-4 mt-2 opacity-0 animate-fade-in-up"

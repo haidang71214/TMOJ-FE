@@ -7,6 +7,7 @@ import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import StudentClassDetail from "../components/StudentClassDetail";
 import TeacherClassDetail from "../components/TeacherClassDetail";
 
+// id là nó đang lấy từ semester Id.
 export default function ClassDetailPageWrapper() {
   const params = useParams();
   const semesterId = params?.id as string;

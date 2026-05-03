@@ -72,7 +72,7 @@ export default function CreateListModal({
         }).unwrap();
         toast.success("New collection created!");
       }
-      
+
       onClose();
       if (onParentClose) onParentClose();
     } catch (err) {
@@ -115,7 +115,7 @@ export default function CreateListModal({
                   variant="flat"
                   value={title}
                   onValueChange={setTitle}
-                  maxLength={30}
+                  maxLength={100}
                   classNames={{
                     inputWrapper: [
                       "bg-slate-100 dark:bg-[#071739]",
@@ -130,7 +130,7 @@ export default function CreateListModal({
                   }}
                   endContent={
                     <span className="text-[10px] font-black text-slate-500 px-2 italic">
-                      {title.length}/30
+                      {title.length}/100
                     </span>
                   }
                 />
@@ -146,7 +146,7 @@ export default function CreateListModal({
                   variant="flat"
                   value={description}
                   onValueChange={setDescription}
-                  maxLength={150}
+                  maxLength={500}
                   classNames={{
                     inputWrapper: [
                       "bg-slate-100 dark:bg-[#071739]",
@@ -161,7 +161,7 @@ export default function CreateListModal({
                   }}
                   endContent={
                     <span className="text-[10px] font-black text-slate-500 self-end mb-1 italic">
-                      {description.length}/150
+                      {description.length}/500
                     </span>
                   }
                 />

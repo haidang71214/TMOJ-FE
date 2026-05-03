@@ -69,19 +69,12 @@ export default function AttachTagsModal({
 
   const handleUpdateTags = async (onClose: () => void) => {
   if (!problem) return;
-  console.log(JSON.stringify({ tagIds: selectedTags }, null, 2));
-  console.log("=== SENDING TAGS ===");
-  console.log("problemId:", problem.id);
-  console.log("tagIds gửi đi:", selectedTags);
-  console.log("Payload:", { tagIds: selectedTags });
 
   try {
     const result = await updateProblemTags({
       problemId: problem.id,
       tagIds: selectedTags,
     }).unwrap();
-
-    console.log("✅ Success:", result);
     onClose();
     addToast({title:"success",color:"success"})
     } catch (err) {

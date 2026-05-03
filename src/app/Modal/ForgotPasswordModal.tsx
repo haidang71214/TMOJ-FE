@@ -32,10 +32,14 @@ const handleSubmit = async (e:any) => {
 
     closeModal();
   } catch (error: unknown) {
-  const err = error as ErrorForm;
+  const err = error as ErrorForm & { data?: { message?: string; Message?: string } };
 
   addToast({
-    title: err?.data?.data?.message ?? (language === 'vi' ? "Gửi email thất bại" : "Failed to send reset email"),
+    title:
+      err?.data?.message ??
+      err?.data?.Message ??
+      err?.data?.data?.message ??
+      (language === 'vi' ? "Gửi email thất bại" : "Failed to send reset email"),
     color: "danger",
   });
 }

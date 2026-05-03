@@ -465,6 +465,11 @@ export default function ProblemDetailsPage() {
                                     <AlertCircle size={16} />
                                     Failed Testcase Detail
                                   </div>
+                                </div>
+                              )}
+
+                              {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
+                              
 
                                   <div className="grid grid-cols-1 gap-4">
                                     {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (

@@ -25,7 +25,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress, Button } from "@heroui/react";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
-import AiDebugAssistant from "@/app/components/AiDebugAssistant";
+
 import { useGetSubmissionQuery } from "@/store/queries/Submittion";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTestsetSamplesQuery } from "@/store/queries/problem";
@@ -485,19 +485,7 @@ export default function ProblemDetailsPage() {
                             )}
 
                             {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-                            {data?.verdictCode !== VerdictCode.AC && data?.statusCode === "done" && (
-                              <div className="mb-6">
-                                <AiDebugAssistant
-                                  submissionId={submissionId!}
-                                  verdict={getVerdictLabel(data?.verdictCode)}
-                                  testcase={firstFailedResult ? {
-                                    input: firstFailedResult.input || "Check message",
-                                    expected: firstFailedResult.expectedOutput || firstFailedResult.expected || "Check message",
-                                    actual: firstFailedResult.actualOutput || firstFailedResult.actual || firstFailedResult.message
-                                  } : undefined}
-                                />
-                              </div>
-                            )}
+
 
                             {data?.verdictCode === VerdictCode.AC && submissionType === "submit" && (
                               <div className="flex flex-col items-center justify-center py-12 gap-4">

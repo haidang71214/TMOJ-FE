@@ -87,6 +87,7 @@ const SubjectEndpoint = {
   CREATE_SUBJECT: `${API_PREFIX}/Subject`,
   IMPORT_TEMPLATE: `${API_PREFIX}/Class/import/template`,
   IMPORT_CLASS: `${API_PREFIX}/Class/import`,
+  EXPORT_SUBJECT: `${API_PREFIX}/Subject/export`,
 };
 const ClassEndpoint = {
   GET_ALL_CLASS: `${API_PREFIX}/Class`,

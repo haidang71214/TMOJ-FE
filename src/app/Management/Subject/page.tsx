@@ -23,7 +23,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
-import { useGetAllSubjectQueryQuery, useGetImportTemplateMutation, useImportClassMutation } from "@/store/queries/Subject";
+import { useGetAllSubjectQueryQuery, useGetImportTemplateMutation, useImportClassMutation, useExportSubjectMutation } from "@/store/queries/Subject";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useModal } from "@/Provider/ModalProvider";
 import CreateSubjectModal from "./CreateSubjectModal";
@@ -42,6 +42,7 @@ export default function SubjectListPage() {
   const { data, isLoading } = useGetAllSubjectQueryQuery();
   const [getImportTemplate] = useGetImportTemplateMutation();
   const [importClass] = useImportClassMutation();
+  const [exportSubject] = useExportSubjectMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,6 +95,22 @@ export default function SubjectListPage() {
       }
     } catch (error) {
       console.error("Failed to import class", error);
+    }
+  };
+  
+  const handleExport = async () => {
+    try {
+      const blob = await exportSubject().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Subjects_Export.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export subjects", error);
     }
   };
 
@@ -154,6 +171,13 @@ export default function SubjectListPage() {
                 className="bg-purple-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
               >
                 {t('common.import') || (language === 'vi' ? 'NHẬP' : 'IMPORT')}
+              </Button>
+              <Button
+                startContent={<Download size={16} strokeWidth={3} />}
+                onPress={handleExport}
+                className="bg-emerald-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
+              >
+                {t('common.export') || (language === 'vi' ? 'XUẤT' : 'EXPORT')}
               </Button>
               <Button
                 onPress={handleOpenCreate}

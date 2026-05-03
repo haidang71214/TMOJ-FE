@@ -199,85 +199,88 @@ export default function ContestProblemsPage() {
               key={p.problemId}
               className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
             >
-              <TableCell>
-                <span className="text-slate-400 font-black italic text-xs">
-                  #{p.problemId.substring(0, 8)}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className="text-xl font-black text-blue-600 dark:text-[#FF5C00] italic">
-                  {p.displayIndex || idx + 1}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div
-                  className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(`/Problems/${p.problemId}`, "_blank");
-                  }}
-                >
-                  <span className="text-base font-black uppercase text-slate-700 dark:text-slate-200 leading-none">
-                    {(p as any).problemTitle || (p as any).title || "Untitled Problem"}
-                  </span>
-                  <ExternalLink size={14} className="text-slate-400 group-hover:text-blue-600" />
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
-                  {p.alias || p.problemId.substring(0, 12)}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className="font-bold">{p.points || 0}</span>
-              </TableCell>
-              <TableCell>
-                <Switch
-                  size="sm"
-                  isDisabled={isLocked}
-                  defaultSelected={true} // Tạm thời để mặc định do chưa có field visible trong DTO
-                  classNames={{
-                    wrapper:
-                      "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
-                  }}
-                />
-              </TableCell>
-              {!isLocked ? (
+              {(columnKey) => (
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Tooltip
-                      content="Edit Details"
-                      className="font-bold text-[10px]"
-                    >
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        onPress={() => goToEdit(p.problemId)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                    </Tooltip>
-
-                    <Tooltip
-                      content="Remove from Contest"
-                      className="font-bold text-[10px]"
-                    >
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        onPress={() => handleDeleteProblem(p.id!, p.alias)}
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </Tooltip>
-                  </div>
+                  {(() => {
+                    switch (columnKey) {
+                      case "id":
+                        return (
+                          <span className="text-slate-400 font-black italic text-xs">
+                            #{p.problemId.substring(0, 8)}
+                          </span>
+                        );
+                      case "index":
+                        return (
+                          <span className="text-xl font-black text-blue-600 dark:text-[#FF5C00] italic">
+                            {p.displayIndex || idx + 1}
+                          </span>
+                        );
+                      case "name":
+                        return (
+                          <div
+                            className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`/Problems/${p.problemId}`, "_blank");
+                            }}
+                          >
+                            <span className="text-base font-black uppercase text-slate-700 dark:text-slate-200 leading-none">
+                              {(p as any).problemTitle || (p as any).title || "Untitled Problem"}
+                            </span>
+                            <ExternalLink size={14} className="text-slate-400 group-hover:text-blue-600" />
+                          </div>
+                        );
+                      case "alias":
+                        return (
+                          <span className="text-base font-black uppercase italic tracking-tight text-black dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#22C55E] transition-colors leading-none">
+                            {p.alias || p.problemId.substring(0, 12)}
+                          </span>
+                        );
+                      case "points":
+                        return <span className="font-bold">{p.points || 0}</span>;
+                      case "visible":
+                        return (
+                          <Switch
+                            size="sm"
+                            isDisabled={isLocked}
+                            defaultSelected={true}
+                            classNames={{
+                              wrapper: "group-data-[selected=true]:bg-blue-600 dark:group-data-[selected=true]:bg-[#22C55E]",
+                            }}
+                          />
+                        );
+                      case "ops":
+                        return (
+                          <div className="flex justify-end gap-2">
+                            <Tooltip content="Edit Details" className="font-bold text-[10px]">
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="flat"
+                                onPress={() => goToEdit(p.problemId)}
+                                className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                              >
+                                <Edit size={16} />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content="Remove from Contest" className="font-bold text-[10px]">
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="flat"
+                                onPress={() => handleDeleteProblem(p.id!, p.alias)}
+                                className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-500 transition-all rounded-lg h-9 w-9"
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        );
+                      default:
+                        return null;
+                    }
+                  })()}
                 </TableCell>
-              ) : (
-                null as any
               )}
             </TableRow>
           ))}
@@ -289,6 +292,7 @@ export default function ContestProblemsPage() {
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         onConfirm={handleAddFromBank}
+        excludedProblemIds={problems.map(p => p.problemId)}
       />
 
       {/* FOOTER DECOR */}

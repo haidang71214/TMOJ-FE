@@ -25,7 +25,6 @@ import {
 import {
   Edit3,
   FolderCode,
-  Megaphone,
   Download,
   Plus,
   Search,
@@ -37,9 +36,11 @@ import {
   Copy,
   Trash2,
   Users,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
+import { RemixContestModal } from "@/app/components/RemixContestModal";
 import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation, useDeleteContestMutation } from "@/store/queries/Contest";
 import { ContestDto, ErrorForm } from "@/types";
 import { toast } from "sonner";
@@ -52,15 +53,16 @@ export default function ContestListPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [clientPage, setClientPage] = useState(1);
 
   const { data: contestData, isLoading, isFetching, refetch } = useGetContestListQuery({
-    page,
-    pageSize: rowsPerPage,
-    status: statusFilter === "all" ? "all" : statusFilter,
-    visibilityCode: visibilityFilter === "all" ? "all" : visibilityFilter,
-    search: searchTerm || undefined,
-    title: searchTerm || undefined,
-    name: searchTerm || undefined,
+    page: (searchTerm.trim() || typeFilter !== "all") ? 1 : page,
+    pageSize: (searchTerm.trim() || typeFilter !== "all") ? 1000 : rowsPerPage,
+    // Khi search hoặc lọc origin, ta nới lỏng status/visibility để tìm được nhiều kết quả nhất có thể
+    status: (searchTerm.trim() || typeFilter !== "all") ? "all" : (statusFilter === "all" ? "all" : statusFilter),
+    visibilityCode: (searchTerm.trim() || typeFilter !== "all") ? "all" : (visibilityFilter === "all" ? "all" : visibilityFilter),
+    search: undefined,
   });
 
 
@@ -100,7 +102,6 @@ export default function ContestListPage() {
     }
   };
 
-  // Lấy totalCount linh hoạt (đề phòng API trả về tên trường khác)
   const totalCount = (contestData?.data as any)?.totalCount ??
     (contestData?.data as any)?.total ??
     (contestData as any)?.data?.total_count ??
@@ -108,27 +109,68 @@ export default function ContestListPage() {
 
   const items = contestData?.data?.items || [];
 
-  // Lọc Client-side (dành cho trường hợp Server không hỗ trợ lọc)
+  // Lọc Client-side trên bộ dữ liệu lớn (1000 items) khi đang search hoặc dùng filter đặc biệt
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
-    const q = searchTerm.toLowerCase();
-    return items.filter(c => {
-      const visibility = (c.visibilityCode || (c as any).visibility || "").toLowerCase();
-      return (
-        c.title.toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q) ||
-        visibility.includes(q)
-      );
-    });
-  }, [items, searchTerm]);
+    let result = items;
+
+    // 1. Lọc theo search term
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(c => {
+        const visibility = (c.visibilityCode || (c as any).visibility || "").toLowerCase();
+        return (
+          c.title.toLowerCase().includes(q) ||
+          c.id.toLowerCase().includes(q) ||
+          visibility.includes(q)
+        );
+      });
+    }
+
+    // 2. Lọc theo loại contest (Remix/Virtual/Original)
+    if (typeFilter !== "all") {
+      result = result.filter(c => {
+        const title = c.title.toLowerCase();
+        const isRemix = title.includes("[remix]") || title.includes("remix");
+        const isVirtual = title.includes("[virtual]") || title.includes("virtual") || (c as any).isVirtual === true;
+
+        if (typeFilter === "remix") return isRemix;
+        if (typeFilter === "virtual") return isVirtual;
+        if (typeFilter === "original") return !isRemix && !isVirtual;
+        return true;
+      });
+    }
+
+    return result;
+  }, [items, searchTerm, typeFilter]);
+
+  const isSearching = searchTerm.trim() !== "" || typeFilter !== "all";
 
   // Tính tổng số trang
-  const calculatedPages = Math.ceil(totalCount / rowsPerPage);
-  const pages = Math.max(1, calculatedPages || (items.length === rowsPerPage ? page + 1 : page));
+  const pages = isSearching
+    ? Math.ceil(filteredItems.length / rowsPerPage) || 1
+    : (Math.ceil(totalCount / rowsPerPage) || 1);
+
+  // Dữ liệu thực tế để hiển thị lên bảng
+  const displayItems = useMemo(() => {
+    if (!isSearching) return items;
+    const start = (clientPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filteredItems.slice(start, end);
+  }, [isSearching, items, filteredItems, clientPage, rowsPerPage]);
 
   // Logic cho Extend Modal
   const extendModal = useDisclosure();
   const [selectedContest, setSelectedContest] = useState<ContestDto | null>(null);
+
+  // Logic cho Remix/Virtual Modal
+  const remixModal = useDisclosure();
+  const [remixMode, setRemixMode] = useState<"remix" | "virtual">("remix");
+
+  const handleOpenRemix = (contest: ContestDto, mode: "remix" | "virtual") => {
+    setSelectedContest(contest);
+    setRemixMode(mode);
+    remixModal.onOpen();
+  };
 
   const handleOpenExtend = (contest: ContestDto) => {
     setSelectedContest(contest);
@@ -139,11 +181,13 @@ export default function ContestListPage() {
   const onSearchChange = React.useCallback((value?: string) => {
     setSearchTerm(value || "");
     setPage(1);
+    setClientPage(1);
   }, []);
 
   const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
+    setClientPage(1);
   }, []);
 
   const topContent = useMemo(() => {
@@ -182,6 +226,7 @@ export default function ContestListPage() {
                 onSelectionChange={(keys) => {
                   setStatusFilter(Array.from(keys)[0] as string);
                   setPage(1);
+                  setClientPage(1);
                 }}
               >
                 <DropdownItem key="all">All Status</DropdownItem>
@@ -210,12 +255,41 @@ export default function ContestListPage() {
                 onSelectionChange={(keys) => {
                   setVisibilityFilter(Array.from(keys)[0] as string);
                   setPage(1);
+                  setClientPage(1);
                 }}
               >
                 <DropdownItem key="all">All Visibility</DropdownItem>
                 <DropdownItem key="public">Public</DropdownItem>
                 <DropdownItem key="private">Private</DropdownItem>
                 <DropdownItem key="hidden">Hidden</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<ChevronDown size={14} />}
+                  variant="flat"
+                  className="bg-white dark:bg-[#111c35] border border-slate-200 dark:border-white/5 font-bold text-[11px] uppercase"
+                >
+                  Origin
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Filter Origin"
+                closeOnSelect={false}
+                selectedKeys={new Set([typeFilter])}
+                selectionMode="single"
+                onSelectionChange={(keys) => {
+                  setTypeFilter(Array.from(keys)[0] as string);
+                  setPage(1);
+                  setClientPage(1);
+                }}
+              >
+                <DropdownItem key="all">All Origin</DropdownItem>
+                <DropdownItem key="original">Original Only</DropdownItem>
+                <DropdownItem key="remix">Remix Only</DropdownItem>
+                <DropdownItem key="virtual">Virtual Only</DropdownItem>
               </DropdownMenu>
             </Dropdown>
             <Button
@@ -249,7 +323,7 @@ export default function ContestListPage() {
         </div>
       </div>
     );
-  }, [searchTerm, statusFilter, rowsPerPage, contestData?.data?.totalCount, isFetching, onSearchChange, onRowsPerPageChange, refetch]);
+  }, [searchTerm, statusFilter, visibilityFilter, typeFilter, rowsPerPage, contestData?.data?.totalCount, isFetching, onSearchChange, onRowsPerPageChange, refetch]);
 
   const bottomContent = useMemo(() => {
     return (
@@ -262,9 +336,12 @@ export default function ContestListPage() {
           showShadow
           color="primary"
           variant="faded"
-          page={page}
+          page={isSearching ? clientPage : page}
           total={pages}
-          onChange={setPage}
+          onChange={(p) => {
+            if (isSearching) setClientPage(p);
+            else setPage(p);
+          }}
           classNames={{
             cursor: "bg-[#071739] dark:bg-[#FF5C00] text-white font-black",
             wrapper: "gap-2",
@@ -278,7 +355,7 @@ export default function ContestListPage() {
         </div>
       </div>
     );
-  }, [page, pages, selectedContest]);
+  }, [page, pages, selectedContest, isSearching, clientPage]);
 
   return (
     <div className="flex flex-col h-full gap-8 p-2">
@@ -327,7 +404,7 @@ export default function ContestListPage() {
             isLoading={isLoading}
             emptyContent={!isLoading && "Không tìm thấy contest nào."}
           >
-            {filteredItems.map((c) => (
+            {displayItems.map((c) => (
               <TableRow
                 key={c.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
@@ -497,26 +574,29 @@ export default function ContestListPage() {
                         size="sm"
                         variant="flat"
                         onPress={() =>
-                          router.push(`/Management/Contest/${c.id}/remix`)
+                          handleOpenRemix(c, "remix")
                         }
                         className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
                       >
                         <Copy size={16} />
                       </Button>
                     </Tooltip>
-                    <Tooltip
-                      content="Announcements"
-                      className="font-bold text-[10px]"
-                    >
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="flat"
-                        className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 dark:hover:text-[#22C55E] transition-all rounded-lg h-9 w-9"
+                    {c.status?.toLowerCase() === "ended" && (
+                      <Tooltip
+                        content="Virtual Contest"
+                        className="font-bold text-[10px]"
                       >
-                        <Megaphone size={16} />
-                      </Button>
-                    </Tooltip>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          onPress={() => handleOpenRemix(c, "virtual")}
+                          className="bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-amber-500 transition-all rounded-lg h-9 w-9"
+                        >
+                          <Zap size={16} />
+                        </Button>
+                      </Tooltip>
+                    )}
                     <Tooltip
                       content="Download Data"
                       className="font-bold text-[10px]"
@@ -558,6 +638,12 @@ export default function ContestListPage() {
         isOpen={extendModal.isOpen}
         onOpenChange={extendModal.onOpenChange}
         contest={selectedContest}
+      />
+      <RemixContestModal
+        isOpen={remixModal.isOpen}
+        onOpenChange={remixModal.onOpenChange}
+        contest={selectedContest}
+        mode={remixMode}
       />
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {

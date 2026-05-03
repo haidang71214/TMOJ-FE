@@ -262,6 +262,24 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
     }),
+    // 30. Remix Contest
+    remixContest: builder.mutation<any, { id: string; body?: any }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.REMIX.replace("{id}", id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest"],
+    }),
+    // 31. Create Virtual Contest
+    createVirtualContest: builder.mutation<any, { id: string; body?: any }>({
+      query: ({ id, body }) => ({
+        url: ContestEndpoint.VIRTUAL.replace("{id}", id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Contest"],
+    }),
   }),
 });
 
@@ -289,4 +307,6 @@ export const {
   useGetScoreboardQuery,
   useFreezeContestMutation,
   useUnfreezeContestMutation,
+  useRemixContestMutation,
+  useCreateVirtualContestMutation,
 } = contestApi;

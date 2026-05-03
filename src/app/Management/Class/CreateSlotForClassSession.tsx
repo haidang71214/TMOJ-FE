@@ -39,8 +39,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
   const { t } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
-  console.log("semesterId", semesterId);
-  
+
   const [slotNo, setSlotNo] = useState<number>(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -70,13 +69,13 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
     setPage(1);
   }, [difficultyFilter]);
 
-  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListPublicQuery({ 
-    page, 
+  const { data: problemResponse, isLoading: isLoadingProblems } = useGetProblemListPublicQuery({
+    page,
     pageSize: 5,
     search: debouncedSearch || undefined,
     difficulty: difficultyFilter || undefined
   });
-  
+
   const problems = problemResponse?.data || [];
   const totalPages = problemResponse?.pagination?.totalPages || 1;
 
@@ -99,43 +98,43 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
   };
 
   const onSubmit = async () => {
-  if (!validateForm()) {
-    toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
-    return;
-  }
+    if (!validateForm()) {
+      toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
+      return;
+    }
 
-  try {
-    const payload: CreateClassSlotRequest = {
-      slotNo,
-      title: title.trim(),
-      description: description.trim() || undefined,
-      rules: rules.trim() || undefined,
-      openAt: openAt ? new Date(openAt).toISOString() : undefined,
-      dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
-      closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
-      mode,
-      problems: selectedProblems.map((p, index) => ({
-        problemId: p.problemId,
-        ordinal: index,
-        points: p.points || 0,
-        isRequired: p.isRequired,
-      })),
-    };
+    try {
+      const payload: CreateClassSlotRequest = {
+        slotNo,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        rules: rules.trim() || undefined,
+        openAt: openAt ? new Date(openAt).toISOString() : undefined,
+        dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
+        closeAt: closeAt ? new Date(closeAt).toISOString() : undefined,
+        mode,
+        problems: selectedProblems.map((p, index) => ({
+          problemId: p.problemId,
+          ordinal: index,
+          points: p.points || 0,
+          isRequired: p.isRequired,
+        })),
+      };
 
-    await createSlot({ semesterId, data: payload }).unwrap();
+      await createSlot({ semesterId, data: payload }).unwrap();
 
-    closeModal();   // đóng modal trước
-    toast.success(t("slot.createSuccess") || "Class exam created successfully!");
+      closeModal();   // đóng modal trước
+      toast.success(t("slot.createSuccess") || "Class exam created successfully!");
 
-  } catch (err) {
-    const apiError = err as ErrorForm;
-    const errorMessage =
-      apiError?.data?.data?.message ||
-      (t("slot.createFailed") || "Failed to create exam. Please try again.");
+    } catch (err) {
+      const apiError = err as ErrorForm;
+      const errorMessage =
+        apiError?.data?.data?.message ||
+        (t("slot.createFailed") || "Failed to create exam. Please try again.");
 
-    toast.error(errorMessage);
-  }
-};
+      toast.error(errorMessage);
+    }
+  };
 
   const handleSelectionChange = (keys: Selection) => {
     const selectedIds = Array.from(keys) as string[];
@@ -145,11 +144,11 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
       return existing
         ? { ...existing, ordinal: index }
         : {
-            problemId: id,
-            ordinal: index,
-            points: 0,
-            isRequired: true,
-          };
+          problemId: id,
+          ordinal: index,
+          points: 0,
+          isRequired: true,
+        };
     });
 
     setSelectedProblems(newSelected);
@@ -164,7 +163,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
   return (
     <div className="w-[640px] max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-[#0f172a] border border-orange-200 dark:border-orange-500/20 shadow-2xl">
       {/* Header - Màu cam */}
-      <div 
+      <div
         className="sticky top-0 z-10 px-6 pt-5 pb-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-600/10 dark:to-amber-600/10 border-b border-orange-200 dark:border-orange-500/20 backdrop-blur-sm animate-fade-in-down opacity-0"
         style={{ animationDelay: "0ms" }}
       >
@@ -192,7 +191,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
       {/* Body */}
       <div className="px-6 py-6 flex flex-col gap-6">
         {/* Slot Number & Title */}
-        <div 
+        <div
           className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-right opacity-0"
           style={{ animationDelay: "100ms" }}
         >
@@ -266,7 +265,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
         </div>
 
         {/* Date Time */}
-        <div 
+        <div
           className="grid grid-cols-3 gap-4 animate-fade-in-right opacity-0"
           style={{ animationDelay: "300ms" }}
         >
@@ -315,7 +314,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
 
         {/* Problems Selection */}
         <div className="space-y-3">
-          <div 
+          <div
             className="flex items-center justify-between animate-fade-in-right opacity-0"
             style={{ animationDelay: "350ms" }}
           >
@@ -330,7 +329,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
             )}
           </div>
 
-          <div 
+          <div
             className="flex gap-2 animate-fade-in-right opacity-0"
             style={{ animationDelay: "400ms" }}
           >
@@ -367,51 +366,51 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
             </div>
           ) : (
             <>
-            <div className="h-64 overflow-y-auto border border-orange-200 dark:border-orange-700 rounded-xl bg-orange-50/50 dark:bg-slate-800/30 overflow-x-hidden">
-              <Listbox
-                selectionMode="multiple"
-                selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
-                onSelectionChange={handleSelectionChange}
-                className="p-1"
-              >
-                {problems.map((prob: Problem, index: number) => (
-                  <ListboxItem
-                    key={prob.id}
-                    textValue={prob.title}
-                    className="data-[hover=true]:bg-orange-100 dark:data-[hover=true]:bg-orange-900/30"
-                  >
-                    <div 
-                      className="flex flex-col py-1 animate-fade-in-right opacity-0"
-                      style={{ animationDelay: `${450 + index * 50}ms` }}
+              <div className="h-64 overflow-y-auto border border-orange-200 dark:border-orange-700 rounded-xl bg-orange-50/50 dark:bg-slate-800/30 overflow-x-hidden">
+                <Listbox
+                  selectionMode="multiple"
+                  selectedKeys={new Set(selectedProblems.map((p) => p.problemId))}
+                  onSelectionChange={handleSelectionChange}
+                  className="p-1"
+                >
+                  {problems.map((prob: Problem, index: number) => (
+                    <ListboxItem
+                      key={prob.id}
+                      textValue={prob.title}
+                      className="data-[hover=true]:bg-orange-100 dark:data-[hover=true]:bg-orange-900/30"
                     >
-                      <span className="font-medium">{prob.title}</span>
-                      {prob.difficulty && (
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
-                          {t("slot.difficulty") || "Difficulty"}: {prob.difficulty}
-                        </span>
-                      )}
-                    </div>
-                  </ListboxItem>
-                ))}
-              </Listbox>
-            </div>
-            <div className="flex justify-center mt-2">
-              <Pagination
-                isCompact
-                showControls
-                color="warning"
-                page={page}
-                total={totalPages}
-                onChange={setPage}
-              />
-            </div>
+                      <div
+                        className="flex flex-col py-1 animate-fade-in-right opacity-0"
+                        style={{ animationDelay: `${450 + index * 50}ms` }}
+                      >
+                        <span className="font-medium">{prob.title}</span>
+                        {prob.difficulty && (
+                          <span className="text-xs text-gray-500 dark:text-slate-400">
+                            {t("slot.difficulty") || "Difficulty"}: {prob.difficulty}
+                          </span>
+                        )}
+                      </div>
+                    </ListboxItem>
+                  ))}
+                </Listbox>
+              </div>
+              <div className="flex justify-center mt-2">
+                <Pagination
+                  isCompact
+                  showControls
+                  color="warning"
+                  page={page}
+                  total={totalPages}
+                  onChange={setPage}
+                />
+              </div>
             </>
           )}
 
           {/* Selected Problems */}
           {selectedProblems.length > 0 && (
             <div className="mt-4 space-y-3">
-              <p 
+              <p
                 className="text-sm font-medium text-gray-600 dark:text-slate-300 animate-fade-in-right opacity-0"
                 style={{ animationDelay: "500ms" }}
               >
@@ -468,7 +467,7 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
       </div>
 
       {/* Footer */}
-      <div 
+      <div
         className="sticky bottom-0 z-10 px-6 py-4 flex justify-end gap-4 bg-orange-50 dark:bg-[#0b1120] border-t border-orange-200 dark:border-orange-500/10 backdrop-blur-sm animate-fade-in-up opacity-0"
         style={{ animationDelay: "600ms" }}
       >

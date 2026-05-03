@@ -16,12 +16,10 @@ export default function SettingsPage() {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState("");
 
-  const basicInfo = [
+  const basicInfo: { key: string; label: string; value: string; readOnly?: boolean }[] = [
     { key: "displayName", label: "Display Name", value: currentUser?.displayName || "Not set" },
     { key: "firstName", label: "First Name", value: currentUser?.firstName || "Not set" },
     { key: "lastName", label: "Last Name", value: currentUser?.lastName || "Not set" },
-    { key: "email", label: "Email", value: currentUser?.email || "Not set", readOnly: true },
-    { key: "github", label: "Github", value: "Your Github username or url" }, // Giả định trường này chưa có trong user type
   ];
 
   const handleEdit = (key: string, value: string) => {

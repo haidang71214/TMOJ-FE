@@ -1895,6 +1895,20 @@ export interface WalletBalanceResponse {
   };
 }
 
+export interface AdjustCoinRequest {
+  userId?: string | null;
+  username?: string | null;
+  walletId?: string | null;
+  amount: number;
+  note?: string | null;
+}
+
+export interface AdjustCoinResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
 export interface WalletTransaction {
   type: "deposit" | "withdraw";
   amount: number;

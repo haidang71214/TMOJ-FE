@@ -1,12 +1,12 @@
-import { 
-  useGetRuntimeListQuery, 
+import {
+  useGetRuntimeListQuery,
   useGetRuntimeDetailQuery,
   usePostSubmissionMutation,
   useGetSubmissionQuery,
 } from "@/store/queries/Submittion"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
-import {  RotateCcw, Settings2, Upload } from "lucide-react"
+import { RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
@@ -78,7 +78,6 @@ export default function SolutionSubmittion({
   onSubmissionIdChange,
 }: SolutionSubmittionProps) {
   const { t, language } = useTranslation();
-  console.log("classSlotId", classSlotId);
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
 
@@ -95,12 +94,12 @@ export default function SolutionSubmittion({
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
 
   const [pollingIntervalTime, setPollingIntervalTime] = useState(0);
-  const { data: problemData } = useGetDetailProblemPublicQuery({id : problemId });
+  const { data: problemData } = useGetDetailProblemPublicQuery({ id: problemId });
 
   // Query lấy submission với cấu hình quan trọng
   const { data: submissionData, isFetching } = useGetSubmissionQuery(
     { submissionId: submissionId! },
-    { 
+    {
       skip: !submissionId,
       refetchOnMountOrArgChange: true,   // Đảm bảo luôn fetch dữ liệu mới khi submissionId thay đổi
       pollingInterval: pollingIntervalTime,
@@ -113,7 +112,7 @@ export default function SolutionSubmittion({
       setPollingIntervalTime(0);
       return;
     }
-    
+
     // Nếu không có verdictCode (null, undefined, rỗng...), tiếp tục polling mỗi 5s
     if (!submissionData?.data?.verdictCode) {
       setPollingIntervalTime(5000);
@@ -192,19 +191,18 @@ export default function SolutionSubmittion({
 
   // Auto chọn runtime C++ mặc định
   useEffect(() => {
-      console.log("dasdadsa");
     if (runtimes.length > 0 && selectedRuntimeId === null) {
-      const preferred = runtimes.find(r => 
-        r.runtimeName.toLowerCase().includes("c++") || 
+      const preferred = runtimes.find(r =>
+        r.runtimeName.toLowerCase().includes("c++") ||
         r.runtimeName.toLowerCase().includes("g++")
       )
       setSelectedRuntimeId(preferred?.id || runtimes[0].id)
     }
   }, [runtimes, selectedRuntimeId])
 
-  const { 
-    data: runtimeDetailData, 
-    isLoading: isDetailLoading 
+  const {
+    data: runtimeDetailData,
+    isLoading: isDetailLoading
   } = useGetRuntimeDetailQuery(
     { id: selectedRuntimeId! },
     { skip: !selectedRuntimeId }
@@ -232,7 +230,7 @@ export default function SolutionSubmittion({
     const currentCode = code.trim();
     // Only update if current code is empty or a known template
     const isDefaultTemplate = currentCode === "" || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
-    
+
     if (isDefaultTemplate) {
       if (problemData?.problemMode === "pro") {
         if (code !== "") setCode("");
@@ -283,9 +281,9 @@ export default function SolutionSubmittion({
       })
 
     } catch {
-      addToast({ 
-        title: "Run thất bại.", 
-        color: "danger" 
+      addToast({
+        title: "Run thất bại.",
+        color: "danger"
       })
     }
   }
@@ -328,10 +326,10 @@ export default function SolutionSubmittion({
         color: "success"
       })
 
-    } catch{
-      addToast({ 
-        title: "Nộp bài thất bại.", 
-        color: "danger" 
+    } catch {
+      addToast({
+        title: "Nộp bài thất bại.",
+        color: "danger"
       })
     }
   }
@@ -426,11 +424,10 @@ export default function SolutionSubmittion({
         <button
           disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
           onClick={handleSubmit}
-          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
-            isLoggedIn && selectedRuntimeId && !isSubmitting
+          className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
               ? "bg-[#FF5C00] hover:bg-[#FF7222] text-white shadow-md shadow-[#FF5C00]/20"
               : "bg-gray-300 text-gray-400 cursor-not-allowed"
-          }`}
+            }`}
         >
           <Upload size={12} />
           {t("solution.submit") || (language === "vi" ? "Run test" : "Run test")}
@@ -440,11 +437,10 @@ export default function SolutionSubmittion({
           <button
             disabled={!isLoggedIn || isSubmitting || isRuntimeLoading || !selectedRuntimeId || !code.trim()}
             onClick={handleExaminationSubmit}
-            className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${
-              isLoggedIn && selectedRuntimeId && !isSubmitting
+            className={`flex items-center gap-2 px-6 py-1.5 rounded-lg text-[12px] font-black transition-all active-bump ${isLoggedIn && selectedRuntimeId && !isSubmitting
                 ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20"
                 : "bg-gray-300 text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             <Upload size={12} />
             Submmit examination

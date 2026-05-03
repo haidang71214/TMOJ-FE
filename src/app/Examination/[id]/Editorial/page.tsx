@@ -25,7 +25,6 @@ export default function EditorialTab() {
   );
 
   // Debugging logs (visible in browser console for the user/us)
-  console.log("EditorialTab info:", { id, realProblemId, isProblemLoading, data });
 
   if (isLoading || isProblemLoading) {
     return (

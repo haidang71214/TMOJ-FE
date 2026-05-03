@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Sidebar from "../Problems/Sidebar";
 import { Button, Chip } from "@heroui/react";
 import {
@@ -26,7 +26,7 @@ import {
   useGetMyStudyProgressQuery
 } from "@/store/queries/StudyPlan";
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StudyPlan, UserRole } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAppSelector } from "@/utils/redux";
@@ -46,6 +46,24 @@ export default function StudyPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("default");
+  const searchParams = useSearchParams();
+
+  const tabs = useMemo(() => [
+    t("studyplan_page.tab_all") || "All",
+    t("studyplan_page.tab_in_progress") || "In Progress",
+    t("studyplan_page.tab_unlocked") || "Unlocked",
+  ], [t]);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "inprogress") {
+      setActiveTab(tabs[1]);
+    } else if (tab === "unlocked") {
+      setActiveTab(tabs[2]);
+    } else if (tab === "all") {
+      setActiveTab(tabs[0]);
+    }
+  }, [searchParams, tabs]);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
   const isHydrated = useAppSelector((state) => state.auth.isHydrated);
@@ -67,11 +85,7 @@ export default function StudyPlanPage() {
   const unlockedPlans = unlockedPlansResponse?.data || [];
   const myProgress = myProgressResponse?.items || [];
 
-  const tabs = [
-    t("studyplan_page.tab_all") || "All",
-    t("studyplan_page.tab_in_progress") || "In Progress",
-    t("studyplan_page.tab_unlocked") || "Unlocked",
-  ];
+
 
   const isLoading = activeTab === tabs[2] ? isLoadingUnlocked :
     activeTab === tabs[1] ? isLoadingProgress :

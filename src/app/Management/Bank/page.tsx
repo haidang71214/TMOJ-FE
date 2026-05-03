@@ -62,7 +62,7 @@ interface DisplayProblem {
 export default function BankProblemListPage() {
   const router = useRouter();
   const { t } = useTranslation();
-  
+
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,7 +82,6 @@ export default function BankProblemListPage() {
     search: searchQuery,
     difficulty: filterDifficulty === "all" ? "" : filterDifficulty,
   });
-  console.log(apiResponse?.data)
   const [updateDifficulty] = useUpdateProblemDifficultyMutation();
 
   const handleDifficultyChange = async (problemId: string, difficulty: string) => {
@@ -357,7 +356,7 @@ export default function BankProblemListPage() {
                   onClick={() => router.push(`/Problems/${p.id}`)}
                 >
                   <TableCell>
-                    <span className="text-slate-400 font-black italic text-xs">#{(page-1)*pageSize + index + 1}</span>
+                    <span className="text-slate-400 font-black italic text-xs">#{(page - 1) * pageSize + index + 1}</span>
                   </TableCell>
                   <TableCell>
                     <div className="max-w-[200px] truncate" title={p.title}>
@@ -390,12 +389,11 @@ export default function BankProblemListPage() {
                         <Chip
                           variant="flat"
                           size="sm"
-                          className={`cursor-pointer font-black uppercase text-[9px] px-2 ${
-                            p.difficulty === "EASY" ? "bg-emerald-500/10 text-emerald-500" :
-                            p.difficulty === "MEDIUM" ? "bg-amber-500/10 text-amber-500" :
-                            p.difficulty === "HARD" ? "bg-rose-500/10 text-rose-500" :
-                            "bg-default/10 text-default-500"
-                          }`}
+                          className={`cursor-pointer font-black uppercase text-[9px] px-2 ${p.difficulty === "EASY" ? "bg-emerald-500/10 text-emerald-500" :
+                              p.difficulty === "MEDIUM" ? "bg-amber-500/10 text-amber-500" :
+                                p.difficulty === "HARD" ? "bg-rose-500/10 text-rose-500" :
+                                  "bg-default/10 text-default-500"
+                            }`}
                         >
                           {p.difficulty}
                         </Chip>
@@ -452,7 +450,7 @@ export default function BankProblemListPage() {
                           <Tags size={16} />
                         </Button>
                       </Tooltip>
-  
+
                       <Tooltip content="Clone Virtual Problem" className="font-bold text-[10px]">
                         <Button
                           isIconOnly

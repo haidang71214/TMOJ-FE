@@ -35,7 +35,7 @@ export default function CreateVirtualProblemModal({
   const [visibility, setVisibility] = useState("private");
 
   const handleCreate = async () => {
-    
+
     if (!problem) {
       console.warn("⚠️ No problem selected for cloning");
       return;
@@ -47,9 +47,8 @@ export default function CreateVirtualProblemModal({
         title: `${problem.title} (Virtual)`,
         visibilityCode: visibility,
       }).unwrap();
-      
-      console.log("✅ Mutation Success:", res);
-      
+
+
       addToast({
         title: t('common.success') || "Success",
         description: "Virtual problem created successfully",
@@ -68,8 +67,8 @@ export default function CreateVirtualProblemModal({
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onOpenChange={onOpenChange}
       backdrop="blur"
       classNames={{
@@ -95,15 +94,15 @@ export default function CreateVirtualProblemModal({
                   Origin Problem
                 </p>
                 <p className="text-sm font-bold italic text-purple-500 truncate">
-                   {problem?.title}
+                  {problem?.title}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <span className="text-[10px] font-black uppercase italic text-slate-400 tracking-widest">
-                   Select Visibility
+                  Select Visibility
                 </span>
-                
+
                 <Select
                   selectedKeys={[visibility]}
                   onSelectionChange={(keys) => setVisibility(Array.from(keys)[0] as string)}
@@ -115,8 +114,8 @@ export default function CreateVirtualProblemModal({
                   }}
                   startContent={
                     visibility === "published" ? <Globe size={18} className="text-emerald-500" /> :
-                    visibility === "private" ? <Lock size={18} className="text-amber-500" /> :
-                    <ShieldCheck size={18} className="text-blue-500" />
+                      visibility === "private" ? <Lock size={18} className="text-amber-500" /> :
+                        <ShieldCheck size={18} className="text-blue-500" />
                   }
                 >
                   <SelectItem key="public" textValue="Published">
@@ -134,24 +133,23 @@ export default function CreateVirtualProblemModal({
                 </Select>
 
                 <div className="bg-purple-500/5 border border-purple-500/10 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black text-purple-400/80 uppercase tracking-[0.1em] leading-relaxed italic">
-                        Tip: Virtual problems inherit all testcases from the origin. You can customize them later without affecting the original banked problem.
-                    </p>
+                  <p className="text-[9px] font-black text-purple-400/80 uppercase tracking-[0.1em] leading-relaxed italic">
+                    Tip: Virtual problems inherit all testcases from the origin. You can customize them later without affecting the original banked problem.
+                  </p>
                 </div>
               </div>
             </ModalBody>
             <ModalFooter className="px-8 pb-8 mt-4 gap-3">
-              <Button 
-                variant="light" 
-                onPress={onClose} 
+              <Button
+                variant="light"
+                onPress={onClose}
                 className="font-black uppercase italic text-xs text-slate-500"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 className="bg-[#071739] dark:bg-purple-600 text-white font-[1000] uppercase italic text-xs px-8 rounded-xl shadow-lg shadow-purple-500/20 hover:scale-105 active:scale-95 transition-all"
                 onClick={() => {
-                  console.log("🖱️ Confirm button clicked");
                   handleCreate();
                 }}
                 isLoading={isLoading}

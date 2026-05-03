@@ -34,12 +34,10 @@ export default function DescriptionTab() {
   const { ProblemInContest } = useParams<{ id: string; ProblemInContest: string }>();
   const { t, language } = useTranslation();
   const { data: userData, } = useGetUserInformationQuery();
-  console.log("aaaaaaaaaaa", userData);
   const { data: response, isLoading, isError } = useGetDetailProblemPublicQuery(
     { id: ProblemInContest },
     { skip: !ProblemInContest }
   );
-  console.log("aaaa", response);
 
   const problem = response as Problem | undefined;
 
@@ -99,7 +97,7 @@ export default function DescriptionTab() {
   const diff = getDifficulty(problem.difficulty);
 
   return (
-    <div 
+    <div
       onContextMenu={(e) => e.preventDefault()}
       onCopy={(e) => e.preventDefault()}
       className="h-full overflow-y-auto px-6 md:px-10 py-8 space-y-8 no-scrollbar bg-white dark:bg-[#1C2737] text-slate-700 dark:text-slate-300 transition-colors select-none"
@@ -191,7 +189,7 @@ export default function DescriptionTab() {
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] text-[#FF5C00]/70 dark:text-[#FF5C00]/80 font-black uppercase tracking-widest">{t("problem_workspace.memory_limit") || (language === "vi" ? "Bộ nhớ" : "Memory Limit")}</span>
-            <span className="text-[12px] font-bold text-slate-800 dark:text-white">{problem.memoryLimitKb/1024} MB</span>
+            <span className="text-[12px] font-bold text-slate-800 dark:text-white">{problem.memoryLimitKb / 1024} MB</span>
           </div>
         </div>
 

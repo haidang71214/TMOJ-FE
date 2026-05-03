@@ -53,19 +53,16 @@ export default function ScoreboardPage() {
   const [unfreezeContest, { isLoading: isUnfreezing }] = useUnfreezeContestMutation();
 
   const handleFreezeToggle = async () => {
-    console.log("data",data);
-    
+
     if (!data) return;
     try {
       if (data.frozen) {
         const res = await unfreezeContest(contestId).unwrap();
-        console.log("Unfreeze",res);
-        
+
         toast.success("Scoreboard unfreezed successfully!");
       } else {
         const res = await freezeContest(contestId).unwrap();
-        console.log("Freeze",res);
-        
+
         toast.success("Scoreboard freezed successfully!");
       }
       refetch();
@@ -144,8 +141,8 @@ export default function ScoreboardPage() {
               {(role === "admin" || role === "manager" || role === "teacher") && (
                 <Button
                   variant="flat"
-                  className={`${data?.frozen 
-                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30" 
+                  className={`${data?.frozen
+                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
                     : "bg-white/10 text-white border-white/10"} font-black italic uppercase rounded-xl border hover:bg-white/20 transition-all h-12 px-6`}
                   startContent={<Snowflake className={`w-4 h-4 ${isFreezing || isUnfreezing ? "animate-pulse" : ""}`} />}
                   isLoading={isFreezing || isUnfreezing}

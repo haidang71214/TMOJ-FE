@@ -457,19 +457,13 @@ export default function ProblemDetailsPage() {
                               </div>
                             )}
 
-                            {/* Failed Testcase Detail (if any) */}
                             {data?.verdictCode !== VerdictCode.AC && data?.verdictCode !== VerdictCode.CE && data?.statusCode === "done" && (
-                              <div className="space-y-4">
+                              <div className="space-y-4 mb-6">
                                 <div className="p-5 rounded-2xl bg-rose-500/5 border border-rose-500/10 space-y-4">
                                   <div className="flex items-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest">
                                     <AlertCircle size={16} />
                                     Failed Testcase Detail
                                   </div>
-                                </div>
-                              )}
-
-                              {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-                              
 
                                   <div className="grid grid-cols-1 gap-4">
                                     {firstFailedResult?.message || firstFailedResult?.checkerMessage || (firstFailedResult?.actualOutput && "Output mismatch") ? (
@@ -488,9 +482,6 @@ export default function ProblemDetailsPage() {
                                 </div>
                               </div>
                             )}
-
-                            {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-
 
                             {data?.verdictCode === VerdictCode.AC && submissionType === "submit" && (
                               <div className="flex flex-col items-center justify-center py-12 gap-4">

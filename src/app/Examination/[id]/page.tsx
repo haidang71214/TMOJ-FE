@@ -22,7 +22,6 @@ import { useGetSubmissionQuery } from "@/store/queries/Submittion";
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetTestsetSamplesQuery } from "@/store/queries/problem";
 import { VerdictCode, Problem } from "@/types";
-import AiDebugAssistant from "@/app/components/AiDebugAssistant";
 import SolutionSubmittion from "./Solutions/SolutionSubmittion";
 import DescriptionTab from "./Description/page";
 import EditorialTab from "./Editorial/page";
@@ -505,8 +504,6 @@ export default function ProblemDetailsPage() {
                               </div>
                             )}
 
-                            {/* AI DEBUG ASSISTANT INTEGRATION - Show for any failure including CE */}
-                            
 
                             {data?.verdictCode === VerdictCode.AC && (
                               <div className="flex flex-col items-center justify-center py-12 gap-6 animate-fade-in">

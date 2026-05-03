@@ -16,10 +16,12 @@ import {
 } from "@heroui/react";
 import UserAvatar from "@/components/Common/UserAvatar";
 import RatingBadge, { getRatingTier } from "@/components/Common/RatingBadge";
-import { Crown, Medal, RotateCcw, Search, TrendingUp, Trophy, Zap } from "lucide-react";
+import { BarChart3, Crown, LayoutList, Medal, RotateCcw, Search, Star, TrendingUp, Trophy, Zap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useGetRatingLeaderboardQuery } from "@/store/queries/ranking";
+import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function RatingLeaderboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -27,11 +29,27 @@ export default function RatingLeaderboardPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
 
+  const { data: user } = useGetUserInformationQuery();
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  useEffect(() => {
+    setSearch(debouncedSearch);
+    setPage(1);
+  }, [debouncedSearch]);
+
   const { data: response, isLoading, isFetching } = useGetRatingLeaderboardQuery({
     page,
     pageSize: 20,
     search: search || undefined,
   });
+
+  // Fetch my own rating
+  const { data: myRatingResponse } = useGetRatingLeaderboardQuery(
+    { search: user?.username },
+    { skip: !user?.username }
+  );
+
+  const myRatingData = myRatingResponse?.data?.rows?.find(r => r.userId === user?.userId);
 
   useEffect(() => {
     setMounted(true);
@@ -79,15 +97,25 @@ export default function RatingLeaderboardPage() {
             </div>
           </div>
 
-          <Link href="/Ranking">
+          <div className="flex bg-white dark:bg-[#1C2737] p-1.5 rounded-2xl shadow-sm border dark:border-white/5">
             <Button
               size="sm"
-              className="bg-white dark:bg-[#1C2737] text-[#071739] dark:text-white font-[1000] italic text-[10px] uppercase rounded-2xl shadow"
-              startContent={<Trophy size={14} />}
+              className="rounded-xl font-black italic text-[9px] uppercase transition-all bg-[#071739] text-white dark:bg-[#FF5C00]"
+              startContent={<Zap size={16} />}
             >
-              Global Leaderboard
+              Elo Rating
             </Button>
-          </Link>
+            <Link href="/Ranking">
+              <Button
+                size="sm"
+                className="rounded-xl font-black italic text-[9px] uppercase transition-all bg-transparent text-slate-400"
+                startContent={<LayoutList size={16} />}
+              >
+                Leaderboard
+              </Button>
+            </Link>
+
+          </div>
         </div>
 
         {/* PODIUM */}
@@ -102,17 +130,16 @@ export default function RatingLeaderboardPage() {
               const rankStyles = isFirst
                 ? { border: "border-amber-400", shadow: "shadow-[0_0_30px_rgba(251,191,36,0.3)]", badge: "bg-amber-400" }
                 : isSecond
-                ? { border: "border-slate-300", shadow: "shadow-[0_0_20px_rgba(203,213,225,0.3)]", badge: "bg-slate-300" }
-                : { border: "border-orange-700", shadow: "shadow-[0_0_20px_rgba(194,65,12,0.3)]", badge: "bg-orange-700" };
+                  ? { border: "border-slate-300", shadow: "shadow-[0_0_20px_rgba(203,213,225,0.3)]", badge: "bg-slate-300" }
+                  : { border: "border-orange-700", shadow: "shadow-[0_0_20px_rgba(194,65,12,0.3)]", badge: "bg-orange-700" };
 
               return (
                 <Card
                   key={u.userId}
-                  className={`rounded-[3rem] transition-all duration-500 overflow-visible border-4 ${rankStyles.border} ${rankStyles.shadow} ${
-                    isFirst
-                      ? "bg-linear-to-br from-[#071739] to-[#1a2a4a] text-white scale-110 z-20 h-[380px]"
-                      : "bg-white dark:bg-[#1C2737] h-[300px] z-10"
-                  }`}
+                  className={`rounded-[3rem] transition-all duration-500 overflow-visible border-4 ${rankStyles.border} ${rankStyles.shadow} ${isFirst
+                    ? "bg-linear-to-br from-[#071739] to-[#1a2a4a] text-white scale-110 z-20 h-[380px]"
+                    : "bg-white dark:bg-[#1C2737] h-[300px] z-10"
+                    }`}
                 >
                   <CardBody className="p-6 flex flex-col items-center justify-center text-center gap-3 relative">
                     <div
@@ -227,64 +254,113 @@ export default function RatingLeaderboardPage() {
                   </TableColumn>
                 </TableHeader>
                 <TableBody emptyContent="Chưa có dữ liệu rating.">
-                  {rows.map((row) => {
-                    const tier = getRatingTier(row.rating);
-                    return (
+                  {[
+                    ...rows.map((row) => {
+                      const tier = getRatingTier(row.rating);
+                      const isMe = user?.userId === row.userId;
+                      return (
+                        <TableRow
+                          key={row.userId}
+                          className={`border-b border-slate-50 dark:border-white/5 last:border-none transition-all h-20 group ${isMe
+                            ? "bg-orange-500/10 dark:bg-orange-500/20"
+                            : "hover:bg-[#F0F2F5] dark:hover:bg-[#0A0F1C]"
+                            }`}
+                        >
+                          <TableCell className="px-10 font-[1000] italic text-2xl leading-none">
+                            <span
+                              className={
+                                row.rank === 1
+                                  ? "text-amber-500"
+                                  : row.rank === 2
+                                    ? "text-slate-400"
+                                    : row.rank === 3
+                                      ? "text-orange-700"
+                                      : "text-slate-300"
+                              }
+                            >
+                              {row.rank.toString().padStart(2, "0")}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Link href={`/Profile/${row.username}`} className="flex items-center gap-4">
+                              <UserAvatar
+                                src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
+                                size="sm"
+                              />
+                              <div className="flex flex-col">
+                                <span
+                                  className={`font-[1000] uppercase italic text-sm group-hover:text-[#FF5C00] transition-colors ${isMe ? "text-[#FF5C00]" : ""}`}
+                                >
+                                  {row.fullname || row.username} {isMe && "(You)"}
+                                </span>
+                                <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
+                                  @{row.username} · {tier.title}
+                                </span>
+                              </div>
+                            </Link>
+                          </TableCell>
+                          <TableCell className={`text-center font-black italic text-sm ${isMe ? "text-[#FF5C00]" : "text-slate-600 dark:text-slate-400"}`}>
+                            {row.rating.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-center font-black italic text-sm text-slate-500">
+                            {row.maxRating}
+                          </TableCell>
+                          <TableCell className="text-center font-black italic text-sm">
+                            {row.timesPlayed}
+                          </TableCell>
+                          <TableCell className="text-right px-10 font-bold italic text-xs text-slate-400">
+                            {row.lastCompetedAt
+                              ? new Date(row.lastCompetedAt).toLocaleDateString()
+                              : "—"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }),
+                    // LUÔN HIỆN BẢN THÂN KHI SEARCH - Nếu không có trong list hiện tại
+                    ...(myRatingData && !rows.some(r => r.userId === user?.userId) ? [
                       <TableRow
-                        key={row.userId}
-                        className="border-b border-slate-50 dark:border-white/5 last:border-none hover:bg-[#F0F2F5] dark:hover:bg-[#0A0F1C] transition-all h-20 group"
+                        key="my-fixed-rating"
+                        className="bg-[#FF5C00]/5 dark:bg-[#FF5C00]/10 border-t-2 border-[#FF5C00]/20 sticky bottom-0 z-20 h-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] backdrop-blur-md"
                       >
-                        <TableCell className="px-10 font-[1000] italic text-2xl leading-none">
-                          <span
-                            className={
-                              row.rank === 1
-                                ? "text-amber-500"
-                                : row.rank === 2
-                                ? "text-slate-400"
-                                : row.rank === 3
-                                ? "text-orange-700"
-                                : "text-slate-300"
-                            }
-                          >
-                            {row.rank.toString().padStart(2, "0")}
-                          </span>
+                        <TableCell className="px-10 font-[1000] italic text-sm leading-none text-[#FF5C00]">
+                          <div className="flex flex-col items-center">
+                            <Star size={14} fill="currentColor" className="mb-1" />
+                            <span>YOU</span>
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/Profile/${row.username}`} className="flex items-center gap-4">
+                          <Link href={`/Profile/${myRatingData.username}`} className="flex items-center gap-4">
                             <UserAvatar
-                              src={row.avatarUrl || `https://i.pravatar.cc/150?u=${row.userId}`}
+                              src={myRatingData.avatarUrl || `https://i.pravatar.cc/150?u=${myRatingData.userId}`}
                               size="sm"
                             />
                             <div className="flex flex-col">
-                              <span
-                                className="font-[1000] uppercase italic text-sm group-hover:underline transition-colors"
-                                style={{ color: tier.color }}
-                              >
-                                {row.fullname || row.username}
+                              <span className="font-[1000] uppercase italic text-sm text-[#FF5C00]">
+                                {myRatingData.fullname || myRatingData.username} (You)
                               </span>
                               <span className="font-bold text-[9px] text-slate-400 uppercase leading-none">
-                                @{row.username} · {tier.title}
+                                @{myRatingData.username} · {getRatingTier(myRatingData.rating).title}
                               </span>
                             </div>
                           </Link>
                         </TableCell>
-                        <TableCell className="text-center">
-                          <RatingBadge rating={row.rating} size="md" showTitle={false} />
+                        <TableCell className="text-center font-black italic text-sm text-[#FF5C00]">
+                          {myRatingData.rating.toLocaleString()}
                         </TableCell>
                         <TableCell className="text-center font-black italic text-sm text-slate-500">
-                          {row.maxRating}
+                          {myRatingData.maxRating}
                         </TableCell>
                         <TableCell className="text-center font-black italic text-sm">
-                          {row.timesPlayed}
+                          {myRatingData.timesPlayed}
                         </TableCell>
-                        <TableCell className="text-right px-10 font-bold italic text-xs text-slate-400">
-                          {row.lastCompetedAt
-                            ? new Date(row.lastCompetedAt).toLocaleDateString()
+                        <TableCell className="text-right px-10 font-bold italic text-xs text-[#FF5C00]">
+                          {myRatingData.lastCompetedAt
+                            ? new Date(myRatingData.lastCompetedAt).toLocaleDateString()
                             : "—"}
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
+                    ] : [])
+                  ]}
                 </TableBody>
               </Table>
             )}

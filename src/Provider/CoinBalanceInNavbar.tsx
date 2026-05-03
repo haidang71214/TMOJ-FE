@@ -21,6 +21,7 @@ export default function CoinBalanceInNavbar() {
     <NavbarItem className="hidden sm:flex">
       <Tooltip content="TMOJ Gold Coins" className="font-bold text-[10px] uppercase tracking-widest">
         <div
+          id="navbar-coin-balance"
           onClick={() => openModal({ content: <DepositContent onClose={closeModal} />, size: "lg" })}
           className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 border border-orange-100 dark:border-orange-500/20 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer group"
         >

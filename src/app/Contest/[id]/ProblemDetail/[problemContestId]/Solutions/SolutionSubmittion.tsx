@@ -7,7 +7,7 @@ import {
 import { usePostClassContestSubmissionMutation } from "@/store/queries/ClassContest"
 
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile"
-import { Play, RotateCcw, Settings2, Upload } from "lucide-react"
+import { Maximize2, Minimize2, Play, RotateCcw, Settings2, Upload } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import Editor from "@monaco-editor/react"
 import { addToast } from "@heroui/toast"
@@ -16,7 +16,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useGetDetailProblemPublicQuery } from "@/store/queries/ProblemPublic"
 
 interface SolutionSubmittionProps {
-  editorHeight: number;
+  editorHeight: number | string;
   problemId: string;
   contestProblemId?: string;
   classSemesterId?: string;
@@ -24,6 +24,8 @@ interface SolutionSubmittionProps {
   onSubmitSuccess?: () => void;
   classSlotId?: string;
   onSubmissionIdChange?: (id: string | null, type: "run" | "submit") => void;
+  isMaximized?: boolean;
+  onToggleMaximize?: () => void;
 }
 
 const TEMPLATES: Record<string, string> = {
@@ -83,8 +85,10 @@ export default function SolutionSubmittion({
   onSubmitSuccess,
   classSlotId,
   onSubmissionIdChange,
+  isMaximized,
+  onToggleMaximize,
 }: SolutionSubmittionProps) {
-// phần nộp bài cần classSemeterId và contestId.
+  // phần nộp bài cần classSemeterId và contestId.
   const { t, language } = useTranslation();
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [hasShownResultToast, setHasShownResultToast] = useState(false)
@@ -98,6 +102,7 @@ export default function SolutionSubmittion({
 
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null)
   const [code, setCode] = useState("")
+  const hasInitializedTemplate = React.useRef(false);
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
   const [postClassContestSubmission, { isLoading: isSubmittingClassContest }] = usePostClassContestSubmissionMutation()
@@ -236,20 +241,21 @@ export default function SolutionSubmittion({
   const editorLanguage = getLanguage(selectedRuntime?.runtimeName)
 
   // Đổi code template khi đổi ngôn ngữ
-  // Nếu user đã sửa code thì không đè code của user
+  // Chỉ chạy khi ngôn ngữ thay đổi HOẶC khi chưa khởi tạo lần đầu
   useEffect(() => {
     if (!selectedRuntime) return;
     const currentCode = code.trim();
-    // Only update if current code is empty or a known template
+    // Only update if current code is empty or we haven't initialized yet
     const isDefaultTemplate = currentCode === "" || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
 
-    if (isDefaultTemplate) {
+    if (isDefaultTemplate || !hasInitializedTemplate.current) {
       if (problemData?.problemMode === "pro") {
         if (code !== "") setCode("");
       } else {
         const newTemplate = TEMPLATES[editorLanguage] || TEMPLATES["cpp"];
         if (code !== newTemplate) setCode(newTemplate);
       }
+      hasInitializedTemplate.current = true;
     }
   }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
 
@@ -311,7 +317,7 @@ export default function SolutionSubmittion({
     if (classSemesterId && contestId && contestProblemId) {
       console.log(contestProblemId, selectedRuntimeId, code);
       console.log(classSemesterId, contestId);
-      
+
       try {
         const response = await postClassContestSubmission({
           classSemesterId,
@@ -322,7 +328,7 @@ export default function SolutionSubmittion({
             language: selectedRuntimeId!
           }
         }).unwrap()
-        console.log("response submission", response); 
+        console.log("response submission", response);
         const newSubmissionId = response?.data?.submissionId
 
         if (!newSubmissionId) {
@@ -399,6 +405,15 @@ export default function SolutionSubmittion({
           <button className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump">
             <Settings2 size={14} />
           </button>
+          {onToggleMaximize && (
+            <button
+              onClick={onToggleMaximize}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#101828] hover:text-[#FF5C00] transition-colors active-bump"
+              title={isMaximized ? "Restore" : "Maximize Editor"}
+            >
+              {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+          )}
         </div>
       </div>
 

@@ -101,6 +101,7 @@ export default function SolutionSubmittion({
 
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null)
   const [code, setCode] = useState("")
+  const hasInitializedTemplate = React.useRef(false);
 
   const [postSubmission, { isLoading: isSubmitting }] = usePostSubmissionMutation()
   const [submitContest, { isLoading: isSubmittingContest }] = useSubmitContestMutation()
@@ -239,20 +240,21 @@ export default function SolutionSubmittion({
   const editorLanguage = getLanguage(selectedRuntime?.runtimeName)
 
   // Đổi code template khi đổi ngôn ngữ
-  // Nếu user đã sửa code thì không đè code của user
+  // Chỉ chạy khi ngôn ngữ thay đổi HOẶC khi chưa khởi tạo lần đầu
   useEffect(() => {
     if (!selectedRuntime) return;
     const currentCode = code.trim();
-    // Only update if current code is empty or a known template
+    // Only update if current code is empty or we haven't initialized yet
     const isDefaultTemplate = currentCode === "" || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
 
-    if (isDefaultTemplate) {
+    if (isDefaultTemplate || !hasInitializedTemplate.current) {
       if (problemData?.problemMode === "pro") {
         if (code !== "") setCode("");
       } else {
         const newTemplate = TEMPLATES[editorLanguage] || TEMPLATES["cpp"];
         if (code !== newTemplate) setCode(newTemplate);
       }
+      hasInitializedTemplate.current = true;
     }
   }, [editorLanguage, selectedRuntime, problemData?.problemMode]);
 

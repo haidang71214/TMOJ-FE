@@ -47,6 +47,9 @@ import { useGetCollectionDetailQuery, useDeleteCollectionItemMutation, useUpdate
 import { useGetUserInformationQuery } from "@/store/queries/usersProfile";
 import { useGetFavoriteProblemsQuery } from "@/store/queries/favorites";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useGetProblemSolvedListQuery } from "@/store/queries/ProblemSolved";
+import { useAppSelector } from "@/utils/redux";
+import { CheckCircle2 } from "lucide-react";
 import { ErrorForm } from "@/types";
 
 
@@ -59,19 +62,26 @@ export default function MyListDetailPage() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { data: user } = useGetUserInformationQuery();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
+
+  // API cho danh sách bài đã giải
+  const { data: solvedListResponse } = useGetProblemSolvedListQuery({ page: 1, pageSize: 1000 }, { skip: !isAuthenticated });
+  const solvedProblemIds = React.useMemo(() => {
+    return new Set<string>((solvedListResponse?.data?.items || []).map(p => p.problemId));
+  }, [solvedListResponse]);
 
   const isFavId = currentId === "Favorite" || currentId === "favorites" || currentId === "fav-problems";
 
   // Real data fetching - Standard Collection
-  const { data: collectionDetail, isLoading: isCollLoading } = useGetCollectionDetailQuery(currentId, { 
-    skip: isFavId 
+  const { data: collectionDetail, isLoading: isCollLoading } = useGetCollectionDetailQuery(currentId, {
+    skip: isFavId
   });
 
   const isFavoritePage = isFavId || collectionDetail?.data?.type === "problem_favorite";
 
   // Real data fetching - System Favorite Problems
   const { data: favoriteProblems, isLoading: isFavLoading } = useGetFavoriteProblemsQuery(
-    { page: 1, pageSize: 100 }, 
+    { page: 1, pageSize: 100 },
     { skip: !isFavoritePage }
   );
 
@@ -130,7 +140,7 @@ export default function MyListDetailPage() {
   const activeMeta = isFavoritePage ? null : getMeta(rawDetail);
   console.log("Collection items structure:", { currentId, isFavoritePage, rawDetail, rawFav, items, activeMeta });
   console.log("rawDetail", rawDetail);
-console.log("rawFav", rawFav);
+  console.log("rawFav", rawFav);
   // States for Editing
   const [listTitle, setListTitle] = useState(currentId === "Favorite" ? "Favorite Problems" : "Loading...");
   const [listDesc, setListDesc] = useState("Your collections");
@@ -152,7 +162,6 @@ console.log("rawFav", rawFav);
   const deleteListModal = useDisclosure();
   const editModal = useDisclosure();
   const addQuestionsModal = useDisclosure();
-  const resetProgressModal = useDisclosure();
 
   const [clearCodeChecked, setClearCodeChecked] = useState(false);
   const [problemToRemoveId, setProblemToRemoveId] = useState<string | null>(null);
@@ -198,10 +207,6 @@ console.log("rawFav", rawFav);
     }
   };
 
-  const confirmResetProgress = () => {
-    toast.success("Feature under development");
-    resetProgressModal.onClose();
-  };
 
   const confirmRemoveItem = async () => {
     if (!problemToRemoveId) return;
@@ -337,10 +342,17 @@ console.log("rawFav", rawFav);
                   startContent={<Play size={18} fill="currentColor" />}
                   onPress={() => {
                     if (orderedItems.length > 0) {
-                      const firstItem = orderedItems[0];
-                      const isProblem = isFavoritePage || !!firstItem.problemId || !!firstItem.problem;
-                      const targetId = firstItem.problemId || firstItem.contestId || firstItem.id;
-                      router.push(isProblem ? `/Problems/${targetId}` : `/Contests/${targetId}`);
+                      // Find first unsolved problem
+                      const firstUnsolved = orderedItems.find(item => {
+                        const isProblem = isFavoritePage || !!item.problemId || !!item.problem;
+                        const targetId = item.problemId || item.contestId || item.id;
+                        return isProblem && !solvedProblemIds.has(targetId);
+                      });
+
+                      const targetItem = firstUnsolved || orderedItems[0];
+                      const isProblem = isFavoritePage || !!targetItem.problemId || !!targetItem.problem;
+                      const targetId = targetItem.problemId || targetItem.contestId || targetItem.id;
+                      router.push(isProblem ? `/Problems/${targetId}` : `/Contest/${targetId}`);
                     } else {
                       toast.error("No items to practice!");
                     }
@@ -386,14 +398,6 @@ console.log("rawFav", rawFav);
                       onPress={editModal.onOpen}
                     >
                       Edit list info
-                    </DropdownItem>
-                    <DropdownItem
-                      key="reset"
-                      textValue="Reset progress"
-                      startContent={<RotateCcw size={16} />}
-                      onPress={resetProgressModal.onOpen}
-                    >
-                      Reset progress
                     </DropdownItem>
                     <DropdownItem
                       key="delete"
@@ -447,10 +451,11 @@ console.log("rawFav", rawFav);
           <div className="flex-1 bg-white dark:bg-[#1C2737] rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-8 shadow-sm h-fit">
             <ListControls />
             <div className="mt-8 overflow-x-auto">
-              <div className="grid grid-cols-[1fr_120px_100px_80px] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5 min-w-[500px]">
+              <div className="grid grid-cols-[1fr_100px_100px_80px_80px] px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-white/5 min-w-[500px]">
                 <span>Question Title</span>
                 <span className="text-right">Acceptance</span>
                 <span className="text-right">Difficulty</span>
+                <span className="text-center">Status</span>
                 <span className="text-center">Action</span>
               </div>
               <Reorder.Group
@@ -475,7 +480,7 @@ console.log("rawFav", rawFav);
                     >
                       <div
                         onClick={() => router.push(route)}
-                        className="grid grid-cols-[1fr_120px_100px_80px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl active:cursor-grabbing bg-white dark:bg-[#1C2737]"
+                        className="grid grid-cols-[1fr_100px_100px_80px_80px] px-6 py-5 items-center cursor-pointer transition-all border-b border-slate-50 dark:border-white/5 group hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl active:cursor-grabbing bg-white dark:bg-[#1C2737]"
                       >
                         <div className="flex gap-4 items-center overflow-hidden">
                           <div className="text-slate-300 dark:text-slate-600 cursor-grab active:cursor-grabbing p-1 hover:text-blue-500 transition-colors shrink-0">
@@ -508,6 +513,13 @@ console.log("rawFav", rawFav);
                           >
                             {item.difficulty || item.problem?.difficulty || item.problemDifficulty || (isProblem ? "—" : "Contest")}
                           </span>
+                        </div>
+                        <div className="flex justify-center">
+                          {isProblem && solvedProblemIds.has(targetId) ? (
+                            <CheckCircle2 size={18} className="text-green-500 fill-green-500/10" />
+                          ) : (
+                            <span className="text-[10px] text-slate-300 dark:text-slate-600 font-black tracking-widest">—</span>
+                          )}
                         </div>
                         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                           <Dropdown
@@ -578,62 +590,6 @@ console.log("rawFav", rawFav);
         </div>
       </div>
 
-      {/* --- MODALS --- */}
-      <Modal
-        isOpen={resetProgressModal.isOpen}
-        onOpenChange={resetProgressModal.onOpenChange}
-        size="lg"
-        backdrop="blur"
-        classNames={{ base: "dark:bg-[#1C2737] rounded-[2rem]" }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex items-center gap-3">
-                <div className="p-2 bg-rose-100 dark:bg-rose-500/20 rounded-full text-rose-600">
-                  <AlertCircle size={24} strokeWidth={3} />
-                </div>
-                <span className="text-xl font-black uppercase italic">
-                  Reset progress
-                </span>
-              </ModalHeader>
-              <ModalBody className="py-2">
-                <p className="text-sm font-bold text-slate-500 leading-relaxed mb-4">
-                  Resetting progress will move all questions back to incomplete.
-                  This action cannot be undone.
-                </p>
-                <Checkbox
-                  size="sm"
-                  isSelected={clearCodeChecked}
-                  onValueChange={setClearCodeChecked}
-                  color="danger"
-                  classNames={{
-                    label: "font-bold text-slate-600 dark:text-slate-300",
-                  }}
-                >
-                  Clear codes saved in code editor
-                </Checkbox>
-              </ModalBody>
-              <ModalFooter className="mt-4">
-                <Button
-                  variant="flat"
-                  onPress={onClose}
-                  className="font-bold rounded-xl px-8 h-12"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  color="danger"
-                  className="font-black uppercase tracking-widest rounded-xl px-10 h-12 shadow-lg shadow-rose-500/20"
-                  onPress={confirmResetProgress}
-                >
-                  Reset
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
 
 
       {/* ADD QUESTIONS MODAL */}
@@ -664,11 +620,12 @@ console.log("rawFav", rawFav);
                   </p>
                   <Input
                     variant="bordered"
+                    maxLength={100}
                     value={listTitle}
                     onValueChange={setListTitle}
                     endContent={
                       <span className="text-[10px] text-slate-300">
-                        {listTitle.length}/30
+                        {listTitle.length}/100
                       </span>
                     }
                   />
@@ -679,12 +636,13 @@ console.log("rawFav", rawFav);
                   </p>
                   <Textarea
                     variant="bordered"
+                    maxLength={500}
                     value={listDesc}
                     onValueChange={setListDesc}
                     minRows={3}
                   />
                   <p className="text-right text-[10px] text-slate-300">
-                    {listDesc.length}/150
+                    {listDesc.length}/500
                   </p>
                 </div>
                 <div className="flex items-center justify-between px-1">

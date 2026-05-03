@@ -58,6 +58,8 @@ import {
   useGetGamificationHistoryQuery,
   useGetDailyActivitiesQuery
 } from "@/store/queries/gamification";
+import { useGetProblemSolvedStatsQuery, useGetProblemSolvedListQuery } from "@/store/queries/ProblemSolved";
+import { useGetProblemListPublicQuery } from "@/store/queries/ProblemPublic";
 import { useGetDiscussionHistoryQuery } from "@/store/queries/discussion";
 import { useGetMyInventoryQuery, useEquipItemMutation } from "@/store/queries/store";
 import EditProfileModal from "./EditProfileModal";
@@ -117,9 +119,42 @@ export default function ProfilePage() {
   const { data: gActivitiesResponse } = useGetDailyActivitiesQuery();
   const { data: historyData, isLoading: historyLoading } = useGetDiscussionHistoryQuery({ limit: 10 });
 
+  // ── Solved Stats & List ──
+  const { data: solvedStatsResponse } = useGetProblemSolvedStatsQuery();
+  const { data: solvedListResponse, isLoading: solvedListLoading } = useGetProblemSolvedListQuery({ page: 1, pageSize: 5 });
+  const { data: allSolvedResponse } = useGetProblemSolvedListQuery({ page: 1, pageSize: 1000 });
+
+  const { data: easyProblems } = useGetProblemListPublicQuery({ page: 1, pageSize: 1, difficulty: "easy" });
+  const { data: mediumProblems } = useGetProblemListPublicQuery({ page: 1, pageSize: 1, difficulty: "medium" });
+  const { data: hardProblems } = useGetProblemListPublicQuery({ page: 1, pageSize: 1, difficulty: "hard" });
+
+  const solvedStats = solvedStatsResponse?.data;
+  const recentSolvedProblems = solvedListResponse?.data?.items ?? [];
+
+  const solvedByDifficulty = useMemo(() => {
+    const counts = { easy: 0, medium: 0, hard: 0 };
+    const seenIds = new Set<string>();
+
+    (allSolvedResponse?.data?.items ?? []).forEach(p => {
+      // Count all solved problems unique by problemId
+      if (!seenIds.has(p.problemId)) {
+        seenIds.add(p.problemId);
+        const d = p.difficulty.toLowerCase();
+        if (d === "easy") counts.easy++;
+        else if (d === "medium") counts.medium++;
+        else if (d === "hard") counts.hard++;
+      }
+    });
+    return counts;
+  }, [allSolvedResponse]);
+
   const gMe = gMeResponse?.data;
   const gStreak = gStreakResponse?.data;
   const gBadges = gProgressResponse?.data || [];
+
+  const easyTotal = Math.max(easyProblems?.pagination?.totalCount ?? 0, gMe?.easyTotal ?? 0);
+  const mediumTotal = Math.max(mediumProblems?.pagination?.totalCount ?? 0, gMe?.mediumTotal ?? 0);
+  const hardTotal = Math.max(hardProblems?.pagination?.totalCount ?? 0, gMe?.hardTotal ?? 0);
   const completedBadges = useMemo(() => {
     return gBadges.filter((b: any) =>
       b.isCompleted === true ||
@@ -144,17 +179,6 @@ export default function ProfilePage() {
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (completedBadges.length > 0 && !isCelebrationOpen) {
-      const seenBadges = JSON.parse(localStorage.getItem("seenBadges") || "[]");
-      const newBadge = completedBadges.find((b: any) => !seenBadges.includes(b.badgeId));
-
-      if (newBadge) {
-        setCelebrationBadge(newBadge as any);
-        setIsCelebrationOpen(true);
-      }
-    }
-  }, [completedBadges, isCelebrationOpen]);
 
 
   const handleCloseCelebration = () => {
@@ -200,15 +224,15 @@ export default function ProfilePage() {
 
   const difficultyData: DifficultyStat[] = useMemo(
     () => [
-      { label: "Easy", solved: gMe?.easySolved ?? 0, total: gMe?.easyTotal ?? 0, color: "text-[#00FF41]", variant: "success" },
-      { label: "Med", solved: gMe?.mediumSolved ?? 0, total: gMe?.mediumTotal ?? 0, color: "text-blue-500", variant: "primary" },
-      { label: "Hard", solved: gMe?.hardSolved ?? 0, total: gMe?.hardTotal ?? 0, color: "text-[#FF5C00]", variant: "warning" },
+      { label: "Easy", solved: solvedByDifficulty.easy, total: easyTotal, color: "text-[#00FF41]", variant: "success" },
+      { label: "Med", solved: solvedByDifficulty.medium, total: mediumTotal, color: "text-blue-500", variant: "primary" },
+      { label: "Hard", solved: solvedByDifficulty.hard, total: hardTotal, color: "text-[#FF5C00]", variant: "warning" },
     ],
-    [gMe]
+    [solvedByDifficulty, easyTotal, mediumTotal, hardTotal]
   );
 
-  const SOLVED_COUNT = gMe?.solvedProblems ?? 0;
-  const TOTAL_COUNT = (gMe?.easyTotal ?? 0) + (gMe?.mediumTotal ?? 0) + (gMe?.hardTotal ?? 0);
+  const SOLVED_COUNT = solvedStats?.totalSolved ?? gMe?.solvedProblems ?? 0;
+  const TOTAL_COUNT = easyTotal + mediumTotal + hardTotal;
 
   const userCollections = useMemo(() => {
     const raw = collectionsResponse?.data;
@@ -701,43 +725,47 @@ export default function ProfilePage() {
             >
               <Tab key="recent" title="Recent AC">
                 <div className="px-10 pb-10 divide-y divide-slate-100 dark:divide-white/5">
-                  {[
-                    ["Two Sum", "Easy", "2 mins ago"],
-                    ["Longest Palindrome", "Medium", "19 days ago"],
-                    ["Median Array", "Hard", "1 month ago"],
-                  ].map(([title, diff, time]) => (
-                    <div
-                      key={title}
-                      className="py-6 flex justify-between items-center group cursor-pointer"
-                    >
-                      <div className="space-y-1">
-                        <p className="text-base font-black uppercase italic group-hover:text-blue-600 transition-colors text-[#071739] dark:text-white leading-none">
-                          {title}
-                        </p>
-                        <p
-                          className={`text-[9px] font-black uppercase italic ${diff === "Easy"
-                            ? "text-[#00FF41]"
-                            : diff === "Hard"
-                              ? "text-[#FF5C00]"
-                              : "text-blue-500"
-                            }`}
-                        >
-                          {diff}
-                        </p>
+                  {solvedListLoading ? (
+                    <div className="flex justify-center py-10"><Spinner color="warning" /></div>
+                  ) : recentSolvedProblems.length > 0 ? (
+                    recentSolvedProblems.map((p) => (
+                      <div
+                        key={p.problemId}
+                        className="py-6 flex justify-between items-center group cursor-pointer"
+                        onClick={() => router.push(`/Problems/${p.slug}`)}
+                      >
+                        <div className="space-y-1">
+                          <p className="text-base font-black uppercase italic group-hover:text-blue-600 transition-colors text-[#071739] dark:text-white leading-none">
+                            {p.title}
+                          </p>
+                          <p
+                            className={`text-[9px] font-black uppercase italic ${p.difficulty === "easy"
+                              ? "text-[#00FF41]"
+                              : p.difficulty === "hard"
+                                ? "text-[#FF5C00]"
+                                : "text-blue-500"
+                              }`}
+                          >
+                            {p.difficulty}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors">
+                          <span className="text-[10px] font-bold uppercase italic">
+                            {new Date(p.lastSolvedAt).toLocaleDateString()}
+                          </span>
+                          <ChevronRight size={16} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-slate-400 group-hover:text-[#FF5C00] transition-colors">
-                        <span className="text-[10px] font-bold uppercase italic">
-                          {time}
-                        </span>
-                        <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="py-10 text-center text-slate-400 italic">No solved problems yet.</div>
+                  )}
                   <Button
                     variant="light"
                     className="w-full mt-6 font-black uppercase italic text-[10px] text-[#FF5C00] tracking-[0.2em]"
+                    onClick={() => router.push("/Problems/Solved")}
                   >
-                    View All Activity →
+                    View All solved problems →
                   </Button>
                 </div>
               </Tab>

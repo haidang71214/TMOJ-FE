@@ -306,6 +306,22 @@ export const contestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { contestId }) => [{ type: "Contest", id: contestId }, "Contest"],
     }),
+    // 33. Freeze Contest V2
+    freezeContestV2: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.FREEZE_CONTEST_V2.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
+    }),
+    // 34. Unfreeze Contest V2
+    unfreezeContestV2: builder.mutation<any, string>({
+      query: (id) => ({
+        url: ContestEndpoint.UNFREEZE_CONTEST_V2.replace("{id}", id),
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, id) => ["Contest", { type: "Contest", id: `scoreboard_${id}` }],
+    }),
   }),
 });
 
@@ -336,4 +352,6 @@ export const {
   useUpdateClassContestProblemMutation,
   useDeleteClassContestProblemMutation,
   useAddClassContestProblemMutation,
+  useFreezeContestV2Mutation,
+  useUnfreezeContestV2Mutation,
 } = contestApi;

@@ -221,6 +221,8 @@ const ContestEndpoint = {
   GET_SCOREBOARD: `${API_PREFIX}/contests/{id}/scoreboard`,
   FREEZE_CONTEST: `${API_PREFIX}/contests/{id}/freeze`,
   UNFREEZE_CONTEST: `${API_PREFIX}/contests/{id}/unfreeze`,
+  FREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/freeze`,
+  UNFREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
 };
 

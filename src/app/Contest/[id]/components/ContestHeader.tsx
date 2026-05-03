@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { Tabs, Tab, Chip, Avatar, AvatarGroup } from "@heroui/react";
 import { Info, TrendingUp, Users, Calendar, Clock, Timer } from "lucide-react";
 
-import { useGetContestDetailQuery } from "@/store/queries/Contest";
-import { useSelector } from "react-redux";
+import { useGetContestDetailQuery, contestApi } from "@/store/queries/Contest";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
 import { UserRole } from "@/types";
 
@@ -58,6 +58,7 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
   const pathname = usePathname();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const role = currentUser?.role?.toLowerCase();
+  const dispatch = useDispatch();
 
   const isStudent = role === UserRole.STUDENT;
 
@@ -146,6 +147,12 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
             aria-label="Contest tabs"
             variant="underlined"
             selectedKey={selectedTab}
+            onSelectionChange={(key) => {
+              if (key === "leaderboard") {
+                console.log("Refetching Scoreboard via tag invalidation...");
+                dispatch(contestApi.util.invalidateTags([{ type: "Contest", id: `scoreboard_${contestId}` }]));
+              }
+            }}
             classNames={{
               base: "overflow-visible",
               tabList: "gap-12 relative rounded-none p-0 border-b-0 w-full overflow-visible scrollbar-hide",

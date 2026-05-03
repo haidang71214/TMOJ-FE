@@ -31,7 +31,7 @@ export default function NavbarProvider() {
   const { data: user } = useGetUserInformationQuery();
   const { t, language, setLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  console.log(user);
+
 
   const { openModal } = useModal();
 

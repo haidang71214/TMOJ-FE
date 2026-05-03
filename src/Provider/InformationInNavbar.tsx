@@ -76,7 +76,7 @@ export default function InformationInNavbar() {
         startContent={<Sparkles size={18} />}
         onClick={() => {
           if (isAdminPage) {
-            console.log("backhome");
+
             router.push(`${PAGE_URL}`);
           } else {
             router.push(`${ADMIN_PAGE_URL}?token=${webStorageClient.getToken()}`);

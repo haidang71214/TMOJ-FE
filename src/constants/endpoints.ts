@@ -9,7 +9,8 @@ const authEndpoint = {
   REGISTER: `${API_PREFIX}/Auth/register`,
   LOGOUT: `${API_PREFIX}/Auth/logout`,
   FORGOT_PASSWORD: `${API_PREFIX}/Auth/forgot-password`,
-  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`
+  RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`,
+  CONFIRM_EMAIL: `${API_PREFIX}/Auth/confirm-email`,
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,

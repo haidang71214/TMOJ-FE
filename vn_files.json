@@ -552,7 +552,7 @@
   {
     "file": "Provider\\InformationInNavbar.tsx",
     "samples": [
-      "// 🔥 Lấy user trực tiếp từ RTK Query",
+      "//   Lấy user trực tiếp từ RTK Query",
       "// nếu đang ở admin subdomain → chuyển về domain chính"
     ]
   },

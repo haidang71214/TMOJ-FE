@@ -73,7 +73,9 @@ export const CommentInput = ({
         if (parentId) {
           payload.parentId = parentId;
         }
+        console.log("  Payload for CREATE_COMMENT:", payload);
         const res = await createComment({ discussionId, ...payload }).unwrap();
+        console.log("  Response from CREATE_COMMENT:", res);
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }
@@ -97,7 +99,9 @@ export const CommentInput = ({
           content: content.trim(),
           title: "Discussion", // Optional title
         };
+        console.log("  Payload for CREATE_DISCUSSION:", payload);
         const res = await createDiscussion(payload).unwrap();
+        console.log("  Response from CREATE_DISCUSSION:", res);
         if (res && res.data === null && res.message) {
           throw new Error(res.message);
         }

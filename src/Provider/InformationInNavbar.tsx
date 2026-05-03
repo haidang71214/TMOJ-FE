@@ -35,7 +35,7 @@ import { clearLoginToken } from "@/store/slices/auth";
 export default function InformationInNavbar() {
   const router = useRouter();
   const { t } = useTranslation();
-  // 🔥 Lấy user trực tiếp từ RTK Query
+  //   Lấy user trực tiếp từ RTK Query
   const { data: user } = useGetUserInformationQuery();
   const handleLink = (link: string) => router.push(link);
   const [logout] = useLogoutMutation();

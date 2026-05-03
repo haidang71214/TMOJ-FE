@@ -63,6 +63,9 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
             amount: -700,
             note: "AI Debug Assistant fee"
           }).unwrap();
+
+          // Kích hoạt hiệu ứng bay coin ở Navbar
+          window.dispatchEvent(new CustomEvent('coin-deducted', { detail: { amount: 700 } }));
         } catch (coinError: any) {
           toast.error(
             coinError?.data?.message ||
@@ -85,7 +88,6 @@ export default function AiDebugAssistant({ submissionId, verdict, testcase }: Ai
         setState("error");
       }
     } catch (error: any) {
-      console.error("AI Debug Error:", error);
       if (error?.status === 429) {
         setState("quota");
       } else {

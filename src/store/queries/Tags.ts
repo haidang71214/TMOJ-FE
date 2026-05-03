@@ -51,48 +51,48 @@ export const tagApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Tag"] as any,
     }),
-   updateProblemTags: builder.mutation<any, { problemId: string; tagIds: string[] }>({
-  query: ({ problemId, tagIds }) => {
-    const payload = {
-      tagIds: tagIds   // viết rõ ràng, không dùng shorthand
-    };
-    console.log(problemId);
-    
-    console.log("=== PAYLOAD ĐANG GỬI ===", JSON.stringify(payload, null, 2));
+    updateProblemTags: builder.mutation<any, { problemId: string; tagIds: string[] }>({
+      query: ({ problemId, tagIds }) => {
+        const payload = {
+          tagIds: tagIds   // viết rõ ràng, không dùng shorthand
+        };
 
-    return {
-      url: TagEndpoint.UPDATE_PROBLEM_TAGS.replace("{problemId}", problemId),
-      method: "PUT",
-      body: payload,
-      headers: {
-        "Content-Type": "application/json",
+
+
+
+        return {
+          url: TagEndpoint.UPDATE_PROBLEM_TAGS.replace("{problemId}", problemId),
+          method: "PUT",
+          body: payload,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
       },
-    };
-  },
-  invalidatesTags: ["Problem", "Tag", "ProblemBank"] as any,
-}),
-// Thêm vào Tags api slice (cùng chỗ với updateProblemTags)
-attachProblemTags: builder.mutation<any, { problemId: string; tagIds: string[] }>({
-  query: ({ problemId, tagIds }) => {
-    const payload = {
-      tagIds: tagIds ?? [],           // đảm bảo không undefined
-    };
-    return {
-      url: TagEndpoint.ATTACH_TAGS_PROBLEM.replace("{problemId}", problemId),   // ← phải là endpoint POST attach
-      method: "POST",
-      body: payload,
-      headers: {
-        "Content-Type": "application/json",
+      invalidatesTags: ["Problem", "Tag", "ProblemBank"] as any,
+    }),
+    // Thêm vào Tags api slice (cùng chỗ với updateProblemTags)
+    attachProblemTags: builder.mutation<any, { problemId: string; tagIds: string[] }>({
+      query: ({ problemId, tagIds }) => {
+        const payload = {
+          tagIds: tagIds ?? [],           // đảm bảo không undefined
+        };
+        return {
+          url: TagEndpoint.ATTACH_TAGS_PROBLEM.replace("{problemId}", problemId),   // ← phải là endpoint POST attach
+          method: "POST",
+          body: payload,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
       },
-    };
-  },
-  invalidatesTags: ["Problem", "Tag"] as any,
-}),
+      invalidatesTags: ["Problem", "Tag"] as any,
+    }),
   }),
 });
 
-export const { 
-  useGetTagsQuery, 
+export const {
+  useGetTagsQuery,
   useCreateTagMutation,
   useUpdateProblemTagsMutation,
   useAttachProblemTagsMutation

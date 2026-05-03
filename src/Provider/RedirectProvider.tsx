@@ -50,8 +50,8 @@ export default function RedirectProvider({ children }: { children: React.ReactNo
             const token = webStorageClient.getToken() ?? webStorageClient.get("__admin_access_token");
             const user = webStorageClient.getUser();
 
-            console.log(`-------- Token: ${token}`);
-            console.log(`-------- User: ${JSON.stringify(user)}`);
+
+
 
             if (!token || user?.role !== "admin") {
                 setAdminState("login");

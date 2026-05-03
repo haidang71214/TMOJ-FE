@@ -46,7 +46,7 @@ export const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  console.log("🚀 API CALL:", args);
+
 
   let result = await rawBaseQuery(args, api, extraOptions);
 
@@ -54,21 +54,21 @@ export const baseQueryWithReauth: BaseQueryFn<
   const url = typeof args === "string" ? args : args.url;
 
   if (result.error?.status === 401 && !url?.includes("refresh-token")) {
-    console.log("⛔ 401 detected. Attempting refresh...");
+
 
     if (!isRefreshing) {
       isRefreshing = true;
 
       const refreshToken = webStorageClient.getRefreshToken();
-      console.log("🔑 Refresh Token:", refreshToken);
+
 
       if (!refreshToken) {
-        console.log("❌ No refresh token. Logging out.");
+
         webStorageClient.logout();
         return result;
       }
 
-      console.log("🔄 Calling refresh-token endpoint...");
+
 
       // Gọi API refresh
       const refreshResult = await rawBaseQuery(
@@ -85,7 +85,7 @@ export const baseQueryWithReauth: BaseQueryFn<
         extraOptions
       );
 
-      console.log("📥 Refresh response:", refreshResult);
+
 
       if (refreshResult.data) {
         const newAccessToken = (refreshResult.data as any).data.accessToken;
@@ -94,17 +94,17 @@ export const baseQueryWithReauth: BaseQueryFn<
         // const newRefreshToken = (refreshResult.data as any).data.refreshToken;
         // if (newRefreshToken) webStorageClient.setRefreshToken(newRefreshToken);
 
-        console.log("✅ New access token received:", newAccessToken);
+
 
         webStorageClient.setToken(newAccessToken);
 
         // Báo cho các request đang chờ biết là refresh thành công
         processQueue(true);
 
-        console.log("🔁 Retrying original request...");
+
         result = await rawBaseQuery(args, api, extraOptions);
       } else {
-        console.log("❌ Refresh failed. Logging out.");
+
         // Báo cho các request đang chờ biết là refresh THẤT BẠI
         processQueue(false);
         webStorageClient.logout();
@@ -112,7 +112,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 
       isRefreshing = false;
     } else {
-      console.log("⏳ Waiting for ongoing refresh...");
+
 
       // Tạm dừng request này và đợi tín hiệu từ request đang refresh
       const isRefreshSuccess = await new Promise<boolean>((resolve) => {
@@ -120,7 +120,7 @@ export const baseQueryWithReauth: BaseQueryFn<
       });
 
       if (isRefreshSuccess) {
-        console.log("🔁 Retrying request after queued refresh...");
+
         result = await rawBaseQuery(args, api, extraOptions);
       } else {
         // Nếu refresh thất bại, trả luôn về lỗi 401 gốc

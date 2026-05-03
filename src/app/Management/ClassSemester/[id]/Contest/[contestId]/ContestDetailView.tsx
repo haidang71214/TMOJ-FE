@@ -600,7 +600,11 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
               >
-                <ScoreboardTab classSemesterId={classSemesterId} contestId={contestId} />
+                <ScoreboardTab 
+                  classSemesterId={classSemesterId} 
+                  contestId={contestId} 
+                  isActive={selectedTab === "scoreboard"}
+                />
               </motion.div>
             </AnimatePresence>
           </Tab>

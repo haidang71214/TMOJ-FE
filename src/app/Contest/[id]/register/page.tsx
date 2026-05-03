@@ -235,8 +235,9 @@ export default function ContestRegistrationPage() {
       setTeamInviteCode(result.data.inviteCode);
       toast.success("Team created successfully! Now add your members.");
     } catch (error) {
-      const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Failed to create team.");
+      const apiError = error as any;
+      const serverMsg = apiError?.data?.data?.message || apiError?.data?.message;
+      toast.error(serverMsg || "Failed to create team.");
     }
   };
 
@@ -257,8 +258,9 @@ export default function ContestRegistrationPage() {
       toast.success("Member added to team!");
       refetchTeam(); // Refresh the list
     } catch (error) {
-      const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Failed to add member. Make sure the User ID is correct.");
+      const apiError = error as any;
+      const serverMsg = apiError?.data?.data?.message || apiError?.data?.message;
+      toast.error(serverMsg || "Failed to add member. Make sure the User ID is correct.");
     }
   };
 
@@ -273,8 +275,9 @@ export default function ContestRegistrationPage() {
       toast.success("Member removed from team!");
       refetchTeam();
     } catch (error) {
-      const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Failed to remove member.");
+      const apiError = error as any;
+      const serverMsg = apiError?.data?.data?.message || apiError?.data?.message;
+      toast.error(serverMsg || "Failed to remove member.");
     }
   };
 
@@ -312,8 +315,9 @@ export default function ContestRegistrationPage() {
 
       setInviteCode("");
     } catch (error) {
-      const apiError = error as ErrorForm;
-      toast.error(apiError?.data?.data?.message || "Invalid invite code or failed to join.");
+      const apiError = error as any;
+      const serverMsg = apiError?.data?.data?.message || apiError?.data?.message;
+      toast.error(serverMsg || "Invalid invite code or failed to join.");
     }
   };
 
@@ -364,9 +368,15 @@ export default function ContestRegistrationPage() {
       toast.success(result.message || "Registered for contest successfully!");
       router.push(`/Contest/${contestId}`);
     } catch (error) {
-      const apiError = error as ErrorForm;
-      const serverMsg = apiError?.data?.data?.message;
-      toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");
+      const apiError = error as any;
+      const status = apiError?.status;
+      const serverMsg = apiError?.data?.data?.message || apiError?.data?.message;
+
+      if (status === 409) {
+        toast.error("Registration failed: This contest overlaps with another contest you are already participating in.");
+      } else {
+        toast.error(serverMsg || "Registration failed. Verify all members (including leader) are in the team.");
+      }
     }
   };
 

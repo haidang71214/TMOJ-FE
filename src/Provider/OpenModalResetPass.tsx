@@ -46,6 +46,8 @@ export default function AutoOpenResetPassModal() {
     if (action === "confirm-email") {
       const email = searchParams.get("email") ?? "";
       const token = searchParams.get("token") ?? "";
+      const url = `${BASE_URLS}api/v1/Auth/confirm-email`;
+      console.log("[confirm-email] handler triggered", { email, tokenLen: token.length, url });
 
       if (!email || !token) {
         addToast({
@@ -58,19 +60,23 @@ export default function AutoOpenResetPassModal() {
 
       (async () => {
         try {
-          const res = await fetch(`${BASE_URLS}api/v1/Auth/confirm-email`, {
+          const res = await fetch(url, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, token }),
           });
 
+          console.log("[confirm-email] response", res.status, res.statusText);
+
           if (!res.ok) {
             const errJson = await res.json().catch(() => null);
-            throw new Error(errJson?.message ?? "verify failed");
+            console.error("[confirm-email] error body", errJson);
+            throw new Error(errJson?.message ?? `Verify failed (${res.status})`);
           }
 
           const json = await res.json();
+          console.log("[confirm-email] success body", json);
           const data = json?.data ?? json;
           const accessToken = data?.accessToken;
           const refreshToken = data?.refreshToken;
@@ -88,6 +94,7 @@ export default function AutoOpenResetPassModal() {
             color: "success",
           });
         } catch (e) {
+          console.error("[confirm-email] exception", e);
           addToast({
             title:
               (e as Error)?.message ||

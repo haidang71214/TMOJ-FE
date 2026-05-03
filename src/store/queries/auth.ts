@@ -62,6 +62,27 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    confirmPasswordChange: builder.mutation<
+      { message: string },
+      { email: string; token: string }
+    >({
+      query: (params) => ({
+        url: authEndpoint.CONFIRM_PASSWORD_CHANGE,
+        method: "POST",
+        body: params,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    changePassword: builder.mutation<
+      { message: string },
+      { currentPassword: string; newPassword: string }
+    >({
+      query: (params) => ({
+        url: authEndpoint.CHANGE_PASSWORD,
+        method: "POST",
+        body: params,
+      }),
+    }),
   }),
 });
 
@@ -74,4 +95,6 @@ export const {
   useForgotpassMutation,
   useResetPasswordMutation,
   useConfirmEmailMutation,
+  useConfirmPasswordChangeMutation,
+  useChangePasswordMutation,
 } = authApi;

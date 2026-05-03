@@ -69,6 +69,25 @@ export const authSlice = createSlice({
         }
       },
     );
+    builder.addMatcher(
+      authApi.endpoints.confirmEmail.matchFulfilled,
+      (state, action) => {
+        const payload = action.payload as any;
+        const data = payload?.data ?? payload;
+        const user = data?.user;
+        const token = data?.accessToken;
+        const refreshToken = data?.refreshToken;
+
+        if (token) {
+          webStorageClient.setToken(token);
+          if (refreshToken) webStorageClient.setRefreshToken(refreshToken);
+          if (user) webStorageClient.setUser(user);
+
+          state.user = user;
+          state.isAuthenticatedAccount = true;
+        }
+      },
+    );
   },
 });
 

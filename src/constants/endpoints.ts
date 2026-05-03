@@ -11,6 +11,8 @@ const authEndpoint = {
   FORGOT_PASSWORD: `${API_PREFIX}/Auth/forgot-password`,
   RESET_PASSWORD: `${API_PREFIX}/Auth/reset-password`,
   CONFIRM_EMAIL: `${API_PREFIX}/Auth/confirm-email`,
+  CONFIRM_PASSWORD_CHANGE: `${API_PREFIX}/Auth/confirm-password-change`,
+  CHANGE_PASSWORD: `${API_PREFIX}/Auth/change-password`,
 };
 const userProfileEndpoint = {
   GET_PROFILE: `${API_PREFIX}/User/me`,

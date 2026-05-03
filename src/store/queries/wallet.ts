@@ -1,6 +1,6 @@
 import { WalletEndpoint } from "@/constants/endpoints";
 import { baseApi } from "../base";
-import { WalletBalanceResponse, WalletTransactionsResponse } from "@/types";
+import { WalletBalanceResponse, WalletTransactionsResponse, AdjustCoinResponse, AdjustCoinRequest } from "@/types";
 
 export const walletApi = baseApi.injectEndpoints({
   overrideExisting: true,
@@ -21,10 +21,19 @@ export const walletApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Wallet"],
     }),
+    adjustCoin: builder.mutation<AdjustCoinResponse, AdjustCoinRequest>({
+      query: (body) => ({
+        url: WalletEndpoint.ADJUST_COIN,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Wallet"],
+    }),
   }),
 });
 
 export const {
   useGetWalletBalanceQuery,
   useGetWalletTransactionsQuery,
+  useAdjustCoinMutation,
 } = walletApi;

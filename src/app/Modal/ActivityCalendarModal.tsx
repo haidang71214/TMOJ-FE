@@ -5,8 +5,11 @@ import { Card, CardBody, Tooltip, Button } from "@heroui/react";
 import { X, Flame, Trophy, Calendar, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { useModal } from "@/Provider/ModalProvider";
 import { useGetDailyActivitiesQuery, useGetStreakQuery, useGetGamificationMeQuery } from "@/store/queries/gamification";
+import { useGetProblemSolvedStatsQuery } from "@/store/queries/ProblemSolved";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ActivityCalendarModal() {
+  const { t } = useTranslation();
   const { closeModal } = useModal();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -14,6 +17,7 @@ export default function ActivityCalendarModal() {
   const { data: activitiesResponse } = useGetDailyActivitiesQuery();
   const { data: streakResponse } = useGetStreakQuery();
   const { data: statsResponse } = useGetGamificationMeQuery();
+  const { data: solvedStats } = useGetProblemSolvedStatsQuery();
 
   const activities = activitiesResponse?.data || [];
   const streak = streakResponse?.data;
@@ -95,7 +99,7 @@ export default function ActivityCalendarModal() {
             <span>Activity History</span>
           </div>
           <h2 className="text-3xl font-black text-[#071739] dark:text-white tracking-tighter uppercase leading-none">
-            Learning <span className="text-slate-400">Calendar</span>
+            {t("gamification.learning_calendar") || "Lịch"} <span className="text-slate-400">{t("gamification.calendar") || "Học tập"}</span>
           </h2>
         </div>
 
@@ -140,28 +144,28 @@ export default function ActivityCalendarModal() {
         <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-100 dark:border-white/5 flex flex-col gap-1 group hover:border-[#FF5C00]/30 transition-all">
           <div className="flex items-center gap-2 mb-2">
             <Trophy size={16} className="text-yellow-500" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lifetime Solved</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("gamification.lifetime_solved") || "Tổng bài đã giải"}</span>
           </div>
           <p className="text-2xl font-black text-[#071739] dark:text-white leading-none">
-            {overallStats?.solvedProblems || 0} <span className="text-sm text-slate-400 uppercase font-bold">Problems</span>
+            {solvedStats?.data?.totalSolved ?? (overallStats?.solvedProblems || 0)} <span className="text-sm text-slate-400 uppercase font-bold">{t("gamification.problems") || "Bài tập"}</span>
           </p>
         </div>
         <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-100 dark:border-white/5 flex flex-col gap-1 group hover:border-[#FF5C00]/30 transition-all">
           <div className="flex items-center gap-2 mb-2">
             <Flame size={16} className="text-[#FF5C00]" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Streak</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("gamification.current_streak") || "Chuỗi hiện tại"}</span>
           </div>
           <p className="text-2xl font-black text-[#071739] dark:text-white leading-none">
-            {streak?.currentStreak || 0} <span className="text-sm text-slate-400 uppercase font-bold">Days</span>
+            {streak?.currentStreak || 0} <span className="text-sm text-slate-400 uppercase font-bold">{t("gamification.days") || "Ngày"}</span>
           </p>
         </div>
         <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-100 dark:border-white/5 flex flex-col gap-1 group hover:border-[#FF5C00]/30 transition-all">
           <div className="flex items-center gap-2 mb-2">
             <Calendar size={16} className="text-blue-500" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Longest Streak</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("gamification.longest_streak") || "Chuỗi dài nhất"}</span>
           </div>
           <p className="text-2xl font-black text-[#071739] dark:text-white leading-none">
-            {streak?.longestStreak || 0} <span className="text-sm text-slate-400 uppercase font-bold">Days</span>
+            {streak?.longestStreak || 0} <span className="text-sm text-slate-400 uppercase font-bold">{t("gamification.days") || "Ngày"}</span>
           </p>
         </div>
       </div>
@@ -201,7 +205,7 @@ export default function ActivityCalendarModal() {
                     ) : (
                       <Tooltip
                         key={dayIdx}
-                        content={`${day.count} problems on ${day.date.toLocaleDateString()}`}
+                        content={`${day.count} ${t("gamification.solved_on") || "bài giải vào ngày"} ${day.date.toLocaleDateString()}`}
                         closeDelay={0}
                       >
                         <div

@@ -53,9 +53,7 @@ export default function SettingsLayout({
             </div>
 
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] italic">
-                TMOJ ID: <span className="text-white">{displayId}</span>
-              </p>
+
             </div>
           </div>
         </div>

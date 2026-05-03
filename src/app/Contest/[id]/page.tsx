@@ -45,7 +45,6 @@ export default function ContestDetailPage() {
   const contest = contestData?.data;
   // đây nè
   const problems = contest?.problems || [];
-  console.log(problems, "day neeee");
 
   const handleCopyCode = (code: string) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {

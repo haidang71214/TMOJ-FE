@@ -114,8 +114,8 @@ export default function AccountSettingsPage() {
       const err = error as ErrorForm & { data?: { message?: string } };
       toast.error(
         err?.data?.message ||
-          err?.data?.data?.message ||
-          "Đổi mật khẩu thất bại."
+        err?.data?.data?.message ||
+        "Đổi mật khẩu thất bại."
       );
     }
   };
@@ -308,36 +308,7 @@ export default function AccountSettingsPage() {
         </Card>
       </section>
 
-      {/* ===== DANGER ZONE ===== */}
-      <section>
-        <h2 className="text-2xl font-[900] italic uppercase tracking-tight mb-4 text-red-500">
-          Danger Zone
-        </h2>
 
-        <Card className="bg-red-500/5 dark:bg-red-500/10 rounded-[2.5rem] shadow-xl border border-red-500/20">
-          <CardBody className="p-6 md:p-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Trash2 className="text-red-500" />
-                <div>
-                  <p className="font-bold text-red-500">
-                    Delete account
-                  </p>
-                  <p className="text-sm text-red-400">
-                    This action is permanent and cannot be undone
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                className="bg-red-500 text-white font-bold rounded-xl"
-              >
-                Delete
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
-      </section>
     </div>
   );
 }

@@ -19,7 +19,7 @@ const CountdownTimer = ({ endAt, status }: { endAt: string, status: string }) =>
 
   useEffect(() => {
     const target = new Date(endAt).getTime();
-    
+
     const updateTimer = () => {
       const now = Date.now();
       const diff = target - now;
@@ -101,7 +101,7 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
               <h1 className="text-5xl md:text-7xl font-[1000] italic uppercase leading-[0.85] tracking-[calc(-0.05em)] max-w-3xl">
                 {contestData.title}
               </h1>
-              
+
               {contestData.status?.toLowerCase() === "running" && (
                 <CountdownTimer endAt={contestData.endAt} status={contestData.status} />
               )}
@@ -149,7 +149,6 @@ export default function ContestHeader({ contestId }: ContestHeaderProps) {
             selectedKey={selectedTab}
             onSelectionChange={(key) => {
               if (key === "leaderboard") {
-                console.log("Refetching Scoreboard via tag invalidation...");
                 dispatch(contestApi.util.invalidateTags([{ type: "Contest", id: `scoreboard_${contestId}` }]));
               }
             }}

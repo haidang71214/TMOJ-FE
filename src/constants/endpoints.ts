@@ -342,6 +342,7 @@ const PaymentEndpoint = {
 const WalletEndpoint = {
   BALANCE: `${API_PREFIX}/wallet`,
   TRANSACTIONS: `${API_PREFIX}/wallet/transactions`,
+  ADJUST_COIN: `${API_PREFIX}/wallet/admin/adjust-coin`,
 };
 
 const AnnouncementEndpoint = {

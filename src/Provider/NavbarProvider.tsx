@@ -7,6 +7,9 @@ import {
   Link,
   Button,
   NavbarBrand,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
   Input,
 } from "@heroui/react";
 import { useRouter, usePathname } from "next/navigation"; // Thêm usePathname để active link
@@ -27,6 +30,7 @@ export default function NavbarProvider() {
   const pathname = usePathname();
   const { data: user } = useGetUserInformationQuery();
   const { t, language, setLanguage } = useTranslation();
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   console.log(user);
 
   const { openModal } = useModal();
@@ -92,10 +96,16 @@ export default function NavbarProvider() {
   return (
     <Navbar
       maxWidth="full"
+      isMenuOpen={isMenuOpen}
+      onMenuOpenChange={setIsMenuOpen}
       className="h-16 bg-white dark:bg-[#282E3A] border-b border-[#CDD5DB] dark:border-[#3F4755] sticky top-0 z-[100] transition-colors duration-500"
     >
       {/* 1. LOGO & NAV LINKS */}
       <NavbarContent justify="start" className="gap-8">
+        <NavbarMenuToggle
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          className="lg:hidden text-[#071739] dark:text-white"
+        />
         <NavbarBrand className="max-w-fit mr-2">
           <div
             onClick={() => handleLink("/")}
@@ -226,6 +236,57 @@ export default function NavbarProvider() {
           </div>
         )}
       </NavbarContent>
+
+      {/* 3. MOBILE MENU */}
+      <NavbarMenu className="dark:bg-[#282E3A] pt-6">
+        {[
+          "Problems",
+          "StudyPlan",
+          "Contest",
+          "Class",
+          "Ranking",
+          "Management",
+          "Coin",
+        ].map((item) => {
+          let link = `/${item}`;
+          if (item === "Problems") link = "/Problems/Library";
+          if (item === "Class") {
+            if (!user || user?.role?.includes("manager") || user?.role?.includes("admin")) return null;
+            link = "/Class";
+          }
+          if (item === "Management") {
+            if (user?.role?.toLowerCase() === "teacher") {
+              link = "/Management/Contest";
+            } else if (
+              user?.role?.toLowerCase() === "manager" ||
+              user?.role?.toLowerCase() === "admin"
+            ) {
+              link = "/Management/Problem";
+            } else {
+              return null;
+            }
+          }
+          if (item === "Coin") link = "/Coin";
+
+          const isActive = pathname.startsWith(`/${item}`);
+
+          return (
+            <NavbarMenuItem key={item}>
+              <Link
+                color={isActive ? "primary" : "foreground"}
+                className={`w-full font-black text-lg py-2 ${isActive ? "text-[#ff8904]" : "dark:text-white"}`}
+                onClick={() => {
+                  handleLink(link);
+                  setIsMenuOpen(false);
+                }}
+                size="lg"
+              >
+                {t(item.toLowerCase()) || item}
+              </Link>
+            </NavbarMenuItem>
+          );
+        })}
+      </NavbarMenu>
     </Navbar>
   );
 }

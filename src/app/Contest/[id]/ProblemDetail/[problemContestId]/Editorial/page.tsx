@@ -24,7 +24,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 export default function EditorialTab() {
   const params = useParams<{ id: string; problemContestId: string }>();
   const id = params.problemContestId; // Đây là ID bài tập thực sự (dùng lại tên biến id để giảm thiểu thay đổi code bên dưới)
- const { t, language } = useTranslation();
+  const { t, language } = useTranslation();
 
   // AI states
   const [aiDraft, setAiDraft] = useState<{ title: string, content: string } | null>(null);
@@ -44,7 +44,6 @@ export default function EditorialTab() {
   );
 
   // Debugging logs (visible in browser console for the user/us)
-  console.log("EditorialTab info:", { id, realProblemId, isProblemLoading, data });
 
   const handleAiGenerate = () => {
     setIsGenerating(true);

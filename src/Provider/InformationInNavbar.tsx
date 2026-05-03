@@ -120,16 +120,17 @@ export default function InformationInNavbar() {
           }}
         >
           <DropdownItem
-            key="mylists"
+            key="profile"
             startContent={
-              <List size={18} className="text-[#4B6382] dark:text-[#98A2B3]" />
+              <User2Icon className="w-[18px] h-[18px] text-[#4B6382] dark:text-[#98A2B3]" />
             }
             className="animate-fade-in-left"
             style={{ animationFillMode: 'both', animationDelay: '50ms' }}
-            onClick={() => handleLink("/Lists")}
+            onClick={() => handleLink("/Profile")}
           >
-            <span className="font-bold text-sm">{t('mylists') || "My Lists"}</span>
+            {t('profile') || "Profile"}
           </DropdownItem>
+
 
           <DropdownItem
             key="bookmark"
@@ -156,7 +157,7 @@ export default function InformationInNavbar() {
             }
             className="animate-fade-in-left"
             style={{ animationFillMode: 'both', animationDelay: '150ms' }}
-            onClick={() => handleLink("/Progress")}
+            onClick={() => handleLink("/StudyPlan?tab=inprogress")}
           >
             <span className="font-bold text-sm">{t('progress') || "Progress"}</span>
           </DropdownItem>
@@ -175,20 +176,7 @@ export default function InformationInNavbar() {
             </span>
           </DropdownItem>
 
-          <DropdownItem
-            key="try-new"
-            startContent={
-              <Sparkles
-                size={18}
-                className="text-[#A68868] dark:text-[#FFB800]"
-              />
-            }
-            className="animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '250ms' }}
-            onClick={() => handleLink("/New-features")}
-          >
-            {t('trynewfeatures') || "Try New Features"}
-          </DropdownItem>
+
 
           <DropdownItem
             key="orders"
@@ -199,8 +187,8 @@ export default function InformationInNavbar() {
               />
             }
             className="animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '300ms' }}
-            onClick={() => handleLink("/Crders")}
+            style={{ animationFillMode: 'both', animationDelay: '250ms' }}
+            onClick={() => handleLink("/Coin?tab=inventory")}
           >
             {t('orders') || "Orders"}
           </DropdownItem>
@@ -214,44 +202,21 @@ export default function InformationInNavbar() {
               />
             }
             className="animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '350ms' }}
+            style={{ animationFillMode: 'both', animationDelay: '300ms' }}
             onClick={() => handleLink("/Settings")}
           >
             {t('setting') || "Setting"}
           </DropdownItem>
 
-          <DropdownItem
-            key="profile"
-            startContent={
-              <User2Icon className="w-[18px] h-[18px] text-[#4B6382] dark:text-[#98A2B3]" />
-            }
-            className="animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '400ms' }}
-            onClick={() => handleLink("/Profile")}
-          >
-            {t('profile') || "Profile"}
-          </DropdownItem>
 
-          <DropdownItem
-            key="appearance"
-            startContent={
-              <Palette
-                size={18}
-                className="text-[#4B6382] dark:text-[#98A2B3]"
-              />
-            }
-            className="animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '450ms' }}
-            onClick={() => handleLink("/Appearance")}
-          >
-            {t('appearance') || "Appearance"}
-          </DropdownItem>
+
+
 
           <DropdownItem
             key="logout"
             startContent={<LogOut size={18} />}
             className="text-danger animate-fade-in-left"
-            style={{ animationFillMode: 'both', animationDelay: '500ms' }}
+            style={{ animationFillMode: 'both', animationDelay: '350ms' }}
             onClick={handleLogout}
           >
             {t('signout') || "Sign Out"}

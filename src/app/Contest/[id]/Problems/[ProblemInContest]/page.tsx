@@ -229,24 +229,25 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-          {!isResultMaximized && (
-            <div className="relative flex flex-col overflow-hidden rounded-xl" style={{ height: isEditorMaximized ? '100%' : editorHeight }}>
-              <SolutionSubmittion
-                editorHeight={isEditorMaximized ? "100%" : editorHeight}
-                problemId={problemId}
-                contestId={contestId}
-                contestProblemId={contestProblemId}
-                onSubmitSuccess={() => setActiveLeftTab("submissions")}
-                onSubmissionIdChange={(id: string | null, type: "run" | "submit") => {
-                  setSubmissionId(id);
-                  setSubmissionType(type);
-                  setActiveBottomTab("result");
-                }}
-                isMaximized={isEditorMaximized}
-                onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
-              />
-            </div>
-          )}
+          <div
+            className={`relative flex flex-col overflow-hidden rounded-xl transition-all duration-300 ${isResultMaximized ? 'h-0 opacity-0 pointer-events-none' : ''}`}
+            style={{ height: isResultMaximized ? 0 : (isEditorMaximized ? '100%' : editorHeight) }}
+          >
+            <SolutionSubmittion
+              editorHeight={isEditorMaximized ? "100%" : (isResultMaximized ? 0 : editorHeight)}
+              problemId={problemId}
+              contestId={contestId}
+              contestProblemId={contestProblemId}
+              onSubmitSuccess={() => setActiveLeftTab("submissions")}
+              onSubmissionIdChange={(id: string | null, type: "run" | "submit") => {
+                setSubmissionId(id);
+                setSubmissionType(type);
+                setActiveBottomTab("result");
+              }}
+              isMaximized={isEditorMaximized}
+              onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
+            />
+          </div>
 
           {/* ── VERTICAL DRAG HANDLE ── */}
           {!isEditorMaximized && !isResultMaximized && (
@@ -259,8 +260,7 @@ export default function ProblemDetailsPage() {
           )}
 
           {/* ── RIGHT-BOTTOM: TESTCASE ── */}
-          {!isEditorMaximized && (
-            <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 ${isResultMaximized ? 'h-full' : ''}`}>
+          <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 transition-all duration-300 ${isEditorMaximized ? 'h-0 flex-none opacity-0 pointer-events-none' : 'flex-1'} ${isResultMaximized ? 'h-full' : ''}`}>
               {/* Bottom Tab bar */}
               <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
                 {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
@@ -543,7 +543,6 @@ export default function ProblemDetailsPage() {
                 )}
               </div>
             </div>
-          )}
         </div>
       </main>
     </div>

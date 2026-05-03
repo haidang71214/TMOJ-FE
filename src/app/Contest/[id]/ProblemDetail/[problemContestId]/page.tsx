@@ -16,7 +16,10 @@ import {
   AlertCircle,
   XCircle,
   Zap,
+  Maximize2,
+  Minimize2,
   ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Skeleton, Chip, Divider, Progress } from "@heroui/react";
@@ -115,6 +118,11 @@ export default function ProblemDetailsPage() {
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [lastSubmissionType, setLastSubmissionType] = useState<"run" | "submit">("run");
 
+  // Layout states
+  const [isLeftVisible, setIsLeftVisible] = useState(true);
+  const [isEditorMaximized, setIsEditorMaximized] = useState(false);
+  const [isResultMaximized, setIsResultMaximized] = useState(false);
+
   const { data: submissionData, isLoading: isLoadingResult } = useGetSubmissionQuery(
     { submissionId: submissionId! },
     { skip: !submissionId }
@@ -164,10 +172,11 @@ export default function ProblemDetailsPage() {
         className="flex flex-1 overflow-hidden p-2 gap-2"
       >
         {/* ═══ PANEL LEFT ═══════════════════════════════════════ */}
-        <div
-          style={{ width: leftWidth, minWidth: 260, maxWidth: 900 }}
-          className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0"
-        >
+        {isLeftVisible && (
+          <div
+            style={{ width: leftWidth, minWidth: 260, maxWidth: 900 }}
+            className="flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] shrink-0 animate-fade-in-right"
+          >
           {/* Tab bar */}
           <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
             {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
@@ -192,16 +201,26 @@ export default function ProblemDetailsPage() {
             })}
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-hidden">{renderLeftContent()}</div>
-        </div>
+          </div>
+        )}
 
         {/* ── HORIZONTAL DRAG HANDLE ── */}
-        <div
-          onMouseDown={onHDrag}
-          className="w-1.5 shrink-0 cursor-col-resize group flex items-center justify-center"
-        >
-          <div className="w-1 h-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+        <div className="relative flex flex-col items-center">
+          {/* Toggle Left Sidebar Button */}
+          <button
+            onClick={() => setIsLeftVisible(!isLeftVisible)}
+            className="absolute top-1/2 -translate-y-1/2 -left-3 z-10 w-6 h-12 bg-white dark:bg-[#1C2737] border border-gray-200 dark:border-[#334155] rounded-full flex items-center justify-center shadow-md hover:text-[#FF5C00] transition-colors"
+          >
+            {isLeftVisible ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+          </button>
+
+          <div
+            onMouseDown={onHDrag}
+            className={`w-1.5 h-full shrink-0 cursor-col-resize group flex items-center justify-center ${!isLeftVisible ? 'pointer-events-none opacity-0' : ''}`}
+          >
+            <div className="w-1 h-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+          </div>
         </div>
 
         {/* ═══ PANEL RIGHT ══════════════════════════════════════ */}
@@ -210,30 +229,39 @@ export default function ProblemDetailsPage() {
           className="flex-1 flex flex-col gap-2 overflow-hidden min-w-0"
         >
           {/* ── RIGHT-TOP: CODE EDITOR ── */}
-          <SolutionSubmittion
-            editorHeight={editorHeight}
-            problemId={problemId}
-            contestProblemId={contestProblemId}
-            classSemesterId={classSemesterId || undefined}
-            contestId={contestId || undefined}
-            onSubmitSuccess={() => setActiveLeftTab("submissions")}
-            onSubmissionIdChange={(id: string | null, type: "run" | "submit" = "run") => {
-              setSubmissionId(id);
-              setLastSubmissionType(type);
-              setActiveBottomTab("result");
-            }}
-          />
-
-          {/* ── VERTICAL DRAG HANDLE ── */}
           <div
-            onMouseDown={onVDrag}
-            className="h-1.5 shrink-0 cursor-row-resize group flex items-center justify-center"
+            className={`relative flex flex-col overflow-hidden rounded-xl transition-all duration-300 ${isResultMaximized ? 'h-0 opacity-0 pointer-events-none' : ''}`}
+            style={{ height: isResultMaximized ? 0 : (isEditorMaximized ? '100%' : editorHeight) }}
           >
-            <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+            <SolutionSubmittion
+              editorHeight={isEditorMaximized ? "100%" : (isResultMaximized ? 0 : editorHeight)}
+              problemId={problemId}
+              contestProblemId={contestProblemId}
+              classSemesterId={classSemesterId || undefined}
+              contestId={contestId || undefined}
+              onSubmitSuccess={() => setActiveLeftTab("submissions")}
+              onSubmissionIdChange={(id: string | null, type: "run" | "submit" = "run") => {
+                setSubmissionId(id);
+                setLastSubmissionType(type);
+                setActiveBottomTab("result");
+              }}
+              isMaximized={isEditorMaximized}
+              onToggleMaximize={() => setIsEditorMaximized(!isEditorMaximized)}
+            />
           </div>
 
+          {/* ── VERTICAL DRAG HANDLE ── */}
+          {!isEditorMaximized && !isResultMaximized && (
+            <div
+              onMouseDown={onVDrag}
+              className="h-1.5 shrink-0 cursor-row-resize group flex items-center justify-center"
+            >
+              <div className="h-1 w-12 rounded-full bg-gray-300 dark:bg-[#334155] group-hover:bg-blue-400 dark:group-hover:bg-[#E3C39D] transition-colors" />
+            </div>
+          )}
+
           {/* ── RIGHT-BOTTOM: TESTCASE ── */}
-          <div className="flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0">
+          <div className={`flex-1 flex flex-col bg-white dark:bg-[#1C2737] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-[#334155] min-h-0 transition-all duration-300 ${isEditorMaximized ? 'h-0 flex-none opacity-0 pointer-events-none' : 'flex-1'} ${isResultMaximized ? 'h-full' : ''}`}>
             {/* Bottom Tab bar */}
             <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
               {BOTTOM_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
@@ -256,6 +284,17 @@ export default function ProblemDetailsPage() {
                   </div>
                 );
               })}
+
+              {/* Maximize Results Button */}
+              <div className="ml-auto pr-4">
+                <button
+                  onClick={() => setIsResultMaximized(!isResultMaximized)}
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-500 hover:text-[#FF5C00] transition-all"
+                  title={isResultMaximized ? "Restore" : "Maximize Results"}
+                >
+                  {isResultMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
+              </div>
             </div>
 
             {/* Testcase content */}

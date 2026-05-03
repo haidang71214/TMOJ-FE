@@ -14,20 +14,27 @@ import {
   Badge,
 } from "@heroui/react";
 import { ShoppingCart, Trash2, CreditCard, ShoppingBag, Plus, Minus } from "lucide-react";
-import { useGetCartQuery, useRemoveFromCartMutation, useCheckoutMutation, useAddToCartMutation } from "@/store/queries/store";
+import { useGetCartQuery, useRemoveFromCartMutation, useCheckoutMutation, useAddToCartMutation, useGetStoreItemsQuery } from "@/store/queries/store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
-  const { data: cartItems = [], isLoading } = useGetCartQuery();
+  const { data: cartItems = [], isLoading: isCartLoading } = useGetCartQuery();
+  const { data: storeItems = [] } = useGetStoreItemsQuery();
   const [removeFromCart] = useRemoveFromCartMutation();
   const [addToCart] = useAddToCartMutation();
   const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation();
   const { t, language } = useTranslation();
 
+  const getItemType = (itemId: string) => {
+    const item = storeItems.find((s) => s.itemId === itemId);
+    return item?.itemType?.toLowerCase() || "";
+  };
+
   const totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
+  const isLoading = isCartLoading;
 
   const handleRemove = async (cartItemId: string) => {
     try {
@@ -144,13 +151,13 @@ export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {item.itemType === "physical_item" && (
-                        <div className="flex items-center bg-white dark:bg-[#101828] rounded-xl border dark:border-white/10 p-1">
+                      {getItemType(item.itemId) === "physical_item" && (
+                        <div className="flex items-center bg-gray-100 dark:bg-black/20 rounded-xl p-1 border border-gray-200 dark:border-white/5">
                           <Button
                             isIconOnly
                             size="sm"
-                            variant="light"
-                            className="h-7 w-7 min-w-0 rounded-lg"
+                            variant="flat"
+                            className="h-8 w-8 min-w-0 rounded-lg bg-white dark:bg-[#1C2737] shadow-sm hover:scale-105 active:scale-95 transition-all"
                             onPress={() => {
                               if (item.quantity > 1) {
                                 handleAddToCart(item.itemId, -1);
@@ -159,19 +166,19 @@ export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClos
                               }
                             }}
                           >
-                            <Minus size={14} />
+                            <Minus size={14} className="text-gray-600 dark:text-gray-300" />
                           </Button>
-                          <span className="w-8 text-center text-xs font-black">
+                          <span className="w-10 text-center text-sm font-black italic text-orange-500">
                             {item.quantity}
                           </span>
                           <Button
                             isIconOnly
                             size="sm"
-                            variant="light"
-                            className="h-7 w-7 min-w-0 rounded-lg"
+                            variant="flat"
+                            className="h-8 w-8 min-w-0 rounded-lg bg-white dark:bg-[#1C2737] shadow-sm hover:scale-105 active:scale-95 transition-all"
                             onPress={() => handleAddToCart(item.itemId, 1)}
                           >
-                            <Plus size={14} />
+                            <Plus size={14} className="text-gray-600 dark:text-gray-300" />
                           </Button>
                         </div>
                       )}

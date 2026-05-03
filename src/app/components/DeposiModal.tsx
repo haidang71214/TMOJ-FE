@@ -74,32 +74,6 @@ export function DepositContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
 
-        {/* MEMBERSHIP BANNER */}
-        <div className="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-amber-500/40">
-              <Crown size={20} />
-            </div>
-            <div>
-              <h4 className="font-[1000] italic uppercase text-xs text-amber-700 dark:text-amber-400">
-                Buy Membership Plan
-              </h4>
-              <p className="text-[9px] font-bold uppercase text-amber-600/70 dark:text-amber-500/70">
-                Step 1: Deposit → Step 2: Buy Plan
-              </p>
-            </div>
-          </div>
-          <Button
-            as={Link}
-            href="/Premium"
-            size="sm"
-            className="bg-amber-500 text-white font-[1000] uppercase italic rounded-xl px-4 shadow-md hover:bg-amber-600"
-            endContent={<ChevronRight size={14} />}
-          >
-            Plans
-          </Button>
-        </div>
-
         {/* PAYOS SECTION */}
         <div className="p-4 bg-[#00c853]/5 dark:bg-[#00c853]/10 rounded-[2rem] border border-[#00c853]/20 flex flex-col items-center gap-4">
           <div className="flex flex-col items-center gap-2">

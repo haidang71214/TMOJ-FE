@@ -78,7 +78,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   const { data: userProfile } = useGetUserInformationQuery();
   const [deleteProblem, { isLoading: isDeleting }] = useDeleteClassContestProblemMutation();
   const isStudent = userProfile?.role?.toLowerCase() === "student";
-  
+
   const { data: response, isLoading, error, refetch } = useGetClassContestDetailQuery(
     { classSemesterId, contestId },
     { skip: !classSemesterId || !contestId }
@@ -88,17 +88,17 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   React.useEffect(() => {
     const timer = setInterval(() => {
       const currentTime = new Date();
-      
+
       if (contest) {
         const start = new Date(contest.startAt);
         const end = new Date(contest.endAt);
-        
+
         // Auto refresh when contest starts or ends
         if (now == start || currentTime == start) {
           refetch();
-        } 
+        }
       }
-      
+
       setNow(currentTime);
     }, 1000);
     return () => clearInterval(timer);
@@ -152,12 +152,12 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   }, [contest, t, now]);
 
   // Xử lý description và rules
-  const description = contest?.descriptionMd && contest.descriptionMd !== "None" 
-    ? contest.descriptionMd 
+  const description = contest?.descriptionMd && contest.descriptionMd !== "None"
+    ? contest.descriptionMd
     : (t("contest_detail.no_description") || "Chưa có mô tả chi tiết cho cuộc thi này.");
 
-  const rules = contest?.rules && contest.rules !== "None" 
-    ? contest.rules 
+  const rules = contest?.rules && contest.rules !== "None"
+    ? contest.rules
     : (t("contest_detail.no_rules") || "Không có quy tắc đặc biệt nào được chỉ định cho cuộc thi này.");
 
   if (isLoading) {
@@ -184,7 +184,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -203,7 +203,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           </Button>
 
           <div className="flex items-center gap-3">
-            <motion.div 
+            <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               className="p-3 bg-gradient-to-br from-[#FF5C00] to-orange-600 rounded-2xl text-white shadow-xl"
             >
@@ -246,9 +246,9 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           selectedKey={selectedTab}
           onSelectionChange={(key) => {
             if (key === "problems" && isStudent && timeInfo?.isWaiting) {
-              addToast({ 
-                title: t("contest_detail.notStarted") || "The contest has not started yet.", 
-                color: "warning" 
+              addToast({
+                title: t("contest_detail.notStarted") || "The contest has not started yet.",
+                color: "warning"
               });
               return;
             }
@@ -263,7 +263,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           {/* TAB 1: OVERVIEW */}
           <Tab key="overview" title={t("contest_detail.overview") || "OVERVIEW"}>
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key="overview-content"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -349,7 +349,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
           {/* TAB 2: PROBLEMS */}
           <Tab key="problems" title={`${t("contest_detail.problems") || "PROBLEMS"} (${contest.problems.length})`}>
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key="problems-content"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -360,7 +360,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                   <h2 className="text-2xl font-black italic uppercase tracking-tight">
                     {t("contest_detail.problem_list") || "DANH SÁCH BÀI TẬP"}
                   </h2>
-                  
+
                   {!isStudent && (
                     <Button
                       color="primary"
@@ -368,9 +368,9 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                       className="font-black uppercase tracking-widest text-[13px] bg-[#FF5C00] text-white shadow-xl shadow-[#FF5C00]/20 h-12 px-8"
                       onPress={() => {
                         if (!timeInfo?.isWaiting) {
-                          addToast({ 
-                            title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể thêm bài tập!", 
-                            color: "danger" 
+                          addToast({
+                            title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể thêm bài tập!",
+                            color: "danger"
                           });
                           return;
                         }
@@ -442,7 +442,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                         </TableCell>
 
                         <TableCell className="text-center">
-                          <motion.div 
+                          <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: index * 0.05 + 0.3 }}
@@ -475,7 +475,7 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                         </TableCell>
 
                         <TableCell>
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.05 + 0.6 }}
@@ -491,9 +491,9 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                     className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white transition-all"
                                     onPress={() => {
                                       if (!timeInfo?.isWaiting) {
-                                        addToast({ 
-                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể chỉnh sửa bài tập!", 
-                                          color: "danger" 
+                                        addToast({
+                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể chỉnh sửa bài tập!",
+                                          color: "danger"
                                         });
                                         return;
                                       }
@@ -515,13 +515,13 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                     isLoading={isDeleting && editingProblem?.contestProblemId === prob.contestProblemId}
                                     onPress={async () => {
                                       if (!timeInfo?.isWaiting) {
-                                        addToast({ 
-                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể xóa bài tập!", 
-                                          color: "danger" 
+                                        addToast({
+                                          title: t("contest_detail.alreadyStarted") || "Cuộc thi đã bắt đầu, không thể xóa bài tập!",
+                                          color: "danger"
                                         });
                                         return;
                                       }
-                                      
+
                                       if (confirm(t("contest.confirmDeleteProblem") || "Bạn có chắc chắn muốn xóa bài tập này khỏi contest?")) {
                                         try {
                                           setEditingProblem(prob);
@@ -568,9 +568,9 @@ export default function ContestDetailView({ classSemesterId, contestId }: Contes
                                   className="bg-[#FF5C00]/10 text-[#FF5C00] hover:bg-[#FF5C00] hover:text-white"
                                   onPress={() => {
                                     if (isStudent && timeInfo?.isWaiting) {
-                                      addToast({ 
-                                        title: t("contest_detail.notStarted") || "The contest has not started yet.", 
-                                        color: "warning" 
+                                      addToast({
+                                        title: t("contest_detail.notStarted") || "The contest has not started yet.",
+                                        color: "warning"
                                       });
                                     } else {
                                       router.push(`/Contest/${prob.contestProblemId}/ProblemDetail/${prob.problemId}?classSemesterId=${classSemesterId}&contestId=${contestId}`);

@@ -54,6 +54,13 @@ export const subjectApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Subject"],
     }),
+    exportSubject: builder.mutation<Blob, void>({
+      query: () => ({
+        url: SubjectEndpoint.EXPORT_SUBJECT,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
   }),
 });
 
@@ -64,4 +71,5 @@ export const {
   useUpdateSubjectMutation,
   useGetImportTemplateMutation,
   useImportClassMutation,
+  useExportSubjectMutation,
 } = subjectApi;

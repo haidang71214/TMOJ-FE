@@ -41,7 +41,15 @@ import {
 import { useRouter } from "next/navigation";
 import ExtendTimeModal from "./../../components/ExtendTimeModal";
 import { RemixContestModal } from "@/app/components/RemixContestModal";
-import { useGetContestListQuery, usePublishContestMutation, useChangeVisibilityMutation, useDeleteContestMutation } from "@/store/queries/Contest";
+import {
+  useGetContestListQuery,
+  usePublishContestMutation,
+  useChangeVisibilityMutation,
+  useDeleteContestMutation,
+  useRemixContestMutation,
+  useArchiveContestMutation,
+  useCreateVirtualContestMutation
+} from "@/store/queries/Contest";
 import { ContestDto, ErrorForm } from "@/types";
 import { toast } from "sonner";
 import { Globe, Lock as LockIcon, EyeOff } from "lucide-react";
@@ -89,7 +97,7 @@ export default function ContestListPage() {
   const handleRemix = async (id: string) => {
     const toastId = toast.loading("Đang remix contest...");
     try {
-      const res = await remixContest(id).unwrap();
+      const res = await remixContest({ id }).unwrap();
       toast.success("Remix contest thành công", { id: toastId });
       if (res.data) {
         router.push(`/Management/Contest/${res.data}/edit?mode=remix`);
@@ -129,7 +137,7 @@ export default function ContestListPage() {
   const handleCreateVirtual = async (id: string) => {
     const toastId = toast.loading("Đang tạo virtual contest...");
     try {
-      const res = await createVirtualContest(id).unwrap();
+      const res = await createVirtualContest({ id }).unwrap();
       toast.success("Tạo virtual contest thành công", { id: toastId });
       if (res.data) {
         router.push(`/Management/Contest/${res.data}/edit?mode=virtual`);
@@ -192,7 +200,7 @@ export default function ContestListPage() {
     (contestData as any)?.data?.total_count ??
     (contestData as any)?.totalCount ?? 0;
 
-  const items = contestData?.data?.items || [];
+  const items: ContestDto[] = contestData?.data?.items || [];
 
   // Lọc Client-side trên bộ dữ liệu lớn (1000 items) khi đang search hoặc dùng filter đặc biệt
   const filteredItems = useMemo(() => {
@@ -201,7 +209,7 @@ export default function ContestListPage() {
     // 1. Lọc theo search term
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      result = result.filter(c => {
+      result = result.filter((c: ContestDto) => {
         const visibility = (c.visibilityCode || (c as any).visibility || "").toLowerCase();
         return (
           c.title.toLowerCase().includes(q) ||
@@ -213,7 +221,7 @@ export default function ContestListPage() {
 
     // 2. Lọc theo loại contest (Remix/Virtual/Original)
     if (typeFilter !== "all") {
-      result = result.filter(c => {
+      result = result.filter((c: ContestDto) => {
         const title = c.title.toLowerCase();
         const isRemix = title.includes("[remix]") || title.includes("remix");
         const isVirtual = title.includes("[virtual]") || title.includes("virtual") || (c as any).isVirtual === true;
@@ -489,7 +497,7 @@ export default function ContestListPage() {
             isLoading={isLoading}
             emptyContent={!isLoading && "Không tìm thấy contest nào."}
           >
-            {displayItems.map((c) => (
+            {displayItems.map((c: ContestDto) => (
               <TableRow
                 key={c.id}
                 className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"

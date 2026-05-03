@@ -228,6 +228,7 @@ const ContestEndpoint = {
   UNFREEZE_CONTEST_V2: `${API_PREFIX}/contests/{id}/unfreeze`,
   GET_MY_TEAM_IN_CONTEST: `${API_PREFIX}/contests/{id}/my-team`,
   REMIX: `${API_PREFIX}/contests/{id}/remix`,
+  ARCHIVE: `${API_PREFIX}/contests/{id}/archive`,
   VIRTUAL: `${API_PREFIX}/contests/{id}/virtual`,
 };
 

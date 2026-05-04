@@ -123,8 +123,8 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
         const timeString = minTimeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const dateString = minTimeDate.toLocaleDateString('en-GB');
         newErrors.startAt = language === 'vi'
-          ? `Thời gian bắt đầu phải sau 8 tiếng (từ ${timeString} ngày ${dateString} trở đi)`
-          : `Start time must be at least 8 hours from now (from ${timeString} on ${dateString})`;
+          ? `Thời gian bắt đầu phải sau 5 phút (từ ${timeString} ngày ${dateString} trở đi)`
+          : `Start time must be at least 5 minut from now (from ${timeString} on ${dateString})`;
       }
     }
 

@@ -35,6 +35,58 @@
   "ranking": "Xếp Hạng",
   "management": "Quản Trị",
   "coin": "Xu TMOJ",
+  "wiki": "Wiki",
+  "wiki_page": {
+    "knowledge_base": "Cơ sở kiến thức",
+    "title": "TMOJ WIKI",
+    "subtitle": "Chào mừng bạn đến với trung tâm hỗ trợ của TMOJ. Tại đây bạn có thể tìm thấy mọi thông tin về cách hệ thống vận hành và các thuật ngữ phổ biến.",
+    "tabs": {
+      "general": "Tổng quan",
+      "judging": "Hệ thống chấm bài",
+      "features": "Tính năng"
+    },
+    "general": {
+      "problem_title": "Problem là gì?",
+      "problem_desc": "Problem (Bài tập) là đơn vị cơ bản trong TMOJ. Mỗi bài tập bao gồm đề bài, các giới hạn (thời gian, bộ nhớ) và bộ test ẩn. Bạn cần viết chương trình để giải quyết yêu cầu và nộp mã nguồn lên hệ thống.",
+      "contest_title": "Contest là gì?",
+      "contest_desc": "Contest (Cuộc thi) là nơi quy tụ nhiều người cùng giải một bộ bài tập trong thời gian giới hạn. Thứ hạng được quyết định dựa trên số bài giải được và thời gian nộp bài (penalty).",
+      "how_to_submit": "Làm thế nào để nộp bài?",
+      "how_to_submit_desc": "Hướng dẫn các bước nộp mã nguồn",
+      "submit_step_1": "1. Truy cập vào một bài tập cụ thể.",
+      "submit_step_2": "2. Đọc mô tả đề bài ở phía bên trái và viết mã nguồn trong trình soạn thảo ở phía bên phải.",
+      "submit_step_3": "3. Chọn ngôn ngữ lập trình phù hợp (C++, Java, Python, ...).",
+      "submit_step_4": "4. Nhấn nút \"Submit\" để gửi bài cho hệ thống chấm điểm.",
+      "rating_rules": "Quy tắc xếp hạng (Rating)",
+      "rating_rules_desc": "TMOJ sử dụng hệ thống Elo để tính toán trình độ của người dùng sau mỗi cuộc thi chính thức. Nếu bạn đạt thứ hạng cao hơn mức mong đợi dựa trên trình độ hiện tại, điểm Rating của bạn sẽ tăng lên và ngược lại."
+    },
+    "judging": {
+      "verdicts_title": "Ý nghĩa các kết quả (Verdicts)",
+      "resource_note_title": "Lưu ý về tài nguyên",
+      "resource_note_desc": "Hệ thống giới hạn tài nguyên khắt khe để đảm bảo tính công bằng. Một bài tập thường có giới hạn thời gian 1s-2s và bộ nhớ 128MB-256MB. Nếu mã nguồn của bạn lãng phí tài nguyên, bạn sẽ nhận kết quả TLE hoặc MLE ngay cả khi logic đúng.",
+      "verdicts": {
+        "ac": "Bài làm của bạn hoàn toàn chính xác và vượt qua tất cả các bộ test.",
+        "wa": "Kết quả bài làm không khớp với đáp án mẫu của hệ thống ở ít nhất một test case.",
+        "tle": "Chương trình chạy vượt quá giới hạn thời gian cho phép của bài toán.",
+        "mle": "Chương trình sử dụng vượt quá giới hạn bộ nhớ (RAM) cho phép.",
+        "ce": "Mã nguồn của bạn không thể biên dịch thành công. Hãy kiểm tra lại cú pháp.",
+        "rte": "Chương trình bị dừng đột ngột trong khi chạy (ví dụ: chia cho 0, truy cập mảng ngoài phạm vi)."
+      }
+    },
+    "features": {
+      "currency_system": "Hệ thống tiền tệ",
+      "coin_title": "Hệ thống Coin & Rewards",
+      "coin_desc": "Coin là đơn vị điểm thưởng bạn nhận được khi giải bài, hoàn thành nhiệm vụ hoặc đạt thứ hạng cao trong contest. Bạn có thể dùng Coin để:",
+      "coin_usage_1": "Mua các vật phẩm trang trí profile tại Cửa hàng.",
+      "coin_usage_2": "Mở khóa các Study Plan cao cấp (Premium).",
+      "coin_usage_3": "Mở khóa các bài giải chi tiết (Editorial).",
+      "achievements_title": "Achievements",
+      "achievements_desc": "Mở khóa huy hiệu và thành tựu khi bạn đạt các cột mốc quan trọng trong học tập.",
+      "studyplans_title": "Study Plans",
+      "studyplans_desc": "Lộ trình học tập được chuyên gia biên soạn, giúp bạn làm chủ các thuật toán từ cơ bản đến nâng cao.",
+      "ai_debugger_title": "AI Debugger",
+      "ai_debugger_desc": "Sử dụng trí tuệ nhân tạo để phân tích lỗi trong code của bạn và đưa ra gợi ý sửa đổi."
+    }
+  },
   "mylists": "Danh sách",
   "bookmarks": "Đã lưu",
   "progress": "Tiến trình",

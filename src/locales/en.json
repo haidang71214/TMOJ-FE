@@ -35,6 +35,58 @@
   "ranking": "Ranking",
   "management": "Management",
   "coin": "Coin",
+  "wiki": "Wiki",
+  "wiki_page": {
+    "knowledge_base": "Knowledge Base",
+    "title": "TMOJ WIKI",
+    "subtitle": "Welcome to TMOJ's support center. Here you can find all the information about how the system works and common terms.",
+    "tabs": {
+      "general": "General",
+      "judging": "Judging System",
+      "features": "Features"
+    },
+    "general": {
+      "problem_title": "What is a Problem?",
+      "problem_desc": "A Problem is the basic unit in TMOJ. Each problem includes a statement, limits (time, memory), and hidden test cases. You need to write a program to solve the requirements and submit the source code to the system.",
+      "contest_title": "What is a Contest?",
+      "contest_desc": "A Contest is where many people solve a set of problems within a time limit. Rankings are decided based on the number of problems solved and the submission time (penalty).",
+      "how_to_submit": "How to submit?",
+      "how_to_submit_desc": "Step-by-step guide to submitting source code",
+      "submit_step_1": "1. Access a specific problem.",
+      "submit_step_2": "2. Read the problem description on the left and write your code in the editor on the right side.",
+      "submit_step_3": "3. Select the appropriate programming language (C++, Java, Python, ...).",
+      "submit_step_4": "4. Press the \"Submit\" button to send the code to the judging system.",
+      "rating_rules": "Ranking Rules (Rating)",
+      "rating_rules_desc": "TMOJ uses the Elo system to calculate user skill levels after each official contest. If you achieve a higher rank than expected based on your current level, your Rating will increase and vice versa."
+    },
+    "judging": {
+      "verdicts_title": "Verdict Meanings",
+      "resource_note_title": "Note on Resources",
+      "resource_note_desc": "The system limits resources strictly to ensure fairness. A problem usually has a time limit of 1s-2s and memory of 128MB-256MB. If your source code wastes resources, you will receive TLE or MLE results even if the logic is correct.",
+      "verdicts": {
+        "ac": "Your solution is completely correct and passed all test cases.",
+        "wa": "The result of your work does not match the system's sample answer in at least one test case.",
+        "tle": "The program runs beyond the allowed time limit for the problem.",
+        "mle": "The program uses more memory (RAM) than allowed.",
+        "ce": "Your source code could not be compiled successfully. Please check the syntax again.",
+        "rte": "The program stopped abruptly while running (e.g., division by 0, array access out of range)."
+      }
+    },
+    "features": {
+      "currency_system": "Currency System",
+      "coin_title": "Coin & Rewards System",
+      "coin_desc": "Coins are reward points you receive when solving problems, completing missions, or achieving high ranks in contests. You can use Coins to:",
+      "coin_usage_1": "Buy profile decoration items in the Store.",
+      "coin_usage_2": "Unlock premium Study Plans.",
+      "coin_usage_3": "Unlock detailed editorials (Editorial).",
+      "achievements_title": "Achievements",
+      "achievements_desc": "Unlock badges and achievements when you reach important learning milestones.",
+      "studyplans_title": "Study Plans",
+      "studyplans_desc": "Learning pathways curated by experts, helping you master algorithms from basic to advanced.",
+      "ai_debugger_title": "AI Debugger",
+      "ai_debugger_desc": "Use artificial intelligence to analyze errors in your code and provide suggestions for modification."
+    }
+  },
   "mylists": "My Lists",
   "bookmarks": "Bookmarks",
   "progress": "Progress",

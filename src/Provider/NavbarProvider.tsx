@@ -126,6 +126,7 @@ export default function NavbarProvider() {
             "Contest",
             "Class",
             "Ranking",
+            "Wiki",
             "Management",
             "Coin",
           ].map((item, index) => {
@@ -138,6 +139,7 @@ export default function NavbarProvider() {
               link = "/Class";
             }
             if (item === "Ranking") link = "/Ranking";
+            if (item === "Wiki") link = "/Wiki";
             if (item === "Management") {
               if (user?.role?.toLowerCase() === "teacher") {
                 link = "/Management/Contest";
@@ -245,6 +247,7 @@ export default function NavbarProvider() {
           "Contest",
           "Class",
           "Ranking",
+          "Wiki",
           "Management",
           "Coin",
         ].map((item) => {
@@ -254,6 +257,8 @@ export default function NavbarProvider() {
             if (!user || user?.role?.includes("manager") || user?.role?.includes("admin")) return null;
             link = "/Class";
           }
+          if (item === "Ranking") link = "/Ranking";
+          if (item === "Wiki") link = "/Wiki";
           if (item === "Management") {
             if (user?.role?.toLowerCase() === "teacher") {
               link = "/Management/Contest";

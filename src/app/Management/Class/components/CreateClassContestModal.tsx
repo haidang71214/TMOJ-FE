@@ -49,7 +49,7 @@ interface CreateClassContestModalProps {
 }
 // cái này là classId hay classSemesterId?
 export default function CreateClassContestModal({ classSemesterId, onCreated }: CreateClassContestModalProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { closeModal } = useModal();
   const [createContest, { isLoading: isCreating }] = useCreateClassContestMutation();
 
@@ -115,8 +115,17 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
     
     if (!startAt) {
       newErrors.startAt = t("contest.startAtRequired") || "Start time is required";
-    } else if (new Date(startAt).getTime() < now) {
-      newErrors.startAt = t("contest.startTimePast") || "Start time cannot be in the past";
+    } else {
+      const startTime = new Date(startAt).getTime();
+      const minStartTime = now + 8 * 60 * 60 * 1000;
+      if (startTime < minStartTime) {
+        const minTimeDate = new Date(minStartTime);
+        const timeString = minTimeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateString = minTimeDate.toLocaleDateString('en-GB');
+        newErrors.startAt = language === 'vi'
+          ? `Thời gian bắt đầu phải sau 8 tiếng (từ ${timeString} ngày ${dateString} trở đi)`
+          : `Start time must be at least 8 hours from now (from ${timeString} on ${dateString})`;
+      }
     }
 
     if (!endAt) {
@@ -143,12 +152,17 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const onSubmit = async () => {
-    if (!validateForm()) {
-      toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      if (formErrors.startAt && startAt) {
+        toast.error(formErrors.startAt);
+      } else {
+        toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
+      }
       return;
     }
 

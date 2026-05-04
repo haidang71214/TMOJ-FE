@@ -6,10 +6,11 @@ import {
   Card,
   CardBody,
   Button,
-  Chip,
   Pagination,
   Spinner,
   addToast,
+  Input,
+  Chip,
 } from "@heroui/react";
 import {
   ChevronLeft,
@@ -17,10 +18,11 @@ import {
   Clock,
   ChevronDown,
   Lock,
-  Rocket,
   ExternalLink,
   Code2,
   Trophy,
+  Search,
+  Rocket,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetClassSlotsQuery } from "@/store/queries/ClassSlot";
@@ -42,11 +44,16 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
   const [mounted, setMounted] = useState(false);
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
   const [slotPage, setSlotPage] = useState(1);
+  const [slotSearchQuery, setSlotSearchQuery] = useState("");
   const slotsPerPage = 5;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setSlotPage(1);
+  }, [slotSearchQuery]);
 
   const { data: slotData, isLoading: slotLoading } = useGetClassSlotsQuery(semesterId, {
     skip: !mounted || !semesterId,
@@ -58,11 +65,48 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
 
   const slots = slotData?.data ?? [];
 
+  const sortedSlots = useMemo(() => {
+    if (!slots || slots.length === 0) return [];
+    
+    const filteredSlots = slots.filter((slot: ClassSlotResponse) => {
+      if (!slotSearchQuery) return true;
+      const query = slotSearchQuery.toLowerCase();
+      const titleMatch = slot.title?.toLowerCase().includes(query);
+      const slotNoMatch = slot.slotNo?.toString().includes(query);
+      return titleMatch || slotNoMatch;
+    });
+
+    if (filteredSlots.length === 0) return [];
+
+    const now = new Date();
+    
+    return [...filteredSlots].sort((a: ClassSlotResponse, b: ClassSlotResponse) => {
+      const getStatusScore = (slot: ClassSlotResponse) => {
+        const isLocked = slot.openAt && new Date(slot.openAt) > now;
+        const isClosed = slot.closeAt && new Date(slot.closeAt) < now;
+        const isUnpublished = !slot.isPublished;
+        
+        if (isUnpublished) return 3; // Lowest priority
+        if (isClosed) return 2;      // Second lowest
+        if (isLocked) return 1;      // Upcoming
+        return 0;                    // Open (Highest priority)
+      };
+
+      const scoreA = getStatusScore(a);
+      const scoreB = getStatusScore(b);
+
+      if (scoreA !== scoreB) {
+        return scoreA - scoreB;
+      }
+
+      return (a.slotNo || 0) - (b.slotNo || 0);
+    });
+  }, [slots, slotSearchQuery]);
 
   const currentSlots = useMemo(() => {
     const start = (slotPage - 1) * slotsPerPage;
-    return slots.slice(start, start + slotsPerPage);
-  }, [slotPage, slots]);
+    return sortedSlots.slice(start, start + slotsPerPage);
+  }, [slotPage, sortedSlots]);
 
   if (!mounted) return null;
 
@@ -102,9 +146,25 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
               "group-data-[selected=true]:text-[#FF5C00] text-slate-400",
           }}
         >
-          {/* --- TAB 1: LEARNING PATH --- */}
           <Tab key="slots" title="Learning Path">
             <div className="flex flex-col gap-4 mt-8">
+              <div className="flex justify-between items-center mb-6 animate-fade-in-up">
+                <Input
+                  placeholder={language === 'vi' ? "Tìm kiếm bài kiểm tra (tên hoặc số thứ tự)..." : "Search examinations by name or number..."}
+                  value={slotSearchQuery}
+                  onValueChange={setSlotSearchQuery}
+                  startContent={<Search className="text-[#FF5C00] mr-2" size={20} />}
+                  className="w-full max-w-md"
+                  variant="faded"
+                  radius="full"
+                  size="lg"
+                  classNames={{
+                    input: "text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400",
+                    inputWrapper: "bg-white dark:bg-[#1e293b] border-2 border-orange-100 dark:border-orange-900/30 hover:border-[#FF5C00]/50 focus-within:!border-[#FF5C00] focus-within:!bg-white dark:focus-within:!bg-[#0f172a] shadow-sm transition-all h-12 px-6",
+                  }}
+                />
+              </div>
+
               {slotLoading && (
                 <div className="flex justify-center py-20">
                   <Spinner />
@@ -245,16 +305,28 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                   </CardBody>
                 </Card>
               ))}
-              <div className="flex justify-center mt-6">
-                <Pagination
-                  total={Math.ceil(slots.length / slotsPerPage) || 1}
-                  page={slotPage}
-                  onChange={setSlotPage}
-                  classNames={{
-                    cursor: "bg-[#FF5C00] text-white font-[1000] italic",
-                  }}
-                />
-              </div>
+
+              {!slotLoading && sortedSlots.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up border border-dashed border-slate-200 dark:border-white/10 rounded-[2rem]">
+                  <Search size={48} className="opacity-50 mb-4" />
+                  <h3 className="font-black text-xl italic uppercase tracking-wider mb-2 text-[#071739] dark:text-white">
+                    {language === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'}
+                  </h3>
+                </div>
+              )}
+
+              {sortedSlots.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <Pagination
+                    total={Math.ceil(sortedSlots.length / slotsPerPage) || 1}
+                    page={slotPage}
+                    onChange={setSlotPage}
+                    classNames={{
+                      cursor: "bg-[#FF5C00] text-white font-[1000] italic",
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </Tab>
 

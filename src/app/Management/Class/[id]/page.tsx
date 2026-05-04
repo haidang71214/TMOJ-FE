@@ -246,25 +246,6 @@ export default function ClassDetailPage({
                       </Button>
                     </Tooltip>
                     
-                    <Tooltip content={t('common.duplicate') || (language === 'vi' ? 'Nhân bản' : 'Duplicate')} placement="top" className="font-bold text-[10px]">
-                      <Button 
-                        isIconOnly size="sm" variant="flat" 
-                        className="h-9 w-9 animate-fade-in-up hover:bg-slate-200 dark:hover:bg-white/10" 
-                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 150}ms` }}
-                      >
-                        <Copy size={16} className="text-slate-500" />
-                      </Button>
-                    </Tooltip>
-
-                    <Tooltip content={t('common.download') || (language === 'vi' ? 'Tải xuống' : 'Download')} placement="top" className="font-bold text-[10px]">
-                      <Button 
-                        isIconOnly size="sm" variant="flat" 
-                        className="h-9 w-9 animate-fade-in-up hover:bg-slate-200 dark:hover:bg-white/10"
-                        style={{ animationFillMode: 'both', animationDelay: `${200 + index * 50 + 200}ms` }}
-                      >
-                        <Download size={16} className="text-slate-500" />
-                      </Button>
-                    </Tooltip>
 
                     <Tooltip content={t('common.delete') || (language === 'vi' ? 'Xóa' : 'Delete')} placement="top" color="danger" className="font-bold text-[10px]">
                       <Button 

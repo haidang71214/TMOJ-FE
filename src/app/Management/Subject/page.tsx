@@ -158,13 +158,7 @@ export default function SubjectListPage() {
                 accept=".xlsx, .xls"
                 onChange={handleImport}
               />
-              <Button
-                startContent={<Download size={16} strokeWidth={3} />}
-                onPress={handleDownloadTemplate}
-                className="bg-blue-600 text-white font-black h-11 px-6 rounded-xl shadow-lg uppercase text-[10px] tracking-wider transition-all active:scale-95 active-bump"
-              >
-                {t('common.template') || (language === 'vi' ? 'BIỂU MẪU' : 'TEMPLATE')}
-              </Button>
+             
               <Button
                 startContent={<Upload size={16} strokeWidth={3} />}
                 onPress={() => fileInputRef.current?.click()}

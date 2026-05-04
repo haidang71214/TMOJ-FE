@@ -26,6 +26,7 @@ import { useGetStoreItemDetailQuery, useBuyItemMutation, useAddToCartMutation, u
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { ErrorForm } from "@/types";
+import { useAppSelector } from "@/utils/redux";
 
 export default function ProductDetailPage() {
   const [mounted, setMounted] = useState(false);
@@ -43,9 +44,20 @@ export default function ProductDetailPage() {
   const isAlreadyOwned = product?.itemType !== "physical_item" && inventoryData?.some(inv => inv.itemId === product?.itemId);
   const isAlreadyInCart = product?.itemType !== "physical_item" && cartData?.some(cart => cart.itemId === product?.itemId);
 
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error(language === 'vi' ? "Vui lòng đăng nhập để truy cập!" : "Please login to access!", { id: "auth-check" });
+      router.push("/");
+    }
+  }, [isAuthenticated, router, language]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (!isAuthenticated) return null;
 
   const handleBuy = async () => {
     try {

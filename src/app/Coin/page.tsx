@@ -44,6 +44,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useGetMissionsQuery, useClaimMissionMutation } from "@/store/queries/gamification";
 import { Mission } from "@/types/gamification";
 import { useGamification } from "@/Provider/GamificationProvider";
+import { useAppSelector } from "@/utils/redux";
 
 interface MissionItem {
   id: number;
@@ -846,6 +847,19 @@ function CoinShopContent() {
 
 // Export component chính bọc trong Suspense
 export default function CoinShopPage() {
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticatedAccount);
+  const router = useRouter();
+  const { language } = useTranslation();
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error(language === 'vi' ? "Vui lòng đăng nhập để truy cập!" : "Please login to access!", { id: "auth-check" });
+      router.push("/");
+    }
+  }, [isAuthenticated, router, language]);
+
+  if (!isAuthenticated) return null;
+
   return (
     <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0A0F1C] p-8 transition-colors duration-300 custom-scrollbar">
       <Suspense fallback={<div>Loading...</div>}>

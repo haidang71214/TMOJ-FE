@@ -117,7 +117,7 @@ export default function CreateClassContestModal({ classSemesterId, onCreated }: 
       newErrors.startAt = t("contest.startAtRequired") || "Start time is required";
     } else {
       const startTime = new Date(startAt).getTime();
-      const minStartTime = now + 8 * 60 * 60 * 1000;
+      const minStartTime = now + 5 * 60 * 1000;
       if (startTime < minStartTime) {
         const minTimeDate = new Date(minStartTime);
         const timeString = minTimeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

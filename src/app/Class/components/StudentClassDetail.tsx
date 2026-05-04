@@ -306,7 +306,21 @@ export default function StudentClassDetail({ semesterId }: { semesterId: string 
                 </Card>
               ))}
 
-              {!slotLoading && sortedSlots.length === 0 && (
+              {!slotLoading && slots.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up">
+                  <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-full mb-4">
+                    <Rocket size={48} className="opacity-50" />
+                  </div>
+                  <h3 className="font-black text-xl italic uppercase tracking-wider mb-2 text-[#071739] dark:text-white">
+                    {language === 'vi' ? 'Chưa có examination' : 'No Examinations Yet'}
+                  </h3>
+                  <p className="font-bold text-sm text-center">
+                    {language === 'vi' ? 'Vui lòng đợi giảng viên tạo bài kiểm tra.' : 'Please wait for your teacher to create an examination.'}
+                  </p>
+                </div>
+              )}
+
+              {!slotLoading && slots.length > 0 && sortedSlots.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-fade-in-up border border-dashed border-slate-200 dark:border-white/10 rounded-[2rem]">
                   <Search size={48} className="opacity-50 mb-4" />
                   <h3 className="font-black text-xl italic uppercase tracking-wider mb-2 text-[#071739] dark:text-white">

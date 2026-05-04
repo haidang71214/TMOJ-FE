@@ -37,7 +37,6 @@ export default function ManagementLayout({
   const isManagerOrAdmin = user?.role?.toLowerCase() === "manager" || user?.role?.toLowerCase() === "admin";
 
   const menu = [
-    { key: "Dashboard", label: t('sidebar.dashboard') || (language === 'vi' ? "Bảng Điều Khiển" : "Dashboard"), icon: <LayoutDashboard size={20} /> },
     { key: "Problem", label: t('sidebar.problem') || (language === 'vi' ? "Bài Tập" : "Problem"), icon: <FileCode size={20} /> },
     { key: "Contest", label: t('sidebar.contest') || (language === 'vi' ? "Kỳ Thi" : "Contest"), icon: <Trophy size={20} /> },
     ...(isManagerOrAdmin ? [{ key: "Class", label: t('sidebar.class') || (language === 'vi' ? "Lớp Học" : "Class"), icon: <Users size={20} /> }] : []),

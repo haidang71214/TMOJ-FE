@@ -93,9 +93,11 @@ function useResize(
 export default function ProblemDetailsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const contestId = params.id as string;
+  const contestIdFromParams = params.id as string;
   const problemId = params.ProblemInContest as string;
   const contestProblemId = searchParams.get("contestProblemId") as string;
+  const classSemesterId = searchParams.get("classSemesterId");
+  const contestId = searchParams.get("contestId") || contestIdFromParams;
   const { t, language } = useTranslation();
 
   const { data: problemResponse } = useGetDetailProblemPublicQuery({ id: problemId });
@@ -175,6 +177,23 @@ export default function ProblemDetailsPage() {
           >
             {/* Tab bar */}
             <div className="h-12 shrink-0 bg-slate-50 dark:bg-[#111c35]/80 border-b border-slate-200 dark:border-[#334155]/50 flex items-center px-2 gap-1.5 overflow-hidden no-scrollbar">
+              {/* Back Button */}
+              <button
+                onClick={() => {
+                  if (classSemesterId && contestId) {
+                    window.location.href = `/ContestSlotExamintion/${classSemesterId}/Contest/${contestId}`;
+                  } else {
+                    window.location.href = `/Contest/${contestId}`;
+                  }
+                }}
+                className="flex items-center gap-2 px-3 h-8 rounded-lg text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 active-bump text-slate-500 dark:text-slate-400 hover:text-[#FF5C00] dark:hover:text-[#E3C39D] hover:bg-slate-200/50 dark:hover:bg-white/5 mr-1"
+              >
+                <ChevronLeft size={16} />
+                {language === 'vi' ? 'Quay lại' : 'Back'}
+              </button>
+
+              <div className="h-6 w-px bg-slate-300 dark:bg-[#334155] mx-1 opacity-50" />
+
               {LEFT_TABS.map(({ key, tKey, defaultVi, defaultEn, Icon }, index) => {
                 const isActive = activeLeftTab === key;
                 const label = t(tKey) || (language === 'vi' ? defaultVi : defaultEn);
@@ -499,7 +518,13 @@ export default function ProblemDetailsPage() {
                                     variant="shadow"
                                     color="success"
                                     startContent={<ChevronLeft size={18} />}
-                                    onPress={() => window.location.href = `/Contest/${contestId}`}
+                                    onPress={() => {
+                                      if (classSemesterId && contestId) {
+                                        window.location.href = `/ContestSlotExamintion/${classSemesterId}/Contest/${contestId}`;
+                                      } else {
+                                        window.location.href = `/Contest/${contestId}`;
+                                      }
+                                    }}
                                     className="font-black uppercase text-[12px] tracking-widest px-8 rounded-2xl"
                                   >
                                     Back to Contest

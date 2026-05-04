@@ -36,7 +36,7 @@ interface SelectedProblem {
 }
 
 export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { closeModal } = useModal();
   const [createSlot, { isLoading: isCreating }] = useCreateClassSlotMutation();
 
@@ -85,7 +85,19 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
     if (!title.trim()) newErrors.title = t("slot.titleRequired") || "Exam title is required";
     if (slotNo < 1) newErrors.slotNo = t("slot.slotNoMin") || "Exam number must be at least 1";
 
-    if (!openAt) newErrors.openAt = t("slot.openAtRequired") || "Open time is required";
+    if (!openAt) {
+      newErrors.openAt = t("slot.openAtRequired") || "Open time is required";
+    } else {
+      const openTime = new Date(openAt).getTime();
+      const now = new Date().getTime();
+      if (openTime - now < 15 * 60 * 1000) {
+        const minTime = new Date(now + 15 * 60 * 1000);
+        const timeString = minTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        newErrors.openAt = language === 'vi'
+          ? `Thời gian bắt đầu phải sau 15 phút kể từ hiện tại (từ ${timeString} trở đi)`
+          : `Start time must be at least 15 minutes from now (from ${timeString} onwards)`;
+      }
+    }
     if (!dueAt) newErrors.dueAt = t("slot.dueAtRequired") || "Due time is required";
     if (!closeAt) newErrors.closeAt = t("slot.closeAtRequired") || "Close time is required";
 
@@ -94,12 +106,17 @@ export default function CreateSlotForma({ semesterId }: CreateSlotFormProps) {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const onSubmit = async () => {
-    if (!validateForm()) {
-      toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      if (formErrors.openAt && openAt) {
+        toast.error(formErrors.openAt);
+      } else {
+        toast.error(t("common.fixErrors") || "Please fix the errors in the form!");
+      }
       return;
     }
 

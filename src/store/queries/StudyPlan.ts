@@ -105,7 +105,7 @@ export const studyPlanApi = baseApi.injectEndpoints({
         url: StudyPlanEndpoint.BUY_STUDY_PLAN.replace("{planId}", planId),
         method: "POST",
       }),
-      invalidatesTags: ["StudyPlan"],
+      invalidatesTags: ["StudyPlan", "Wallet"],
     }),
     enrollStudyPlan: builder.mutation<{ data: boolean }, string>({
       query: (planId) => ({

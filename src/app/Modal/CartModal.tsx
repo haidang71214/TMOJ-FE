@@ -55,8 +55,16 @@ export default function CartModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
   const handleCheckout = async () => {
     try {
+      const hasPhysicalItem = cartItems.some(item => getItemType(item.itemId) === "physical_item");
       await checkout().unwrap();
-      toast.success(language === 'vi' ? "Thanh toán thành công! Đồ đã được chuyển vào kho của bạn." : "Checkout successful! Items moved to your inventory.");
+      window.dispatchEvent(new CustomEvent("coin-deducted", { detail: { amount: totalAmount } }));
+      if (hasPhysicalItem) {
+        toast.success(language === 'vi'
+          ? "Thanh toán thành công! Vui lòng sau 3 ngày đến phòng dịch vụ sinh viên để nhận sản phẩm."
+          : "Checkout successful! Please come to the student service room after 3 days to receive your product.");
+      } else {
+        toast.success(language === 'vi' ? "Thanh toán thành công! Đồ đã được chuyển vào kho của bạn." : "Checkout successful! Items moved to your inventory.");
+      }
       onClose();
     } catch (error: any) {
       toast.error(error?.data?.message || "Checkout failed. Please check your balance.");

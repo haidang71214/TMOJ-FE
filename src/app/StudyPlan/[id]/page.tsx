@@ -74,6 +74,9 @@ export default function PackageEnrollPage() {
     }
     try {
       await buyPlan(id).unwrap();
+      if (price) {
+        window.dispatchEvent(new CustomEvent("coin-deducted", { detail: { amount: price } }));
+      }
       refetchEnrollment();
       addToast({ title: t("studyplan_detail.buy_success") || "Plan purchased successfully!", color: "success" });
     } catch (error) {

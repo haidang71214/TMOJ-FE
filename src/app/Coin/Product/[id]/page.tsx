@@ -49,8 +49,18 @@ export default function ProductDetailPage() {
 
   const handleBuy = async () => {
     try {
+      const isPhysical = product?.itemType === "physical_item";
       await buyItem({ itemId: id }).unwrap();
-      toast.success(language === 'vi' ? "Mua hàng thành công!" : "Successfully purchased!");
+      if (product?.priceCoin) {
+        window.dispatchEvent(new CustomEvent("coin-deducted", { detail: { amount: product.priceCoin } }));
+      }
+      if (isPhysical) {
+        toast.success(language === 'vi' 
+          ? "Mua hàng thành công! Vui lòng sau 3 ngày đến phòng dịch vụ sinh viên để nhận sản phẩm." 
+          : "Successfully purchased! Please come to the student service room after 3 days to receive your product.");
+      } else {
+        toast.success(language === 'vi' ? "Mua hàng thành công!" : "Successfully purchased!");
+      }
       router.push("/Coin?tab=inventory");
     } catch (err: any) {
       const error = err as ErrorForm;

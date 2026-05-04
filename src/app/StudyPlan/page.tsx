@@ -32,6 +32,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useAppSelector } from "@/utils/redux";
 import { useModal } from "@/Provider/ModalProvider";
 import LoginModal from "@/app/Modal/LoginModal";
+import { toast } from "sonner";
 
 type SortOption = "default" | "learners" | "price_asc" | "price_desc" | "name_asc";
 type PriceFilter = "all" | "free" | "paid";
@@ -93,11 +94,16 @@ export default function StudyPlanPage() {
 
   const handleBuy = async (e: React.MouseEvent, planId: string) => {
     e.stopPropagation();
+    const plan = studyPlans.find(p => p.id === planId);
     try {
       await buyPlan(planId).unwrap();
+      if (plan?.price) {
+        window.dispatchEvent(new CustomEvent("coin-deducted", { detail: { amount: plan.price } }));
+      }
+      toast.success(t("studyplan_detail.buy_success") || "Plan purchased successfully!");
       refetch();
     } catch (error: any) {
-      alert(error?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase.");
+      toast.error(error?.data?.message || t("studyplan_detail.buy_fail") || "Failed to purchase.");
     }
   };
 
